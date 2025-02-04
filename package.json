@@ -25,6 +25,7 @@
     "vite": "^4.5.0"
   },
   "dependencies": {
+    "electron-vue-template": "file:",
     "vue": "^3.3.8"
   }
 }

@@ -1,10 +1,16 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import viteLogo from './assets/vite.svg';
 import vueLogo from './assets/vue.svg';
 
 import HelloWorld from './components/HelloWorld.vue'
 
+const message = ref("")
+
 window.electronAPI.sendMessage('Hello from App.vue!');
+window.electronAPI.sendFeedbackMessage('Test Feedback').then(r => {
+  message.value = r;
+})
 </script>
 
 <template>
@@ -16,6 +22,7 @@ window.electronAPI.sendMessage('Hello from App.vue!');
       <img :src="vueLogo" class="logo vue" alt="Vue logo" />
     </a>
   </div>
+  <p>{{ message }}</p>
   <HelloWorld msg="Vite + Vue" />
 </template>
 

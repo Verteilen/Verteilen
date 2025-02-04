@@ -1,5 +1,5 @@
-import {app, BrowserWindow, ipcMain, session} from 'electron';
-import {join} from 'path';
+import { app, BrowserWindow, ipcMain, session } from 'electron';
+import { join } from 'path';
 
 function createWindow () {
   const mainWindow = new BrowserWindow({
@@ -48,4 +48,9 @@ app.on('window-all-closed', function () {
 
 ipcMain.on('message', (event, message) => {
   console.log(message);
+})
+
+ipcMain.handle('message', (event, message) => {
+  console.log(message)
+  return "Recevied !"
 })
