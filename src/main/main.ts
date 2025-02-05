@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain, Menu, session } from 'electron';
+import { app, BrowserWindow, Menu, session } from 'electron';
+import 'events';
 import { join } from 'path';
 import menu from './menu';
 
@@ -52,18 +53,4 @@ app.whenReady().then(() => {
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 });
-
-ipcMain.on('message', (event, message) => {
-  console.log(message);
-})
-
-ipcMain.on('modeSelect', (event, isclient:boolean) => {
-  console.log("Select mode: " + isclient ? "Client" : "Server")
-  event.sender.send('msgAppend', "Client mode on...")
-})
-
-ipcMain.handle('message', (event, message) => {
-  console.log(message)
-  return "Recevied !"
-})
 

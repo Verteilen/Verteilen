@@ -12,7 +12,7 @@ const serverClick = () => {
         message: "用戶選擇了伺服器模式, 主控台出現後, 控制其他節點進行工作"
     })
     emitter?.emit('modeSelect', false);
-    window.electronAPI.modeSelect(false)
+    window.electronAPI.send('modeSelect', false)
 }
 
 const clientClick = () => {
@@ -22,7 +22,7 @@ const clientClick = () => {
         message: "用戶選擇了節點模式, 被動架構的情況下無法做任意事件, 將會等待伺服器連線..."
     })
     emitter?.emit('modeSelect', true);
-    window.electronAPI.modeSelect(true)
+    window.electronAPI.send('modeSelect', true)
 }
 
 </script>

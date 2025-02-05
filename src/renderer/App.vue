@@ -9,14 +9,9 @@ import ServerNode from './components/ServerNode.vue';
 import { BusType } from './interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
-
 const mode = ref(-1)
-const message = ref("")
 
-window.electronAPI.sendMessage('Hello from App.vue!');
-window.electronAPI.sendFeedbackMessage('Test Feedback').then(r => {
-  message.value = r;
-})
+window.electronAPI.send('message', 'Hello from App.vue!');
 
 emitter?.on('modeSelect', (isclient) => {
   mode.value = isclient ? 0 : 1;
