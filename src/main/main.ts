@@ -1,14 +1,19 @@
-import { app, BrowserWindow, ipcMain, session } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, session } from 'electron';
 import { join } from 'path';
+import menu from './menu';
+
+export let mainWindow:BrowserWindow | undefined = undefined
 
 function createWindow () {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    backgroundColor: '#121212',
+    darkTheme: true,
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       nodeIntegration: false,
-      contextIsolation: true,
+      contextIsolation: true
     }
   });
 
@@ -19,6 +24,8 @@ function createWindow () {
   else {
     mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'));
   }
+
+  Menu.setApplicationMenu(menu)
 }
 
 app.whenReady().then(() => {
@@ -50,7 +57,13 @@ ipcMain.on('message', (event, message) => {
   console.log(message);
 })
 
+ipcMain.on('modeSelect', (event, isclient:boolean) => {
+  console.log("Select mode: " + isclient ? "Client" : "Server")
+  event.sender.send('msgAppend', "Client mode on...")
+})
+
 ipcMain.handle('message', (event, message) => {
   console.log(message)
   return "Recevied !"
 })
+

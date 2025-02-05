@@ -1,29 +1,34 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import viteLogo from './assets/vite.svg';
-import vueLogo from './assets/vue.svg';
+import { inject, ref } from 'vue';
 
-import HelloWorld from './components/HelloWorld.vue'
+import { Emitter } from 'mitt';
+import ClientNode from './components/ClientNode.vue';
+import Messager from './components/Messager.vue';
+import ServerClientSelection from './components/ServerClientSelection.vue';
+import ServerNode from './components/ServerNode.vue';
+import { BusType } from './interface';
 
+const emitter:Emitter<BusType> | undefined = inject('emitter');
+
+const mode = ref(-1)
 const message = ref("")
 
 window.electronAPI.sendMessage('Hello from App.vue!');
 window.electronAPI.sendFeedbackMessage('Test Feedback').then(r => {
   message.value = r;
 })
+
+emitter?.on('modeSelect', (isclient) => {
+  mode.value = isclient ? 0 : 1;
+})
+
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img :src="viteLogo" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img :src="vueLogo" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <p>{{ message }}</p>
-  <HelloWorld msg="Vite + Vue" />
+  <ServerClientSelection v-if="mode == -1" />
+  <ClientNode v-else-if="mode == 0"/>
+  <ServerNode v-else-if="mode == 1"/>
+  <Messager />
 </template>
 
 <style scoped>
