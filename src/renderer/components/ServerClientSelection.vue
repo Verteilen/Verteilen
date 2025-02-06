@@ -28,17 +28,21 @@ const clientClick = () => {
 </script>
 
 <template>
-    <p>你擔任的角色</p>
-    <div class="row">
-        <div class="col">
-            <b-button class="w-100 h-100 mx-1" @click="serverClick">伺服器</b-button>
-        </div>
-        <div class="col">
-            <b-button class="w-100 h-100 mx-1" @click="clientClick">節點</b-button>    
+    <div style="margin: 0; padding-top: 35vh; width: 80vw; height: 80vh; place-items: center;">
+        <p>你擔任的角色</p>
+        <div class="row">
+            <div class="col">
+                <b-button class="w-100 h-100 mx-1" @click="serverClick">伺服器</b-button>
+            </div>
+            <div class="col">
+                <b-button class="w-100 h-100 mx-1" @click="clientClick">節點</b-button>    
+            </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-
+body {
+    place-items: center;
+}
 </style>

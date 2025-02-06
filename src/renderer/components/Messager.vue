@@ -5,7 +5,7 @@ import { BusType, IMessage, ToastData } from '../interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const messages:Ref<Array<IMessage>> = ref([])
-let updateToastHandle:number = -1
+let updateToastHandle:any
 
 const makeToast = (e:ToastData) => {
     console.log("Hello");

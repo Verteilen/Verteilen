@@ -1,7 +1,7 @@
-import { app, BrowserWindow, Menu, session } from 'electron';
-import 'events';
+import { app, BrowserWindow, session } from 'electron';
 import { join } from 'path';
-import menu from './menu';
+import './client/client';
+import { eventInit } from './event';
 
 export let mainWindow:BrowserWindow | undefined = undefined
 
@@ -25,8 +25,8 @@ function createWindow () {
   else {
     mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'));
   }
-
-  Menu.setApplicationMenu(menu)
+  mainWindow.setMenu(null)
+  eventInit()
 }
 
 app.whenReady().then(() => {

@@ -11,7 +11,7 @@ import { BusType } from './interface';
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const mode = ref(-1)
 
-window.electronAPI.send('message', 'Hello from App.vue!');
+window.electronAPI.send('message', '歡迎啟動自動化工廠');
 
 emitter?.on('modeSelect', (isclient) => {
   mode.value = isclient ? 0 : 1;

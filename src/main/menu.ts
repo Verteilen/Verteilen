@@ -1,72 +1,79 @@
-import { Menu } from 'electron';
+import { dialog, Menu } from 'electron';
 import { mainWindow } from './main';
 
 
 const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> = [
     {
-        label: "File",
+        label: "檔案",
         submenu: [
             { 
-                label: "New Project",
+                label: "新增專案",
                 click: async () => {
-                    
+                    if(mainWindow == undefined) return;
+                    mainWindow.webContents.send('createProject')
                 }
             },
             { type : 'separator' },
             { 
-                label: "Import Project",
+                label: "匯入專案",
                 click: async () => {
-                    
+                    if(mainWindow == undefined) return;
+                    dialog.showOpenDialog(mainWindow, {
+                        properties: ['openFile'],
+                        filters: [
+                            { name: 'JSON', extensions: ['json'] },
+                        ]
+                    }).then(v => {
+                        
+                    })
                 }
             },
             { 
-                label: "Export Project",
+                label: "匯出專案 (全部)",
                 click: async () => {
-                    
+                    if(mainWindow == undefined) return;
+                    dialog.showOpenDialog(mainWindow, {
+                        properties: ['openDirectory']
+                    }).then(v => {
+                        
+                    })
                 }
             },
             { type : 'separator' },
-            { role: 'quit' }
+            { label: '退出', role: 'quit' }
         ]
     },
     {
-        label: 'Edit',
+        label: '編輯',
         submenu: [
-            { role: 'undo' },
-            { role: 'redo' },
+            { label: '撤銷', role: 'undo' },
+            { label: '重作', role: 'redo' },
             { type: 'separator' },
-            { role: 'cut' },
-            { role: 'copy' },
-            { role: 'paste' },
-            { role: 'delete' },
+            { label: '剪下', role: 'cut' },
+            { label: '複製', role: 'copy' },
+            { label: '貼上', role: 'paste' },
+            { label: '刪除', role: 'delete' },
             { type: 'separator' },
-            { role: 'selectAll' }
+            { label: '選擇全部', role: 'selectAll' }
         ]
     },
     {
-        label: 'Action',
+        label: '執行',
         submenu: [
             {
-                label: 'Run All'
+                label: '執行所有'
             },
             {
-                label: 'Run All (Force)'
+                label: '執行所有 (強制)'
             }
         ]
     },
     {
-        role: 'help',
+        label: '幫助',
         submenu: [
-            {
-                label: 'Learn More',
-                click: async () => {
-                    const { shell } = require('electron')
-                    await shell.openExternal('https://electronjs.org')
-                }
-            },
             ...process.env.NODE_ENV === 'development' ? [
                 {
-                    label: 'console',
+                    label: '控制台',
                     click: async () => {
                         mainWindow?.webContents.openDevTools();
                     }

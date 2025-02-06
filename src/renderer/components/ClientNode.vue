@@ -8,19 +8,48 @@ const msgAppend = (e:IpcRendererEvent, msg:string) => {
   messages.value.push(msg);
 }
 
+const clearMessage = () => {
+  messages.value.splice(0, messages.value.length)
+}
+
 onMounted(() => {
   window.electronAPI.eventOn('msgAppend', msgAppend);
+  window.electronAPI.send('menu', false)
+  window.electronAPI.send('client_start');
 })
 
 onUnmounted(() => {
   window.electronAPI.eventOff('msgAppend', msgAppend);
+  window.electronAPI.send('client_stop');
 })
 
 </script>
 
 <template>
-  <p v-for="(msg, i) in messages" :key="i">{{ msg }}</p>
+  <div class="float_button">
+    <b-button-group>
+      <b-button @click="clearMessage">清除</b-button>
+    </b-button-group>
+  </div>
+  <div class="flow">
+    <p class="messages" v-for="(msg, i) in messages" :key="i">{{ msg }}</p>
+  </div>
 </template>
 
 <style scoped>
+.float_button{
+  position: fixed;
+  top: 20px;
+  right: 20px;
+}
+.flow {
+  margin-top: 20px;
+  padding-left: 10px;
+  width: 100vw; 
+  text-align: left;
+  user-select: none;
+}
+.messages {
+  line-height: 10px;
+}
 </style>
