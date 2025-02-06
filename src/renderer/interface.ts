@@ -69,6 +69,10 @@ export interface ProjectTable {
     taskCount: number
 }
 
+export interface Record {
+    projects: Array<Project>
+}
+
 export type BusType = {
     makeToast: ToastData
     modeSelect: boolean

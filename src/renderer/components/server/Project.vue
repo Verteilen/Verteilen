@@ -81,28 +81,31 @@ const confirmCreate = () => {
     })
 }
 
-emitter?.on('updateProject', updateProject)
-emitter?.on('createProject', createProject)
-
 onMounted(() => {
     fields.value = ['s', 'ID', 'title', 'description', 'taskCount', 'detail']
     updateProject()
     window.electronAPI.eventOn('createProject', createProject)
+
+    emitter?.on('updateProject', updateProject)
+    emitter?.on('createProject', createProject)
 })
 
 onUnmounted(() => {
     window.electronAPI.eventOff('createProject', createProject)
+
+    emitter?.off('updateProject', updateProject)
+    emitter?.off('createProject', createProject)
 })
 
 </script>
 
 <template>
     <div>
-        <div class="mt-3">
+        <div class="my-3">
             <b-button-group>
-                <b-button @click="createProject">新增</b-button>
-                <b-button @click="cloneSelect" :disabled="!hasSelect">克隆</b-button>
-                <b-button @click="deleteSelect" :disabled="!hasSelect">刪除</b-button>
+                <b-button variant='primary' @click="createProject">新增</b-button>
+                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect">克隆</b-button>
+                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect">刪除</b-button>
                 <b-button @click="execute(false)" :disabled="!hasSelect">執行</b-button>
                 <b-button @click="execute(true)" :disabled="!hasSelect">強制執行</b-button>
             </b-button-group>

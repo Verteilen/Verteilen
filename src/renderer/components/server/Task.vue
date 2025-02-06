@@ -13,6 +13,7 @@ const emits = defineEmits<{
     (e: 'added', task:Task): void
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
+    (e: 'parameter'):void
 }>()
 const hasSelect = ref(false)
 const createModal = ref(false)
@@ -35,6 +36,10 @@ const updateTask = () => {
 
 const createProject = () => {
     createModal.value = true
+}
+
+const detailOpen = () => {
+    emits('parameter')
 }
 
 const cloneSelect = () => {
@@ -81,20 +86,21 @@ onMounted(() => {
 
 <template>
     <div>
-        <div class="mt-3">
+        <div class="my-3">
             <b-button-group>
-                <b-button @click="createProject" :disabled="select == undefined">新增</b-button>
-                <b-button @click="cloneSelect" :disabled="!hasSelect || select == undefined">克隆</b-button>
-                <b-button @click="deleteSelect" :disabled="!hasSelect || select == undefined">刪除</b-button>
+                <b-button variant='primary' @click="createProject" :disabled="select == undefined">新增</b-button>
+                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">克隆</b-button>
+                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">刪除</b-button>
             </b-button-group>
         </div>
-        <b-card ag="article" class="mb-2" v-if="props.select != undefined">
+        <b-card no-body ag="article" class="my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
             <b-card-title>
                 當前選擇專案: {{ props.select.title }}
             </b-card-title>
             <b-card-text>
                 敘述: {{ props.select.description }}
             </b-card-text>
+            <b-button variant="primary" @click="detailOpen">參數設定</b-button>
         </b-card>
         <b-table striped hover :items="items" :fields="fields">
             <template #cell(s)="data">
@@ -112,7 +118,8 @@ onMounted(() => {
         <b-modal title="新增流程" v-model="createModal" hide-footer>
             <b-form-input v-model="createData.title" required placeholder="輸入流程名稱"></b-form-input>
             <b-form-input class="mt-3" v-model="createData.description" placeholder="輸入流程敘述"></b-form-input>
-            <b-form-checkbox size="lg" v-model="createData.cronjob">分散運算</b-form-checkbox>
+            <hr />
+            <b-form-checkbox v-model="createData.cronjob">分散運算</b-form-checkbox>
             <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
         </b-modal>
     </div>

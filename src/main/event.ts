@@ -2,6 +2,7 @@ import { ipcMain } from "electron";
 import fs from "fs";
 import { clientinit } from "./client/client";
 import { dir_copy, dir_delete, file_copy, file_delete, fs_exist } from "./client/os";
+import { Record } from "./interface";
 import { mainWindow } from "./main";
 import menu from "./menu";
 import { serverinit } from "./server/server";
@@ -39,6 +40,27 @@ export const eventInit = () => {
     
     ipcMain.on('dir_delete', (event, path:string):void => {
         dir_delete({ path: path })
+    })
+
+    ipcMain.on('save_record', (e, projects:string) => {
+        const record:Record = {
+            projects: JSON.parse(projects)
+        }
+        fs.writeFileSync('record.json', JSON.stringify(record, null, 4))
+    })
+
+    ipcMain.handle('load_record', (e) => {
+        if(!fs.existsSync('record.json')){
+            const record:Record = {
+                projects: []
+            }
+            fs.writeFileSync('record.json', JSON.stringify(record, null, 4))
+            return JSON.stringify(record.projects)
+        } else {
+            const file = fs.readFileSync('record.json')
+            const record:Record = JSON.parse(file.toString())
+            return JSON.stringify(record.projects)
+        }
     })
     
     ipcMain.handle('fs_exist', (event, path:string):boolean => {

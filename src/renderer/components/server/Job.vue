@@ -77,14 +77,14 @@ onMounted(() => {
 
 <template>
     <div>
-        <div class="mt-3">
+        <div class="my-3">
             <b-button-group>
-                <b-button @click="createProject" :disabled="select == undefined">新增</b-button>
-                <b-button @click="cloneSelect" :disabled="!hasSelect || select == undefined">克隆</b-button>
-                <b-button @click="deleteSelect" :disabled="!hasSelect || select == undefined">刪除</b-button>
+                <b-button variant='primary' @click="createProject" :disabled="select == undefined">新增</b-button>
+                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">克隆</b-button>
+                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">刪除</b-button>
             </b-button-group>
         </div>
-        <b-card ag="article" class="mb-2" v-if="props.select != undefined">
+        <b-card ag="article" class="my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
             <b-card-title>
                 當前選擇流程: {{ props.select.title }}
             </b-card-title>
