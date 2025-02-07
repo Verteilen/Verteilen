@@ -8,7 +8,6 @@ const messages:Ref<Array<IMessage>> = ref([])
 let updateToastHandle:any
 
 const makeToast = (e:ToastData) => {
-    console.log("Hello");
     messages.value.push(
         {
             ison: true,

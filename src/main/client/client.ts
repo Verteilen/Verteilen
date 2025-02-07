@@ -5,7 +5,7 @@ import { Header, PORT } from '../interface';
 import { analysis } from './analysis';
 
 let client:ws.WebSocketServer | undefined = undefined
-let source:ws.WebSocket | undefined = undefined
+export let source:ws.WebSocket | undefined = undefined
 
 export const clientinit = () => {
     ipcMain.on('client_start', () => {

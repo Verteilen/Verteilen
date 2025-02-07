@@ -71,6 +71,13 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
     {
         label: '幫助',
         submenu: [
+            {
+                label: "說明",
+                click: async () => {
+                    console.log("[工具欄] 打開說明")
+                    mainWindow?.webContents.send('show_helper')
+                }
+            },
             ...process.env.NODE_ENV === 'development' ? [
                 {
                     label: '控制台',

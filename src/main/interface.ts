@@ -23,6 +23,11 @@ export interface TwoPath {
     to: string
 }
 
+export interface Setter {
+    key: string
+    value: any
+}
+
 export interface FeedBack {
     job_uuid: string
     message: string
@@ -35,9 +40,19 @@ export enum JobType {
     DELETE_DIR,
 }
 
+export interface Parameter {
+    numbers: Array<{ name: string, value: number }>
+    strings: Array<{ name: string, value: string }>
+    booleans: Array<{ name: string, value: boolean }>
+}
+
 export interface Job {
     uuid: string
-    type: JobType
+    type: number
+    lua: string
+    string_args: Array<string>
+    number_args: Array<number>
+    boolean_args: Array<boolean>
 }
 
 export interface Task {
@@ -52,6 +67,7 @@ export interface Project {
     uuid: string
     title: string
     description: string
+    parameter: Parameter
     task: Array<Task>
 }
 

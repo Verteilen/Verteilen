@@ -5,10 +5,10 @@ import { messager_log } from '../debugger';
 import { Header, WebsocketPack } from '../interface';
 import { analysis } from './analysis';
 
-let target:Array<WebsocketPack> = []
+export let targets:Array<WebsocketPack> = []
 
 const sendUpdate = (sender:Electron.WebContents) => {
-    sender.send('server_clients_update', target.map(x => {
+    sender.send('server_clients_update', targets.map(x => {
         return {
             s: false,
             ID: x.uuid,
@@ -28,13 +28,13 @@ export const serverinit = () => {
             })
             client.on('close', (code, reason) => {
                 messager_log(`[關閉事件] 客戶端關閉連線, ${code}, ${reason}`)
-                const index = target.findIndex(x => client)
-                if (index != -1) target.splice(index, 1)
+                const index = targets.findIndex(x => client)
+                if (index != -1) targets.splice(index, 1)
                 reject()
             })
             client.on('open', () => {
                 messager_log('[連線事件] 新連線狀態建立 !' + client.url)
-                target.push({ uuid: uuidv6(), websocket: client })
+                targets.push({ uuid: uuidv6(), websocket: client })
                 sendUpdate(e.sender)
                 resolve()
             })
@@ -46,10 +46,10 @@ export const serverinit = () => {
     })
     
     ipcMain.handle('server_stop', (e, uuid:string, reason:string) => {
-        const index = target.findIndex(x => x.uuid == uuid)
+        const index = targets.findIndex(x => x.uuid == uuid)
         if(index != -1) {
-            target[index].websocket.close(200, reason)
-            target.splice(index, 1)
+            targets[index].websocket.close(200, reason)
+            targets.splice(index, 1)
             return true;
         }else{
             return false

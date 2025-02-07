@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { inject, ref } from 'vue';
+import { inject, onMounted, onUnmounted, ref } from 'vue';
 
 import { Emitter } from 'mitt';
 import ClientNode from './components/ClientNode.vue';
+import Helper from './components/Helper.vue';
 import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
@@ -10,11 +11,26 @@ import { BusType } from './interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const mode = ref(-1)
+const helper = ref(false)
 
 window.electronAPI.send('message', '歡迎啟動自動化工廠');
 
-emitter?.on('modeSelect', (isclient) => {
+const modeSelect = (isclient:boolean) => {
   mode.value = isclient ? 0 : 1;
+}
+
+const show_helper = () => {
+  helper.value = true
+}
+
+onMounted(() => {
+  emitter?.on('modeSelect', modeSelect)
+  window.electronAPI.eventOn('show_helper', show_helper)
+})
+
+onUnmounted(() => {
+  emitter?.on('modeSelect', modeSelect)
+  window.electronAPI.eventOff('show_helper', show_helper)
 })
 
 </script>
@@ -24,6 +40,7 @@ emitter?.on('modeSelect', (isclient) => {
   <ClientNode v-else-if="mode == 0"/>
   <ServerNode v-else-if="mode == 1"/>
   <Messager />
+  <Helper v-model="helper" />
 </template>
 
 <style scoped>

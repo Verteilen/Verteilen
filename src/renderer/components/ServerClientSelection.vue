@@ -28,7 +28,7 @@ const clientClick = () => {
 </script>
 
 <template>
-    <div style="margin: 0; padding-top: 35vh; width: 80vw; height: 80vh; place-items: center;">
+    <div style="margin: 0; padding:35vh 10vw; width: 100vw; height: 80vh; place-items: center;">
         <p>你擔任的角色</p>
         <div class="row">
             <div class="col">

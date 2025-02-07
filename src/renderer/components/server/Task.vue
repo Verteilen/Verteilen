@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { nextTick, onMounted, Ref, ref } from 'vue';
-import { Project, Task, TaskTable } from '../../interface';
+import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { BusType, Project, Task, TaskTable } from '../../interface';
+
+const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     projects: Array<Project>
@@ -10,16 +13,22 @@ interface PROPS {
 
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
-    (e: 'added', task:Task): void
+    (e: 'added', task:Task[]): void
+    (e: 'edit', uuid:string, task:Task): void
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
     (e: 'parameter'):void
+    (e: 'moveup', uuids:string): void
+    (e: 'movedown', uuids:string): void
 }>()
 const hasSelect = ref(false)
 const createModal = ref(false)
-const createData = ref({cronjob: false, title: "", description: ""})
+const createData = ref({cronjob: false, cronjobKey: "", title: "", description: ""})
+const editModal = ref(false)
+const editUUID = ref('')
 const items:Ref<Array<TaskTable>> = ref([])
 const fields:Ref<Array<string>> = ref([])
+const para_keys:Ref<Array<string>> = ref([])
 
 const updateTask = () => {
     items.value = props.select?.task.map(x => {
@@ -34,6 +43,10 @@ const updateTask = () => {
     }) ?? []
 }
 
+const updateParameter = () => {
+    para_keys.value = props.select?.parameter.numbers.map(x => x.name) ?? []
+}
+
 const createProject = () => {
     createModal.value = true
 }
@@ -43,11 +56,25 @@ const detailOpen = () => {
 }
 
 const cloneSelect = () => {
-    
+    if(props.select == undefined) return
+    const selectpt = items.value.filter(x => x.s).map(x => x.ID)
+    const ts = props.select.task.filter(x => selectpt.includes(x.uuid)).map(y => Object.create(y))
+    ts.forEach(x => {
+        x.uuid = uuidv6()
+        x.title = x.title + " (克隆)"
+    })
+    emits('added', ts)
+    nextTick(() => {
+        updateTask();
+    })
 }
 
 const deleteSelect = () => {
-    
+    emits('delete', items.value.filter(x => x.s).map(x => x.ID))
+    nextTick(() => {
+        updateTask()
+        hasSelect.value = items.value.filter(x => x.s).length > 0;
+    })
 }
 
 const datachange = (uuid:any, v:boolean) => {
@@ -60,26 +87,91 @@ const datachoose = (uuid:string) => {
     emits('select', uuid)
 }
 
+const dataedit = (uuid:string) => {
+    if(props.select == undefined) return
+    const selectp = props.select.task.find(x => x.uuid == uuid)
+    if(selectp == undefined) return;
+    createData.value = {cronjob: selectp.cronjob, cronjobKey: selectp.cronjobKey, title: selectp.title, description: selectp.description};
+    editModal.value = true;
+    editUUID.value = uuid;
+}
+
 const confirmCreate = () => {
     createModal.value = false
     emits('added', 
-        { 
+        [{ 
             uuid: uuidv6(),
             title: createData.value.title, 
             description: createData.value.description,
             cronjob: createData.value.cronjob,
+            cronjobKey: createData.value.cronjobKey,
             jobs: []
-        }
+        }]
     )
     nextTick(() => {
         updateTask();
-        createData.value = {cronjob: false, title: "", description: ""};
+        createData.value = {cronjob: false, cronjobKey: "", title: "", description: ""};
     })
 }
 
+const confirmEdit = () => {
+    if(props.select == undefined) return
+    const selectp = props.select.task.find(x => x.uuid == editUUID.value)
+    if(selectp == undefined) return;
+    editModal.value = false
+    emits('edit', 
+        editUUID.value,
+        { 
+            uuid: editUUID.value,
+            title: createData.value.title, 
+            description: createData.value.description,
+            cronjob: createData.value.cronjob,
+            cronjobKey: createData.value.cronjobKey,
+            jobs: selectp.jobs
+        }
+    )
+    nextTick(() => {
+        updateTask()
+    })
+}
+
+const moveup = (uuid:string) => {
+    emits('moveup', uuid)
+    nextTick(() => {
+        updateTask();
+    })
+}
+
+const movedown = (uuid:string) => {
+    emits('movedown', uuid)
+    nextTick(() => {
+        updateTask();
+    })
+}
+
+const isFirst = (uuid:string) => {
+    if(props.select == undefined) return
+    const index = props.select.task.findIndex(x => x.uuid == uuid)
+    return index <= 0
+}
+
+const isLast = (uuid:string) => {
+    if(props.select == undefined) return
+    const index = props.select.task.findIndex(x => x.uuid == uuid)
+    if(index == -1) return true
+    return index == props.select.task.length - 1
+}
+
 onMounted(() => {
-    fields.value = ['s', 'ID', 'cronjob', 'title', 'description', 'jobCount', 'detail']
-    updateTask()
+    fields.value = ['ID', 'cronjob', 'title', 'description', 'jobCount', 'detail']
+    emitter?.on('updateTask', updateTask)
+    emitter?.on('updateParameter', updateParameter)
+    para_keys.value = props.select?.parameter.numbers.map(x => x.name) ?? []
+})
+
+onUnmounted(() => {
+    emitter?.off('updateTask', updateTask)
+    emitter?.off('updateParameter', updateParameter)
 })
 
 </script>
@@ -103,15 +195,23 @@ onMounted(() => {
             <b-button variant="primary" @click="detailOpen">參數設定</b-button>
         </b-card>
         <b-table striped hover :items="items" :fields="fields">
-            <template #cell(s)="data">
-                <b-form-checkbox style="float:right;" size="lg" v-model="data.s" @change="v => datachange(data.item.ID, v)"></b-form-checkbox>
+            <template #cell(ID)="data">
+                <b-row>
+                    <b-col cols="1">
+                        <b-form-checkbox style="float:left; width:15px" v-model="data.s" @change="v => datachange(data.item.ID, v)"></b-form-checkbox>
+                    </b-col>
+                    <b-col>
+                        <a href="#" @click="datachoose(data.item.ID)">{{ data.item.ID }}</a>
+                    </b-col>
+                </b-row>
             </template>
             <template #cell(detail)="data">
                 <b-dropdown text="動作" class="m-md-2">
                     <b-dropdown-item @click="datachoose(data.item.ID)">查看</b-dropdown-item>
+                    <b-dropdown-item @click="dataedit(data.item.ID)">編輯</b-dropdown-item>
                     <b-dropdown-divider></b-dropdown-divider>
-                    <b-dropdown-item>往上移動</b-dropdown-item>
-                    <b-dropdown-item>往下移動</b-dropdown-item>
+                    <b-dropdown-item :disabled="isFirst(data.item.ID)" @click="moveup(data.item.ID)">往上移動</b-dropdown-item>
+                    <b-dropdown-item :disabled="isLast(data.item.ID)" @click="movedown(data.item.ID)">往下移動</b-dropdown-item>
                 </b-dropdown>
             </template>
         </b-table>
@@ -120,7 +220,16 @@ onMounted(() => {
             <b-form-input class="mt-3" v-model="createData.description" placeholder="輸入流程敘述"></b-form-input>
             <hr />
             <b-form-checkbox v-model="createData.cronjob">分散運算</b-form-checkbox>
+            <b-form-select class="mt-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :options="para_keys"></b-form-select>
             <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
+        </b-modal>
+        <b-modal title="編輯流程" v-model="editModal" hide-footer>
+            <b-form-input v-model="createData.title" required placeholder="輸入流程名稱"></b-form-input>
+            <b-form-input class="mt-3" v-model="createData.description" placeholder="輸入流程敘述"></b-form-input>
+            <hr />
+            <b-form-checkbox v-model="createData.cronjob">分散運算</b-form-checkbox>
+            <b-form-select class="mt-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :options="para_keys"></b-form-select>
+            <b-button class="mt-3" variant="primary" @click="confirmEdit">修改</b-button>
         </b-modal>
     </div>
 </template>

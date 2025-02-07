@@ -17,11 +17,42 @@ export enum JobType {
     COPY_DIR,
     DELETE_FILE,
     DELETE_DIR,
+    LUA,
+    COMMAND
+}
+
+export enum LUATemplate {
+    DEFAULT,
+    FUNIQUE_GS4_V1
+}
+
+export const JobTypeText: { [key:number]:string } = {
+    0: '複製檔案',
+    1: '複製資料夾',
+    2: '刪除檔案',
+    3: '刪除資料夾',
+    4: 'LUA 腳本',
+    5: '指令執行'
+}
+
+export const LUATemplateText: { [key:number]:string } = {
+    0: '預設',
+    1: '睿智 GS4 資料夾整理 v1'
+}
+
+export interface Parameter {
+    numbers: Array<{ name: string, value: number }>
+    strings: Array<{ name: string, value: string }>
+    booleans: Array<{ name: string, value: boolean }>
 }
 
 export interface Job {
     uuid: string
-    type: JobType
+    type: number
+    lua: string
+    string_args: Array<string>
+    number_args: Array<number>
+    boolean_args: Array<boolean>
 }
 
 export interface Task {
@@ -29,6 +60,7 @@ export interface Task {
     title: string
     description: string
     cronjob: boolean
+    cronjobKey: string
     jobs: Array<Job>
 }
 
@@ -36,6 +68,7 @@ export interface Project {
     uuid: string
     title: string
     description: string
+    parameter: Parameter
     task: Array<Task>
 }
 
@@ -44,12 +77,6 @@ export interface NodeTable {
     ID: string
     url: string
     connection_rate: number
-}
-
-export interface JobTable {
-    s: boolean
-    ID: string
-    type: JobType
 }
 
 export interface TaskTable {
@@ -78,4 +105,7 @@ export type BusType = {
     modeSelect: boolean
     createProject: void
     updateProject: void
+    updateTask: void
+    updateJob: void
+    updateParameter: void
 }

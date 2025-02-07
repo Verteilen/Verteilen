@@ -1,10 +1,50 @@
 {
     "projects": [
         {
-            "uuid": "1efe49c9-41aa-6520-9291-276a07bff030",
-            "title": "New One",
+            "uuid": "1efe549c-f687-6f00-ae5f-55e024dd5b11",
+            "title": "測試用專案",
             "description": "",
-            "task": []
+            "parameter": {
+                "numbers": [],
+                "strings": [],
+                "booleans": []
+            },
+            "task": [
+                {
+                    "uuid": "1efe549d-4125-6800-a0f0-7948494ab753",
+                    "title": "資料夾準備",
+                    "description": "",
+                    "cronjob": false,
+                    "cronjobKey": "",
+                    "jobs": [
+                        {
+                            "uuid": "1efe549d-91a2-6f80-a050-98ed06f37b87",
+                            "type": 4,
+                            "lua": "-- 根據第一版本資料整理的方案\n-- 這個會需要數個 環境變數才能順利運作\n\n-- 準備環境變數 路徑\nlocal root = getstring('root')\nlocal prepare_folder = getstring('prepare')\nlocal before_folder = getstring('before')\nlocal after_folder = getstring('after')\n\n-- 準備環境變數 字串\nlocal CAM = getstring('CAM')\nlocal images = getstring('images')\nlocal sparse = getstring('sparse')\n\n-- 得到準備資料夾的 攝影機資料夾列表\nlocal prepare_folders = listdir(root..prepare_folder)\n\n-- 攝影機數目\nlocal cam_size = #(prepare_folders)\n\n-- 偵測偵的數目\nlocal frame_size = 0\nif cam_size > 0 then\n    local f1_files = listfile(root..prepare_folder..prepare_folders[1])\n    frame_size = #(f1_files)\nend\n\n\n",
+                            "string_args": [],
+                            "number_args": [],
+                            "boolean_args": []
+                        }
+                    ]
+                },
+                {
+                    "uuid": "1efe549f-c0a4-6700-922b-ca59864f63cb",
+                    "title": "算圖",
+                    "description": "",
+                    "cronjob": true,
+                    "cronjobKey": "",
+                    "jobs": [
+                        {
+                            "uuid": "1efe549f-fcd6-6980-9498-e541298b0fdd",
+                            "type": 5,
+                            "lua": "",
+                            "string_args": [],
+                            "number_args": [],
+                            "boolean_args": []
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

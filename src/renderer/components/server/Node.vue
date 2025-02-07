@@ -58,8 +58,8 @@ onUnmounted(() => {
     <div>
         <div class="mt-3">
             <b-button-group>
-                <b-button @click="createNode">新增</b-button>
-                <b-button @click="deleteNode" :disabled="!hasSelect">斷線</b-button>
+                <b-button variant='primary' @click="createNode">新增</b-button>
+                <b-button variant='danger' @click="deleteNode" :disabled="!hasSelect">斷線</b-button>
             </b-button-group>
         </div>
         <b-table striped hover :items="nodes" :fields="fields">

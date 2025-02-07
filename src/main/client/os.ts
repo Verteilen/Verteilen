@@ -27,3 +27,17 @@ export const fs_exist = (data:OnePath):boolean => {
     messager_log(`[作業系統動作] 查看路徑存在, ${data.path}`)
     return v
 }
+
+export const dir_files = (data:OnePath):Array<string> => {
+    const r = fs.readdirSync(data.path, { withFileTypes: true })
+    return r.map(x => x.name)
+}
+
+export const dir_dirs = (data:OnePath):Array<string> => {
+    const r = fs.readdirSync(data.path, { withFileTypes: false })
+    return r.map(x => x.name)
+}
+
+export const dir_create = (data:OnePath) => {
+    fs.mkdirSync(data.path, {recursive: true})
+}

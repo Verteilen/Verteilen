@@ -2,6 +2,9 @@ const Path = require('path');
 const vuePlugin = require('@vitejs/plugin-vue')
 
 const { defineConfig } = require('vite');
+import IconsResolve from 'unplugin-icons/resolver';
+import Icons from 'unplugin-icons/vite';
+import Components from 'unplugin-vue-components/vite';
 
 /**
  * https://vitejs.dev/config
@@ -17,7 +20,23 @@ const config = defineConfig({
         outDir: Path.join(__dirname, 'build', 'renderer'),
         emptyOutDir: true,
     },
-    plugins: [vuePlugin()],
+    plugins: [
+        vuePlugin(
+            { 
+                script: {
+                    defineModel: true 
+                }
+            }
+        ),
+        Components({
+            resolvers: [IconsResolve()],
+            dts: true,
+        }),
+        Icons({
+            compiler: 'vue3',
+            autoInstall: true,
+        }),
+    ],
 });
 
 module.exports = config;
