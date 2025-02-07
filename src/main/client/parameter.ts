@@ -5,7 +5,6 @@ export const feedbacknumber = (data:Setter) => {
     if(source == undefined) return
     const p:Header = {
         name: "feedback_number",
-        message: "", meta: "",
         data: {
             key: data.key,
             value: data.value
@@ -18,7 +17,6 @@ export const feedbackboolean = (data:Setter) => {
     if(source == undefined) return
     const p:Header = {
         name: "feedback_boolean",
-        message: "", meta: "",
         data: {
             key: data.key,
             value: data.value
@@ -31,7 +29,6 @@ export const feedbackstring = (data:Setter) => {
     if(source == undefined) return
     const p:Header = {
         name: "feedback_string",
-        message: "", meta: "",
         data: {
             key: data.key,
             value: data.value

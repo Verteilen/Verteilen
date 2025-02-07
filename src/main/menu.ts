@@ -1,7 +1,6 @@
 import { dialog, Menu } from 'electron';
 import { mainWindow } from './main';
 
-
 const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> = [
     {
         label: "檔案",
@@ -54,7 +53,25 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
             { label: '貼上', role: 'paste' },
             { label: '刪除', role: 'delete' },
             { type: 'separator' },
-            { label: '選擇全部', role: 'selectAll' }
+            { label: '選擇全部', role: 'selectAll' },
+            { type: 'separator' },
+            { 
+                label: "語言",
+                submenu: [
+                    {
+                        label: 'en',
+                        click: async () => {
+                            mainWindow?.webContents.send('locate', 'en')
+                        }
+                    },
+                    {
+                        label: 'zh_TW',
+                        click: async () => {
+                            mainWindow?.webContents.send('locate', 'zh_TW')
+                        }
+                    }
+                ]
+            },
         ]
     },
     {

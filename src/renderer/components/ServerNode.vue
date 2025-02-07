@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Job, Project, Task } from '../interface';
+import { BusType, Job, Node, NodeTable, Project, Record, Task } from '../interface';
 
+import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import ConsolePage from './server/Console.vue';
 import JobPage from './server/Job.vue';
@@ -17,7 +18,7 @@ const page = ref(0)
 const projects:Ref<Array<Project>> = ref([])
 const selectProject:Ref<Project | undefined> = ref(undefined)
 const selectTask:Ref<Task | undefined> = ref(undefined)
-const nodes:Ref<Array<Node>> = ref([])
+const nodes:Ref<Array<NodeTable>> = ref([])
 
 const allUpdate = () => {
   nextTick(() => {
@@ -28,10 +29,18 @@ const allUpdate = () => {
   })
 }
 
+const saveRecord = () => {
+  const record:Record = {
+    projects: projects.value,
+    nodes: nodes.value as Array<Node>
+  }
+  window.electronAPI.send('save_record', JSON.stringify(record))
+}
+
 //#region Project
 const addProject = (v:Array<Project>) => {
   projects.value.push(...v)
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
@@ -42,7 +51,7 @@ const editProject = (id:string, v:Project) => {
   if(selectProject.value?.uuid == id){
     selectProject.value = v
   }
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
@@ -61,7 +70,7 @@ const deleteProject = (uuids:Array<string>) => {
       selectProject.value = undefined
     }
   })
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
@@ -77,7 +86,7 @@ const moveupProject = (uuid:string) => {
   const b = projects.value[index - 1]
   projects.value[index - 1] = projects.value[index]
   projects.value[index] = b
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
@@ -87,7 +96,7 @@ const movedownProject = (uuid:string) => {
   const b = projects.value[index + 1]
   projects.value[index + 1] = projects.value[index]
   projects.value[index] = b
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 //#endregion
@@ -96,7 +105,7 @@ const movedownProject = (uuid:string) => {
 const addTask = (v:Array<Task>) => {
   if(selectProject.value == undefined) return
   selectProject.value.task.push(...v)
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
@@ -108,7 +117,7 @@ const editTask = (id:string, v:Task) => {
   if(selectTask.value?.uuid == id){
     selectTask.value = v
   }
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
@@ -121,7 +130,7 @@ const deleteTask = (uuids:Array<string>) => {
       selectTask.value = undefined
     }
   })
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
@@ -138,7 +147,7 @@ const moveupTask = (uuid:string) => {
   const b = selectProject.value.task[index - 1]
   selectProject.value.task[index - 1] = selectProject.value.task[index]
   selectProject.value.task[index] = b
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
@@ -149,7 +158,7 @@ const movedownTask = (uuid:string) => {
   const b = selectProject.value.task[index + 1]
   selectProject.value.task[index + 1] = selectProject.value.task[index]
   selectProject.value.task[index] = b
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 //#endregion
@@ -158,14 +167,14 @@ const movedownTask = (uuid:string) => {
 const addJob = (v:Array<Job>) => {
   if(selectTask.value == undefined) return
   selectTask.value.jobs.push(...v)
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
 const editJob = (v:Array<Job>) => {
   if(selectTask.value == undefined) return
   selectTask.value.jobs = v
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
 }
 
@@ -178,8 +187,21 @@ const deleteJob = (uuids:Array<string>) => {
       selectTask.value = undefined
     }
   })
-  window.electronAPI.send('save_record', JSON.stringify(projects.value))
+  saveRecord()
   allUpdate()
+}
+//#endregion
+
+//#region Node
+const server_clients_update = (e:IpcRendererEvent, v:Array<NodeTable>) => {
+    const old:Array<NodeTable> = Object.create(nodes.value)
+    nodes.value = v
+    old.filter(x => x.s).forEach(x => {
+        const index = nodes.value.findIndex(y => y.ID == x.ID)
+        if(index != -1){
+            nodes.value[index].s = true
+        }
+    })
 }
 //#endregion
 
@@ -190,16 +212,22 @@ const menuCreateProject = () => {
 onMounted(() => {
   window.electronAPI.send('menu', true)
   window.electronAPI.eventOn('createProject', menuCreateProject)
+  window.electronAPI.eventOn('server_clients_update', server_clients_update)
   window.electronAPI.invoke('load_record').then(x => {
-    projects.value = JSON.parse(x)
+    const record:Record = JSON.parse(x)
+    projects.value = record.projects
+    nodes.value.forEach(x => {
+      window.electronAPI.send('server_record', JSON.stringify(record.nodes))
+    })
     nextTick(() => {
-      emitter?.emit('updateProject')
+      allUpdate()
     })
   })
 })
 
 onUnmounted(() => {
   window.electronAPI.eventOff('createProject', menuCreateProject)
+  window.electronAPI.eventOff('server_clients_update', server_clients_update)
 })
 
 </script>

@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { IpcRendererEvent } from 'electron'
-import { onMounted, onUnmounted, Ref, ref } from 'vue'
-import { NodeTable } from '../../interface'
+import { onMounted, onUnmounted, Ref, ref } from 'vue';
+import { ConnectionText, NodeTable } from '../../interface';
 
 let updateHandle:any = undefined
 
+interface PROPS {
+    nodes: Array<NodeTable>
+}
+
+const emits = defineEmits<{
+    (e: 'added', job:NodeTable[]): void
+    (e: 'delete', uuids:Array<string>): void
+}>()
+const props = defineProps<PROPS>()
 const connectionModal = ref(false)
 const connectionData = ref({url: ''})
-const nodes:Ref<Array<NodeTable>> = ref([])
 const fields:Ref<Array<string>> = ref([])
 const hasSelect = ref(false)
 
@@ -16,39 +23,38 @@ const serverUpdate = () => {
 }
 
 const createNode = () => {
+    connectionData.value = {url: '127.0.0.1'}
     connectionModal.value = true
 }
 
 const deleteNode = () => {
-    nodes.value.filter(x => x.s).map(x => x.ID).map(x => {
-        window.electronAPI.send('server_stop', x)
+    props.nodes.filter(x => x.s).map(x => x.ID).forEach(x => {
+        window.electronAPI.send('server_stop', x, '伺服器手動斷線')
     })
 }
 
 const datachange = (uuid:any, v:boolean) => {
-    const index = nodes.value.findIndex(x => x.ID == uuid)
-    if(index != -1) nodes.value[index].s = v
-    hasSelect.value = nodes.value.filter(x => x.s).length > 0;
+    const index = props.nodes.findIndex(x => x.ID == uuid)
+    if(index != -1) props.nodes[index].s = v
+    hasSelect.value = props.nodes.filter(x => x.s).length > 0;
 }
 
 const confirmConnection = () => {
     connectionModal.value = false
-    window.electronAPI.invoke('server_start', connectionData.value.url).catch(err => console.error(err))
+    window.electronAPI.send('server_start', `ws://${connectionData.value.url}:12080`)
     connectionData.value = { url: '' }
 }
 
-const server_clients_update = (e:IpcRendererEvent, v:Array<NodeTable>) => {
-    nodes.value = v
+const translate_state = (state:number):string => {
+    return ConnectionText[state]
 }
 
 onMounted(() => {
-    window.electronAPI.eventOn('server_clients_update', server_clients_update)
-    fields.value = ['s', 'ID', 'url']
+    fields.value = ['ID', 'url', 'state']
     updateHandle = setInterval(serverUpdate, 1000);
 })
 
 onUnmounted(() => {
-    window.electronAPI.eventOff('server_clients_update', server_clients_update)
     if(updateHandle != undefined) clearInterval(updateHandle)
 })
 
@@ -59,12 +65,15 @@ onUnmounted(() => {
         <div class="mt-3">
             <b-button-group>
                 <b-button variant='primary' @click="createNode">新增</b-button>
-                <b-button variant='danger' @click="deleteNode" :disabled="!hasSelect">斷線</b-button>
+                <b-button variant='danger' @click="deleteNode" :disabled="!hasSelect">刪除</b-button>
             </b-button-group>
         </div>
         <b-table striped hover :items="nodes" :fields="fields">
-            <template #cell(s)="data">
-                <b-form-checkbox style="float:right;" size="lg" v-model="data.s" @change="v => datachange(data.item.ID, v)"></b-form-checkbox>
+            <template #cell(ID)="data">
+                <b-form-checkbox style="float:left;" v-model="data.s" @change="v => datachange(data.item.ID, v)">{{ data.item.ID }}</b-form-checkbox>
+            </template>
+            <template #cell(state)="data">
+                <p>{{ translate_state(data.item.state) }}</p>
             </template>
         </b-table>
         <b-modal title="新增節點" v-model="connectionModal" hide-footer>

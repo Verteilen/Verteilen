@@ -7,11 +7,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    IBi0Circle: typeof import('~icons/bi/0-circle')['default']
-    IBiActivity: typeof import('~icons/bi/activity')['default']
-    IFaAngellist: typeof import('~icons/fa/angellist')['default']
     IMdiAccessPointOff: typeof import('~icons/mdi/access-point-off')['default']
-    IMdiAccountBox: typeof import('~icons/mdi/account-box')['default']
     IMdiCheck: typeof import('~icons/mdi/check')['default']
     IMdiStopwatchPauseOutline: typeof import('~icons/mdi/stopwatch-pause-outline')['default']
   }

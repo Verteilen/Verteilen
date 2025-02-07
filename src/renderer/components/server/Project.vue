@@ -174,9 +174,9 @@ onUnmounted(() => {
     <div>
         <div class="my-3">
             <b-button-group>
-                <b-button variant='primary' @click="createProject">新增</b-button>
-                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect">克隆</b-button>
-                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect">刪除</b-button>
+                <b-button variant='primary' @click="createProject">{{ $t('create') }}</b-button>
+                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect">{{ $t('clone') }}</b-button>
+                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect">{{ $t('delete') }}</b-button>
                 <b-button @click="execute(false)" :disabled="!hasSelect">執行</b-button>
                 <b-button @click="execute(true)" :disabled="!hasSelect">強制執行</b-button>
             </b-button-group>

@@ -9,9 +9,9 @@ export interface WebsocketPack {
 
 export interface Header {
     name: string
-    meta: string
-    message: string
-    data: any
+    meta?: string
+    message?: string
+    data?: any
 }
 
 export interface OnePath {
@@ -44,6 +44,11 @@ export interface Parameter {
     numbers: Array<{ name: string, value: number }>
     strings: Array<{ name: string, value: string }>
     booleans: Array<{ name: string, value: boolean }>
+}
+
+export interface Node {
+    ID: string
+    url: string
 }
 
 export interface Job {

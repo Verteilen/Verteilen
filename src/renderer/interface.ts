@@ -26,6 +26,13 @@ export enum LUATemplate {
     FUNIQUE_GS4_V1
 }
 
+export const ConnectionText: { [key:number]:string } = {
+    0: '連線中...',
+    1: '連線',
+    2: '關閉中...',
+    3: '關閉',
+}
+
 export const JobTypeText: { [key:number]:string } = {
     0: '複製檔案',
     1: '複製資料夾',
@@ -72,10 +79,14 @@ export interface Project {
     task: Array<Task>
 }
 
-export interface NodeTable {
-    s: boolean
+export interface Node {
     ID: string
     url: string
+}
+
+export interface NodeTable extends Node {
+    s?: boolean
+    state: number
     connection_rate: number
 }
 
@@ -98,6 +109,7 @@ export interface ProjectTable {
 
 export interface Record {
     projects: Array<Project>
+    nodes: Array<Node>
 }
 
 export type BusType = {

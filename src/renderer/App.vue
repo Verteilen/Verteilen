@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, ref } from 'vue';
-
+import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
+import { inject, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import ClientNode from './components/ClientNode.vue';
 import Helper from './components/Helper.vue';
 import Messager from './components/Messager.vue';
@@ -23,14 +24,21 @@ const show_helper = () => {
   helper.value = true
 }
 
+const locate = (e:IpcRendererEvent, v:string) => {
+  const t = useI18n({ useScope: "global" });
+  t.locale.value = v
+}
+
 onMounted(() => {
   emitter?.on('modeSelect', modeSelect)
   window.electronAPI.eventOn('show_helper', show_helper)
+  window.electronAPI.eventOn('locate', locate)
 })
 
 onUnmounted(() => {
   emitter?.on('modeSelect', modeSelect)
   window.electronAPI.eventOff('show_helper', show_helper)
+  window.electronAPI.eventOff('locate', locate)
 })
 
 </script>

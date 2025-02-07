@@ -29,7 +29,7 @@ const clientClick = () => {
 
 <template>
     <div style="margin: 0; padding:35vh 10vw; width: 100vw; height: 80vh; place-items: center;">
-        <p>你擔任的角色</p>
+        <p>{{ $t('modeselect.title') }}</p>
         <div class="row">
             <div class="col">
                 <b-button class="w-100 h-100 mx-1" @click="serverClick">伺服器</b-button>

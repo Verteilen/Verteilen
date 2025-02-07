@@ -14,9 +14,10 @@ export const analysis = (h:Header | undefined) => {
         messager_log('[來源資料解析] 解析失敗, 得到的值為 undefined')
         return;
     }
-    if (h.message.length > 0){
+    if (h.message != undefined && h.message.length > 0){
         messager_log(`[來源資料解析] ${h.message}`)
     }
+    if (h.data == undefined) return
     if(typeMap.hasOwnProperty(h.name)){
         const castingFunc = typeMap[h.name]
         castingFunc(h.data)

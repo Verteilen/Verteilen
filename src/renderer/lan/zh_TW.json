@@ -1,0 +1,13 @@
+{
+    "modeselect": {
+        "title": "你擔任的角色"
+    },
+    "project": "專案",
+    "task": "流程",
+    "job": "工作",
+    "parameter": "參數",
+    "create": "新增",
+    "clone": "克隆",
+    "delete": "刪除",
+    "save": "存檔"
+}

@@ -1,0 +1,13 @@
+{
+    "modeselect": {
+        "title": "Your role"
+    },
+    "project": "Project",
+    "task": "Task",
+    "job": "JOB",
+    "parameter": "Parameter",
+    "create": "Create",
+    "clone": "Clone",
+    "delete": "Delete",
+    "save": "Save"
+}
