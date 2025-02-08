@@ -1,15 +1,16 @@
 import { messager_log } from "../debugger";
-import { FeedBack, Header } from "../interface";
-
-export const job_feedback = (data:FeedBack) => {
-
-}
+import { Header, WebsocketPack } from "../interface";
+import { feedback_boolean, feedback_job, feedback_message, feedback_number, feedback_string } from "./execute";
 
 const typeMap = {
-    'job_feedback': job_feedback
+    'feedback_message': feedback_message,
+    'feedback_job': feedback_job,
+    'feedback_string': feedback_string,
+    'feedback_boolean': feedback_boolean,
+    'feedback_number': feedback_number
 }
 
-export const analysis = (h:Header | undefined) => {
+export const analysis = (h:Header | undefined, c:WebsocketPack | undefined) => {
     if (h == undefined){
         messager_log('[來源資料解析] 解析失敗, 得到的值為 undefined')
         return;
@@ -20,7 +21,7 @@ export const analysis = (h:Header | undefined) => {
     if (h.data == undefined) return
     if(typeMap.hasOwnProperty(h.name)){
         const castingFunc = typeMap[h.name]
-        castingFunc(h.data)
+        castingFunc(h.data, c)
     }else{
         messager_log(`[來源資料解析] 解析失敗, 不明的來源標頭, name: ${h.name}, meta: ${h.meta}`)
     }

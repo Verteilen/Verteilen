@@ -34,7 +34,8 @@ const saveRecord = () => {
     projects: projects.value,
     nodes: nodes.value as Array<Node>
   }
-  window.electronAPI.send('save_record', JSON.stringify(record))
+  const k = JSON.stringify(record, null, 4)
+  window.electronAPI.send('save_record', k)
 }
 
 //#region Project
@@ -202,6 +203,8 @@ const server_clients_update = (e:IpcRendererEvent, v:Array<NodeTable>) => {
             nodes.value[index].s = true
         }
     })
+    saveRecord()
+    allUpdate()
 }
 //#endregion
 
@@ -216,6 +219,13 @@ onMounted(() => {
   window.electronAPI.invoke('load_record').then(x => {
     const record:Record = JSON.parse(x)
     projects.value = record.projects
+    nodes.value = record.nodes.map(x => {
+      return Object.assign(x, {
+        s: false,
+        state: 0,
+        connection_rate: 0
+      })
+    })
     nodes.value.forEach(x => {
       window.electronAPI.send('server_record', JSON.stringify(record.nodes))
     })

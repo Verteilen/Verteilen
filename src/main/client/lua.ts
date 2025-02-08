@@ -1,11 +1,8 @@
 import * as luainjs from 'lua-in-js';
-import { messager_log } from '../debugger';
-import { Job, Parameter } from '../interface';
-import { dir_copy, dir_create, dir_delete, dir_dirs, dir_files, file_copy, file_delete, fs_exist } from './os';
+import { messager, messager_log } from '../debugger';
+import { parameter } from './execute';
+import { dir_copy, dir_create, dir_delete, dir_dirs, dir_files, file_copy, file_delete, file_write, fs_exist } from './os';
 import { feedbackboolean, feedbacknumber, feedbackstring } from './parameter';
-
-let buffer:Job | undefined = undefined
-let parameter:Parameter | undefined = undefined
 
 function copyfile(from:string, to:string){
     file_copy({from:from,to:to})
@@ -30,6 +27,9 @@ function listdir(path:string){
 }
 function createdir(path:string){
     dir_create({path:path})
+}
+function writefile(path:string, data:string){
+    file_write({ from: path, to: data })
 }
 function hasboolean(key:string){
     if(parameter == undefined) return
@@ -89,6 +89,7 @@ const os = new luainjs.Table({
     listfile,
     listdir,
     createdir,
+    writefile,
 })
 
 const env = new luainjs.Table({
@@ -97,6 +98,16 @@ const env = new luainjs.Table({
     hasstring, getstring, setstring,
 })
 
+const message = new luainjs.Table({
+    messager, messager_log
+})
+
 const luaEnv = luainjs.createEnv()
 luaEnv.loadLib('os', os)
 luaEnv.loadLib('env', env)
+luaEnv.loadLib('m', message)
+
+export const LuaExecute = (lua:string) => {
+    const execc = luaEnv.parse(lua)
+    execc.exec()
+}

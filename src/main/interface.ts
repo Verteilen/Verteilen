@@ -2,6 +2,12 @@ import { WebSocket } from "ws"
 
 export const PORT = 12080
 
+export enum ExecuteState {
+    STOP,
+    RUNNING,
+    Finish
+}
+
 export interface WebsocketPack {
     uuid: string
     websocket: WebSocket
@@ -12,6 +18,10 @@ export interface Header {
     meta?: string
     message?: string
     data?: any
+}
+
+export interface Single {
+    data: any
 }
 
 export interface OnePath {
@@ -38,6 +48,8 @@ export enum JobType {
     COPY_DIR,
     DELETE_FILE,
     DELETE_DIR,
+    LUA,
+    COMMAND
 }
 
 export interface Parameter {
@@ -65,6 +77,7 @@ export interface Task {
     title: string
     description: string
     cronjob: boolean
+    cronjobKey: string
     jobs: Array<Job>
 }
 
@@ -78,4 +91,20 @@ export interface Project {
 
 export interface Record {
     projects: Array<Project>
+    nodes: Array<Node>
+}
+
+export interface ExecuteRendererPack {
+    projects: Array<Project>
+    nodes: Array<Node>
+}
+
+export interface ExecutePack {
+    projects: Array<Project>
+    nodes: Array<WebsocketPack>
+}
+
+export interface WebsocketPackState extends WebsocketPack {
+    current_job: string
+    state: ExecuteState
 }

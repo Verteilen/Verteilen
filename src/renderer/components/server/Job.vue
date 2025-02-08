@@ -195,7 +195,7 @@ onUnmounted(() => {
             <b-card-text>
                 敘述: {{ props.select.description }}
                 <p>群集運算: {{ props.select.cronjob }}</p>
-                <b-form-select v-if="props.select.cronjob" :value="props.select.cronjobKey" @change="e => changeCronKey(e)" :options="para_keys"></b-form-select>
+                <b-form-select v-if="props.select.cronjob" :value="props.select.cronjobKey" @change="(e: string) => changeCronKey(e)" :options="para_keys"></b-form-select>
             </b-card-text>
         </b-card>
         <b-modal title="新增工作" v-model="createModal" hide-footer>
@@ -207,7 +207,7 @@ onUnmounted(() => {
         <div v-if="select != undefined">
             <b-card v-for="(c, i) in items">
                 <b-card-header>
-                    <b-form-checkbox type="checkbox" v-model="c.s" @change="e => datachange(c.uuid, e)">
+                    <b-form-checkbox type="checkbox" v-model="c.s" @change="(e: boolean) => datachange(c.uuid, e)">
                         {{ i }}. {{ JobTypeTranslate(c.type) }}
                         <span>
                             <b-dropdown text="動作" class="m-md-2">

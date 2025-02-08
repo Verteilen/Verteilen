@@ -8,10 +8,6 @@ interface PROPS {
     nodes: Array<NodeTable>
 }
 
-const emits = defineEmits<{
-    (e: 'added', job:NodeTable[]): void
-    (e: 'delete', uuids:Array<string>): void
-}>()
 const props = defineProps<PROPS>()
 const connectionModal = ref(false)
 const connectionData = ref({url: ''})
@@ -70,7 +66,7 @@ onUnmounted(() => {
         </div>
         <b-table striped hover :items="nodes" :fields="fields">
             <template #cell(ID)="data">
-                <b-form-checkbox style="float:left;" v-model="data.s" @change="v => datachange(data.item.ID, v)">{{ data.item.ID }}</b-form-checkbox>
+                <b-form-checkbox style="float:left;" v-model="data.s" @change="(v: boolean) => datachange(data.item.ID, v)">{{ data.item.ID }}</b-form-checkbox>
             </template>
             <template #cell(state)="data">
                 <p>{{ translate_state(data.item.state) }}</p>

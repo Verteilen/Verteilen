@@ -1,13 +1,13 @@
 import { messager_log } from "../debugger";
 import { Header } from "../interface";
-import { dir_copy, dir_delete, file_copy, file_delete, fs_exist } from "./os";
+import { execute_job, set_boolean, set_number, set_parameter, set_string } from "./execute";
 
 const typeMap = {
-    'file_copy': file_copy,
-    'dir_copy': dir_copy,
-    'file_delete': file_delete,
-    'dir_delete': dir_delete,
-    'fs_exist': fs_exist
+    'execute_job': execute_job,
+    'set_parameter': set_parameter,
+    'set_string': set_string,
+    'set_number': set_number,
+    'set_boolean': set_boolean
 }
 
 export const analysis = (h:Header | undefined) => {

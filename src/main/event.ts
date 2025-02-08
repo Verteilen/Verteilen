@@ -2,6 +2,7 @@ import { ipcMain } from "electron";
 import fs from "fs";
 import { clientinit } from "./client/client";
 import { dir_copy, dir_delete, file_copy, file_delete, fs_exist } from "./client/os";
+import { messager_log } from "./debugger";
 import { Record } from "./interface";
 import { mainWindow } from "./main";
 import menu from "./menu";
@@ -42,24 +43,25 @@ export const eventInit = () => {
         dir_delete({ path: path })
     })
 
-    ipcMain.on('save_record', (e, projects:string) => {
-        const record:Record = {
-            projects: JSON.parse(projects)
-        }
-        fs.writeFileSync('record.json', JSON.stringify(record, null, 4))
+    ipcMain.on('save_record', (e, projects:Array<any>) => {
+        const v:Record = JSON.parse(projects[0])
+        if(v.projects == undefined) v.projects = []
+        fs.writeFileSync('record.json', JSON.stringify(v, null, 4))
     })
 
     ipcMain.handle('load_record', (e) => {
-        if(!fs.existsSync('record.json')){
+        const exist = fs.existsSync('record.json');
+        messager_log(`[事件] 讀取 record.js, 檔案存在: ${exist}`)
+        if(!exist){
             const record:Record = {
-                projects: []
+                projects: [],
+                nodes: []
             }
             fs.writeFileSync('record.json', JSON.stringify(record, null, 4))
             return JSON.stringify(record.projects)
         } else {
-            const file = fs.readFileSync('record.json')
-            const record:Record = JSON.parse(file.toString())
-            return JSON.stringify(record.projects)
+            const file = fs.readFileSync('record.json', { encoding: 'utf8', flag: 'r' })
+            return file.toString()
         }
     })
     

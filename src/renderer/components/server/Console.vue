@@ -15,12 +15,6 @@ const headerState = ref(0)
                 <IMdiStopwatchPauseOutline v-else-if="headerState == 2" />
             </b-card-header>
             <b-card-text>
-                <p>Test </p>
-                <b-icon icon="exclamation-circle-fill" variant="success"></b-icon>
-                <b-icon icon="exclamation-circle-fill" variant="success"></b-icon>
-                <b-icon icon="exclamation-circle-fill" variant="warning"></b-icon>
-                <b-icon-arrow-up></b-icon-arrow-up>
-                <p class="h1 mb-2">Icon <b-icon icon="exclamation-circle-fill"></b-icon></p>
                 <IMdiAccessPointOff />
             </b-card-text>
         </b-card>
