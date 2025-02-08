@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Job, Node, NodeTable, Project, Record, Task } from '../interface';
+import { BusType, Job, Node, NodeTable, Parameter, Project, Record, Task } from '../interface';
 
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
@@ -204,7 +204,15 @@ const server_clients_update = (e:IpcRendererEvent, v:Array<NodeTable>) => {
         }
     })
     saveRecord()
-    allUpdate()
+}
+//#endregion
+
+//#region Parameter
+const editParameter = (e:Parameter) => {
+  if(selectProject.value == undefined) return
+  selectProject.value.parameter = e
+  saveRecord()
+  allUpdate()
 }
 //#endregion
 
@@ -288,7 +296,8 @@ onUnmounted(() => {
     <LogPage v-show="page == 5" />
 
     <ParameterPage v-show="page == 6" 
-      :select="selectProject" />
+      :select="selectProject"
+      @edit="e => editParameter(e)" />
   </div>
 </template>
 

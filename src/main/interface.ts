@@ -67,6 +67,7 @@ export interface Job {
     uuid: string
     type: number
     lua: string
+    index?: number
     string_args: Array<string>
     number_args: Array<number>
     boolean_args: Array<boolean>
@@ -107,4 +108,9 @@ export interface ExecutePack {
 export interface WebsocketPackState extends WebsocketPack {
     current_job: string
     state: ExecuteState
+}
+
+export interface KeyValue {
+    key: any
+    value: any
 }

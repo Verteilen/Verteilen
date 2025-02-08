@@ -4,7 +4,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { } from 'vue-codemirror';
 import { BusType, Job, JobType, JobTypeText, LUATemplate, LUATemplateText, Project, Task } from '../../interface';
-import { DEFAULT, FUNIQUE_GS4_V1 } from '../../luaTemplate';
+import { DEFAULT, FUNIQUE_GS4_V1 } from '../../template/luaTemplate';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -34,11 +34,11 @@ const createData = ref({type: 0, spe_template: 0})
 const items:Ref<Array<JobTable>> = ref([])
 const types:Ref<Array<{  }>> = ref([])
 const lua_types:Ref<Array<{  }>> = ref([])
-const para_keys:Ref<Array<string>> = ref([])
+const para_keys:Ref<Array<{ value: string, text: string }>> = ref([])
 const dirty = ref(false)
 
 const updateParameter = () => {
-    para_keys.value = props.owner?.parameter.numbers.map(x => x.name) ?? []
+    para_keys.value = props.owner?.parameter.numbers.map(x => { return { value: x.name, text: x.name }}) ?? []
 }
 
 const setdirty = () => {
@@ -46,13 +46,18 @@ const setdirty = () => {
 }
 
 const updateJob = () => {
+    const old:Array<Job> = Object.create(items.value)
     items.value = props.select?.jobs ?? []
+    const ids = old.filter(x => x.s).map(x => x.uuid)
+    items.value.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)
+    updateParameter()
 }
 
 const checkPatterm = (type:number, checker:string):boolean => {
     const e = ( 
         (checker == 'TwoPath' && ( type === JobType.COPY_DIR || type === JobType.COPY_FILE )) ||
-        (checker == 'OnePath' && ( type === JobType.DELETE_DIR || type === JobType.DELETE_FILE )) ||
+        (checker == 'OnePath' && ( type === JobType.DELETE_DIR || type === JobType.DELETE_FILE || type === JobType.CREATE_DIR || type === JobType.CREATE_FILE )) ||
+        (checker == 'Command' && ( type === JobType.COMMAND )) ||
         (checker == 'Script' && (type == JobType.LUA))
     );
     return e
@@ -195,7 +200,7 @@ onUnmounted(() => {
             <b-card-text>
                 敘述: {{ props.select.description }}
                 <p>群集運算: {{ props.select.cronjob }}</p>
-                <b-form-select v-if="props.select.cronjob" :value="props.select.cronjobKey" @change="(e: string) => changeCronKey(e)" :options="para_keys"></b-form-select>
+                <b-form-select v-if="props.select.cronjob" v-model="props.select.cronjobKey" @change="(e: string) => changeCronKey(e)" :options="para_keys"></b-form-select>
             </b-card-text>
         </b-card>
         <b-modal title="新增工作" v-model="createModal" hide-footer>
@@ -222,7 +227,12 @@ onUnmounted(() => {
                     <b-form-input class="my-2" v-model="c.string_args[1]" placeholder="輸入目的"></b-form-input>
                 </div>
                 <div v-else-if="checkPatterm(c.type, 'OnePath')">
-                    <b-form-input class="my-2" v-model="c.string_args[1]" placeholder="輸入路徑"></b-form-input>
+                    <b-form-input class="my-2" v-model="c.string_args[0]" placeholder="輸入路徑"></b-form-input>
+                </div>
+                <div v-else-if="checkPatterm(c.type, 'Command')">
+                    <b-form-input class="my-2" v-model="c.string_args[0]" placeholder="輸入路徑"></b-form-input>
+                    <b-form-input class="my-2" v-model="c.string_args[1]" placeholder="輸入指令"></b-form-input>
+                    <b-form-input class="my-2" v-model="c.string_args[2]" placeholder="輸入參數"></b-form-input>
                 </div>
                 <codemirror v-else-if="checkPatterm(c.type, 'Script')" v-model="c.lua" 
                     style="text-align:left;"

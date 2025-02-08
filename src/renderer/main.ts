@@ -8,6 +8,7 @@ import VueCodemirror from 'vue-codemirror';
 import App from './App.vue';
 import { i18n } from "./i18n";
 import { BusType } from './interface';
+import { checkifElectron } from "./platform";
 
 import "bootstrap-vue-3/dist/bootstrap-vue-3.css";
 import "bootstrap/dist/css/bootstrap.css";
@@ -15,6 +16,7 @@ import './style.css';
 
 const emitter:Emitter<BusType> = mitt<BusType>()
 const app = createApp(App)
+export const isElectron:boolean = checkifElectron()
 
 app.provide('emitter', emitter)
 app.use(i18n)

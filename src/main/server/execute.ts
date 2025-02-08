@@ -1,12 +1,14 @@
 import { WebContents } from "electron"
+import { WebSocket } from "ws"
 import { messager_log } from "../debugger"
-import { ExecuteState, FeedBack, Header, Job, Project, Setter, Single, Task, WebsocketPack, WebsocketPackState } from "../interface"
+import { ExecuteState, FeedBack, Header, Job, KeyValue, Project, Setter, Single, Task, WebsocketPack, WebsocketPackState } from "../interface"
 
 let current:Project | undefined = undefined
 let current_projects:Array<Project> = []
 let current_nodes:Array<WebsocketPackState> = []
 let current_web:WebContents | undefined = undefined
 let current_cron:Array<{ id:number, state:ExecuteState }> = []
+let current_jobstate:Array<{ id:string, state:ExecuteState }> = []
 let state:ExecuteState = ExecuteState.STOP
 
 const get_idle = async ():Promise<WebsocketPackState> => {
@@ -43,15 +45,57 @@ const validation = (projects:Array<Project>, nodes:Array<WebsocketPack>):boolean
     return true
 }
 
-export const ExecuteJob = async (job:Job, wss:WebsocketPack):Promise<void> => {
-    current_web?.send('execute_job_start', job.uuid)
-    return new Promise((resolve, reject) => {
-
-    })
+const replacePara = (text:string, v:Array<KeyValue>):string => {
+    if (current == undefined) return text
+    let buffer = ''
+    let store = ''
+    let state:boolean = false
+    const paras = [
+        ...current.parameter.booleans.map(x => { return { key: x.name, value: x.value.toString() } }),
+        ...current.parameter.numbers.map(x => { return { key: x.name, value: x.value.toString() } }),
+        ...current.parameter.strings.map(x => { return { key: x.name, value: x.value.toString() } }),
+        ...v
+    ]
+    for(const v of text){
+        if(v == '%'){
+            state = !state
+            if(!state) {
+                store = ""
+                const index = paras.findIndex(x => x.key == store)
+                if(index != -1) buffer += paras[index].value
+            }
+        }
+        if(!state && v != '%') buffer += v
+    }
+    return buffer
 }
 
-const ExecuteCron = async () => {
-    const ns = await get_idle()
+export const ExecuteJob = async (job:Job, wss:WebsocketPack):Promise<void> => {
+    current_web?.send('execute_job_start', job.uuid)
+    return new Promise(async (resolve, reject) => {
+        for(let i = 0; i < job.string_args.length; i++){
+            replacePara(job.string_args[i], [{ key: 'ck', value: job.index }])
+        }
+        const h:Header = {
+            name: 'execute_job',
+            data: job
+        }
+        wss.websocket.send(JSON.stringify(h))
+        current_jobstate.push({ id: job.uuid, state: ExecuteState.RUNNING })
+        if(job.index != undefined && job.index >= 0){
+            current_cron[job.index].state = ExecuteState.RUNNING
+        }
+
+        let timer:any
+        timer = setInterval(() => {
+            const p = current_jobstate.findIndex(x => x.id)
+            if(p != -1 && current_jobstate[p].state == ExecuteState.Finish){
+                current_web?.send('execute_job_finish', job.uuid)
+                resolve()
+                clearInterval(timer)
+            }
+        }, 1000);
+    })
 }
 
 export const ExecuteTask = async (task:Task):Promise<void> => {
@@ -77,17 +121,24 @@ export const ExecuteTask = async (task:Task):Promise<void> => {
                 const ns = await get_idle()
                 for(const x of task.jobs){
                     if(state == ExecuteState.STOP) return
-                    await ExecuteJob(x, ns).catch(err => messager_log(`[執行狀態] 執行工作錯誤: ${err}`))
+                    const buff:Job = Object.create(x)
+                    buff.index = index
+                    await ExecuteJob(buff, ns).catch(err => messager_log(`[執行狀態] 執行工作錯誤: ${err}`))
                 }
             }
+            current_web?.send('execute_task_finish', task.uuid)
+            resolve()
         }else{
             const ns = await get_idle()
             for(const x of task.jobs){
                 if(state == ExecuteState.STOP) return
-                await ExecuteJob(x, ns).catch(err => messager_log(`[執行狀態] 執行工作錯誤: ${err}`))
+                const buff:Job = Object.create(x)
+                buff.index = -1
+                await ExecuteJob(buff, ns).catch(err => messager_log(`[執行狀態] 執行工作錯誤: ${err}`))
             }
+            current_web?.send('execute_task_finish', task.uuid)
+            resolve()
         }
-        
     })
     
 }

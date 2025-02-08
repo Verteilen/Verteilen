@@ -17,6 +17,8 @@ export enum JobType {
     COPY_DIR,
     DELETE_FILE,
     DELETE_DIR,
+    CREATE_FILE,
+    CREATE_DIR,
     LUA,
     COMMAND
 }
@@ -24,6 +26,11 @@ export enum JobType {
 export enum LUATemplate {
     DEFAULT,
     FUNIQUE_GS4_V1
+}
+
+export enum ProjectTemplate {
+    DEFAULT,
+    GS4
 }
 
 export const ConnectionText: { [key:number]:string } = {
@@ -38,8 +45,10 @@ export const JobTypeText: { [key:number]:string } = {
     1: '複製資料夾',
     2: '刪除檔案',
     3: '刪除資料夾',
-    4: 'LUA 腳本',
-    5: '指令執行'
+    4: '建立檔案',
+    5: '建立資料夾',
+    6: 'LUA 腳本',
+    7: '指令執行'
 }
 
 export const LUATemplateText: { [key:number]:string } = {
@@ -47,13 +56,19 @@ export const LUATemplateText: { [key:number]:string } = {
     1: '睿智 GS4 資料夾整理 v1'
 }
 
+export const ProjectTemplateText: { [key:number]:string } = {
+    0: '預設',
+    1: '睿智 GS4'
+}
+
 export interface Parameter {
-    numbers: Array<{ name: string, value: number }>
-    strings: Array<{ name: string, value: string }>
-    booleans: Array<{ name: string, value: boolean }>
+    numbers: Array<{ s?:boolean, name: string, value: number }>
+    strings: Array<{ s?:boolean,name: string, value: string }>
+    booleans: Array<{ s?:boolean,name: string, value: boolean }>
 }
 
 export interface Job {
+    s?: boolean
     uuid: string
     type: number
     lua: string

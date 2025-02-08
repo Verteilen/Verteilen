@@ -31,6 +31,7 @@ const fields:Ref<Array<string>> = ref([])
 const para_keys:Ref<Array<string>> = ref([])
 
 const updateTask = () => {
+    const old:Array<TaskTable> = Object.create(items.value)
     items.value = props.select?.task.map(x => {
         return {
             s: false,
@@ -41,6 +42,8 @@ const updateTask = () => {
             jobCount: x.jobs.length
         }
     }) ?? []
+    const ids = old.filter(x => x.s).map(x => x.ID)
+    items.value.filter(x => ids.includes(x.ID)).forEach(x => x.s = true)
 }
 
 const updateParameter = () => {

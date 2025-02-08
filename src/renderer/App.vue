@@ -9,12 +9,15 @@ import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
 import { BusType } from './interface';
+import { isElectron } from './main';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const mode = ref(-1)
 const helper = ref(false)
 
-window.electronAPI.send('message', '歡迎啟動自動化工廠');
+console.log("isElectron", isElectron)
+
+if (isElectron) window.electronAPI.send('message', '歡迎啟動自動化工廠');
 
 const modeSelect = (isclient:boolean) => {
   mode.value = isclient ? 0 : 1;

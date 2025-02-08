@@ -2,7 +2,8 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Project, ProjectTable } from '../../interface';
+import { BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { GetDefaultProjectTemplate, GetFUNIQUE_GS4ProjectTemplate } from '../../template/projectTemplate';
 
 interface PROPS {
     projects: Array<Project>
@@ -23,12 +24,14 @@ const emits = defineEmits<{
 const items:Ref<Array<ProjectTable>> = ref([])
 const fields:Ref<Array<string>> = ref([])
 const createModal = ref(false)
-const createData = ref({title: "", description: ""})
+const createData = ref({title: "", description: "", useTemp: false, temp: 0})
 const hasSelect = ref(false)
+const temps:Ref<Array<{ text: string, value:number }>> = ref([])
 const editModal = ref(false)
 const editUUID = ref('')
 
 const updateProject = () => {
+    const old:Array<ProjectTable> = Object.create(items.value)
     items.value = props.projects.map(x => {
         return {
             s: false,
@@ -38,10 +41,12 @@ const updateProject = () => {
             taskCount: x.task.length
         }
     })
+    const ids = old.filter(x => x.s).map(x => x.ID)
+    items.value.filter(x => ids.includes(x.ID)).forEach(x => x.s = true)
 }
 
 const createProject = () => {
-    createData.value = {title: "", description: ""};
+    createData.value = {title: "", description: "", useTemp: false, temp: 0};
     createModal.value = true
 }
 
@@ -58,7 +63,7 @@ const datachoose = (uuid:string) => {
 const dataedit = (uuid:string) => {
     const selectp = props.projects.find(x => x.uuid == uuid)
     if(selectp == undefined) return;
-    createData.value = {title: selectp.title, description: selectp.description};
+    createData.value = {title: selectp.title, description: selectp.description, useTemp: false, temp: 0};
     editModal.value = true;
     editUUID.value = uuid;
 }
@@ -90,18 +95,27 @@ const execute = (force:boolean) => {
 
 const confirmCreate = () => {
     createModal.value = false
+    let buffer:Project = { 
+        uuid: uuidv6(),
+        title: createData.value.title, 
+        description: createData.value.description,
+        parameter: {
+            numbers: [],
+            strings: [],
+            booleans: []
+        },
+        task: [
+
+        ]
+    }
+    if (createData.value.useTemp && createData.value.temp == ProjectTemplate.DEFAULT){
+        buffer = GetDefaultProjectTemplate(buffer)
+    }
+    else if (createData.value.useTemp && createData.value.temp == ProjectTemplate.GS4){
+        buffer = GetFUNIQUE_GS4ProjectTemplate(buffer)
+    }
     emits('added', 
-        [{ 
-            uuid: uuidv6(),
-            title: createData.value.title, 
-            description: createData.value.description,
-            parameter: {
-                numbers: [],
-                strings: [],
-                booleans: []
-            },
-            task: []
-        }]
+        [buffer]
     )
     nextTick(() => {
         updateProject();
@@ -134,6 +148,10 @@ const moveup = (uuid:string) => {
     })
 }
 
+const ProjectTemplateTranslate = (t:number):string => {
+    return ProjectTemplateText[t]
+}
+
 const movedown = (uuid:string) => {
     emits('movedown', uuid)
     nextTick(() => {
@@ -154,6 +172,12 @@ const isLast = (uuid:string) => {
 
 onMounted(() => {
     fields.value = ['ID', 'title', 'description', 'taskCount', 'detail']
+    temps.value = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
+        return {
+            text: ProjectTemplateTranslate(index as ProjectTemplate),
+            value: index
+        }
+    })
     updateProject()
     window.electronAPI.eventOn('createProject', createProject)
 
@@ -207,6 +231,9 @@ onUnmounted(() => {
         <b-modal title="新增專案" v-model="createModal" hide-footer>
             <b-form-input v-model="createData.title" required placeholder="輸入專案名稱"></b-form-input>
             <b-form-input class="mt-3" v-model="createData.description" placeholder="輸入專案敘述"></b-form-input>
+            <br />
+            <b-form-checkbox v-model="createData.useTemp">使用樣板</b-form-checkbox>
+            <b-form-select v-if="createData.useTemp" class="mt-3" v-model="createData.temp" :options="temps"></b-form-select>
             <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
         </b-modal>
         <b-modal title="編輯專案" v-model="editModal" hide-footer>
