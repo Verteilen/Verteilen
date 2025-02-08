@@ -159,14 +159,15 @@ export const ExecuteProject = async (project:Project):Promise<void> => {
 export const Execute = async (web:WebContents, projects:Array<Project>, nodes:Array<WebsocketPack>):Promise<boolean> => {
     messager_log(`[執行狀態] 開始執行, 專案數: ${projects.length}, 電腦數: ${nodes.length}`)
     if(state == ExecuteState.RUNNING){
-        messager_log(`[執行狀態] 執行錯誤, 目前已經有專案群集在列表中執行了`)
+        messager_log(`[執行狀態] 初始化錯誤, 目前已經有專案群集在列表中執行了`)
+        return false
+    }
+    if(!validation(projects, nodes)){
+        messager_log(`[執行狀態] 初始化錯誤, 檢查格式出現問題`)
         return false
     }
     state = ExecuteState.RUNNING
     return new Promise<boolean>(async (resolve, reject) => {
-        if(!validation(projects, nodes)){
-            return false
-        }
         current_projects = projects
         current_nodes = nodes.map(x => {
             return Object.assign(x, 
