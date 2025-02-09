@@ -12,7 +12,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "frameCount", value: 0 },
         ],
         strings: [
-            { name: "root", value: "" },
+            { name: "root", value: "G:/Developer/Funique/4DGS/Test" },
             { name: "prepare", value: "Prepare" },
             { name: "before", value: "before" },
             { name: "after", value: "after" },

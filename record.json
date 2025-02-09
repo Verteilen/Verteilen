@@ -1,21 +1,20 @@
 {
     "projects": [
         {
-            "uuid": "1efe6286-b2ba-6f00-a1f2-55f061837da4",
-            "title": "sadsad",
+            "uuid": "1efe6ddc-342f-61c0-a18a-c1d96f98d408",
+            "title": "TEST",
             "description": "",
             "parameter": {
                 "numbers": [
                     {
                         "name": "frameCount",
-                        "value": false,
-                        "s": false
+                        "value": 0
                     }
                 ],
                 "strings": [
                     {
                         "name": "root",
-                        "value": "G:\\Developer\\Funique\\4DGS_需求說明\\Test"
+                        "value": "G:/Developer/Funique/4DGS/Test"
                     },
                     {
                         "name": "prepare",
@@ -42,30 +41,20 @@
                         "value": "sparse"
                     }
                 ],
-                "booleans": [
-                    {
-                        "name": "EEE",
-                        "value": 0,
-                        "s": false
-                    },
-                    {
-                        "name": "Test",
-                        "value": 0
-                    }
-                ]
+                "booleans": []
             },
             "task": [
                 {
-                    "uuid": "1efe6286-b2bd-6611-a09e-d363ebe16d5a",
+                    "uuid": "1efe6ddc-3431-68d3-bd47-e9ff0df3d338",
                     "title": "整理階段",
                     "description": "從原始資料夾結構 弄成可以工作的樣子",
                     "cronjob": false,
                     "cronjobKey": "",
                     "jobs": [
                         {
-                            "uuid": "1efe6286-b2ba-6f01-8c24-89b72ffba512",
+                            "uuid": "1efe6ddc-3431-68d0-a2b3-c926dd2a396b",
                             "type": 6,
-                            "lua": "-- 根據第一版本資料整理的方案 22\n-- 這個會需要數個 環境變數才能順利運作\n\n-- 準備環境變數 路徑\nlocal root = getstring('root')\nlocal prepare_folder = getstring('prepare')\nlocal before_folder = getstring('before')\nlocal after_folder = getstring('after')\n\n-- 準備環境變數 字串\nlocal CAM = getstring('CAM')\nlocal images = getstring('images')\nlocal sparse = getstring('sparse')\n\n-- 得到準備資料夾的 攝影機資料夾列表\nlocal prepare_folders = os.listdir(root..\"/\"..prepare_folder)\n\n-- 攝影機數目\nlocal cam_size = #(prepare_folders)\n\n-- 偵測偵的數目\nlocal frame_size = 0\nif cam_size > 0 then\n    local f1_files = os.listfile(root..\"/\"..prepare_folder..\"/\"..CAM..\"/\"..prepare_folders[1])\n    frame_size = #(f1_files)\nend\n\n-- 生成資料夾\nos.createdir(root..\"/\"..before_folder..\"/\"..CAM)\n\n-- 複製 sparse\nos.copydir(root..\"/\"..prepare_folder..\"/\"..sparse, root..\"/\"..before_folder..\"/\"..sparse)\n\n-- 複製照片 跟 建立 out 資料夾\nfor key=1,frame_size,1 do\n    os.createdir(root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key))\n    os.createdir(root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key)..\"/\"..\"out\")\n    for key2=1,cam_size,1 do\n        local from = root..\"/\"..prepare_folder..\"/\"..CAM..\"/C\"..string.format(\"%04d\", key2)..\"/\"..string.format(\"%04d\", key2)..\"_\"..string.format(\"%06d\", key)..\".jpg\"\n        local to = root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key)..\"/\"..string.format(\"%04d\", key2)..\".jpg\"\n        os.copyfile(from, to)\n    end\nend\n",
+                            "lua": "\nfunction split(s, sep)\n    local fields = {}\n    local sep = sep or \" \"\n    local pattern = string.format(\"([^%s]+)\", sep)\n    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)\n    return fields\nend\n\nm.messager_log(\"Env Init\")\n\nlocal root = env.getstring(\"root\")\nlocal prepare_folder = env.getstring(\"prepare\")\nlocal before_folder = env.getstring(\"before\")\nlocal after_folder = env.getstring(\"after\")\n\nlocal CAM = env.getstring(\"CAM\")\nlocal images = env.getstring(\"images\")\nlocal sparse = env.getstring(\"sparse\")\n\nos2.deletedir(root..\"/\"..before_folder)\n\nm.messager_log(\"Get CAM list\")\nlocal prepare_folders = split(os2.listdir(root..\"/\"..prepare_folder..\"/\"..CAM), \"\\n\")\n\nlocal cam_size = #(prepare_folders)\nm.messager_log(\"Get CAM count: \"..cam_size)\n\nlocal frame_size = 0\nif cam_size > 0 then\n    local f1_files = split(os2.listfile(root..\"/\"..prepare_folder..\"/\"..CAM..\"/\"..prepare_folders[1]), \"\\n\")\n    frame_size = #(f1_files)\nend\nm.messager_log(\"Get Frame count: \"..frame_size)\n\nm.messager_log(\"Create Prepare folder: \"..root..\"/\"..before_folder..\"/\"..CAM)\nos2.createdir(root..\"/\"..before_folder..\"/\"..CAM)\n\nm.messager_log(\"Copy sparse folder\")\nos2.copydir(root..\"/\"..prepare_folder..\"/\"..sparse, root..\"/\"..before_folder..\"/\"..sparse)\n\nfor key=1,frame_size,1 do\n    os2.createdir(root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key))\n    os2.createdir(root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key)..\"/\"..\"out\")\n    for key2=1,cam_size,1 do\n        local from = root..\"/\"..prepare_folder..\"/\"..CAM..\"/C\"..string.format(\"%04d\", key2)..\"/\"..string.format(\"%04d\", key2)..\"_\"..string.format(\"%06d\", key)..\".jpg\"\n        local to = root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key)..\"/\"..string.format(\"%04d\", key2)..\".jpg\"\n        os2.copyfile(from, to)\n    end\nend\n",
                             "string_args": [],
                             "number_args": [],
                             "boolean_args": []
@@ -73,14 +62,14 @@
                     ]
                 },
                 {
-                    "uuid": "1efe6286-b2bd-6612-a3f0-91f11b0c7777",
+                    "uuid": "1efe6ddc-3431-68d4-b0cc-95cd2a4b5a7e",
                     "title": "運算階段",
                     "description": "正式開始進行演算",
                     "cronjob": true,
                     "cronjobKey": "frameCount",
                     "jobs": [
                         {
-                            "uuid": "1efe6286-b2ba-6f02-b7ea-acaf2d989afa",
+                            "uuid": "1efe6ddc-3431-68d1-bfe7-b424c91225ba",
                             "type": 5,
                             "lua": "",
                             "string_args": [
@@ -90,7 +79,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe6286-b2bd-6610-b59d-454268327f67",
+                            "uuid": "1efe6ddc-3431-68d2-b942-16cb522023e7",
                             "type": 7,
                             "lua": "",
                             "string_args": [
@@ -104,7 +93,7 @@
                     ]
                 },
                 {
-                    "uuid": "1efe6286-b2bd-6613-9763-d766aa1e1606",
+                    "uuid": "1efe6ddc-3431-68d5-9929-6965b6d24edf",
                     "title": "總結",
                     "description": "最後的工作階段",
                     "cronjob": false,
@@ -114,5 +103,12 @@
             ]
         }
     ],
-    "nodes": []
+    "nodes": [
+        {
+            "ID": "1efe6c2c-c406-61b0-96ad-379f3d04579e",
+            "state": 1,
+            "url": "ws://127.0.0.1:12080/",
+            "connection_rate": 0
+        }
+    ]
 }

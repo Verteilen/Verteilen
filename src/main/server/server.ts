@@ -2,7 +2,7 @@ import { ipcMain } from 'electron';
 import { v6 as uuidv6 } from 'uuid';
 import ws, { WebSocket } from 'ws';
 import { messager_log } from '../debugger';
-import { ExecutePack, ExecuteRendererPack, Header, Node, WebsocketPack } from '../interface';
+import { ExecutePack, Header, Node, Record, WebsocketPack } from '../interface';
 import { mainWindow } from '../main';
 import { analysis } from './analysis';
 import { Execute } from './execute';
@@ -81,12 +81,16 @@ export const serverinit = () => {
     })
 
     ipcMain.on('execute_pack', (e, data:string) => {
-        const d:ExecuteRendererPack = JSON.parse(data)
+        const d:Record = JSON.parse(data)
         const web_ids = d.nodes.map(x => x.ID)
         const r:ExecutePack = {
             projects: d.projects,
             nodes: targets.filter(x => web_ids.includes(x.uuid))
         }
         Execute(e.sender, r.projects, r.nodes)
+    })
+
+    ipcMain.on('execute_pack', (e) => {
+
     })
 }

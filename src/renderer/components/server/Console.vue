@@ -31,7 +31,6 @@ const getStateColor = (state:number):string => {
 }
 
 const receivedPack = (record:Record) => {
-    console.log(record)
     if (data.value.running) return
     data.value.projects = record.projects
     data.value.nodes = record.nodes
@@ -53,39 +52,82 @@ const receivedPack = (record:Record) => {
 const execute = () => {
     data.value.running = !data.value.running
     if(data.value.running){
-        window.electronAPI.send('ExecuteRendererPack', JSON.stringify(data.value as Record))
+        const buffer:Record = {
+            projects: data.value.projects,
+            nodes: data.value.nodes
+        }
+        console.log(JSON.stringify(buffer))
+        window.electronAPI.send('execute_pack', JSON.stringify(buffer))
     }else{
-        window.electronAPI.send('StopExecute')
+        window.electronAPI.send('execute_stop')
     }
     
 }
 
-const feedback_message = (e:IpcRendererEvent, uuid:string, data:any) => {
-
+const feedback_message = (e:IpcRendererEvent, uuid:string, anydata:string) => {
+    const index = data.value.task_detail.findIndex(x => x.node == uuid)
+    if(index == -1) return
+    data.value.task_detail[index].message.push(anydata)
 }
 
 const execute_project_start = (e:IpcRendererEvent, uuid:string) => {
-
+    const index = data.value.projects.findIndex(x => x.uuid)
+    if(index == -1) return
+    data.value.project = uuid
+    data.value.project_index = index
+    data.value.project_state[index].state = ExecuteState.RUNNING
 }
 
 const execute_project_finish = (e:IpcRendererEvent, uuid:string) => {
-
+    const index = data.value.projects.findIndex(x => x.uuid)
+    if(index == -1) return
+    data.value.project = ""
+    data.value.project_index = -1
+    data.value.project_state[index].state = ExecuteState.FINISH
 }
 
-const execute_task_start = (e:IpcRendererEvent, uuid:string) => {
-
+const execute_task_start = (e:IpcRendererEvent, uuid:string, count:number) => {
+    if (data.value.project_index == -1) return
+    const index = data.value.projects[data.value.project_index].task.findIndex(x => x.uuid)
+    if(index == -1) return
+    data.value.task = uuid
+    data.value.task_index = index
+    data.value.task_state[index].state = ExecuteState.RUNNING
+    data.value.task_detail = []
+    for(let i = 0; i < count; i++){
+        data.value.task_detail.push({
+            index: i,
+            node: "",
+            message: [],
+            state: ExecuteState.NONE
+        })
+    }
 }
 
 const execute_task_finish = (e:IpcRendererEvent, uuid:string) => {
-
+    if (data.value.project_index == -1) return
+    const index = data.value.projects[data.value.project_index].task.findIndex(x => x.uuid)
+    if(index == -1) return
+    data.value.task = ""
+    data.value.task_index = -1
+    data.value.task_state[index].state = ExecuteState.FINISH
+    data.value.task_detail = []
 }
 
-const execute_job_start = (e:IpcRendererEvent, uuid:string, node:string) => {
-
+const execute_subtask_start = (e:IpcRendererEvent, index:number, node:string) => {
+    data.value.task_detail[index].node = node
 }
 
-const execute_job_finish = (e:IpcRendererEvent, uuid:string, node:string) => {
+const execute_subtask_end = (e:IpcRendererEvent, index:number, node:string) => {
+    data.value.task_detail[index].node = ""
+}
 
+const execute_job_start = (e:IpcRendererEvent, uuid:string, index:number, node:string) => {
+    //data.value.task_detail[index].node = node
+}
+
+const execute_job_finish = (e:IpcRendererEvent, uuid:string, index:number, node:string) => {
+    //data.value.task_detail[index].node = ""
 }
 
 onMounted(() => {
@@ -95,6 +137,8 @@ onMounted(() => {
     window.electronAPI.eventOn('execute_project_finish', execute_project_finish)
     window.electronAPI.eventOn('execute_task_start', execute_task_start)
     window.electronAPI.eventOn('execute_task_finish', execute_task_finish)
+    window.electronAPI.eventOn('execute_subtask_start', execute_subtask_start)
+    window.electronAPI.eventOn('execute_subtask_end', execute_subtask_end)
     window.electronAPI.eventOn('execute_job_start', execute_job_start)
     window.electronAPI.eventOn('execute_job_finish', execute_job_finish)
 })
@@ -114,7 +158,7 @@ onUnmounted(() => {
 
 <template>
     <b-container fluid>
-        <b-row style="height: calc(100vh - 45px)">
+        <b-row style="height: calc(100vh - 45px)" class="w-100">
             <b-col :cols="leftSize" style="border-right: brown 1px solid;">
                 <b-button-group class="my-3 w-100">
                     <b-button @click="execute" :disabled="data.projects.length == 0" :variant="data.running ? 'danger' : 'success'">{{ data.running ? '停止' : '執行' }}</b-button>
@@ -129,18 +173,28 @@ onUnmounted(() => {
                 
             </b-col>
             <b-col :cols="rightSize" v-if="tag == 1">
-                <b-row>
-                    <b-col v-for="(c, i) in data.task_state" :key="i">
-                        <b-card class="w-100" no-body>
-                            <b-card-header :header-bg-variant="getStateColor(c.state)" class="mb-2">
-                                <span style="font-size: smaller;">{{ c.uuid }}</span>
-                            </b-card-header>
-                            <b-card-text>
-                                <h4> {{ data.projects[data.project_index].task[i].title }} </h4>
-                            </b-card-text>
-                        </b-card>
-                    </b-col>
-                </b-row>
+                <b-container class="pt-4">
+                    <b-row>
+                        <b-col v-for="(c, i) in data.task_state" :key="i">
+                            <b-card class="w-100" no-body>
+                                <b-card-header :header-bg-variant="getStateColor(c.state)" class="mb-2">
+                                    <span style="font-size: smaller;">{{ c.uuid }}</span>
+                                </b-card-header>
+                                <b-card-text>
+                                    <h4> {{ data.projects[data.project_index].task[i].title }} </h4>
+                                </b-card-text>
+                            </b-card>
+                        </b-col>
+                    </b-row>
+                    <b-card class="w-100" no-body v-for="(task, i) in data.task_detail" :key="i">
+                        <b-card-header>
+                            Index: {{ task.index }} <b-spinner v-if="task.node.length > 0" class="m-5" label="Busy"></b-spinner>
+                        </b-card-header>
+                        <b-card-text v-if="task.node.length > 0">
+                            <p v-for="(text, j) in task.message" :key="j"> {{ text }} </p>
+                        </b-card-text>
+                    </b-card>
+                </b-container>
             </b-col>
             <b-col :cols="rightSize" v-if="tag == 2">
 
@@ -152,4 +206,5 @@ onUnmounted(() => {
 <style scoped>
 
 </style>
+
 

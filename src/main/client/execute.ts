@@ -1,5 +1,5 @@
 import { messager_log } from "../debugger";
-import { FeedBack, Header, Job, JobType, OnePath, Parameter, Setter, TwoPath } from "../interface";
+import { FeedBack, Header, Job, JobType, JobTypeText, OnePath, Parameter, Setter, TwoPath } from "../interface";
 import { source } from "./client";
 import { LuaExecute } from "./lua";
 import { command, dir_copy, dir_delete, file_copy, file_delete } from "./os";
@@ -9,8 +9,10 @@ export let parameter:Parameter | undefined = undefined
 
 export const execute_job = (job:Job) => {
     if(current_job != undefined) {
+        messager_log(`[執行狀態] 錯誤! 已經有正在執行的工作`)
         return
     }
+    messager_log(`[執行狀態] ${job.uuid}  ${JobTypeText[job.type]}`)
     current_job = job
     new Promise<string>((resolve, reject) => {
         switch(job.type as JobType){
@@ -57,13 +59,15 @@ export const execute_job = (job:Job) => {
                 break
         }
     }).then(x => {
+        console.log(`[回傳工作] ${x}`)
+        messager_log(`[執行成功] ${x}`)
         const data:FeedBack = { job_uuid: current_job?.uuid ?? '', message: x }
         const h:Header = { name: 'feedback_job', data: data }
         source?.send(JSON.stringify(h))
         current_job = undefined
     })
     .catch(err => {
-        messager_log(err)
+        messager_log(`[執行狀態] 錯誤: ${err}`)
         current_job = undefined
     })
 }

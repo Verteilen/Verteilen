@@ -3,9 +3,11 @@ import { IpcRendererEvent } from 'electron';
 import { onMounted, onUnmounted, Ref, ref } from 'vue';
 
 const messages:Ref<Array<string>> = ref([])
+const myDiv = ref<HTMLDivElement | null>(null);
 
 const msgAppend = (e:IpcRendererEvent, msg:string) => {
-  messages.value.push(msg);
+  messages.value.push(msg)
+  window.scrollTo(0, document.body.scrollHeight);
 }
 
 const clearMessage = () => {
@@ -31,7 +33,7 @@ onUnmounted(() => {
       <b-button @click="clearMessage">清除</b-button>
     </b-button-group>
   </div>
-  <div class="flow">
+  <div class="flow" ref="myDiv">
     <p class="messages" v-for="(msg, i) in messages" :key="i">{{ msg }}</p>
   </div>
 </template>
@@ -47,7 +49,6 @@ onUnmounted(() => {
   padding-left: 10px;
   width: 100vw; 
   text-align: left;
-  user-select: none;
 }
 .messages {
   line-height: 10px;

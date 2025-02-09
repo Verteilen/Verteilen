@@ -103,7 +103,7 @@ const movedownProject = (uuid:string) => {
 }
 
 const executeProjects = (uuids:Array<string>, keep:boolean) => {
-  const selection = Object.create(projects.value.filter(x => uuids.includes(x.uuid)))
+  const selection = projects.value.filter(x => uuids.includes(x.uuid))
   if(!keep){
     projects.value = projects.value.filter(x => !uuids.includes(x.uuid))
     saveRecord()

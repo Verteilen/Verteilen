@@ -36,7 +36,7 @@ export const dir_files = (data:OnePath):Array<string> => {
 
 export const dir_dirs = (data:OnePath):Array<string> => {
     const r = fs.readdirSync(data.path, { withFileTypes: false })
-    return r.map(x => x.name)
+    return r as string[]
 }
 
 export const dir_create = (data:OnePath) => {

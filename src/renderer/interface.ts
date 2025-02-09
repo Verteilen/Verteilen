@@ -132,8 +132,10 @@ export enum ExecuteState {
 }
 
 export interface ExecuteRecordTask {
+    index: number
     node: string
     message: Array<string>
+    state: ExecuteState
 }
 
 export interface ExecuteData {

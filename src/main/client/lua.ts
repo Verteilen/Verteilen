@@ -20,10 +20,10 @@ function exist(path:string){
     return fs_exist({path:path})
 }
 function listfile(path:string){
-    return dir_files({path:path})
+    return dir_files({path:path}).join('\n')
 }
 function listdir(path:string){
-    return dir_dirs({path:path})
+    return dir_dirs({path:path}).join('\n')
 }
 function createdir(path:string){
     dir_create({path:path})
@@ -32,28 +32,28 @@ function writefile(path:string, data:string){
     file_write({ from: path, to: data })
 }
 function hasboolean(key:string){
-    if(parameter == undefined) return
+    if(parameter == undefined) return false
     return parameter.booleans.findIndex(x => x.name == key) != -1
 }
 function hasnumber(key:string){
-    if(parameter == undefined) return
+    if(parameter == undefined) return false
     return parameter.numbers.findIndex(x => x.name == key) != -1
 }
 function hasstring(key:string){
-    if(parameter == undefined) return
+    if(parameter == undefined) return false
     return parameter.strings.findIndex(x => x.name == key) != -1
 }
 function getboolean(key:string){
-    if(parameter == undefined) return
-    return parameter.booleans.find(x => x.name == key)
+    if(parameter == undefined) return false
+    return parameter.booleans.find(x => x.name == key)?.value ?? false
 }
 function getnumber(key:string){
-    if(parameter == undefined) return
-    return parameter.numbers.find(x => x.name == key)
+    if(parameter == undefined) return 0
+    return parameter.numbers.find(x => x.name == key)?.value ?? 0
 }
 function getstring(key:string){
-    if(parameter == undefined) return
-    return parameter.strings.find(x => x.name == key)
+    if(parameter == undefined) return ""
+    return parameter.strings.find(x => x.name == key)?.value ?? ""
 }
 function setboolean(key:string, value:boolean){
     if(parameter == undefined) return
@@ -103,11 +103,18 @@ const message = new luainjs.Table({
 })
 
 const luaEnv = luainjs.createEnv()
-luaEnv.loadLib('os', os)
+luaEnv.loadLib('os2', os)
 luaEnv.loadLib('env', env)
 luaEnv.loadLib('m', message)
 
 export const LuaExecute = (lua:string) => {
-    const execc = luaEnv.parse(lua)
-    execc.exec()
+    console.log("開始執行 lua")
+    try {
+        const execc = luaEnv.parse(lua)
+        execc.exec()    
+    }catch(err){
+        console.log("執行出錯 lua")
+        throw err
+    }
+    console.log("結束執行 lua")
 }

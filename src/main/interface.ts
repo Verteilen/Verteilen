@@ -48,8 +48,21 @@ export enum JobType {
     COPY_DIR,
     DELETE_FILE,
     DELETE_DIR,
+    CREATE_FILE,
+    CREATE_DIR,
     LUA,
     COMMAND
+}
+
+export const JobTypeText: { [key:number]:string } = {
+    0: '複製檔案',
+    1: '複製資料夾',
+    2: '刪除檔案',
+    3: '刪除資料夾',
+    4: '建立檔案',
+    5: '建立資料夾',
+    6: 'LUA 腳本',
+    7: '指令執行'
 }
 
 export interface Parameter {
@@ -91,11 +104,6 @@ export interface Project {
 }
 
 export interface Record {
-    projects: Array<Project>
-    nodes: Array<Node>
-}
-
-export interface ExecuteRendererPack {
     projects: Array<Project>
     nodes: Array<Node>
 }

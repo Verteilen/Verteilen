@@ -7,8 +7,10 @@ export let mainWindow:BrowserWindow | undefined = undefined
 
 function createWindow () {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1280,
+    height: 800,
+    minWidth: 1280,
+    minHeight: 800,
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       nodeIntegration: false,

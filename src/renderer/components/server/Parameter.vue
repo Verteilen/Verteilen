@@ -120,9 +120,9 @@ onUnmounted(() => {
                                     <b-form-checkbox v-model="c.s" @change="datachange"> {{ c.name }} </b-form-checkbox>
                                 </b-col>
                                 <b-col cols="5">
-                                    <b-form-input v-if="n == 0" v-model="c.value" @change="dirty = true" type="string"></b-form-input>
-                                    <b-form-input v-else-if="n == 1" v-model.number="c.value" @change="dirty = true" type="number"></b-form-input>
-                                    <b-form-checkbox v-else v-model="c.value" @change="dirty = true" type="number"></b-form-checkbox>
+                                    <b-form-input v-if="n == 1" v-model="c.value" @input="dirty = true"></b-form-input>
+                                    <b-form-input v-else-if="n == 2" v-model.number="c.value" @input="dirty = true" type="number"></b-form-input>
+                                    <b-form-checkbox v-else v-model="c.value" @input="dirty = true"></b-form-checkbox>
                                 </b-col>
                                 <b-col cols="3">
                                     <b-button @click="rename(n - 1, c.name)">改名</b-button>
