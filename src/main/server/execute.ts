@@ -71,7 +71,7 @@ const replacePara = (text:string, v:Array<KeyValue>):string => {
 }
 
 export const ExecuteJob = async (job:Job, wss:WebsocketPack):Promise<void> => {
-    current_web?.send('execute_job_start', job.uuid)
+    current_web?.send('execute_job_start', job.uuid, wss.uuid)
     return new Promise(async (resolve, reject) => {
         for(let i = 0; i < job.string_args.length; i++){
             replacePara(job.string_args[i], [{ key: 'ck', value: job.index }])
@@ -90,7 +90,7 @@ export const ExecuteJob = async (job:Job, wss:WebsocketPack):Promise<void> => {
         timer = setInterval(() => {
             const p = current_jobstate.findIndex(x => x.id)
             if(p != -1 && current_jobstate[p].state == ExecuteState.Finish){
-                current_web?.send('execute_job_finish', job.uuid)
+                current_web?.send('execute_job_finish', job.uuid, wss.uuid)
                 resolve()
                 clearInterval(timer)
             }

@@ -127,6 +127,31 @@ export interface Record {
     nodes: Array<Node>
 }
 
+export enum ExecuteState {
+    NONE, RUNNING, FINISH, ERROR
+}
+
+export interface ExecuteRecordTask {
+    node: string
+    message: Array<string>
+}
+
+export interface ExecuteData {
+    uuid: string
+    state: ExecuteState
+}
+
+export interface ExecuteRecord extends Record {
+    running: boolean
+    project: string
+    task: string
+    project_index: number
+    task_index: number
+    project_state: Array<ExecuteData>
+    task_state: Array<ExecuteData>
+    task_detail: Array<ExecuteRecordTask>
+}
+
 export type BusType = {
     makeToast: ToastData
     modeSelect: boolean
@@ -135,4 +160,5 @@ export type BusType = {
     updateTask: void
     updateJob: void
     updateParameter: void
+    execute: Record
 }

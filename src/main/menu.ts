@@ -81,7 +81,7 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
                 label: '執行所有'
             },
             {
-                label: '執行所有 (強制)'
+                label: '執行所有 (保留)'
             }
         ]
     },

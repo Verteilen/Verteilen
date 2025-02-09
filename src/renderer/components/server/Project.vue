@@ -89,8 +89,8 @@ const cloneSelect = () => {
     })
 }
 
-const execute = (force:boolean) => {
-    emits('execute', items.value.filter(x => x.s).map(x => x.ID), force)
+const execute = (keep:boolean) => {
+    emits('execute', items.value.filter(x => x.s).map(x => x.ID), keep)
 }
 
 const confirmCreate = () => {
@@ -202,7 +202,7 @@ onUnmounted(() => {
                 <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect">{{ $t('clone') }}</b-button>
                 <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect">{{ $t('delete') }}</b-button>
                 <b-button @click="execute(false)" :disabled="!hasSelect">執行</b-button>
-                <b-button @click="execute(true)" :disabled="!hasSelect">強制執行</b-button>
+                <b-button @click="execute(true)" :disabled="!hasSelect">執行 (保留)</b-button>
             </b-button-group>
         </div>
         <div>

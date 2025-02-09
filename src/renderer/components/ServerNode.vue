@@ -29,13 +29,14 @@ const allUpdate = () => {
   })
 }
 
-const saveRecord = () => {
+const saveRecord = ():Record => {
   const record:Record = {
     projects: projects.value,
     nodes: nodes.value as Array<Node>
   }
   const k = JSON.stringify(record, null, 4)
   window.electronAPI.send('save_record', k)
+  return record
 }
 
 //#region Project
@@ -99,6 +100,21 @@ const movedownProject = (uuid:string) => {
   projects.value[index] = b
   saveRecord()
   allUpdate()
+}
+
+const executeProjects = (uuids:Array<string>, keep:boolean) => {
+  const selection = Object.create(projects.value.filter(x => uuids.includes(x.uuid)))
+  if(!keep){
+    projects.value = projects.value.filter(x => !uuids.includes(x.uuid))
+    saveRecord()
+    allUpdate()
+  }
+  const record:Record = {
+    projects: selection,
+    nodes: nodes.value as Array<Node>
+  }
+  emitter?.emit('execute', record)
+  page.value = 4
 }
 //#endregion
 
@@ -251,7 +267,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <b-nav tabs style="width: 100vw;">
+  <b-nav tabs style="width: 100vw; height:40px">
     <b-nav-item @click="page = 0" :active="page == 0">專案管理</b-nav-item>
     <b-nav-item @click="page = 1" :active="page == 1">流程管理</b-nav-item>
     <b-nav-item @click="page = 6" :active="page == 6">參數管理</b-nav-item>
@@ -268,7 +284,8 @@ onUnmounted(() => {
       @select="e => chooseProject(e)" 
       @delete="e => deleteProject(e)"
       @moveup="e => moveupProject(e)"
-      @movedown="e => movedownProject(e)" />
+      @movedown="e => movedownProject(e)" 
+      @execute="(e, keep) => executeProjects(e, keep)"/>
 
     <TaskPage v-show="page == 1" 
       :projects="projects" 
