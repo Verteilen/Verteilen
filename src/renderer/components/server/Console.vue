@@ -23,6 +23,10 @@ const leftSize = ref(3)
 const rightSize = ref(9)
 const tag = ref(1)
 
+const getStateColorText = (state:number):string => {
+    return state == 0 ? "black" : "white"
+}
+
 const getStateColor = (state:number):string => {
     if (state == 0) return  "Default"
     else if (state == 1) return "primary"
@@ -56,7 +60,6 @@ const execute = () => {
             projects: data.value.projects,
             nodes: data.value.nodes
         }
-        console.log(JSON.stringify(buffer))
         window.electronAPI.send('execute_pack', JSON.stringify(buffer))
     }else{
         window.electronAPI.send('execute_stop')
@@ -71,7 +74,7 @@ const feedback_message = (e:IpcRendererEvent, uuid:string, anydata:string) => {
 }
 
 const execute_project_start = (e:IpcRendererEvent, uuid:string) => {
-    const index = data.value.projects.findIndex(x => x.uuid)
+    const index = data.value.projects.findIndex(x => x.uuid == uuid)
     if(index == -1) return
     data.value.project = uuid
     data.value.project_index = index
@@ -79,7 +82,7 @@ const execute_project_start = (e:IpcRendererEvent, uuid:string) => {
 }
 
 const execute_project_finish = (e:IpcRendererEvent, uuid:string) => {
-    const index = data.value.projects.findIndex(x => x.uuid)
+    const index = data.value.projects.findIndex(x => x.uuid == uuid)
     if(index == -1) return
     data.value.project = ""
     data.value.project_index = -1
@@ -88,7 +91,8 @@ const execute_project_finish = (e:IpcRendererEvent, uuid:string) => {
 
 const execute_task_start = (e:IpcRendererEvent, uuid:string, count:number) => {
     if (data.value.project_index == -1) return
-    const index = data.value.projects[data.value.project_index].task.findIndex(x => x.uuid)
+    const index = data.value.projects[data.value.project_index].task.findIndex(x => x.uuid == uuid)
+    console.log(index, uuid, count)
     if(index == -1) return
     data.value.task = uuid
     data.value.task_index = index
@@ -106,7 +110,7 @@ const execute_task_start = (e:IpcRendererEvent, uuid:string, count:number) => {
 
 const execute_task_finish = (e:IpcRendererEvent, uuid:string) => {
     if (data.value.project_index == -1) return
-    const index = data.value.projects[data.value.project_index].task.findIndex(x => x.uuid)
+    const index = data.value.projects[data.value.project_index].task.findIndex(x => x.uuid == uuid)
     if(index == -1) return
     data.value.task = ""
     data.value.task_index = -1
@@ -116,10 +120,12 @@ const execute_task_finish = (e:IpcRendererEvent, uuid:string) => {
 
 const execute_subtask_start = (e:IpcRendererEvent, index:number, node:string) => {
     data.value.task_detail[index].node = node
+    data.value.task_detail[index].state = ExecuteState.RUNNING
 }
 
 const execute_subtask_end = (e:IpcRendererEvent, index:number, node:string) => {
     data.value.task_detail[index].node = ""
+    data.value.task_detail[index].state = ExecuteState.FINISH
 }
 
 const execute_job_start = (e:IpcRendererEvent, uuid:string, index:number, node:string) => {
@@ -173,11 +179,11 @@ onUnmounted(() => {
                 
             </b-col>
             <b-col :cols="rightSize" v-if="tag == 1">
-                <b-container class="pt-4">
+                <b-container class="pt-4" style="max-height: 90vh; overflow-y: scroll;">
                     <b-row>
                         <b-col v-for="(c, i) in data.task_state" :key="i">
-                            <b-card class="w-100" no-body>
-                                <b-card-header :header-bg-variant="getStateColor(c.state)" class="mb-2">
+                            <b-card class="w-100" no-body :bg-variant="getStateColor(c.state)" :text-variant="getStateColorText(c.state)">
+                                <b-card-header class="mb-2">
                                     <span style="font-size: smaller;">{{ c.uuid }}</span>
                                 </b-card-header>
                                 <b-card-text>
@@ -188,10 +194,10 @@ onUnmounted(() => {
                     </b-row>
                     <b-card class="w-100" no-body v-for="(task, i) in data.task_detail" :key="i">
                         <b-card-header>
-                            Index: {{ task.index }} <b-spinner v-if="task.node.length > 0" class="m-5" label="Busy"></b-spinner>
+                            <span style="margin-right: 10px;">Index: {{ task.index }}</span> <b-spinner small v-if="task.node.length > 0"></b-spinner>
                         </b-card-header>
                         <b-card-text v-if="task.node.length > 0">
-                            <p v-for="(text, j) in task.message" :key="j"> {{ text }} </p>
+                            <p style="line-height: 15px; margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>
                         </b-card-text>
                     </b-card>
                 </b-container>

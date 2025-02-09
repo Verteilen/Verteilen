@@ -59,12 +59,13 @@ const replacePara = (text:string, v:Array<KeyValue>):string => {
     for(const v of text){
         if(v == '%'){
             state = !state
-            if(!state) {
-                store = ""
+            if(!state) { // End
                 const index = paras.findIndex(x => x.key == store)
                 if(index != -1) buffer += paras[index].value
+                store = ""
             }
         }
+        if(state && v != '%') store += v
         if(!state && v != '%') buffer += v
     }
     return buffer
@@ -75,7 +76,7 @@ export const ExecuteJob = async (job:Job, wss:WebsocketPack):Promise<void> => {
     current_web?.send('execute_job_start', job.uuid, wss.uuid)
     return new Promise(async (resolve, reject) => {
         for(let i = 0; i < job.string_args.length; i++){
-            replacePara(job.string_args[i], [{ key: 'ck', value: job.index }])
+            job.string_args[i] = replacePara(job.string_args[i], [{ key: 'ck', value: job.index }])
         }
         const h:Header = {
             name: 'execute_job',
@@ -93,7 +94,7 @@ export const ExecuteJob = async (job:Job, wss:WebsocketPack):Promise<void> => {
             const p = current_jobstate.findIndex(x => x.id == job.uuid)
             if(p != -1 && current_jobstate[p].state == ExecuteState.Finish){
                 current_jobstate.splice(p, 1)
-                messager_log(`[執行狀態] 開始執行工作 ${job.uuid}  ${wss.uuid}`)
+                messager_log(`[執行狀態] 結束執行工作 ${job.uuid}  ${wss.uuid}`)
                 current_web?.send('execute_job_finish', job.uuid, wss.uuid)
                 resolve()
                 clearInterval(timer)
@@ -103,8 +104,6 @@ export const ExecuteJob = async (job:Job, wss:WebsocketPack):Promise<void> => {
 }
 
 export const ExecuteTask = async (task:Task):Promise<void> => {
-    messager_log(`[執行狀態] 開始執行流程 ${task.uuid}`)
-    current_web?.send('execute_task_start', task.uuid)
     return new Promise(async (resolve, reject) => {
         if(current == undefined) {
             reject(`[執行錯誤] 專案實體為 undefined`)
@@ -118,6 +117,9 @@ export const ExecuteTask = async (task:Task):Promise<void> => {
                 return
             }
 
+            messager_log(`[執行狀態] 開始執行流程 ${task.uuid} ${count}`)
+            current_web?.send('execute_task_start', task.uuid, count)
+
             current_cron = []
             for(let index = 0; index < count; index++){
                 current_cron.push({id: index, state: ExecuteState.STOP})
@@ -125,24 +127,30 @@ export const ExecuteTask = async (task:Task):Promise<void> => {
 
             for(let index = 0; index < count; index++){
                 const ns = await get_idle()
+                current_web?.send('execute_subtask_start', index, ns.uuid)
                 for(const x of task.jobs){
                     if(state == ExecuteState.STOP) return
                     const buff:Job = x
                     buff.index = index
                     await ExecuteJob(buff, ns).catch(err => messager_log(`[執行狀態] 執行工作錯誤: ${err}`))
                 }
+                current_web?.send('execute_subtask_end', index, ns.uuid)
             }
             messager_log(`[執行狀態] 結束執行流程 ${task.uuid}`)
             current_web?.send('execute_task_finish', task.uuid)
             resolve()
         }else{
+            messager_log(`[執行狀態] 開始執行流程 ${task.uuid} 1`)
+            current_web?.send('execute_task_start', task.uuid, 1)
             const ns = await get_idle()
+            current_web?.send('execute_subtask_start', 0, ns.uuid)
             for(const x of task.jobs){
                 if(state == ExecuteState.STOP) return
                 const buff:Job = x
                 buff.index = -1
                 await ExecuteJob(buff, ns).catch(err => messager_log(`[執行狀態] 執行工作錯誤: ${err}`))
             }
+            current_web?.send('execute_subtask_end', 0, ns.uuid)
             messager_log(`[執行狀態] 結束執行流程 ${task.uuid}`)
             current_web?.send('execute_task_finish', task.uuid)
             resolve()
@@ -211,15 +219,16 @@ export const feedback_message = (data:Single, source:WebsocketPack | undefined) 
     if(source == undefined || current_web == undefined) return
     const index = current_nodes.findIndex(x => x.uuid == source.uuid)
     if(index != -1) {
+        messager_log(`[執行狀態] 單一回傳資訊接收 ${data.data}`)
         current_web.send('feedback_message', source.uuid, data.data)
     }
 }
 
 export const feedback_job = (data:FeedBack) => {
     if(current_web == undefined) return
-    messager_log(`[執行狀態] 工作回傳 ${data.job_uuid} ${data.message}`)
     const index = current_jobstate.findIndex(x => x.id == data.job_uuid)
-    if(index == -1){
+    if(index != -1){
+        messager_log(`[執行狀態] 工作回傳 ${data.job_uuid} ${data.message}`)
         current_jobstate[index].state = ExecuteState.Finish
         current_web.send('feedback_message', data.job_uuid, data.message)
     }

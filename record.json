@@ -1,8 +1,8 @@
 {
     "projects": [
         {
-            "uuid": "1efe6ddc-342f-61c0-a18a-c1d96f98d408",
-            "title": "TEST",
+            "uuid": "1efe6fd8-8057-6c70-9190-2d076206b4a3",
+            "title": "Test",
             "description": "",
             "parameter": {
                 "numbers": [
@@ -45,16 +45,16 @@
             },
             "task": [
                 {
-                    "uuid": "1efe6ddc-3431-68d3-bd47-e9ff0df3d338",
+                    "uuid": "1efe6fd8-8057-6c74-8aea-95401f2cd092",
                     "title": "整理階段",
                     "description": "從原始資料夾結構 弄成可以工作的樣子",
                     "cronjob": false,
                     "cronjobKey": "",
                     "jobs": [
                         {
-                            "uuid": "1efe6ddc-3431-68d0-a2b3-c926dd2a396b",
+                            "uuid": "1efe6fd8-8057-6c71-8b80-32847f940995",
                             "type": 6,
-                            "lua": "\nfunction split(s, sep)\n    local fields = {}\n    local sep = sep or \" \"\n    local pattern = string.format(\"([^%s]+)\", sep)\n    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)\n    return fields\nend\n\nm.messager_log(\"Env Init\")\n\nlocal root = env.getstring(\"root\")\nlocal prepare_folder = env.getstring(\"prepare\")\nlocal before_folder = env.getstring(\"before\")\nlocal after_folder = env.getstring(\"after\")\n\nlocal CAM = env.getstring(\"CAM\")\nlocal images = env.getstring(\"images\")\nlocal sparse = env.getstring(\"sparse\")\n\nos2.deletedir(root..\"/\"..before_folder)\n\nm.messager_log(\"Get CAM list\")\nlocal prepare_folders = split(os2.listdir(root..\"/\"..prepare_folder..\"/\"..CAM), \"\\n\")\n\nlocal cam_size = #(prepare_folders)\nm.messager_log(\"Get CAM count: \"..cam_size)\n\nlocal frame_size = 0\nif cam_size > 0 then\n    local f1_files = split(os2.listfile(root..\"/\"..prepare_folder..\"/\"..CAM..\"/\"..prepare_folders[1]), \"\\n\")\n    frame_size = #(f1_files)\nend\nm.messager_log(\"Get Frame count: \"..frame_size)\n\nm.messager_log(\"Create Prepare folder: \"..root..\"/\"..before_folder..\"/\"..CAM)\nos2.createdir(root..\"/\"..before_folder..\"/\"..CAM)\n\nm.messager_log(\"Copy sparse folder\")\nos2.copydir(root..\"/\"..prepare_folder..\"/\"..sparse, root..\"/\"..before_folder..\"/\"..sparse)\n\nfor key=1,frame_size,1 do\n    os2.createdir(root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key))\n    os2.createdir(root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key)..\"/\"..\"out\")\n    for key2=1,cam_size,1 do\n        local from = root..\"/\"..prepare_folder..\"/\"..CAM..\"/C\"..string.format(\"%04d\", key2)..\"/\"..string.format(\"%04d\", key2)..\"_\"..string.format(\"%06d\", key)..\".jpg\"\n        local to = root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key)..\"/\"..string.format(\"%04d\", key2)..\".jpg\"\n        os2.copyfile(from, to)\n    end\nend\n",
+                            "lua": "\nfunction split(s, sep)\n    local fields = {}\n    local sep = sep or \" \"\n    local pattern = string.format(\"([^%s]+)\", sep)\n    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)\n    return fields\nend\n\nm.messager(\"Env Init\")\n\nlocal root = env.getstring(\"root\")\nlocal prepare_folder = env.getstring(\"prepare\")\nlocal before_folder = env.getstring(\"before\")\nlocal after_folder = env.getstring(\"after\")\n\nlocal CAM = env.getstring(\"CAM\")\nlocal images = env.getstring(\"images\")\nlocal sparse = env.getstring(\"sparse\")\n\nos2.deletedir(root..\"/\"..before_folder)\n\nm.messager(\"Get CAM list\")\nlocal prepare_folders = split(os2.listdir(root..\"/\"..prepare_folder..\"/\"..CAM), \"\\n\")\n\nlocal cam_size = #(prepare_folders)\nm.messager(\"Get CAM count: \"..cam_size)\n\nlocal frame_size = 0\nif cam_size > 0 then\n    local f1_files = split(os2.listfile(root..\"/\"..prepare_folder..\"/\"..CAM..\"/\"..prepare_folders[1]), \"\\n\")\n    frame_size = #(f1_files)\nend\nm.messager(\"Get Frame count: \"..frame_size)\n\nm.messager(\"Create Prepare folder: \"..root..\"/\"..before_folder..\"/\"..CAM)\nos2.createdir(root..\"/\"..before_folder..\"/\"..CAM)\n\nm.messager(\"Copy sparse folder\")\nos2.copydir(root..\"/\"..prepare_folder..\"/\"..sparse, root..\"/\"..before_folder..\"/\"..sparse)\n\nfor key=1,frame_size,1 do\n    os2.createdir(root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key))\n    os2.createdir(root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key)..\"/\"..\"out\")\n    for key2=1,cam_size,1 do\n        local from = root..\"/\"..prepare_folder..\"/\"..CAM..\"/C\"..string.format(\"%04d\", key2)..\"/\"..string.format(\"%04d\", key2)..\"_\"..string.format(\"%06d\", key)..\".jpg\"\n        local to = root..\"/\"..before_folder..\"/\"..CAM..\"/C\"..string.format(\"%06d\", key)..\"/\"..string.format(\"%04d\", key2)..\".jpg\"\n        os2.copyfile(from, to)\n    end\nend\n\nenv.setnumber(\"frameCount\", frame_size)\n\n",
                             "string_args": [],
                             "number_args": [],
                             "boolean_args": []
@@ -62,14 +62,14 @@
                     ]
                 },
                 {
-                    "uuid": "1efe6ddc-3431-68d4-b0cc-95cd2a4b5a7e",
+                    "uuid": "1efe6fd8-8057-6c75-86f4-6f15111c327d",
                     "title": "運算階段",
                     "description": "正式開始進行演算",
                     "cronjob": true,
                     "cronjobKey": "frameCount",
                     "jobs": [
                         {
-                            "uuid": "1efe6ddc-3431-68d1-bfe7-b424c91225ba",
+                            "uuid": "1efe6fd8-8057-6c72-8a55-356aa1d4b151",
                             "type": 5,
                             "lua": "",
                             "string_args": [
@@ -79,7 +79,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe6ddc-3431-68d2-b942-16cb522023e7",
+                            "uuid": "1efe6fd8-8057-6c73-91f9-241fd8ee35ac",
                             "type": 7,
                             "lua": "",
                             "string_args": [
@@ -93,7 +93,7 @@
                     ]
                 },
                 {
-                    "uuid": "1efe6ddc-3431-68d5-9929-6965b6d24edf",
+                    "uuid": "1efe6fd8-8057-6c76-a81d-643dd5572817",
                     "title": "總結",
                     "description": "最後的工作階段",
                     "cronjob": false,

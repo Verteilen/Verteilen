@@ -3,11 +3,11 @@ import { IpcRendererEvent } from 'electron';
 import { onMounted, onUnmounted, Ref, ref } from 'vue';
 
 const messages:Ref<Array<string>> = ref([])
-const myDiv = ref<HTMLDivElement | null>(null);
+const myDiv:Ref<HTMLDivElement | null> = ref(null);
 
 const msgAppend = (e:IpcRendererEvent, msg:string) => {
   messages.value.push(msg)
-  window.scrollTo(0, document.body.scrollHeight);
+  myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
 }
 
 const clearMessage = () => {
@@ -45,12 +45,16 @@ onUnmounted(() => {
   right: 20px;
 }
 .flow {
-  margin-top: 20px;
+  padding-top: 20px;
   padding-left: 10px;
   width: 100vw; 
+  height: 100vh;
+  overflow-y: auto;
   text-align: left;
+  background-color: rgb(12,12,12);
 }
 .messages {
   line-height: 10px;
+  color: white
 }
 </style>

@@ -2,7 +2,7 @@ import { messager_log } from "../debugger";
 import { FeedBack, Header, Job, JobType, JobTypeText, OnePath, Parameter, Setter, TwoPath } from "../interface";
 import { source } from "./client";
 import { LuaExecute } from "./lua";
-import { command, dir_copy, dir_delete, file_copy, file_delete } from "./os";
+import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write } from "./os";
 
 export let current_job:Job | undefined = undefined
 export let parameter:Parameter | undefined = undefined
@@ -44,6 +44,20 @@ export const execute_job = (job:Job) => {
                     resolve(`刪除資料夾成功, ${data.path}`)
                     break
                 }
+            case JobType.CREATE_DIR:
+                {
+                    const data:OnePath = { path: job.string_args[0] }
+                    dir_create(data)
+                    resolve(`建立資料夾成功, ${data.path}`)
+                    break
+                }
+            case JobType.CREATE_FILE:
+                {
+                    const data:TwoPath = { from: job.string_args[0], to: job.string_args[1] }
+                    file_write(data)
+                    resolve(`建立檔案成功, ${data.from}`)
+                    break
+                }
             case JobType.LUA:
                 {
                     LuaExecute(job.lua)
@@ -61,7 +75,7 @@ export const execute_job = (job:Job) => {
     }).then(x => {
         console.log(`[回傳工作] ${x}`)
         messager_log(`[執行成功] ${x}`)
-        const data:FeedBack = { job_uuid: current_job?.uuid ?? '', message: x }
+        const data:FeedBack = { job_uuid: job.uuid, message: x }
         const h:Header = { name: 'feedback_job', data: data }
         source?.send(JSON.stringify(h))
         current_job = undefined

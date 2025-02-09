@@ -11,7 +11,7 @@ function split(s, sep)
     return fields
 end
 
-m.messager_log("Env Init")
+m.messager("Env Init")
 
 local root = env.getstring("root")
 local prepare_folder = env.getstring("prepare")
@@ -24,23 +24,23 @@ local sparse = env.getstring("sparse")
 
 os2.deletedir(root.."/"..before_folder)
 
-m.messager_log("Get CAM list")
+m.messager("Get CAM list")
 local prepare_folders = split(os2.listdir(root.."/"..prepare_folder.."/"..CAM), "\\n")
 
 local cam_size = #(prepare_folders)
-m.messager_log("Get CAM count: "..cam_size)
+m.messager("Get CAM count: "..cam_size)
 
 local frame_size = 0
 if cam_size > 0 then
     local f1_files = split(os2.listfile(root.."/"..prepare_folder.."/"..CAM.."/"..prepare_folders[1]), "\\n")
     frame_size = #(f1_files)
 end
-m.messager_log("Get Frame count: "..frame_size)
+m.messager("Get Frame count: "..frame_size)
 
-m.messager_log("Create Prepare folder: "..root.."/"..before_folder.."/"..CAM)
+m.messager("Create Prepare folder: "..root.."/"..before_folder.."/"..CAM)
 os2.createdir(root.."/"..before_folder.."/"..CAM)
 
-m.messager_log("Copy sparse folder")
+m.messager("Copy sparse folder")
 os2.copydir(root.."/"..prepare_folder.."/"..sparse, root.."/"..before_folder.."/"..sparse)
 
 for key=1,frame_size,1 do
@@ -52,4 +52,7 @@ for key=1,frame_size,1 do
         os2.copyfile(from, to)
     end
 end
+
+env.setnumber("frameCount", frame_size)
+
 `
