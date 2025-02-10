@@ -15,10 +15,14 @@ const get_idle = async ():Promise<WebsocketPackState> => {
     return new Promise<WebsocketPackState>((resolve, reject) => {
         let timer:any
         timer = setInterval(() => {
-            const cn = current_nodes.filter(x => x.state == ExecuteState.STOP && x.websocket.readyState == WebSocket.OPEN)
-            if(cn.length != 0){
+            const all = current_nodes.filter(x => x.state == ExecuteState.STOP && x.websocket.readyState == WebSocket.OPEN)
+            const all_uuids = all.map(x => x.uuid)
+            const work_uuids = current_jobstate.map(x => x.id)
+            const nowork = all_uuids.filter(x => !work_uuids.includes(x))
+            if(nowork.length != 0){
+                const index = all.findIndex(x => x.uuid == nowork[0])
                 clearInterval(timer)
-                resolve(cn[0])
+                resolve(all[index])
             }
         }, 500)
         
