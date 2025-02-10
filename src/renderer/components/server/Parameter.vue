@@ -42,6 +42,15 @@ const createParameter = () => {
 }
 
 const cloneSelect = () => {
+    const bs = buffer.value.booleans.filter(x => x.s)
+    const ss = buffer.value.strings.filter(x => x.s)
+    const ns = buffer.value.numbers.filter(x => x.s)
+    bs.forEach(x => x.name += "_clone")
+    ss.forEach(x => x.name += "_clone")
+    ns.forEach(x => x.name += "_clone")
+    buffer.value.booleans.push(...bs)
+    buffer.value.strings.push(...ss)
+    buffer.value.numbers.push(...ns)
     dirty.value = true
 }
 

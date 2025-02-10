@@ -58,7 +58,7 @@ export const eventInit = () => {
                 nodes: []
             }
             fs.writeFileSync('record.json', JSON.stringify(record, null, 4))
-            return JSON.stringify(record.projects)
+            return JSON.stringify(record)
         } else {
             const file = fs.readFileSync('record.json', { encoding: 'utf8', flag: 'r' })
             return file.toString()

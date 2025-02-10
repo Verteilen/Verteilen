@@ -95,14 +95,12 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
                     mainWindow?.webContents.send('show_helper')
                 }
             },
-            ...process.env.NODE_ENV === 'development' ? [
-                {
-                    label: '控制台',
-                    click: async () => {
-                        mainWindow?.webContents.openDevTools();
-                    }
+            {
+                label: '控制台',
+                click: async () => {
+                    mainWindow?.webContents.openDevTools();
                 }
-            ] : []
+            }
         ]
     }
 ]

@@ -4,7 +4,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { } from 'vue-codemirror';
 import { BusType, Job, JobType, JobTypeText, LUATemplate, LUATemplateText, Project, Task } from '../../interface';
-import { DEFAULT, FUNIQUE_GS4_V1 } from '../../template/luaTemplate';
+import { DEFAULT, FUNIQUE_GS4_PREPARE } from '../../template/luaTemplate';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -112,7 +112,7 @@ const confirmCreate = () => {
                 code = DEFAULT
                 break
             case LUATemplate.FUNIQUE_GS4_V1:
-                code = FUNIQUE_GS4_V1
+                code = FUNIQUE_GS4_PREPARE
                 break
         }
     }

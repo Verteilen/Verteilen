@@ -179,7 +179,7 @@ onUnmounted(() => {
                 
             </b-col>
             <b-col :cols="rightSize" v-if="tag == 1">
-                <b-container class="pt-4" style="max-height: 90vh; overflow-y: scroll;">
+                <b-container class="pt-4" style="max-height: 90vh; overflow-y: auto;">
                     <b-row>
                         <b-col v-for="(c, i) in data.task_state" :key="i">
                             <b-card class="w-100" no-body :bg-variant="getStateColor(c.state)" :text-variant="getStateColorText(c.state)">

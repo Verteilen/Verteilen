@@ -2,7 +2,7 @@ import { messager_log } from "../debugger";
 import { FeedBack, Header, Job, JobType, JobTypeText, OnePath, Parameter, Setter, TwoPath } from "../interface";
 import { source } from "./client";
 import { LuaExecute } from "./lua";
-import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write } from "./os";
+import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write, rename } from "./os";
 
 export let current_job:Job | undefined = undefined
 export let parameter:Parameter | undefined = undefined
@@ -55,7 +55,14 @@ export const execute_job = (job:Job) => {
                 {
                     const data:TwoPath = { from: job.string_args[0], to: job.string_args[1] }
                     file_write(data)
-                    resolve(`建立檔案成功, ${data.from}`)
+                    resolve(`建立檔案成功, ${data.from} ${data.to}`)
+                    break
+                }
+            case JobType.RENAME:
+                {
+                    const data:TwoPath = { from: job.string_args[0], to: job.string_args[1] }
+                    rename(data)
+                    resolve(`改名成功, ${data.from} ${data.to}`)
                     break
                 }
             case JobType.LUA:

@@ -23,6 +23,11 @@ export const dir_delete = (data:OnePath) => {
     fs.rmSync(data.path, { recursive: true, force: true })
 }
 
+export const rename = (data:TwoPath) => {
+    messager(`[作業系統動作] 檔案或資料夾改名, ${data.from} => ${data.to}`)
+    fs.renameSync(data.from, data.to)
+}
+
 export const fs_exist = (data:OnePath):boolean => {
     const v = fs.existsSync(data.path)
     messager(`[作業系統動作] 查看路徑存在, ${data.path}`)
@@ -47,6 +52,10 @@ export const dir_create = (data:OnePath) => {
 export const file_write = (data:TwoPath) => {
     messager(`[作業系統動作] 建立檔案, ${data.from}`)
     fs.writeFileSync(data.from, data.to)
+}
+
+export const file_read = (data:OnePath) => {
+    return fs.readFileSync(data.path).toString()
 }
 
 export const command = async (cwd:string, command:string, args:string):Promise<string> => {

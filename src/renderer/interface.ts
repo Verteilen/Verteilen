@@ -19,6 +19,7 @@ export enum JobType {
     DELETE_DIR,
     CREATE_FILE,
     CREATE_DIR,
+    RENAME,
     LUA,
     COMMAND
 }
@@ -47,8 +48,9 @@ export const JobTypeText: { [key:number]:string } = {
     3: '刪除資料夾',
     4: '建立檔案',
     5: '建立資料夾',
-    6: 'LUA 腳本',
-    7: '指令執行'
+    6: '改名',
+    7: 'LUA 腳本',
+    8: '指令執行'
 }
 
 export const LUATemplateText: { [key:number]:string } = {

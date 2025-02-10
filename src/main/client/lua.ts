@@ -1,7 +1,7 @@
 import * as luainjs from 'lua-in-js';
 import { messager, messager_log } from '../debugger';
 import { parameter } from './execute';
-import { dir_copy, dir_create, dir_delete, dir_dirs, dir_files, file_copy, file_delete, file_write, fs_exist } from './os';
+import { dir_copy, dir_create, dir_delete, dir_dirs, dir_files, file_copy, file_delete, file_read, file_write, fs_exist, rename as re } from './os';
 import { feedbackboolean, feedbacknumber, feedbackstring } from './parameter';
 
 function copyfile(from:string, to:string){
@@ -15,6 +15,9 @@ function deletefile(path:string){
 }
 function deletedir(path:string){
     dir_delete({path:path})
+}
+function rename(from:string, to:string){
+    return re({from:from, to:to})
 }
 function exist(path:string){
     return fs_exist({path:path})
@@ -30,6 +33,9 @@ function createdir(path:string){
 }
 function writefile(path:string, data:string){
     file_write({ from: path, to: data })
+}
+function readfile(path:string){
+    return file_read({path:path})
 }
 function hasboolean(key:string){
     if(parameter == undefined) return false
@@ -90,6 +96,8 @@ const os = new luainjs.Table({
     listdir,
     createdir,
     writefile,
+    readfile,
+    rename,
 })
 
 const env = new luainjs.Table({
