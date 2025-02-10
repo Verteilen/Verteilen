@@ -13,13 +13,17 @@ export const clientinit = () => {
         let port_result = PORT
         let canbeuse = false
         while(!canbeuse){
-            canbeuse = await tcpPortUsed.check(port_result)
+            await tcpPortUsed.check(port_result).then(x => {
+                canbeuse = !x
+            }).catch(err => {
+                canbeuse = true
+            })
             if(!canbeuse) port_result += 1
         }
-
+        messager_log('[伺服器] 選定 Port: ' + port_result.toString())
         client = new WebSocketServer({port: port_result})
         client.on('listening', () => {
-            messager_log('[聆聽事件] 伺服器啟動於 PORT: ' + PORT.toString())
+            messager_log('[聆聽事件] 伺服器啟動於 PORT: ' + port_result.toString())
         })
         client.on('error', (err) => {
             messager_log(`[錯誤事件] ${err.name}\n\t${err.message}\n\t${err.stack}`)

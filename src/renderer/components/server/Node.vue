@@ -19,7 +19,7 @@ const serverUpdate = () => {
 }
 
 const createNode = () => {
-    connectionData.value = {url: '127.0.0.1'}
+    connectionData.value = {url: '127.0.0.1:12080'}
     connectionModal.value = true
 }
 
