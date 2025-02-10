@@ -40,7 +40,6 @@ const removeByUUID = (uuid:string) => {
 }
 
 const serverconnect = (e:Electron.WebContents, url:string, uuid?:string) => {
-    if(uuid != undefined && targets.findIndex(x => x.uuid == uuid) != -1) return
     if(targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
     const client = new ws.WebSocket(url)
     client.on('error', (err) => {

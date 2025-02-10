@@ -37,7 +37,7 @@ const datachange = (uuid:any, v:boolean) => {
 
 const confirmConnection = () => {
     connectionModal.value = false
-    window.electronAPI.send('server_start', `ws://${connectionData.value.url}:12080`)
+    window.electronAPI.send('server_start', `ws://${connectionData.value.url}`)
     connectionData.value = { url: '' }
 }
 

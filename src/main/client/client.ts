@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import tcpPortUsed from 'tcp-port-used';
 import ws, { WebSocketServer } from 'ws';
 import { messager_log } from '../debugger';
 import { Header, PORT } from '../interface';
@@ -8,8 +9,15 @@ let client:ws.WebSocketServer | undefined = undefined
 export let source:ws.WebSocket | undefined = undefined
 
 export const clientinit = () => {
-    ipcMain.on('client_start', () => {
-        client = new WebSocketServer({port: PORT})
+    ipcMain.on('client_start', async () => {
+        let port_result = PORT
+        let canbeuse = false
+        while(!canbeuse){
+            canbeuse = await tcpPortUsed.check(port_result)
+            if(!canbeuse) port_result += 1
+        }
+
+        client = new WebSocketServer({port: port_result})
         client.on('listening', () => {
             messager_log('[聆聽事件] 伺服器啟動於 PORT: ' + PORT.toString())
         })

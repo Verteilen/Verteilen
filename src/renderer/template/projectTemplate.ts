@@ -29,6 +29,14 @@ const GetFUNIQUE_GS4ProjectTemplate_Task0 = ():Task => {
 }
 
 const GetFUNIQUE_GS4ProjectTemplate_Task1 = ():Task => {
+    const createsp:Job = {
+        uuid: uuidv6(),
+        type: JobType.CREATE_DIR,
+        lua: "",
+        string_args: ["%root%/%before%/%ck%/sparse"],
+        number_args: [],
+        boolean_args: []
+    }
     const command1:Job = {
         uuid: uuidv6(),
         type: JobType.COMMAND,
@@ -61,6 +69,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task1 = ():Task => {
         cronjob: true,
         cronjobKey: "frameCount",
         jobs: [
+            createsp,
             command1,
             command2,
             command3

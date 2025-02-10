@@ -54,7 +54,7 @@ onUnmounted(() => {
   background-color: rgb(12,12,12);
 }
 .messages {
-  line-height: 10px;
+  line-height: 15px;
   color: white
 }
 </style>

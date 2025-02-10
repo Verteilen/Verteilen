@@ -34,6 +34,7 @@
   "dependencies": {
     "@codemirror/language-data": "^6.5.1",
     "@codemirror/legacy-modes": "^6.4.2",
+    "@types/tcp-port-used": "^1.0.4",
     "@types/ws": "^8.5.14",
     "bootstrap": "^5.3.3",
     "bootstrap-vue-3": "^0.5.1",
@@ -42,6 +43,7 @@
     "electron-vue-template": "file:",
     "lua-in-js": "^2.2.5",
     "mitt": "^3.0.1",
+    "tcp-port-used": "^1.0.2",
     "uuid": "^11.0.5",
     "vue": "^3.3.8",
     "vue-codemirror": "^6.1.1",

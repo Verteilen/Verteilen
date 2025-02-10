@@ -124,3 +124,13 @@ export interface KeyValue {
     key: any
     value: any
 }
+
+export interface CronJobState  { 
+    id:number, 
+    state:ExecuteState 
+}
+
+export interface JobState  { 
+    id:string, 
+    state:ExecuteState 
+}

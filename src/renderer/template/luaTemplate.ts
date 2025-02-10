@@ -25,10 +25,10 @@ local sparse = env.getstring("sparse")
 
 os2.deletedir(root.."/"..before_folder)
 os2.deletedir(root.."/"..after_folder)
-os2.deletedir(root.."/"..output_folder)
+os2.deletedir(output_folder)
 os2.createdir(root.."/"..before_folder)
 os2.createdir(root.."/"..after_folder)
-os2.createdir(root.."/"..output_folder)
+os2.createdir(output_folder)
 
 m.messager("Get CAM list")
 local prepare_folders = split(os2.listdir(root.."/"..prepare_folder.."/"..CAM), "\\n")
@@ -43,17 +43,14 @@ if cam_size > 0 then
 end
 m.messager("Get Frame count: "..frame_size)
 
-m.messager("Create Prepare folder: "..root.."/"..before_folder.."/"..CAM)
-os2.createdir(root.."/"..before_folder.."/"..CAM)
-
 m.messager("Copy sparse folder")
 os2.copydir(root.."/"..prepare_folder.."/"..sparse, root.."/"..before_folder.."/"..sparse)
 
 for key=1,frame_size,1 do
-    os2.createdir(root.."/"..before_folder.."/"..tostring(key - 1).."/images")
+    os2.createdir(root.."/"..before_folder.."/"..tostring(key).."/images")
     for key2=1,cam_size,1 do
-        local from = root.."/"..prepare_folder.."/"..CAM.."/C"..string.format("%04d", key2 - 1).."/"..string.format("%04d", key2 - 1).."_"..string.format("%06d", key - 1)..".jpg"
-        local to = root.."/"..before_folder.."/"..tostring(key - 1).."/images/"..string.format("%04d", key2)..".jpg"
+        local from = root.."/"..prepare_folder.."/"..CAM.."/C"..string.format("%04d", key2).."/"..string.format("%04d", key2).."_"..string.format("%06d", key)..".jpg"
+        local to = root.."/"..before_folder.."/"..tostring(key).."/images/"..string.format("%04d", key2)..".jpg"
         os2.copyfile(from, to)
     end
 end
