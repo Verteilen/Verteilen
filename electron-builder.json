@@ -1,5 +1,5 @@
 {
-    "appId": "com.electron.app",
+    "appId": "com.compute.app",
     "directories": {
         "output": "dist"
     },
@@ -8,7 +8,7 @@
         "oneClick": false,
         "perMachine": false,
         "allowToChangeInstallationDirectory": true,
-        "shortcutName": "Electron App"
+        "shortcutName": "Compute Tool"
     },
     "win": {
         "target": "nsis"
