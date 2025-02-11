@@ -1,4 +1,4 @@
-import { Project } from "./base"
+import { Node, Project } from "./base"
 import { ExecuteState } from "./enum"
 
 export interface ExecutionProcess {
@@ -6,7 +6,9 @@ export interface ExecutionProcess {
 }
 
 export interface ExecutionLog {
-
+    project_state: Array<ExecuteData>
+    task_state: Array<ExecuteData>
+    task_detail: Array<ExecuteRecordTask>
 }
 
 export interface ExecuteRecordTask {
@@ -24,8 +26,9 @@ export interface ExecuteData {
 export interface Record {
     projects: Array<Project>
     nodes: Array<Node>
+    current?: ExecutionLog
+    logs?: ExecutionLog
 }
-
 
 export interface ExecuteRecord extends Record {
     running: boolean

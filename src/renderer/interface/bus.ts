@@ -1,4 +1,4 @@
-import { Record } from "./record"
+import { ExecutionLog, Record } from "./record"
 import { ToastData } from "./ui"
 
 export type BusType = {
@@ -10,4 +10,7 @@ export type BusType = {
     updateJob: void
     updateParameter: void
     execute: Record
+    updateCurrent: ExecutionLog,
+    updateLog: ExecutionLog
+    updateHandle: void
 }

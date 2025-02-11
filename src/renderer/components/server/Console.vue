@@ -50,18 +50,18 @@ const receivedPack = (record:Record) => {
     })
 }
 
-const execute = () => {
-    data.value.running = !data.value.running
-    if(data.value.running){
-        const buffer:Record = {
-            projects: data.value.projects,
-            nodes: data.value.nodes
-        }
-        window.electronAPI.send('execute_pack', JSON.stringify(buffer))
-    }else{
-        window.electronAPI.send('execute_stop')
+const execute = (type:number) => {
+    data.value.running = true
+    const buffer:Record = {
+        projects: data.value.projects,
+        nodes: data.value.nodes
     }
-    
+    window.electronAPI.send('execute_pack', JSON.stringify(buffer))
+}
+
+const stop = () => {
+    data.value.running = false
+    window.electronAPI.send('execute_stop')
 }
 
 const feedback_message = (e:IpcRendererEvent, uuid:string, anydata:string) => {
@@ -164,7 +164,11 @@ onUnmounted(() => {
         <b-row style="height: calc(100vh - 55px)" class="w-100">
             <b-col :cols="leftSize" style="border-right: brown 1px solid;">
                 <b-button-group class="my-3 w-100">
-                    <b-button @click="execute" :disabled="data.projects.length == 0" :variant="data.running ? 'danger' : 'success'">{{ data.running ? $t('stop') : $t('execute') }}</b-button>
+                    <b-button @click="execute(0)" :disabled="data.projects.length == 0 || data.running" variant="success">{{ $t('execute-0') }}</b-button>
+                    <b-button @click="execute(1)" :disabled="data.projects.length == 0 || data.running" variant="success">{{ $t('execute-1') }}</b-button>
+                </b-button-group>
+                <b-button-group class="my-3 w-100">
+                    <b-button @click="stop()" :disabled="data.projects.length == 0 || !data.running" variant="danger">{{ $t('stop') }}</b-button>
                 </b-button-group>
                 <b-list-group>
                     <b-list-group-item href="#" @click="tag = 0" :active="tag == 0">專案進程</b-list-group-item>

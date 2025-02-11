@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, Ref, ref } from 'vue';
-import { ConnectionText, NodeTable } from '../../interface';
+import { Emitter } from 'mitt';
+import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { BusType, ConnectionText, NodeTable } from '../../interface';
 
-let updateHandle:any = undefined
+const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     nodes: Array<NodeTable>
@@ -47,11 +48,11 @@ const translate_state = (state:number):string => {
 
 onMounted(() => {
     fields.value = ['ID', 'url', 'state']
-    updateHandle = setInterval(serverUpdate, 1000);
+    emitter?.on('updateHandle', serverUpdate)
 })
 
 onUnmounted(() => {
-    if(updateHandle != undefined) clearInterval(updateHandle)
+    emitter?.off('updateHandle', serverUpdate)
 })
 
 </script>

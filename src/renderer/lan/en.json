@@ -16,7 +16,9 @@
     "moveup": "Move-Up",
     "movedown": "Move-Down",
     "rename": "Rename",
-    "execute": "Execute",
+    "execute-0": "Execute-All",
+    "execute-1": "Execute-Project",
+    "execute-2": "Execute-Task",
     "stop": "Stop",
     "execute-keep": "Execute (Keep)",
     "parameter-setting": "Parameter Setting"

@@ -13,6 +13,7 @@ import ProjectPage from './server/Project.vue';
 import TaskPage from './server/Task.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
+let updateHandle:any = undefined
 
 const page = ref(0)
 const projects:Ref<Array<Project>> = ref([])
@@ -264,6 +265,10 @@ const run_all_keep = (e:IpcRendererEvent) => {
   executeProjects(projects.value.map(x => x.uuid), true)
 }
 
+const serverUpdate = () => {
+    emitter?.emit('updateHandle')
+}
+
 onMounted(() => {
   window.electronAPI.send('menu', true)
   window.electronAPI.eventOn('createProject', menuCreateProject)
@@ -282,6 +287,8 @@ onMounted(() => {
         connection_rate: 0
       })
     })
+    if(record.current != undefined) emitter?.emit('updateLog', record.current)
+    if(record.logs != undefined) emitter?.emit('updateLog', record.logs)
     nodes.value.forEach(x => {
       window.electronAPI.send('server_record', JSON.stringify(record.nodes))
     })
@@ -289,6 +296,7 @@ onMounted(() => {
       allUpdate()
     })
   })
+  updateHandle = setInterval(serverUpdate, 1000);
 })
 
 onUnmounted(() => {
@@ -298,6 +306,7 @@ onUnmounted(() => {
   window.electronAPI.eventOff('run_all_keep', run_all_keep)
   window.electronAPI.eventOff('import_project_feedback', import_project_feedback)
   window.electronAPI.eventOff('server_clients_update', server_clients_update)
+  if(updateHandle != undefined) clearInterval(updateHandle)
 })
 
 </script>

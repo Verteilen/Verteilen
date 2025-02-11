@@ -1,3 +1,4 @@
+import { WebSocket } from 'ws'
 import { ExecuteState } from "./enum"
 
 export interface WebsocketPack {
