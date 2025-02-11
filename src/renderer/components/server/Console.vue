@@ -190,7 +190,8 @@ onUnmounted(() => {
                             </div>
                         </v-stepper-header>
                     </v-stepper>
-                    <b-card class="w-100" no-body v-for="(task, i) in data.task_detail" :key="i">
+                    <br /> <br />
+                    <b-card no-body v-for="(task, i) in data.task_detail" :key="i" bg-variant="dark" :style="{ 'border-color': getStateColor(task.state) }" class="w-100 text-white mb-3 px-4">
                         <b-card-header>
                             <span style="margin-right: 10px;">Index: {{ task.index }}</span> <b-spinner small v-if="task.node.length > 0"></b-spinner>
                         </b-card-header>
@@ -198,6 +199,7 @@ onUnmounted(() => {
                             <p style="line-height: 15px; margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>
                         </b-card-text>
                     </b-card>
+                    <br /> <br />
                 </b-container>
             </b-col>
             <b-col :cols="rightSize" v-if="tag == 2">

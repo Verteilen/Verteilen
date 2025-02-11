@@ -6,15 +6,15 @@ import { targets } from "./server/server";
 /** 
 * 傳送資料到 UI 執行序 
 */
-export const messager = (msg:string) => mainWindow?.webContents.send('msgAppend', msg);
+export const messager = (...args:Array<string | undefined>) => mainWindow?.webContents.send('msgAppend', ...args);
 
 /** 
 * 傳送資料到 UI 執行序 \
 * 控制台輸出 \
 * 回傳伺服器訊息
 */
-export const messager_log = (msg:string) => {
-    messager(msg);
+export const messager_log = (msg:string, tag?:string) => {
+    messager(msg, tag);
     console.log(msg);
     if(source != undefined) {
         // 不用 message 是因為伺服器會需要知道 此訊息是從哪一個客戶端送出的

@@ -20,10 +20,10 @@ export const eventInit = () => {
         if(isclient) event.sender.send('msgAppend', "客戶端模式啟動")
     })
     
-    ipcMain.on('menu', (event, on:Array<boolean>):void => {
+    ipcMain.on('menu', (event, on:boolean):void => {
         if(mainWindow == undefined) return;
-        console.log(`[後台訊息] 工具列顯示設定為: ${on[0]}`)
-        if(on[0]) mainWindow.setMenu(menu)
+        console.log(`[後台訊息] 工具列顯示設定為: ${on}`)
+        if(on) mainWindow.setMenu(menu)
         else mainWindow.setMenu(null)
     })
     
@@ -43,8 +43,8 @@ export const eventInit = () => {
         dir_delete({ path: path })
     })
 
-    ipcMain.on('save_record', (e, projects:Array<any>) => {
-        const v:Record = JSON.parse(projects[0])
+    ipcMain.on('save_record', (e, record:string) => {
+        const v:Record = JSON.parse(record)
         if(v.projects == undefined) v.projects = []
         fs.writeFileSync('record.json', JSON.stringify(v, null, 4))
     })
@@ -84,7 +84,7 @@ export const eventInit = () => {
         ImportProject()
     })
     ipcMain.on('export_project', (event, data:string) => {
-        const p:Array<Project> = JSON.parse(data[0])
+        const p:Array<Project> = JSON.parse(data)
         ExportProject(p)
     })
 }

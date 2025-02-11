@@ -21,6 +21,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Task0 = ():Task => {
         description: "從原始資料夾結構 弄成可以工作的樣子",
         cronjob: false,
         cronjobKey: "",
+        multi: false,
+        multiKey: "",
         jobs: [
             sortjob
         ]
@@ -68,6 +70,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Task1 = ():Task => {
         description: "利用 Colmap 工具生成 .bin 資料",
         cronjob: true,
         cronjobKey: "frameCount",
+        multi: false,
+        multiKey: "",
         jobs: [
             createsp,
             command1,
@@ -109,6 +113,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Task2 = ():Task => {
         description: "生成完整 Frame",
         cronjob: false,
         cronjobKey: "",
+        multi: false,
+        multiKey: "",
         jobs: [
             createdir,
             command2,
@@ -157,6 +163,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Task3 = ():Task => {
         description: "把渣渣刪掉 !",
         cronjob: true,
         cronjobKey: "iframeCount",
+        multi: false,
+        multiKey: "",
         jobs: [
             renamee,
             command1,
@@ -180,7 +188,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task4 = ():Task => {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%", "python", "train_sequence.py --start 0 --end %frameCount% --cuda 0 --data C:\videogs\VideoGS\datasets\B --output %root%/%after% --sh 3 --interval 1 --group_size 20 --resolution 1"],
+        string_args: ["%root%/%after%", "python", "train_sequence.py --start %{ iframe_gap * 0 }% --end %frameCount% --cuda 0 --data C:\videogs\VideoGS\datasets\B --output %root%/%after% --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -188,7 +196,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task4 = ():Task => {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%", "python", "train_sequence.py --start 5 --end %frameCount% --cuda 0 --data C:\videogs\VideoGS\datasets\B --output %root%/%after% --sh 3 --interval 1 --group_size 20 --resolution 1"],
+        string_args: ["%root%/%after%", "python", "train_sequence.py --start %{ iframe_gap * 1 }% --end %frameCount% --cuda 0 --data C:\videogs\VideoGS\datasets\B --output %root%/%after% --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -196,7 +204,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task4 = ():Task => {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%", "python", "train_sequence.py --start 10 --end %frameCount% --cuda 0 --data C:\videogs\VideoGS\datasets\B --output %root%/%after% --sh 3 --interval 1 --group_size 20 --resolution 1"],
+        string_args: ["%root%/%after%", "python", "train_sequence.py --start %{ iframe_gap * 2 }% --end %frameCount% --cuda 0 --data C:\videogs\VideoGS\datasets\B --output %root%/%after% --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -204,7 +212,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task4 = ():Task => {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%", "python", "train_sequence.py --start 15 --end %frameCount% --cuda 0 --data C:\videogs\VideoGS\datasets\B --output %root%/%after% --sh 3 --interval 1 --group_size 20 --resolution 1"],
+        string_args: ["%root%/%after%", "python", "train_sequence.py --start %{ iframe_gap * 3 }% --end %frameCount% --cuda 0 --data C:\videogs\VideoGS\datasets\B --output %root%/%after% --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -214,6 +222,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Task4 = ():Task => {
         description: "生成多個 checkpoint 資料夾",
         cronjob: false,
         cronjobKey: "",
+        multi: false,
+        multiKey: "",
         jobs: [
             renamedir,
             command1,
@@ -233,6 +243,24 @@ const GetFUNIQUE_GS4ProjectTemplate_Task5 = ():Task => {
         description: "生成 ply 序列!!",
         cronjob: false,
         cronjobKey: "",
+        multi: false,
+        multiKey: "",
+        jobs: [
+        ]
+    }
+    return t
+}
+
+const GetFUNIQUE_GS4ProjectTemplate_Task6 = ():Task => {
+    
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Lut",
+        description: "顏色校準",
+        cronjob: false,
+        cronjobKey: "",
+        multi: true,
+        multiKey: "lut_thread",
         jobs: [
         ]
     }
@@ -245,6 +273,8 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "frameCount", value: 0 },
             { name: "iframeCount", value: 0 },
             { name: "iframe_gap", value: 5 },
+            { name: "lut_thread", value: 5 },
+            { name: "group_size", value: 20 },
         ],
         strings: [
             { name: "root", value: "G:/Developer/Funique/4DGS/Test" },
@@ -265,7 +295,8 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
         GetFUNIQUE_GS4ProjectTemplate_Task2(),
         GetFUNIQUE_GS4ProjectTemplate_Task3(),
         GetFUNIQUE_GS4ProjectTemplate_Task4(),
-        GetFUNIQUE_GS4ProjectTemplate_Task5()
+        GetFUNIQUE_GS4ProjectTemplate_Task5(),
+        GetFUNIQUE_GS4ProjectTemplate_Task6()
     ])
     return r
 }

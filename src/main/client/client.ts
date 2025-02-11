@@ -6,6 +6,8 @@ import { Header, PORT } from '../interface';
 import { analysis } from './analysis';
 
 let client:ws.WebSocketServer | undefined = undefined
+export let tag:string | undefined = undefined
+export const settag = (v:string | undefined) => { tag = v }
 export let source:ws.WebSocket | undefined = undefined
 
 export const clientinit = () => {

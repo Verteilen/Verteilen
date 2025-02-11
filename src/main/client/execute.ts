@@ -1,6 +1,6 @@
 import { messager_log } from "../debugger";
 import { FeedBack, Header, Job, JobType, JobTypeText, OnePath, Parameter, Setter, TwoPath } from "../interface";
-import { source } from "./client";
+import { settag, source, tag } from "./client";
 import { LuaExecute } from "./lua";
 import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write, rename } from "./os";
 
@@ -12,7 +12,8 @@ export const execute_job = (job:Job) => {
         messager_log(`[執行狀態] 錯誤! 已經有正在執行的工作`)
         return
     }
-    messager_log(`[執行狀態] ${job.uuid}  ${JobTypeText[job.type]}`)
+    settag(job.uuid)
+    messager_log(`[執行狀態] ${job.uuid}  ${JobTypeText[job.type]}`, tag)
     current_job = job
     new Promise<string>((resolve, reject) => {
         switch(job.type as JobType){
@@ -80,16 +81,17 @@ export const execute_job = (job:Job) => {
                 break
         }
     }).then(x => {
-        console.log(`[回傳工作] ${x}`)
-        messager_log(`[執行成功] ${x}`)
+        messager_log(`[執行成功] ${x}`, tag)
         const data:FeedBack = { job_uuid: job.uuid, message: x }
         const h:Header = { name: 'feedback_job', data: data }
         source?.send(JSON.stringify(h))
         current_job = undefined
+        settag(undefined)
     })
     .catch(err => {
-        messager_log(`[執行狀態] 錯誤: ${err}`)
+        messager_log(`[執行狀態] 錯誤: ${err}`, tag)
         current_job = undefined
+        settag(undefined)
     })
 }
 
@@ -101,19 +103,19 @@ export const set_string = (data:Setter) => {
     if(parameter == undefined) return
     const index = parameter.strings.findIndex(x => x.name == data.key)
     if(index != -1) parameter.strings[index].value = data.value
-    messager_log(`[子串參數同步] ${data.key} = ${data.value}`)
+    messager_log(`[子串參數同步] ${data.key} = ${data.value}`, tag)
 }
 
 export const set_number = (data:Setter) => {
     if(parameter == undefined) return
     const index = parameter.numbers.findIndex(x => x.name == data.key)
     if(index != -1) parameter.numbers[index].value = data.value
-    messager_log(`[數字參數同步] ${data.key} = ${data.value}`)
+    messager_log(`[數字參數同步] ${data.key} = ${data.value}`, tag)
 }
 
 export const set_boolean = (data:Setter) => {
     if(parameter == undefined) return
     const index = parameter.booleans.findIndex(x => x.name == data.key)
     if(index != -1) parameter.booleans[index].value = data.value
-    messager_log(`[布林參數同步] ${data.key} = ${data.value}`)
+    messager_log(`[布林參數同步] ${data.key} = ${data.value}`, tag)
 }

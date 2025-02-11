@@ -116,13 +116,10 @@ luaEnv.loadLib('env', env)
 luaEnv.loadLib('m', message)
 
 export const LuaExecute = (lua:string) => {
-    console.log("開始執行 lua")
     try {
         const execc = luaEnv.parse(lua)
         execc.exec()    
     }catch(err){
-        console.log("執行出錯 lua")
         throw err
     }
-    console.log("結束執行 lua")
 }

@@ -9,7 +9,13 @@ let current_nodes:Array<WebsocketPackState> = []
 let current_web:WebContents | undefined = undefined
 let current_cron:Array<CronJobState> = []
 let current_jobstate:Array<JobState> = []
+let current_cron_use_network:Array<WebsocketPackState> = []
+let current_multithread = 1
 let state:ExecuteState = ExecuteState.STOP
+
+const parse = (str:string) => {
+    return Function(`'use strict'; return (${str})`)()
+}
 
 const get_idle = async ():Promise<WebsocketPackState> => {
     return new Promise<WebsocketPackState>((resolve, reject) => {
@@ -17,7 +23,8 @@ const get_idle = async ():Promise<WebsocketPackState> => {
         timer = setInterval(() => {
             const all = current_nodes.filter(x => x.state == ExecuteState.STOP && x.websocket.readyState == WebSocket.OPEN)
             const all_uuids = all.map(x => x.uuid)
-            const work_uuids = current_jobstate.map(x => x.id)
+            const work_uuids = current_jobstate.map(x => x.websocket_uuid)
+            work_uuids.push(...current_cron_use_network.map(x => x.uuid))
             const nowork = all_uuids.filter(x => !work_uuids.includes(x))
             if(nowork.length != 0){
                 const index = all.findIndex(x => x.uuid == nowork[0])
@@ -27,6 +34,12 @@ const get_idle = async ():Promise<WebsocketPackState> => {
         }, 500)
         
     })
+}
+
+const set_multi = (key:string):number => {
+    if(current == undefined) return 1
+    const index = current.parameter.numbers.findIndex(x => x.name == key)
+    return current.parameter.numbers[index].value
 }
 
 const validation = (projects:Array<Project>, nodes:Array<WebsocketPack>):boolean => {
@@ -49,11 +62,26 @@ const validation = (projects:Array<Project>, nodes:Array<WebsocketPack>):boolean
     return true
 }
 
+const _replacePara = (store:string, paras:Array<KeyValue>) => {
+    const index = paras.findIndex(x => x.key == store)
+    if(index == -1) return ''
+    return paras[index].value
+}
+
+const _searchPara = (exp:string, paras:Array<KeyValue>) => {
+    let d = exp
+    paras.forEach(x => {
+        d.replace(x.key, x.value)
+    })
+    return d
+}
+
 const replacePara = (text:string, v:Array<KeyValue>):string => {
     if (current == undefined) return text
     let buffer = ''
     let store = ''
     let state:boolean = false
+    let useExp = false
     const paras = [
         ...current.parameter.booleans.map(x => { return { key: x.name, value: x.value.toString() } }),
         ...current.parameter.numbers.map(x => { return { key: x.name, value: x.value.toString() } }),
@@ -64,11 +92,17 @@ const replacePara = (text:string, v:Array<KeyValue>):string => {
         if(v == '%'){
             state = !state
             if(!state) { // End
-                const index = paras.findIndex(x => x.key == store)
-                if(index != -1) buffer += paras[index].value
+                if(useExp){
+                    store = _searchPara(store, paras)
+                    buffer = parse(store).toString()
+                }else{
+                    buffer = _replacePara(store, paras)
+                }
                 store = ""
+                useExp = false
             }
         }
+        if(v == '{' && state && store.length == 0) useExp = true
         if(state && v != '%') store += v
         if(!state && v != '%') buffer += v
     }
@@ -91,13 +125,13 @@ export const ExecuteJob = async (job:Job, wss:WebsocketPack):Promise<void> => {
         }
         const stringdata = JSON.stringify(h)
         wss.websocket.send(stringdata)
-        current_jobstate.push({ id: job.uuid, state: ExecuteState.RUNNING })
+        current_jobstate.push({ websocket_uuid: job.uuid, state: ExecuteState.RUNNING })
 
         if(job.index != undefined && job.index != -1) current_cron[job.index].state = ExecuteState.RUNNING
 
         let timer:any
         timer = setInterval(() => {
-            const p = current_jobstate.findIndex(x => x.id == job.uuid)
+            const p = current_jobstate.findIndex(x => x.websocket_uuid == job.uuid)
             if(p != -1 && current_jobstate[p].state == ExecuteState.Finish){
                 if(job.index != undefined && job.index != -1) current_cron[job.index].state = ExecuteState.Finish
                 current_jobstate.splice(p, 1)
@@ -111,17 +145,22 @@ export const ExecuteJob = async (job:Job, wss:WebsocketPack):Promise<void> => {
 }
 
 export const ExecuteCronTask = async (index:number, task:Task, ns:WebsocketPack):Promise<void> => {
-    current_web?.send('execute_subtask_start', index - 1, ns.uuid)
-    current_cron[index - 1].state = ExecuteState.RUNNING
-    for(const x of task.jobs){
-        if(state == ExecuteState.STOP) {
-            return 
+    return new Promise(async (resolve, reject) => {
+        current_web?.send('execute_subtask_start', index - 1, ns.uuid)
+        current_cron[index - 1].state = ExecuteState.RUNNING
+        for(const x of task.jobs){
+            if(state == ExecuteState.STOP) {
+                return 
+            }
+            let buff:Job = JSON.parse(JSON.stringify(x))
+            buff.index = index
+            await ExecuteJob(buff, ns).catch(err => messager_log(`[執行狀態] 執行工作錯誤: ${err}`))
         }
-        let buff:Job = JSON.parse(JSON.stringify(x))
-        buff.index = index
-        await ExecuteJob(buff, ns).catch(err => messager_log(`[執行狀態] 執行工作錯誤: ${err}`))
-    }
-    current_web?.send('execute_subtask_end', index - 1, ns.uuid)
+        current_web?.send('execute_subtask_end', index - 1, ns.uuid)
+        const windex = current_cron_use_network.findIndex(x => x.uuid == ns.uuid)
+        current_cron_use_network.splice(windex, 1)
+        resolve()
+    })
 }
 
 export const ExecuteTask = async (task:Task):Promise<void> => {
@@ -131,6 +170,7 @@ export const ExecuteTask = async (task:Task):Promise<void> => {
             return
         }
         messager_log(`[執行狀態] 偵測當前流程 cron 狀態: ${task.cronjob}`)
+        current_multithread = task.multi ? set_multi(task.multiKey) : 1
         if(task.cronjob){
             let count = current.parameter.numbers.find(x => x.name == task.cronjobKey)?.value ?? -1
             if(count == -1){
@@ -148,17 +188,19 @@ export const ExecuteTask = async (task:Task):Promise<void> => {
 
             for(let index = 1; index < count + 1; index++){
                 const ns = await get_idle()
+                current_cron_use_network.push(ns)
                 ExecuteCronTask(index, task, ns)
             }
 
-            let notyetfinish:boolean = true
-            while(notyetfinish){
-                notyetfinish = current_cron.filter(x => x.state != ExecuteState.Finish).length > 0
-            }
-
-            messager_log(`[執行狀態] 結束執行流程 ${task.uuid}`)
-            current_web?.send('execute_task_finish', task.uuid)
-            resolve()
+            let timer:any = undefined
+            timer = setInterval(() => {
+                let notyetfinish:boolean = current_cron.filter(x => x.state != ExecuteState.Finish).length > 0
+                if(!notyetfinish){
+                    messager_log(`[執行狀態] 結束執行流程 ${task.uuid}`)
+                    current_web?.send('execute_task_finish', task.uuid)
+                    resolve()
+                }
+            }, 500);
         }else{
             messager_log(`[執行狀態] 開始執行流程 ${task.uuid} 1`)
             current_web?.send('execute_task_start', task.uuid, 1)
@@ -232,9 +274,9 @@ export const Execute = async (web:WebContents, projects:Array<Project>, nodes:Ar
         })
         current_web = web
     
-        for(let i = 0; i < projects.length; i++){
+        for(let i = 0; i < current_projects.length; i++){
             if(state == ExecuteState.STOP) continue
-            await ExecuteProject(projects[i]).catch(err => messager_log(`[執行狀態] 執行專案錯誤: ${err}`))
+            await ExecuteProject(current_projects[i]).catch(err => messager_log(`[執行狀態] 執行專案錯誤: ${err}`))
         }
 
         resolve(true)
@@ -253,7 +295,7 @@ export const feedback_message = (data:Single, source:WebsocketPack | undefined) 
 
 export const feedback_job = (data:FeedBack) => {
     if(current_web == undefined) return
-    const index = current_jobstate.findIndex(x => x.id == data.job_uuid)
+    const index = current_jobstate.findIndex(x => x.websocket_uuid == data.job_uuid)
     if(index != -1){
         messager_log(`[執行狀態] 工作回傳 ${data.job_uuid} ${data.message}`)
         current_jobstate[index].state = ExecuteState.Finish

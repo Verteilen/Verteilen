@@ -23,7 +23,7 @@ const emits = defineEmits<{
 }>()
 const hasSelect = ref(false)
 const createModal = ref(false)
-const createData = ref({cronjob: false, cronjobKey: "", title: "", description: ""})
+const createData = ref({cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""})
 const editModal = ref(false)
 const editUUID = ref('')
 const items:Ref<Array<TaskTable>> = ref([])
@@ -94,7 +94,14 @@ const dataedit = (uuid:string) => {
     if(props.select == undefined) return
     const selectp = props.select.task.find(x => x.uuid == uuid)
     if(selectp == undefined) return;
-    createData.value = {cronjob: selectp.cronjob, cronjobKey: selectp.cronjobKey, title: selectp.title, description: selectp.description};
+    createData.value = {
+        cronjob: selectp.cronjob, 
+        cronjobKey: selectp.cronjobKey, 
+        title: selectp.title, 
+        description: selectp.description, 
+        multi: selectp.multi, 
+        multiKey: selectp.multiKey
+    };
     editModal.value = true;
     editUUID.value = uuid;
 }
@@ -108,12 +115,14 @@ const confirmCreate = () => {
             description: createData.value.description,
             cronjob: createData.value.cronjob,
             cronjobKey: createData.value.cronjobKey,
+            multi: createData.value.multi, 
+            multiKey: createData.value.multiKey,
             jobs: []
         }]
     )
     nextTick(() => {
         updateTask();
-        createData.value = {cronjob: false, cronjobKey: "", title: "", description: ""};
+        createData.value = {cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""};
     })
 }
 
@@ -130,6 +139,8 @@ const confirmEdit = () => {
             description: createData.value.description,
             cronjob: createData.value.cronjob,
             cronjobKey: createData.value.cronjobKey,
+            multi: selectp.multi, 
+            multiKey: selectp.multiKey,
             jobs: selectp.jobs
         }
     )

@@ -64,8 +64,8 @@ const serverconnect = (e:Electron.WebContents, url:string, uuid?:string) => {
 export const serverinit = () => {
     ipcMain.on('server_start', (e, url:string) => serverconnect(e.sender, url))
     
-    ipcMain.on('server_stop', (e, args:Array<any>) => {
-        removeByUUID(args[0])
+    ipcMain.on('server_stop', (e, uuid:string) => {
+        removeByUUID(uuid)
     })
 
     ipcMain.on('server_update', (e) => {
