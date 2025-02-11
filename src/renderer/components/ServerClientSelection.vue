@@ -13,6 +13,7 @@ const serverClick = () => {
     })
     emitter?.emit('modeSelect', false);
     window.electronAPI.send('modeSelect', false)
+    window.Electron
 }
 
 const clientClick = () => {
@@ -33,14 +34,28 @@ const clientClick = () => {
         <br />
         <div class="row">
             <div class="col">
-                <b-button class="w-100 h-100 mx-1" @click="serverClick">{{ $t('server') }}</b-button>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <b-button v-bind="props" id="tooltip-server-1" class="w-100 h-100 mx-1" @click="serverClick">{{ $t('server') }}</b-button>
+                    </template>
+                    <p class="text-body-1 text-indigo-darken-4">作為伺服器下指令的一方</p>
+                </v-tooltip>
             </div>
             <div class="col">
-                <b-button class="w-100 h-100 mx-1" @click="clientClick">{{ $t('node') }}</b-button>    
+                <v-tooltip location="bottom" text="Tooltip">
+                    <template v-slot:activator="{ props }">
+                        <b-button v-bind="props" class="w-100 h-100 mx-1" @click="clientClick">{{ $t('node') }}</b-button>    
+                    </template>
+                    <p class="text-body-1 text-indigo-darken-4">作為節點負責運作的一方</p>
+                </v-tooltip>
             </div>
         </div>
     </div>
 </template>
+
+<style lang="scss">
+
+</style>
 
 <style scoped>
 body {

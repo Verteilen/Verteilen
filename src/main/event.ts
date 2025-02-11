@@ -1,9 +1,9 @@
-import { ipcMain } from "electron";
+import { dialog, ipcMain } from "electron";
 import fs from "fs";
 import { clientinit } from "./client/client";
 import { dir_copy, dir_delete, file_copy, file_delete, fs_exist } from "./client/os";
 import { messager_log } from "./debugger";
-import { Record } from "./interface";
+import { Project, Record } from "./interface";
 import { mainWindow } from "./main";
 import menu from "./menu";
 import { serverinit } from "./server/server";
@@ -79,5 +79,44 @@ export const eventInit = () => {
     
     ipcMain.handle('file_list', (event, path:string):Array<string> => {
         return fs.readdirSync(path, {withFileTypes: true}).map(x => x.name)
+    })
+    ipcMain.on('import_project', (event) => {
+        ImportProject()
+    })
+    ipcMain.on('export_project', (event, data:string) => {
+        const p:Array<Project> = JSON.parse(data[0])
+        ExportProject(p)
+    })
+}
+
+export const ImportProject = () => {
+    if(mainWindow == undefined) return;
+    dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile', 'multiSelections'],
+        filters: [
+            { name: 'JSON', extensions: ['json'] },
+        ]
+    }).then(v => {
+        if (v.canceled) return
+        if(mainWindow == undefined) return;
+        const p:Array<any> = []
+        for(const x of v.filePaths){
+            p.push(JSON.parse(fs.readFileSync(x).toString()))
+        }
+        mainWindow.webContents.send('import_project_feedback', JSON.stringify(p))
+    })
+}
+
+export const ExportProject = (value:Array<Project>) => {
+    if(mainWindow == undefined) return;
+    dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory']
+    }).then(v => {
+        if (v.canceled || v.filePaths.length == 0) return
+        if(mainWindow == undefined) return;
+        const path = v.filePaths[0]
+        for(var x of value){
+            fs.writeFileSync(`${path}/${x.title}.json`, JSON.stringify(x, null, 4))
+        }
     })
 }

@@ -1,4 +1,5 @@
-import { dialog, Menu } from 'electron';
+import { Menu } from 'electron';
+import { ImportProject } from './event';
 import { mainWindow } from './main';
 
 const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> = [
@@ -16,26 +17,14 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
             { 
                 label: "匯入專案",
                 click: async () => {
-                    if(mainWindow == undefined) return;
-                    dialog.showOpenDialog(mainWindow, {
-                        properties: ['openFile'],
-                        filters: [
-                            { name: 'JSON', extensions: ['json'] },
-                        ]
-                    }).then(v => {
-                        
-                    })
+                    ImportProject()
                 }
             },
             { 
                 label: "匯出專案 (全部)",
                 click: async () => {
                     if(mainWindow == undefined) return;
-                    dialog.showOpenDialog(mainWindow, {
-                        properties: ['openDirectory']
-                    }).then(v => {
-                        
-                    })
+                    mainWindow.webContents.send('menu_export_project')
                 }
             },
             { type : 'separator' },

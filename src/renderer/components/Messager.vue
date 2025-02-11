@@ -30,6 +30,7 @@ emitter?.on('makeToast', (e) => makeToast(e))
 
 onMounted(() => {
     updateToastHandle = setInterval(updateToast, 1000)
+    
 })
 
 onUnmounted(() => {
@@ -40,14 +41,15 @@ onUnmounted(() => {
 
 <template>
     <div class="position-fixed fixed-bottom">
-        <b-toast v-for="m in messages" class="m-3 rounded-0" v-model="m.ison" :title="m.title" :variant="m.variant">
+        <b-toast v-for="(m, i) in messages" :key="i" class="m-3 rounded-0" v-model="m.ison" :title="m.title" :variant="m.variant" :no-close-button="true">
             {{ m.content }}
         </b-toast>
     </div>
     
 </template>
 
-
 <style scoped>
-
+.btn-close{
+    filter: grayscale(1) invert(0);
+}
 </style>

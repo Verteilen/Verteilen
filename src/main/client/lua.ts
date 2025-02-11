@@ -111,7 +111,7 @@ const message = new luainjs.Table({
 })
 
 const luaEnv = luainjs.createEnv()
-luaEnv.loadLib('os2', os)
+luaEnv.loadLib('o', os)
 luaEnv.loadLib('env', env)
 luaEnv.loadLib('m', message)
 

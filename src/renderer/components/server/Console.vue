@@ -164,7 +164,7 @@ onUnmounted(() => {
 
 <template>
     <b-container fluid>
-        <b-row style="height: calc(100vh - 45px)" class="w-100">
+        <b-row style="height: calc(100vh - 55px)" class="w-100">
             <b-col :cols="leftSize" style="border-right: brown 1px solid;">
                 <b-button-group class="my-3 w-100">
                     <b-button @click="execute" :disabled="data.projects.length == 0" :variant="data.running ? 'danger' : 'success'">{{ data.running ? '停止' : '執行' }}</b-button>

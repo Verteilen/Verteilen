@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Job, Node, NodeTable, Parameter, Project, Record, Task } from '../interface';
-
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
+import { v6 as uuidv6 } from 'uuid';
+import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { BusType, Job, Node, NodeTable, Parameter, Project, Record, Task } from '../interface';
 import ConsolePage from './server/Console.vue';
 import JobPage from './server/Job.vue';
 import LogPage from './server/Log.vue';
@@ -232,13 +232,35 @@ const editParameter = (e:Parameter) => {
 }
 //#endregion
 
-const menuCreateProject = () => {
+const menuCreateProject = (e:IpcRendererEvent) => {
   page.value = 0
+}
+
+const menu_export_project = (e:IpcRendererEvent) => {
+  window.electronAPI.send("export_project", JSON.stringify(projects.value))
+}
+
+const import_project_feedback = (e:IpcRendererEvent, text:string) => {
+  const ps:Array<Project> = JSON.parse(text)
+  for(const p of ps){
+    for(const t of p.task){
+      for(const j of t.jobs){
+        j.uuid = uuidv6()
+      }
+      t.uuid = uuidv6()
+    }
+    p.uuid = uuidv6()
+  }
+  projects.value.push(...ps)
+  saveRecord()
+  allUpdate()
 }
 
 onMounted(() => {
   window.electronAPI.send('menu', true)
   window.electronAPI.eventOn('createProject', menuCreateProject)
+  window.electronAPI.eventOn('menu_export_project', menu_export_project)
+  window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
   window.electronAPI.eventOn('server_clients_update', server_clients_update)
   window.electronAPI.invoke('load_record').then(x => {
     const record:Record = JSON.parse(x)
