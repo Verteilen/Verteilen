@@ -58,13 +58,13 @@ onUnmounted(() => {
 
 <template>
     <div>
-        <div class="mt-3">
+        <div class="py-3">
             <b-button-group>
-                <b-button variant='primary' @click="createNode">新增</b-button>
-                <b-button variant='danger' @click="deleteNode" :disabled="!hasSelect">刪除</b-button>
+                <b-button variant='primary' @click="createNode">{{ $t('create') }}</b-button>
+                <b-button variant='danger' @click="deleteNode" :disabled="!hasSelect">{{ $t('delete') }}</b-button>
             </b-button-group>
         </div>
-        <b-table striped hover :items="nodes" :fields="fields">
+        <b-table dark striped hover :items="nodes" :fields="fields">
             <template #cell(ID)="data">
                 <b-form-checkbox style="float:left;" v-model="data.s" @change="(v: boolean) => datachange(data.item.ID, v)">{{ data.item.ID }}</b-form-checkbox>
             </template>
@@ -72,7 +72,7 @@ onUnmounted(() => {
                 <p>{{ translate_state(data.item.state) }}</p>
             </template>
         </b-table>
-        <b-modal title="新增節點" v-model="connectionModal" hide-footer>
+        <b-modal title="新增節點" v-model="connectionModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
             <b-form-input v-model="connectionData.url" required placeholder="輸入節點位址"></b-form-input>
             <b-button class="mt-3" variant="primary" @click="confirmConnection">新增</b-button>
         </b-modal>

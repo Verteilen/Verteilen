@@ -101,15 +101,15 @@ onUnmounted(() => {
 
 <template>
     <div>
-        <div class="my-3">
+        <div class="py-3">
             <b-button-group>
-                <b-button variant='primary' @click="createParameter" :disabled="select == undefined">新增</b-button>
-                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">克隆</b-button>
-                <b-button variant='primary' @click="saveParameter" :disabled="select == undefined || !dirty">存檔</b-button>
-                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">刪除</b-button>
+                <b-button variant='primary' @click="createParameter" :disabled="select == undefined">{{ $t('create') }}</b-button>
+                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">{{ $t('clone') }}</b-button>
+                <b-button variant='primary' @click="saveParameter" :disabled="select == undefined || !dirty">{{ $t('save') }}</b-button>
+                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">{{ $t('delete') }}</b-button>
             </b-button-group>
         </div>
-        <b-card no-body ag="article" class="my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
+        <b-card no-body ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
             <b-card-title>
                 當前選擇專案: {{ props.select.title }}
             </b-card-title>
@@ -122,19 +122,19 @@ onUnmounted(() => {
             <b-row v-if="select != undefined">
                 <b-col cols="4" v-for="n in 3" :key="n">
                     <h3>{{ types[n - 1] }}參數</h3>
-                    <b-card v-for="(c, i) in getArray(n - 1)" :key="i" no-body class="px-2">
+                    <b-card v-for="(c, i) in getArray(n - 1)" :key="i" no-body bg-variant="dark" border-variant="primary" class="text-white mb-3 px-4">
                         <b-card-text>
                             <b-row>
                                 <b-col cols="4" class="pt-1">
                                     <b-form-checkbox v-model="c.s" @change="datachange"> {{ c.name }} </b-form-checkbox>
                                 </b-col>
                                 <b-col cols="5">
-                                    <b-form-input v-if="n == 1" v-model="c.value" @input="dirty = true"></b-form-input>
-                                    <b-form-input v-else-if="n == 2" v-model.number="c.value" @input="dirty = true" type="number"></b-form-input>
+                                    <v-text-field v-if="n == 1" v-model="c.value" @input="dirty = true" density="compact" hide-details></v-text-field>
+                                    <v-text-field v-else-if="n == 2" v-model.number="c.value" @input="dirty = true" type="number" density="compact" hide-details></v-text-field>
                                     <b-form-checkbox v-else v-model="c.value" @input="dirty = true"></b-form-checkbox>
                                 </b-col>
                                 <b-col cols="3">
-                                    <b-button @click="rename(n - 1, c.name)">改名</b-button>
+                                    <b-button @click="rename(n - 1, c.name)">{{ $t('rename') }}</b-button>
                                 </b-col>
                             </b-row>
                             <span></span>
@@ -143,20 +143,20 @@ onUnmounted(() => {
                 </b-col>
             </b-row>
         </b-container>
-        <b-modal title="新增參數" v-model="createModal" hide-footer>
+        <b-modal title="新增參數" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
             <b-form-checkbox v-model="createData.temp">使用樣板</b-form-checkbox>
             <div v-if="createData.temp">
 
             </div>
             <div v-else>
-                <b-form-input class="mt-3" v-model="createData.name" required placeholder="輸入參數名稱"></b-form-input>
-                <b-form-select class="mt-3" v-model="createData.type" :options="options"></b-form-select>
+                <v-text-field class="mt-3" v-model="createData.name" required label="輸入參數名稱" hide-details></v-text-field>
+                <v-select class="mt-3" v-model="createData.type" :items="options" item-title="text" label="資料型態" hide-details></v-select>
             </div>
             
             <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
         </b-modal>
-        <b-modal title="新增參數" v-model="renameModal" hide-footer>
-            <b-form-input v-model="renameData.name" required placeholder="輸入參數名稱"></b-form-input>
+        <b-modal title="新增參數" v-model="renameModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <v-text-field v-model="renameData.name" required label="輸入參數名稱" hide-details></v-text-field>
             <b-button class="mt-3" variant="primary" @click="confirmRename">改名</b-button>
         </b-modal>
     </div>

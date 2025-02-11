@@ -9,5 +9,14 @@
     "create": "Create",
     "clone": "Clone",
     "delete": "Delete",
-    "save": "Save"
+    "save": "Save",
+    "server": "Server",
+    "node": "Node",
+    "action": "Action",
+    "moveup": "Move-Up",
+    "movedown": "Move-Down",
+    "rename": "Rename",
+    "execute": "Execute",
+    "execute-keep": "Execute (Keep)",
+    "parameter-setting": "Parameter Setting"
 }

@@ -12,6 +12,7 @@ import { checkifElectron } from "./platform";
 
 import "bootstrap-vue-3/dist/bootstrap-vue-3.css";
 import "bootstrap/dist/css/bootstrap.css";
+import { vuetify } from "./plugins/vuetify";
 import './style.css';
 
 const emitter:Emitter<BusType> = mitt<BusType>()
@@ -19,6 +20,7 @@ const app = createApp(App)
 export const isElectron:boolean = checkifElectron()
 
 app.provide('emitter', emitter)
+app.use(vuetify)
 app.use(i18n)
 app.use(BootstrapVue3)
 app.use(VueCodemirror, {

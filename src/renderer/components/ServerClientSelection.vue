@@ -28,14 +28,15 @@ const clientClick = () => {
 </script>
 
 <template>
-    <div style="margin: 0; padding:35vh 10vw; width: 100vw; height: 80vh; place-items: center;">
+    <div class="text-white bg-grey-darken-4" style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;">
         <p>{{ $t('modeselect.title') }}</p>
+        <br />
         <div class="row">
             <div class="col">
-                <b-button class="w-100 h-100 mx-1" @click="serverClick">伺服器</b-button>
+                <b-button class="w-100 h-100 mx-1" @click="serverClick">{{ $t('server') }}</b-button>
             </div>
             <div class="col">
-                <b-button class="w-100 h-100 mx-1" @click="clientClick">節點</b-button>    
+                <b-button class="w-100 h-100 mx-1" @click="clientClick">{{ $t('node') }}</b-button>    
             </div>
         </div>
     </div>

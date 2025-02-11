@@ -16,7 +16,8 @@
                     },
                     {
                         "name": "iframe_gap",
-                        "value": 5
+                        "value": 5,
+                        "s": false
                     }
                 ],
                 "strings": [
@@ -69,7 +70,8 @@
                             "lua": "\nfunction split(s, sep)\n    local fields = {}\n    local sep = sep or \" \"\n    local pattern = string.format(\"([^%s]+)\", sep)\n    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)\n    return fields\nend\n\nm.messager(\"Env Init\")\n\nlocal root = env.getstring(\"root\")\nlocal prepare_folder = env.getstring(\"prepare\")\nlocal before_folder = env.getstring(\"before\")\nlocal after_folder = env.getstring(\"after\")\nlocal output_folder = env.getstring(\"output\")\n\nlocal CAM = env.getstring(\"CAM\")\nlocal images = env.getstring(\"images\")\nlocal sparse = env.getstring(\"sparse\")\n\nos2.deletedir(root..\"/\"..before_folder)\nos2.deletedir(root..\"/\"..after_folder)\nos2.deletedir(output_folder)\nos2.createdir(root..\"/\"..before_folder)\nos2.createdir(root..\"/\"..after_folder)\nos2.createdir(output_folder)\n\nm.messager(\"Get CAM list\")\nlocal prepare_folders = split(os2.listdir(root..\"/\"..prepare_folder..\"/\"..CAM), \"\\n\")\n\nlocal cam_size = #(prepare_folders)\nm.messager(\"Get CAM count: \"..cam_size)\n\nlocal frame_size = 0\nif cam_size > 0 then\n    local f1_files = split(os2.listfile(root..\"/\"..prepare_folder..\"/\"..CAM..\"/\"..prepare_folders[1]), \"\\n\")\n    frame_size = #(f1_files)\nend\nm.messager(\"Get Frame count: \"..frame_size)\n\nm.messager(\"Copy sparse folder\")\nos2.copydir(root..\"/\"..prepare_folder..\"/\"..sparse, root..\"/\"..before_folder..\"/\"..sparse)\n\nfor key=1,frame_size,1 do\n    os2.createdir(root..\"/\"..before_folder..\"/\"..tostring(key)..\"/images\")\n    for key2=1,cam_size,1 do\n        local from = root..\"/\"..prepare_folder..\"/\"..CAM..\"/C\"..string.format(\"%04d\", key2)..\"/\"..string.format(\"%04d\", key2)..\"_\"..string.format(\"%06d\", key)..\".jpg\"\n        local to = root..\"/\"..before_folder..\"/\"..tostring(key)..\"/images/\"..string.format(\"%04d\", key2)..\".jpg\"\n        os2.copyfile(from, to)\n    end\nend\n\nenv.setnumber(\"frameCount\", frame_size)\n\n",
                             "string_args": [],
                             "number_args": [],
-                            "boolean_args": []
+                            "boolean_args": [],
+                            "s": false
                         }
                     ]
                 },
@@ -295,12 +297,5 @@
             ]
         }
     ],
-    "nodes": [
-        {
-            "ID": "1efe7b77-cfd6-6f30-96a5-9ce996cc8544",
-            "state": 1,
-            "url": "ws://127.0.0.1:12080/",
-            "connection_rate": 0
-        }
-    ]
+    "nodes": []
 }

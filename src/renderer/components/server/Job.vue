@@ -185,7 +185,7 @@ onUnmounted(() => {
 
 <template>
     <div>
-        <div class="my-3">
+        <div class="py-3">
             <b-button-group>
                 <b-button variant='primary' @click="createJob" :disabled="select == undefined">新增</b-button>
                 <b-button variant='primary' @click="saveJobs" :disabled="select == undefined || !dirty">存檔</b-button>
@@ -193,7 +193,7 @@ onUnmounted(() => {
                 <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">刪除</b-button>
             </b-button-group>
         </div>
-        <b-card ag="article" class="my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
+        <b-card ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
             <b-card-title>
                 當前選擇流程: {{ props.select.title }}
             </b-card-title>
@@ -203,36 +203,39 @@ onUnmounted(() => {
                 <b-form-select v-if="props.select.cronjob" v-model="props.select.cronjobKey" @change="(e: string) => changeCronKey(e)" :options="para_keys"></b-form-select>
             </b-card-text>
         </b-card>
-        <b-modal title="新增工作" v-model="createModal" hide-footer>
-            <b-form-select v-model="createData.type" :options="types"></b-form-select>
-            <b-form-select class="mt-3" v-if="checkPatterm(createData.type, 'Script')" v-model="createData.spe_template" :options="lua_types"></b-form-select>
-            <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
-        </b-modal>
         <hr />
-        <div v-if="select != undefined">
-            <b-card v-for="(c, i) in items">
+        <div v-if="select != undefined" class="pb-7">
+            <b-card v-for="(c, i) in items" no-body :key="i" bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
                 <b-card-header>
-                    <b-form-checkbox type="checkbox" v-model="c.s" @change="(e: boolean) => datachange(c.uuid, e)">
-                        {{ i }}. {{ JobTypeTranslate(c.type) }}
-                        <span>
-                            <b-dropdown text="動作" class="m-md-2">
-                                <b-dropdown-item :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">往上移動</b-dropdown-item>
-                                <b-dropdown-item :disabled="isLast(c.uuid)" @click="movedown(c.uuid)">往下移動</b-dropdown-item>
-                            </b-dropdown>
-                        </span>
-                    </b-form-checkbox>
+                    <v-row>
+                        <v-col cols="2" style="padding-top: 25px;">
+                            <b-form-checkbox type="checkbox" v-model="c.s" @change="(e: boolean) => datachange(c.uuid, e)"></b-form-checkbox>
+                        </v-col>
+                        <v-col>
+                            {{ i }}. {{ JobTypeTranslate(c.type) }}
+                            <span>
+                                <b-dropdown :text="$t('action')" class="text-white m-md-2">
+                                    <b-dropdown-item :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">{{ $t('moveup') }}</b-dropdown-item>
+                                    <b-dropdown-item :disabled="isLast(c.uuid)" @click="movedown(c.uuid)">{{ $t('movedown') }}</b-dropdown-item>
+                                </b-dropdown>
+                            </span>
+                        </v-col>
+                        <v-col cols="2" style="padding-top: 30px;">
+                            <span style="float:right; font-size: small; height:100%;">{{ c.uuid }}</span>
+                        </v-col>
+                    </v-row>
                 </b-card-header>
                 <div v-if="checkPatterm(c.type, 'TwoPath')">
-                    <b-form-input class="my-2" v-model="c.string_args[0]" placeholder="輸入來源"></b-form-input>
-                    <b-form-input class="my-2" v-model="c.string_args[1]" placeholder="輸入目的"></b-form-input>
+                    <v-text-field class="my-2" v-model="c.string_args[0]" label="來源" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[1]" label="目的" hide-details></v-text-field>
                 </div>
                 <div v-else-if="checkPatterm(c.type, 'OnePath')">
-                    <b-form-input class="my-2" v-model="c.string_args[0]" placeholder="輸入路徑"></b-form-input>
+                    <v-text-field class="my-2" v-model="c.string_args[0]" label="路徑" hide-details></v-text-field>
                 </div>
                 <div v-else-if="checkPatterm(c.type, 'Command')">
-                    <b-form-input class="my-2" v-model="c.string_args[0]" placeholder="輸入路徑"></b-form-input>
-                    <b-form-input class="my-2" v-model="c.string_args[1]" placeholder="輸入指令"></b-form-input>
-                    <b-form-input class="my-2" v-model="c.string_args[2]" placeholder="輸入參數"></b-form-input>
+                    <v-text-field class="my-2" v-model="c.string_args[0]" label="執行路徑" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[1]" label="命令" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[2]" label="參數" hide-details></v-text-field>
                 </div>
                 <codemirror v-else-if="checkPatterm(c.type, 'Script')" v-model="c.lua" 
                     style="text-align:left;"
@@ -242,13 +245,13 @@ onUnmounted(() => {
                     :tab-size="2" 
                     mode="text/x-lua"
                     @change="setdirty"/>
-                <b-card-footer>
-                    {{ c.uuid }}
-                </b-card-footer>
             </b-card>
         </div>
-        
-        
+        <b-modal title="新增工作" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <b-form-select v-model="createData.type" :options="types" item-title="text"></b-form-select>
+            <b-form-select class="mt-3" v-if="checkPatterm(createData.type, 'Script')" v-model="createData.spe_template" :options="lua_types" item-title="text"></b-form-select>
+            <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
+        </b-modal>
     </div>
 </template>
 

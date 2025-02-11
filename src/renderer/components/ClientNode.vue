@@ -28,12 +28,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="float_button">
+  <div class="float_button text-white bg-grey-darken-4">
     <b-button-group>
       <b-button @click="clearMessage">清除</b-button>
     </b-button-group>
   </div>
-  <div class="flow" ref="myDiv">
+  <div class="flow text-white" ref="myDiv">
     <p class="messages" v-for="(msg, i) in messages" :key="i">{{ msg }}</p>
   </div>
 </template>
@@ -51,10 +51,8 @@ onUnmounted(() => {
   height: 100vh;
   overflow-y: auto;
   text-align: left;
-  background-color: rgb(12,12,12);
 }
 .messages {
   line-height: 15px;
-  color: white
 }
 </style>

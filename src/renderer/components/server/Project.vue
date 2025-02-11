@@ -196,17 +196,17 @@ onUnmounted(() => {
 
 <template>
     <div>
-        <div class="my-3">
+        <div class="py-3">
             <b-button-group>
                 <b-button variant='primary' @click="createProject">{{ $t('create') }}</b-button>
                 <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect">{{ $t('clone') }}</b-button>
                 <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect">{{ $t('delete') }}</b-button>
-                <b-button @click="execute(false)" :disabled="!hasSelect">執行</b-button>
-                <b-button @click="execute(true)" :disabled="!hasSelect">執行 (保留)</b-button>
+                <b-button @click="execute(false)" :disabled="!hasSelect">{{ $t('execute') }}</b-button>
+                <b-button @click="execute(true)" :disabled="!hasSelect">{{ $t('execute-keep') }}</b-button>
             </b-button-group>
         </div>
         <div>
-            <b-table striped hover :items="items" :fields="fields">
+            <b-table dark striped hover :items="items" :fields="fields">
                 <template #cell(ID)="data">
                     <b-row>
                         <b-col cols="1">
@@ -218,32 +218,32 @@ onUnmounted(() => {
                     </b-row>
                 </template>
                 <template #cell(detail)="data">
-                    <b-dropdown text="動作" class="m-md-2">
+                    <b-dropdown :text="$t('action')" class="text-white m-md-2">
                         <b-dropdown-item @click="datachoose(data.item.ID)">查看</b-dropdown-item>
                         <b-dropdown-item @click="dataedit(data.item.ID)">編輯</b-dropdown-item>
                         <b-dropdown-divider></b-dropdown-divider>
-                        <b-dropdown-item :disabled="isFirst(data.item.ID)" @click="moveup(data.item.ID)">往上移動</b-dropdown-item>
-                        <b-dropdown-item :disabled="isLast(data.item.ID)" @click="movedown(data.item.ID)">往下移動</b-dropdown-item>
+                        <b-dropdown-item :disabled="isFirst(data.item.ID)" @click="moveup(data.item.ID)">{{ $t('moveup') }}</b-dropdown-item>
+                        <b-dropdown-item :disabled="isLast(data.item.ID)" @click="movedown(data.item.ID)">{{ $t('movedown') }}</b-dropdown-item>
                     </b-dropdown>
                 </template>
             </b-table>
         </div>
-        <b-modal title="新增專案" v-model="createModal" hide-footer>
-            <b-form-input v-model="createData.title" required placeholder="輸入專案名稱"></b-form-input>
-            <b-form-input class="mt-3" v-model="createData.description" placeholder="輸入專案敘述"></b-form-input>
+        <b-modal title="新增專案" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <v-text-field v-model="createData.title" required label="輸入專案名稱" hide-details></v-text-field>
+            <v-text-field class="mt-3" v-model="createData.description" label="輸入專案敘述" hide-details></v-text-field>
             <br />
             <b-form-checkbox v-model="createData.useTemp">使用樣板</b-form-checkbox>
             <b-form-select v-if="createData.useTemp" class="mt-3" v-model="createData.temp" :options="temps"></b-form-select>
             <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
         </b-modal>
-        <b-modal title="編輯專案" v-model="editModal" hide-footer>
-            <b-form-input v-model="createData.title" required placeholder="輸入專案名稱"></b-form-input>
-            <b-form-input class="mt-3" v-model="createData.description" placeholder="輸入專案敘述"></b-form-input>
+        <b-modal title="編輯專案" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <v-text-field v-model="createData.title" required label="輸入專案名稱" hide-details></v-text-field>
+            <v-text-field class="mt-3" v-model="createData.description" label="輸入專案敘述" hide-details></v-text-field>
             <b-button class="mt-3" variant="primary" @click="confirmEdit">修改</b-button>
         </b-modal>
     </div>
 </template>
 
-<style scoped>
+<style>
 
 </style>

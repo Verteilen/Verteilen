@@ -9,5 +9,13 @@
     "create": "新增",
     "clone": "克隆",
     "delete": "刪除",
-    "save": "存檔"
+    "save": "存檔",
+    "server": "伺服器",
+    "node": "節點",
+    "action": "動作",
+    "moveup": "往上移動",
+    "movedown": "往下移動",
+    "execute": "執行",
+    "execute-keep": "執行 (保留)",
+    "parameter-setting": "參數設定"
 }
