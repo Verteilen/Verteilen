@@ -2,6 +2,7 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import colors from 'vuetify/util/colors';
 import { BusType, ExecuteRecord, ExecuteState, Record } from '../../interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -23,15 +24,11 @@ const leftSize = ref(3)
 const rightSize = ref(9)
 const tag = ref(1)
 
-const getStateColorText = (state:number):string => {
-    return state == 0 ? "black" : "white"
-}
-
 const getStateColor = (state:number):string => {
-    if (state == 0) return  "Default"
-    else if (state == 1) return "primary"
-    else if (state == 2) return "success"
-    else return "danger"
+    if (state == ExecuteState.NONE) return colors.teal.base
+    else if (state == ExecuteState.RUNNING) return colors.indigo.darken3
+    else if (state == ExecuteState.FINISH) return colors.green.darken3
+    else return colors.red.darken4
 }
 
 const receivedPack = (record:Record) => {
@@ -167,7 +164,7 @@ onUnmounted(() => {
         <b-row style="height: calc(100vh - 55px)" class="w-100">
             <b-col :cols="leftSize" style="border-right: brown 1px solid;">
                 <b-button-group class="my-3 w-100">
-                    <b-button @click="execute" :disabled="data.projects.length == 0" :variant="data.running ? 'danger' : 'success'">{{ data.running ? '停止' : '執行' }}</b-button>
+                    <b-button @click="execute" :disabled="data.projects.length == 0" :variant="data.running ? 'danger' : 'success'">{{ data.running ? $t('stop') : $t('execute') }}</b-button>
                 </b-button-group>
                 <b-list-group>
                     <b-list-group-item href="#" @click="tag = 0" :active="tag == 0">專案進程</b-list-group-item>
@@ -180,18 +177,19 @@ onUnmounted(() => {
             </b-col>
             <b-col :cols="rightSize" v-if="tag == 1">
                 <b-container class="pt-4" style="max-height: 90vh; overflow-y: auto;">
-                    <b-row>
-                        <b-col v-for="(c, i) in data.task_state" :key="i">
-                            <b-card class="w-100" no-body :bg-variant="getStateColor(c.state)" :text-variant="getStateColorText(c.state)">
-                                <b-card-header class="mb-2">
-                                    <span style="font-size: smaller;">{{ c.uuid }}</span>
-                                </b-card-header>
-                                <b-card-text>
-                                    <h4> {{ data.projects[data.project_index].task[i].title }} </h4>
-                                </b-card-text>
-                            </b-card>
-                        </b-col>
-                    </b-row>
+                    <v-stepper v-model="data.task_index">
+                        <v-stepper-header>
+                            <div v-for="(c, i) in data.task_state" :key="i">
+                                <v-stepper-item 
+                                    :style="{ 'backgroundColor': getStateColor(c.state) }"
+                                    :value="i"
+                                    :title="data.projects[data.project_index].task[i].title"
+                                    :complete="c.state == 2">
+                                </v-stepper-item>
+                                <v-divider color="white" v-if="i < data.task_state.length"></v-divider>
+                            </div>
+                        </v-stepper-header>
+                    </v-stepper>
                     <b-card class="w-100" no-body v-for="(task, i) in data.task_detail" :key="i">
                         <b-card-header>
                             <span style="margin-right: 10px;">Index: {{ task.index }}</span> <b-spinner small v-if="task.node.length > 0"></b-spinner>

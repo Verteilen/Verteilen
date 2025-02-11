@@ -6,9 +6,9 @@ import mitt, { Emitter } from 'mitt';
 import { createApp } from 'vue';
 import VueCodemirror from 'vue-codemirror';
 import App from './App.vue';
-import { i18n } from "./i18n";
 import { BusType } from './interface';
 import { checkifElectron } from "./platform";
+import { i18n } from "./plugins/i18n";
 
 import "bootstrap-vue-3/dist/bootstrap-vue-3.css";
 import "bootstrap/dist/css/bootstrap.css";

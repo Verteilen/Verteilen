@@ -233,7 +233,7 @@ onUnmounted(() => {
             <v-text-field class="mt-3" v-model="createData.description" label="輸入專案敘述" hide-details></v-text-field>
             <br />
             <b-form-checkbox v-model="createData.useTemp">使用樣板</b-form-checkbox>
-            <b-form-select v-if="createData.useTemp" class="mt-3" v-model="createData.temp" :options="temps"></b-form-select>
+            <v-select v-if="createData.useTemp" class="mt-3" v-model="createData.temp" :items="temps" item-title="text" hide-details></v-select>
             <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
         </b-modal>
         <b-modal title="編輯專案" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">

@@ -4,10 +4,10 @@ import { mainWindow } from './main';
 
 const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> = [
     {
-        label: "檔案",
+        label: "File",
         submenu: [
             { 
-                label: "新增專案",
+                label: "New Project",
                 click: async () => {
                     if(mainWindow == undefined) return;
                     mainWindow.webContents.send('createProject')
@@ -15,47 +15,47 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
             },
             { type : 'separator' },
             { 
-                label: "匯入專案",
+                label: "Import",
                 click: async () => {
                     ImportProject()
                 }
             },
             { 
-                label: "匯出專案 (全部)",
+                label: "Export (All)",
                 click: async () => {
                     if(mainWindow == undefined) return;
                     mainWindow.webContents.send('menu_export_project')
                 }
             },
             { type : 'separator' },
-            { label: '退出', role: 'quit' }
+            { label: 'Quit', role: 'quit' }
         ]
     },
     {
-        label: '編輯',
+        label: 'Edit',
         submenu: [
-            { label: '撤銷', role: 'undo' },
-            { label: '重作', role: 'redo' },
+            { role: 'undo' },
+            { role: 'redo' },
             { type: 'separator' },
-            { label: '剪下', role: 'cut' },
-            { label: '複製', role: 'copy' },
-            { label: '貼上', role: 'paste' },
-            { label: '刪除', role: 'delete' },
+            { role: 'cut' },
+            { role: 'copy' },
+            { role: 'paste' },
+            { role: 'delete' },
             { type: 'separator' },
-            { label: '選擇全部', role: 'selectAll' },
+            { role: 'selectAll' },
             { type: 'separator' },
             { 
-                label: "語言",
+                label: "Language",
                 submenu: [
                     {
                         label: 'en',
-                        click: async () => {
+                        click: () => {
                             mainWindow?.webContents.send('locate', 'en')
                         }
                     },
                     {
                         label: 'zh_TW',
-                        click: async () => {
+                        click: () => {
                             mainWindow?.webContents.send('locate', 'zh_TW')
                         }
                     }
@@ -64,29 +64,28 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
         ]
     },
     {
-        label: '執行',
+        label: 'Execute',
         submenu: [
             {
-                label: '執行所有'
+                label: 'Run All',
+                click: () => {
+                    mainWindow?.webContents.send('run_all')
+                }
             },
             {
-                label: '執行所有 (保留)'
+                label: 'Run All (Keep)',
+                click: () => {
+                    mainWindow?.webContents.send('run_all_keep')
+                }
             }
         ]
     },
     {
-        label: '幫助',
+        label: 'Help',
         submenu: [
             {
-                label: "說明",
-                click: async () => {
-                    console.log("[工具欄] 打開說明")
-                    mainWindow?.webContents.send('show_helper')
-                }
-            },
-            {
-                label: '控制台',
-                click: async () => {
+                label: 'Console',
+                click: () => {
                     mainWindow?.webContents.openDevTools();
                 }
             }

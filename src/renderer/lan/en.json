@@ -17,6 +17,7 @@
     "movedown": "Move-Down",
     "rename": "Rename",
     "execute": "Execute",
+    "stop": "Stop",
     "execute-keep": "Execute (Keep)",
     "parameter-setting": "Parameter Setting"
 }

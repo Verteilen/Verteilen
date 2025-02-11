@@ -15,7 +15,9 @@
     "action": "動作",
     "moveup": "往上移動",
     "movedown": "往下移動",
+    "rename": "改名",
     "execute": "執行",
+    "stop": "停下",
     "execute-keep": "執行 (保留)",
     "parameter-setting": "參數設定"
 }

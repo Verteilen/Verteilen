@@ -30,7 +30,7 @@ const clientClick = () => {
 
 <template>
     <div class="text-white bg-grey-darken-4" style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;">
-        <p>{{ $t('modeselect.title') }}</p>
+        <h5>{{ $t('modeselect.title') }}</h5>
         <br />
         <div class="row">
             <div class="col">

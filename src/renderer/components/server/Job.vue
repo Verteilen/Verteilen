@@ -187,10 +187,10 @@ onUnmounted(() => {
     <div>
         <div class="py-3">
             <b-button-group>
-                <b-button variant='primary' @click="createJob" :disabled="select == undefined">新增</b-button>
-                <b-button variant='primary' @click="saveJobs" :disabled="select == undefined || !dirty">存檔</b-button>
-                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">克隆</b-button>
-                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">刪除</b-button>
+                <b-button variant='primary' @click="createJob" :disabled="select == undefined">{{ $t('create') }}</b-button>
+                <b-button variant='primary' @click="saveJobs" :disabled="select == undefined || !dirty">{{ $t('save') }}</b-button>
+                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">{{ $t('clone') }}</b-button>
+                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">{{ $t('delete') }}</b-button>
             </b-button-group>
         </div>
         <b-card ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">

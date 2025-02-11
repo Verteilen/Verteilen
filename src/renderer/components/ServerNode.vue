@@ -114,7 +114,7 @@ const executeProjects = (uuids:Array<string>, keep:boolean) => {
     nodes: nodes.value as Array<Node>
   }
   emitter?.emit('execute', record)
-  page.value = 4
+  page.value = 5
 }
 //#endregion
 
@@ -256,10 +256,20 @@ const import_project_feedback = (e:IpcRendererEvent, text:string) => {
   allUpdate()
 }
 
+const run_all = (e:IpcRendererEvent) => {
+  executeProjects(projects.value.map(x => x.uuid), false)
+}
+
+const run_all_keep = (e:IpcRendererEvent) => {
+  executeProjects(projects.value.map(x => x.uuid), true)
+}
+
 onMounted(() => {
   window.electronAPI.send('menu', true)
   window.electronAPI.eventOn('createProject', menuCreateProject)
   window.electronAPI.eventOn('menu_export_project', menu_export_project)
+  window.electronAPI.eventOn('run_all', run_all)
+  window.electronAPI.eventOn('run_all_keep', run_all_keep)
   window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
   window.electronAPI.eventOn('server_clients_update', server_clients_update)
   window.electronAPI.invoke('load_record').then(x => {
@@ -283,13 +293,17 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.electronAPI.eventOff('createProject', menuCreateProject)
+  window.electronAPI.eventOff('menu_export_project', menu_export_project)
+  window.electronAPI.eventOff('run_all', run_all)
+  window.electronAPI.eventOff('run_all_keep', run_all_keep)
+  window.electronAPI.eventOff('import_project_feedback', import_project_feedback)
   window.electronAPI.eventOff('server_clients_update', server_clients_update)
 })
 
 </script>
 
 <template>
-  <v-tabs v-model="page" tabs style="width: 100vw; height:50px;" class="bg-grey-darken-4">
+  <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
     <v-tab>專案管理</v-tab>
     <v-tab>流程管理</v-tab>
     <v-tab>參數管理</v-tab>
@@ -298,7 +312,7 @@ onUnmounted(() => {
     <v-tab>控制台</v-tab>
     <v-tab>紀錄</v-tab>
   </v-tabs>
-  <div style="width: 100vw; height:calc(100vh - 50px); background-color: red;" class="bg-grey-darken-4 text-white">
+  <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
     <ProjectPage v-show="page == 0" 
       :projects="projects" 
       @added="e => addProject(e)" 

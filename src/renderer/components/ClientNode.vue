@@ -28,12 +28,12 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="float_button text-white bg-grey-darken-4">
+  <div class="float_button text-white">
     <b-button-group>
       <b-button @click="clearMessage">清除</b-button>
     </b-button-group>
   </div>
-  <div class="flow text-white" ref="myDiv">
+  <div class="flow text-white bg-grey-darken-4" ref="myDiv">
     <p class="messages" v-for="(msg, i) in messages" :key="i">{{ msg }}</p>
   </div>
 </template>

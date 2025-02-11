@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, Parameter, Project } from '../../interface';
 
 interface PROPS {
@@ -52,6 +52,7 @@ const cloneSelect = () => {
     buffer.value.strings.push(...ss)
     buffer.value.numbers.push(...ns)
     dirty.value = true
+    datachange()
 }
 
 const saveParameter = () => {
@@ -64,7 +65,14 @@ const rename = (type:number, oldname:string) => {
 }
 
 const deleteSelect = () => {
+    const bs = buffer.value.booleans.filter(x => !x.s)
+    const ss = buffer.value.strings.filter(x => !x.s)
+    const ns = buffer.value.numbers.filter(x => !x.s)
+    buffer.value.booleans = bs
+    buffer.value.strings = ss
+    buffer.value.numbers = ns
     dirty.value = true
+    datachange()
 }
 
 const confirmCreate = () => {
@@ -91,6 +99,9 @@ onMounted(() => {
         }
     })
     emitter?.on('updateParameter', updateParameter)
+    nextTick(() => {
+        updateParameter()
+    })
 })
 
 onUnmounted(() => {
@@ -104,8 +115,8 @@ onUnmounted(() => {
         <div class="py-3">
             <b-button-group>
                 <b-button variant='primary' @click="createParameter" :disabled="select == undefined">{{ $t('create') }}</b-button>
-                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">{{ $t('clone') }}</b-button>
                 <b-button variant='primary' @click="saveParameter" :disabled="select == undefined || !dirty">{{ $t('save') }}</b-button>
+                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">{{ $t('clone') }}</b-button>
                 <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">{{ $t('delete') }}</b-button>
             </b-button-group>
         </div>

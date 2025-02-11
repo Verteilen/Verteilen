@@ -20,6 +20,7 @@
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
     "@iconify-json/mdi": "^1.2.3",
+    "@types/vue-markdown": "^2.2.4",
     "@vitejs/plugin-vue": "^4.4.1",
     "@vue/compiler-sfc": "^3.5.13",
     "chalk": "^4.1.2",
@@ -48,6 +49,7 @@
     "vue": "^3.3.8",
     "vue-codemirror": "^6.1.1",
     "vue-i18n": "^10.0.5",
+    "vue-markdown": "^2.2.4",
     "vuetify": "^3.7.11",
     "ws": "^8.18.0"
   }
