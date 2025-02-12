@@ -4,3 +4,5 @@ build
 record.json
 .vscode
 .idea
+ply_build/build
+ply_build/dist
