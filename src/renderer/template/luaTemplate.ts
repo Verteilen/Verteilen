@@ -56,25 +56,6 @@ env.setnumber("frameCount", frame_size)
 
 `
 
-export const FUNIQUE_GS4_DENOISE:string = `function split(s, sep)
-    local fields = {}
-    local sep = sep or " "
-    local pattern = string.format("([^%s]+)", sep)
-    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)
-    return fields
-end
-
-local root = env.getstring("root")
-local after_folder = env.getstring("after")
-local ck = env.getstring("ck")
-
-local path = root.."/"..after_folder.."/GOP20_I/"..tostring(ck).."/point_cloud/iteration_7000/ascii.ply"
-m.messager_log("Load: "..path)
-
-local data = o.readfile(path)
-
-`
-
 export const FUNIQUE_GS4_IFRAMEFOLDER:string = `function split(s, sep)
     local fields = {}
     local sep = sep or " "

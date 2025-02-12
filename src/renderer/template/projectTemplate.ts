@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Job, JobType, Parameter, Project, Task } from "../interface";
-import { FUNIQUE_GS4_DENOISE, FUNIQUE_GS4_IFRAMEFOLDER, FUNIQUE_GS4_IFRAMEFOLDER_DONE, FUNIQUE_GS4_PREPARE } from "./luaTemplate";
+import { FUNIQUE_GS4_IFRAMEFOLDER, FUNIQUE_GS4_IFRAMEFOLDER_DONE, FUNIQUE_GS4_PREPARE } from "./luaTemplate";
 
 export const GetDefaultProjectTemplate = (r:Project):Project => {
     return r
@@ -137,23 +137,15 @@ const GetFUNIQUE_GS4ProjectTemplate_Task3 = ():Task => {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%/GOP20_I/%ck%/point_cloud/iteration_7000", "ply_to_ascii", "-i point_cloud_before.ply -o ascii.ply"],
+        string_args: ["%root%/%after%/GOP20_I/%ck%/point_cloud/iteration_7000", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply"],
         number_args: [],
         boolean_args: []
     }
-    const stringhelper:Job = {
+    const deleted:Job = {
         uuid: uuidv6(),
-        type: JobType.LUA,
-        lua: FUNIQUE_GS4_DENOISE,
-        string_args: [],
-        number_args: [],
-        boolean_args: []
-    }
-    const command2:Job = {
-        uuid: uuidv6(),
-        type: JobType.COMMAND,
+        type: JobType.DELETE_FILE,
         lua: "",
-        string_args: ["%root%/%after%/GOP20_I/%ck%/point_cloud/iteration_7000", "ply_return_ascii", "-i ascii.ply -o point_cloud.ply"],
+        string_args: ["%root%/%after%/GOP20_I/%ck%/point_cloud/iteration_7000/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
     }
@@ -168,8 +160,6 @@ const GetFUNIQUE_GS4ProjectTemplate_Task3 = ():Task => {
         jobs: [
             renamee,
             command1,
-            stringhelper,
-            command2
         ]
     }
     return t
