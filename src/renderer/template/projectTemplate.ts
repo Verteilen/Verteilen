@@ -160,6 +160,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task3 = ():Task => {
         jobs: [
             renamee,
             command1,
+            deleted
         ]
     }
     return t
