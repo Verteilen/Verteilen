@@ -13,6 +13,7 @@ const messages:Ref<Array<ClientLog>> = ref([
 ])
 const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const panel:Ref<Array<number>> = ref([0])
+const autoScroll = ref(true)
 
 const msgAppend = (e:IpcRendererEvent, msg:string, tag?:string) => {
   if(tag == undefined){
@@ -33,7 +34,7 @@ const msgAppend = (e:IpcRendererEvent, msg:string, tag?:string) => {
       if(!panel.value.includes(index)) panel.value.push(index)
     }
   }
-  myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
+  if(autoScroll.value) myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
 }
 
 const clearMessage = () => {
@@ -66,9 +67,10 @@ onUnmounted(() => {
 <template>
   <div class="float_button text-white" style="z-index: 5;">
     <b-button-group>
-      <b-button @click="clearMessage">清除</b-button>
+      <b-button variant="primary" @click="panel = []">關閉所有</b-button>
+      <b-button :variant="autoScroll ? 'success' : 'danger'" @click="autoScroll = !autoScroll">自動滑動</b-button>
+      <b-button variant="primary" @click="clearMessage">清除</b-button>
     </b-button-group>
-    <p>{{ panel }}</p>
   </div>
   <div class="flow text-white bg-grey-darken-4" ref="myDiv">
     <v-expansion-panels multiple v-model="panel">

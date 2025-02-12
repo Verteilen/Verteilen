@@ -3,7 +3,9 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Job, Node, NodeTable, Parameter, Project, Record, Task } from '../interface';
+import { BusType, ExecuteRecord, Job, Node, NodeTable, Parameter, Project, Record, Task } from '../interface';
+import { ExecuteManager } from '../script/execute_manager';
+import { WebsocketManager } from '../script/socket_manager';
 import ConsolePage from './server/Console.vue';
 import JobPage from './server/Job.vue';
 import LogPage from './server/Log.vue';
@@ -12,11 +14,27 @@ import ParameterPage from './server/Parameter.vue';
 import ProjectPage from './server/Project.vue';
 import TaskPage from './server/Task.vue';
 
+const websocket_manager:Ref<WebsocketManager | undefined> = ref(undefined)
+const execute_manager:Ref<ExecuteManager | undefined> = ref(undefined)
+
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
 
 const page = ref(0)
 const projects:Ref<Array<Project>> = ref([])
+const projects_exe:Ref<ExecuteRecord>  = ref({
+  projects: [],
+  nodes: [],
+  running: false,
+  stop: true,
+  project: "",
+  task: "",
+  project_index: -1,
+  task_index: -1,
+  project_state: [],
+  task_state: [],
+  task_detail: [],
+})
 const selectProject:Ref<Project | undefined> = ref(undefined)
 const selectTask:Ref<Task | undefined> = ref(undefined)
 const nodes:Ref<Array<NodeTable>> = ref([])
@@ -114,6 +132,7 @@ const executeProjects = (uuids:Array<string>, keep:boolean) => {
     projects: selection,
     nodes: nodes.value as Array<Node>
   }
+  Object.assign(record, projects_exe.value.projects)
   emitter?.emit('execute', record)
   page.value = 5
 }
@@ -211,7 +230,7 @@ const deleteJob = (uuids:Array<string>) => {
 //#endregion
 
 //#region Node
-const server_clients_update = (e:IpcRendererEvent, v:Array<NodeTable>) => {
+const server_clients_update = (v:Array<NodeTable>) => {
     const old:Array<NodeTable> = Object.create(nodes.value)
     nodes.value = v
     old.filter(x => x.s).forEach(x => {
@@ -270,13 +289,17 @@ const serverUpdate = () => {
 }
 
 onMounted(() => {
+  websocket_manager.value = new WebsocketManager()
+  execute_manager.value = new ExecuteManager(websocket_manager.value)
+  websocket_manager.value.set_new_connect(execute_manager.value.NewConnection)
+
   window.electronAPI.send('menu', true)
   window.electronAPI.eventOn('createProject', menuCreateProject)
   window.electronAPI.eventOn('menu_export_project', menu_export_project)
   window.electronAPI.eventOn('run_all', run_all)
   window.electronAPI.eventOn('run_all_keep', run_all_keep)
   window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
-  window.electronAPI.eventOn('server_clients_update', server_clients_update)
+  emitter?.on('updateNode', server_clients_update)
   window.electronAPI.invoke('load_record').then(x => {
     const record:Record = JSON.parse(x)
     projects.value = record.projects
@@ -290,7 +313,7 @@ onMounted(() => {
     if(record.current != undefined) emitter?.emit('updateLog', record.current)
     if(record.logs != undefined) emitter?.emit('updateLog', record.logs)
     nodes.value.forEach(x => {
-      window.electronAPI.send('server_record', JSON.stringify(record.nodes))
+      websocket_manager.value?.server_start(x.url)
     })
     nextTick(() => {
       allUpdate()
@@ -305,7 +328,7 @@ onUnmounted(() => {
   window.electronAPI.eventOff('run_all', run_all)
   window.electronAPI.eventOff('run_all_keep', run_all_keep)
   window.electronAPI.eventOff('import_project_feedback', import_project_feedback)
-  window.electronAPI.eventOff('server_clients_update', server_clients_update)
+  emitter?.off('updateNode', server_clients_update)
   if(updateHandle != undefined) clearInterval(updateHandle)
 })
 
@@ -356,9 +379,14 @@ onUnmounted(() => {
       @delete="e => deleteJob(e)" />
 
     <NodePage v-show="page == 4" 
+      :manager="websocket_manager"
       :nodes="nodes" />
 
-    <ConsolePage v-show="page == 5" />
+    <ConsolePage v-show="page == 5" 
+      :socket="websocket_manager"
+      :execute="execute_manager"
+      v-model="projects_exe"/>
+      
     <LogPage v-show="page == 6" />
   </div>
 </template>

@@ -32,6 +32,7 @@ export interface Record {
 
 export interface ExecuteRecord extends Record {
     running: boolean
+    stop: boolean
     project: string
     task: string
     project_index: number

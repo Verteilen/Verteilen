@@ -6,13 +6,11 @@ import { messager_log } from "./debugger";
 import { Project, Record } from "./interface";
 import { mainWindow } from "./main";
 import menu from "./menu";
-import { serverinit } from "./server/server";
 
 export const eventInit = () => {
-    serverinit()
     clientinit()
-    ipcMain.on('message', (event, message) => {
-        console.log(`[後台訊息] ${message}`);
+    ipcMain.on('message', (event, message:string, tag?:string) => {
+        console.log(`${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`);
     })
     
     ipcMain.on('modeSelect', (event, isclient:boolean) => {

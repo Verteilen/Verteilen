@@ -16,9 +16,12 @@
     "moveup": "Move-Up",
     "movedown": "Move-Down",
     "rename": "Rename",
+    "execute": "Execute",
     "execute-0": "Execute-All",
     "execute-1": "Execute-Project",
     "execute-2": "Execute-Task",
+    "skip-0": "Skip Project",
+    "skip-1": "Skip Task",
     "stop": "Stop",
     "execute-keep": "Execute (Keep)",
     "parameter-setting": "Parameter Setting"

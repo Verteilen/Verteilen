@@ -6,6 +6,7 @@ export interface Parameter {
 
 export interface Job {
     s?: boolean
+    index?:number
     uuid: string
     type: number
     lua: string

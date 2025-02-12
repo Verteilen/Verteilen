@@ -29,6 +29,10 @@ function createWindow () {
   }
   mainWindow.setMenu(null)
   eventInit()
+
+  if(process.env.NODE_ENV === 'development'){
+    mainWindow?.webContents.openDevTools()
+  }
 }
 
 app.whenReady().then(() => {
@@ -50,6 +54,7 @@ app.whenReady().then(() => {
       createWindow();
     }
   });
+
 });
 
 app.on('window-all-closed', function () {

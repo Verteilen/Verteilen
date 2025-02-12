@@ -2,11 +2,13 @@
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ConnectionText, NodeTable } from '../../interface';
+import { WebsocketManager } from '../../script/socket_manager';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     nodes: Array<NodeTable>
+    manager: WebsocketManager | undefined
 }
 
 const props = defineProps<PROPS>()
@@ -16,7 +18,7 @@ const fields:Ref<Array<string>> = ref([])
 const hasSelect = ref(false)
 
 const serverUpdate = () => {
-    window.electronAPI.send('server_update')
+    props.manager?.server_update()
 }
 
 const createNode = () => {
@@ -26,6 +28,7 @@ const createNode = () => {
 
 const deleteNode = () => {
     props.nodes.filter(x => x.s).map(x => x.ID).forEach(x => {
+        props.manager?.server_stop(x, '伺服器手動斷線')
         window.electronAPI.send('server_stop', x, '伺服器手動斷線')
     })
 }
@@ -38,7 +41,7 @@ const datachange = (uuid:any, v:boolean) => {
 
 const confirmConnection = () => {
     connectionModal.value = false
-    window.electronAPI.send('server_start', `ws://${connectionData.value.url}`)
+    props.manager?.server_start(`ws://${connectionData.value.url}`)
     connectionData.value = { url: '' }
 }
 

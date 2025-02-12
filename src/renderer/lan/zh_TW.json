@@ -16,9 +16,12 @@
     "moveup": "往上移動",
     "movedown": "往下移動",
     "rename": "改名",
+    "execute": "執行",
     "execute-0": "全部",
     "execute-1": "專案",
     "execute-2": "流程",
+    "skip-0": "跳過專案",
+    "skip-1": "跳過流程",
     "stop": "停下",
     "execute-keep": "執行 (保留)",
     "parameter-setting": "參數設定"

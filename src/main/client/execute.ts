@@ -90,6 +90,9 @@ export const execute_job = (job:Job) => {
     })
     .catch(err => {
         messager_log(`[執行狀態] 錯誤: ${err}`, tag)
+        const data:FeedBack = { job_uuid: job.uuid, message: err }
+        const h:Header = { name: 'feedback_job', data: data }
+        source?.send(JSON.stringify(h))
         current_job = undefined
         settag(undefined)
     })
