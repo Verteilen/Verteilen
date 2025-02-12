@@ -143,7 +143,11 @@ const execute = (type:number) => {
 }
 
 const skip = (type:number) => {
-
+    if(type == 0){
+        // Project
+    }else{
+        // Task
+    }
 }
 
 const stop = () => {
