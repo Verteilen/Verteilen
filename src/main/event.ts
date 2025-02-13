@@ -3,7 +3,7 @@ import fs from "fs";
 import { clientinit } from "./client/client";
 import { dir_copy, dir_delete, file_copy, file_delete, fs_exist } from "./client/os";
 import { messager_log } from "./debugger";
-import { Project, Record } from "./interface";
+import { Log, Project, Record } from "./interface";
 import { mainWindow } from "./main";
 import menu from "./menu";
 
@@ -42,9 +42,7 @@ export const eventInit = () => {
     })
 
     ipcMain.on('save_record', (e, record:string) => {
-        const v:Record = JSON.parse(record)
-        if(v.projects == undefined) v.projects = []
-        fs.writeFileSync('record.json', JSON.stringify(v, null, 4))
+        fs.writeFileSync('record.json', record)
     })
 
     ipcMain.handle('load_record', (e) => {
@@ -59,6 +57,25 @@ export const eventInit = () => {
             return JSON.stringify(record)
         } else {
             const file = fs.readFileSync('record.json', { encoding: 'utf8', flag: 'r' })
+            return file.toString()
+        }
+    })
+
+    ipcMain.on('save_log', (e, log:string) => {
+        fs.writeFileSync('log.json', log)
+    })
+
+    ipcMain.handle('load_log', (e, log:string) => {
+        const exist = fs.existsSync('log.json');
+        messager_log(`[事件] 讀取 log.js, 檔案存在: ${exist}`)
+        if(!exist){
+            const record:Log = {
+                logs: []
+            }
+            fs.writeFileSync('log.json', JSON.stringify(record, null, 4))
+            return JSON.stringify(record)
+        } else {
+            const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
             return file.toString()
         }
     })

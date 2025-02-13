@@ -1,14 +1,21 @@
 import { Node, Project } from "./base"
 import { ExecuteState } from "./enum"
 
-export interface ExecutionProcess {
-    projects: Array<Project>
+export interface ExecuteData {
+    uuid: string
+    state: ExecuteState
+}
+
+export interface ExecutionTaskLog {
+    project_state: Array<ExecuteData>
+    task_state: ExecuteData
+    task_detail: Array<ExecuteRecordTask>
 }
 
 export interface ExecutionLog {
-    project_state: Array<ExecuteData>
-    task_state: Array<ExecuteData>
-    task_detail: Array<ExecuteRecordTask>
+    prject: Project
+    state: ExecuteState
+    logs: Array<ExecutionTaskLog>
 }
 
 export interface ExecuteRecordTask {
@@ -18,16 +25,13 @@ export interface ExecuteRecordTask {
     state: ExecuteState
 }
 
-export interface ExecuteData {
-    uuid: string
-    state: ExecuteState
+export interface Log {
+    logs: Array<ExecutionLog>
 }
 
 export interface Record {
     projects: Array<Project>
     nodes: Array<Node>
-    current?: ExecutionLog
-    logs?: ExecutionLog
 }
 
 export interface ExecuteRecord extends Record {

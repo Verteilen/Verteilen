@@ -1,4 +1,4 @@
-import { ExecutionLog, Record } from "./record"
+import { ExecutionLog, Log, Record } from "./record"
 import { Header, Setter, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
@@ -14,7 +14,7 @@ export type BusType = {
     updateNode: Array<NodeTable>
     execute: Record
     updateCurrent: ExecutionLog,
-    updateLog: ExecutionLog
+    updateLog: Log
     updateHandle: void
     feedbackMessage: Setter
 

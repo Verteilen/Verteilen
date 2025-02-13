@@ -8,9 +8,14 @@ export class WebsocketManager{
 
     targets:Array<WebsocketPack> = []
     newConnect:Function | undefined
+    disconnect:Function | undefined
 
     set_new_connect = (_newConnect:Function) => {
         this.newConnect = _newConnect
+    }
+
+    set_dc_connect = (_disconnect:Function) => {
+        this.disconnect = _disconnect
     }
 
     server_start = (url:string) => this.serverconnect(url)
@@ -33,14 +38,21 @@ export class WebsocketManager{
             messager_log(`[錯誤事件] ${err}`)
         }
         client.onclose = (ev) => {
-            messager_log(`[關閉事件] 客戶端關閉連線, ${ev.code}, ${ev.reason}`)
-            this.targets[index].state = undefined
-            this.targets[index].current_job = undefined
+            if(this.targets[index - 1].s != undefined){
+                messager_log(`[關閉事件] 客戶端關閉連線, ${ev.code}, ${ev.reason}`)
+                if(this.disconnect != undefined) this.disconnect(this.targets[index - 1])
+            }
+            this.targets[index - 1].s = undefined
+            this.targets[index - 1].state = undefined
+            this.targets[index - 1].current_job = undefined
         }
         client.onopen = () => {
             messager_log('[連線事件] 新連線狀態建立 !' + client.url)
+            if(this.targets[index - 1].s == undefined){
+                this.targets[index - 1].s = true
+            }
             this.sendUpdate()
-            if(this.newConnect != undefined) this.newConnect(this.targets[index])
+            if(this.newConnect != undefined) this.newConnect(this.targets[index - 1])
         }
         client.onmessage = (ev) => {
             const h:Header | undefined = JSON.parse(ev.data.toString());

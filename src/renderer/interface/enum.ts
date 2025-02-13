@@ -24,6 +24,13 @@ export enum ExecuteState {
     NONE, RUNNING, FINISH, ERROR
 }
 
+export const ExecuteStateText: { [key:number]:string } = {
+    0: '準備中',
+    1: '執行中',
+    2: '完成',
+    3: '錯誤',
+}
+
 export const ConnectionText: { [key:number]:string } = {
     0: '連線中...',
     1: '連線',

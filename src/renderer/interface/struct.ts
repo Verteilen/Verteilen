@@ -1,6 +1,7 @@
 import { ExecuteState } from "./enum"
 
 export interface WebsocketPack {
+    s?:boolean
     uuid: string
     websocket: WebSocket
     current_job?: string

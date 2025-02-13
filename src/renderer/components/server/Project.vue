@@ -22,7 +22,7 @@ const emits = defineEmits<{
     (e: 'movedown', uuids:string): void
 }>()
 const items:Ref<Array<ProjectTable>> = ref([])
-const fields:Ref<Array<string>> = ref([])
+const fields:Ref<Array<string>> = ref(['ID', 'title', 'description', 'taskCount', 'detail'])
 const createModal = ref(false)
 const createData = ref({title: "", description: "", useTemp: false, temp: 0})
 const hasSelect = ref(false)
@@ -171,7 +171,6 @@ const isLast = (uuid:string) => {
 }
 
 onMounted(() => {
-    fields.value = ['ID', 'title', 'description', 'taskCount', 'detail']
     temps.value = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: ProjectTemplateTranslate(index as ProjectTemplate),

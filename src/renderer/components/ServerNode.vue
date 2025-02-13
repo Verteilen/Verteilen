@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecuteRecord, Job, Node, NodeTable, Parameter, Project, Record, Task } from '../interface';
+import { BusType, ExecuteRecord, Job, Log, Node, NodeTable, Parameter, Project, Record, Task, WebsocketPack } from '../interface';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
 import ConsolePage from './server/Console.vue';
@@ -35,6 +35,7 @@ const projects_exe:Ref<ExecuteRecord>  = ref({
   task_state: [],
   task_detail: [],
 })
+const log:Ref<Log> = ref({logs: []})
 const selectProject:Ref<Project | undefined> = ref(undefined)
 const selectTask:Ref<Task | undefined> = ref(undefined)
 const nodes:Ref<Array<NodeTable>> = ref([])
@@ -291,7 +292,21 @@ const serverUpdate = () => {
 onMounted(() => {
   websocket_manager.value = new WebsocketManager()
   execute_manager.value = new ExecuteManager(websocket_manager.value)
-  websocket_manager.value.set_new_connect(execute_manager.value.NewConnection)
+  websocket_manager.value.set_new_connect((x:WebsocketPack) => {
+    emitter?.emit('makeToast', {
+      title: "連線建立",
+      type: 'success',
+      message: `建立新的連線: ${x.websocket.url} \n${x.uuid}`
+    })
+    execute_manager.value!.NewConnection(x)
+  })
+  websocket_manager.value.set_dc_connect((x:WebsocketPack) => {
+    emitter?.emit('makeToast', {
+      title: "連線中斷",
+      type: 'danger',
+      message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
+    })
+  })
 
   window.electronAPI.send('menu', true)
   window.electronAPI.eventOn('createProject', menuCreateProject)
@@ -310,14 +325,15 @@ onMounted(() => {
         connection_rate: 0
       })
     })
-    if(record.current != undefined) emitter?.emit('updateLog', record.current)
-    if(record.logs != undefined) emitter?.emit('updateLog', record.logs)
     nodes.value.forEach(x => {
       websocket_manager.value?.server_start(x.url)
     })
     nextTick(() => {
       allUpdate()
     })
+  })
+  window.electronAPI.invoke('load_record').then(x => {
+    log.value = JSON.parse(x)
   })
   updateHandle = setInterval(serverUpdate, 1000);
 })
@@ -385,9 +401,10 @@ onUnmounted(() => {
     <ConsolePage v-show="page == 5" 
       :socket="websocket_manager"
       :execute="execute_manager"
+      :logs="log"
       v-model="projects_exe"/>
       
-    <LogPage v-show="page == 6" />
+    <LogPage v-show="page == 6" :logs="log" />
   </div>
 </template>
 
