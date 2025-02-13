@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "node scripts/dev-server.js",
     "web": "vite",
+    "node": "ts-node src/node/main.ts",
     "build": "node scripts/build.js && electron-builder",
     "build:web": "vite build",
+    "build:node": "node scripts/node_builder.js",
     "build:win": "node scripts/build.js && electron-builder --win",
     "build:mac": "node scripts/build.js && electron-builder --mac",
     "build:linux": "node scripts/build.js && electron-builder --linux"

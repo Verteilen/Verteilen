@@ -1,0 +1,11 @@
+{     
+    "pre_path": "D:\\3dgs\\gaussian-splatting\\output\\M",
+    "post_path": "\\point_cloud\\iteration_7000\\point_cloud.ply",
+    "seq_s": "0001",
+    "seq_e": "0010",
+    "merge_s": "01",
+    "merge_e": "10",
+    "opacity": true,
+    "output_folder": "D:\\3dgs\\gaussian-splatting\\output\\"
+  }
+

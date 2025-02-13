@@ -1,16 +1,15 @@
-import { ipcMain } from 'electron';
 import tcpPortUsed from 'tcp-port-used';
 import ws, { WebSocketServer } from 'ws';
-import { messager_log } from '../debugger';
-import { Header, PORT } from '../interface';
 import { analysis } from './analysis';
+import { messager_log } from './debugger';
+import { Header, PORT } from './interface';
 
-let client:ws.WebSocketServer | undefined = undefined
 export let tag:string | undefined = undefined
 export const settag = (v:string | undefined) => { tag = v }
 export let source:ws.WebSocket | undefined = undefined
+export let client:WebSocketServer | undefined = undefined
 
-export const _clientinit = async () => {
+export const clientinit = async () => {
     let port_result = PORT
     let canbeuse = false
     while(!canbeuse){
@@ -60,15 +59,5 @@ export const _clientinit = async () => {
         source.on('ping', (data) => {
 
         })
-    })
-}
-
-export const clientinit = () => {
-    ipcMain.on('client_start', _clientinit)
-    
-    ipcMain.on('client_stop', () => {
-        if (client != undefined) client.close()
-        client = undefined
-        source = undefined;
     })
 }
