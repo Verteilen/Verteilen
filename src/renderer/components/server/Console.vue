@@ -150,8 +150,28 @@ const execute = (type:number) => {
 const skip = (type:number) => {
     if(type == 0){
         // Project
-    }else{
+        data.value!.project_state[data.value!.project_index].state = ExecuteState.FINISH
+        data.value!.project_index += 1
+        if(data.value!.project_index == data.value!.projects.length) data.value!.project_index = -1
+        else {
+            data.value!.task_state = data.value!.projects[data.value!.project_index].task.map(x => {
+                return {
+                    uuid: x.uuid,
+                    state: ExecuteState.NONE
+                }
+            })
+        }
+        props.execute!.SkipProject()
+    }else if (type == 1){
         // Task
+        data.value!.task_state[data.value!.task_index].state = ExecuteState.FINISH
+        data.value!.task_index += 1
+        if(data.value!.task_index == data.value!.task_state.length) {
+            skip(0)
+        }else{
+            props.execute!.SkipTask()
+        }
+        
     }
 }
 

@@ -262,6 +262,14 @@ export class ExecuteManager{
         }
     }
 
+    SkipProject = () => {
+
+    }
+
+    SkipTask = () => {
+        
+    }
+
     //#region Feedback
     feedback_message = (data:Single, source:WebsocketPack | undefined) => {
         if(source == undefined) return
