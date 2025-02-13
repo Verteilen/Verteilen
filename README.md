@@ -5,6 +5,8 @@
 
 [ply 工具](./ply_tool/README.md)
 
+[Demo](https://elly2018.github.io/Compute-Tool/)
+
 ## 安裝流程
 
 > 桌上型應用安裝
