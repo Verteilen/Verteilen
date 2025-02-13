@@ -18,6 +18,7 @@ const config = defineConfig({
     open: false,
     build: {
         outDir: Path.join(__dirname, 'build', 'renderer'),
+        chunkSizeWarningLimit: 1600,
         emptyOutDir: true,
     },
     plugins: [

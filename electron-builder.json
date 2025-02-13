@@ -1,5 +1,6 @@
 {
     "appId": "com.compute.app",
+    "compression": "maximum",
     "directories": {
         "output": "dist"
     },
