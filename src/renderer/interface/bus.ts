@@ -28,4 +28,5 @@ export type BusType = {
     executeJobFinish: { uuid:string, index:number, node:string }
 
     analysis: { name:string, h:Header, c:WebsocketPack | undefined }
+    debuglog: string
 }

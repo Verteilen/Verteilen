@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import colors from 'vuetify/util/colors';
 import { BusType, ExecuteRecord, ExecuteState, Log, Record, Setter } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
@@ -24,13 +23,6 @@ const rightSize = ref(9)
 const tag = ref(1)
 const process_type = ref(-1)
 
-const getStateColor = (state:number):string => {
-    if (state == ExecuteState.NONE) return colors.teal.base
-    else if (state == ExecuteState.RUNNING) return colors.indigo.darken3
-    else if (state == ExecuteState.FINISH) return colors.green.darken3
-    else return colors.red.darken4
-}
-
 const receivedPack = (record:Record) => {
     data.value!.projects = record.projects
     data.value!.nodes = record.nodes
@@ -41,12 +33,22 @@ const receivedPack = (record:Record) => {
         }
     })
     data.value!.project_index = 0
+    data.value!.task_index = 0
     data.value!.task_state = data.value!.projects[0].task.map(x => {
         return {
             uuid: x.uuid,
             state: ExecuteState.NONE
         }
     })
+    const count = data.value?.projects[data.value!.project_index]?.task[data.value!.task_index]?.jobs.length ?? 0
+    for(let i = 0; i < count; i++){
+        data.value!.task_detail.push({
+            index: i,
+            node: "",
+            message: [],
+            state: ExecuteState.NONE
+        })
+    }
 }
 
 const feedback_message = (d:Setter) => {
@@ -144,7 +146,16 @@ const execute = (type:number) => {
         projects: data.value!.projects,
         nodes: data.value!.nodes
     }
-    props.execute?.Register(buffer.projects)
+    const pass = props.execute?.Register(buffer.projects)
+    if(!pass){
+        data.value!.running = false
+        data.value!.stop = true
+        emitter?.emit('makeToast', {
+            title: '執行失敗',
+            message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
+            type: 'warning'
+        })
+    }
 }
 
 const skip = (type:number) => {
@@ -160,6 +171,15 @@ const skip = (type:number) => {
                     state: ExecuteState.NONE
                 }
             })
+            const count = data.value?.projects[data.value!.project_index]?.task[data.value!.task_index]?.jobs.length ?? 0
+            for(let i = 0; i < count; i++){
+                data.value!.task_detail.push({
+                    index: i,
+                    node: "",
+                    message: [],
+                    state: ExecuteState.NONE
+                })
+            }
         }
         props.execute!.SkipProject()
     }else if (type == 1){
@@ -224,7 +244,7 @@ onUnmounted(() => {
                     <b-button @click="skip(1)" :disabled="data.projects.length == 0 || data.running" variant="info">{{ $t('skip-1') }}</b-button>
                 </b-button-group>
                 <b-button-group class="mb-3 w-100">
-                    <b-button @click="stop()" :disabled="data.projects.length == 0 || !data.stop" variant="danger">{{ $t('stop') }}</b-button>
+                    <b-button @click="stop()" :disabled="data.projects.length == 0 || data.stop" variant="danger">{{ $t('stop') }}</b-button>
                 </b-button-group>
                 <b-list-group>
                     <b-list-group-item href="#" @click="tag = 0" :active="tag == 0">專案進程</b-list-group-item>

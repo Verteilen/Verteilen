@@ -51,6 +51,7 @@ const updateJob = () => {
     const ids = old.filter(x => x.s).map(x => x.uuid)
     items.value.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)
     updateParameter()
+    dirty.value = false
 }
 
 const checkPatterm = (type:number, checker:string):boolean => {
@@ -68,6 +69,10 @@ const datachange = (id:string, e:boolean) => {
     if(d == undefined) return
     d.s = e
     hasSelect.value = items.value.filter(x => x.s).length > 0
+}
+
+const taskchange = () => {
+    dirty.value = true
 }
 
 const JobTypeTranslate = (t:number):string => {
@@ -92,15 +97,14 @@ const saveJobs = () => {
 }
 
 const cloneSelect = () => {
-    
+    const buffer = items.value.filter(x => x.s)
+    buffer.forEach(x => x.uuid = uuidv6())
+    items.value.push(...buffer)
 }
 
 const deleteSelect = () => {
-    emits('delete', items.value.filter(x => x.s).map(x => x.uuid))
-    nextTick(() => {
-        updateJob()
-        hasSelect.value = items.value.filter(x => x.s).length > 0;
-    })
+    items.value = items.value.filter(x => x.s)
+    hasSelect.value = false
 }
 
 const confirmCreate = () => {
@@ -132,17 +136,19 @@ const confirmCreate = () => {
 }
 
 const moveup = (uuid:string) => {
-    emits('moveup', uuid)
-    nextTick(() => {
-        updateJob();
-    })
+    dirty.value = true
+    const index = items.value.findIndex(x => x.uuid == uuid)
+    const buffer = items.value[index - 1]
+    items.value[index - 1] = items.value[index]
+    items.value[index] = buffer
 }
 
 const movedown = (uuid:string) => {
-    emits('movedown', uuid)
-    nextTick(() => {
-        updateJob();
-    })
+    dirty.value = true
+    const index = items.value.findIndex(x => x.uuid == uuid)
+    const buffer = items.value[index + 1]
+    items.value[index + 1] = items.value[index]
+    items.value[index] = buffer
 }
 
 const isFirst = (uuid:string) => {
@@ -198,9 +204,23 @@ onUnmounted(() => {
                 當前選擇流程: {{ props.select.title }}
             </b-card-title>
             <b-card-text>
-                敘述: {{ props.select.description }}
-                <p>群集運算: {{ props.select.cronjob }}</p>
-                <b-form-select v-if="props.select.cronjob" v-model="props.select.cronjobKey" @change="(e: string) => changeCronKey(e)" :options="para_keys"></b-form-select>
+                <p>{{ props.select.description }}</p>
+                <v-row>
+                    <v-col cols="4" class="pt-6">
+                        <b-form-checkbox type="checkbox" @change="taskchange" v-model="props.select.cronjob">群集運算</b-form-checkbox>
+                    </v-col>
+                    <v-col>
+                        <v-select v-if="props.select.cronjob" v-model="props.select.cronjobKey" @change="(e: string) => changeCronKey(e)" item-title="text" item-value="text" :items="para_keys" hide-details></v-select>
+                    </v-col>
+                </v-row>
+                <v-row>
+                    <v-col cols="4" class="pt-6">
+                        <b-form-checkbox type="checkbox" @change="taskchange" v-model="props.select.multi">多核運算</b-form-checkbox>
+                    </v-col>
+                    <v-col>
+                        <v-select v-if="props.select.multi" v-model="props.select.multiKey" @change="(e: string) => changeCronKey(e)" item-title="text" item-value="text" :items="para_keys" hide-details></v-select>
+                    </v-col>
+                </v-row>
             </b-card-text>
         </b-card>
         <hr />

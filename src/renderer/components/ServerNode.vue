@@ -4,6 +4,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ExecuteRecord, Job, Log, Node, NodeTable, Parameter, Project, Record, Task, WebsocketPack } from '../interface';
+import { set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
 import ConsolePage from './server/Console.vue';
@@ -174,7 +175,7 @@ const deleteTask = (uuids:Array<string>) => {
 
 const chooseTask = (uuid:string) => {
   selectTask.value = selectProject.value?.task.find(x => x.uuid == uuid)
-  page.value = 3
+  page.value = 2
   allUpdate()
 }
 
@@ -289,7 +290,12 @@ const serverUpdate = () => {
     emitter?.emit('updateHandle')
 }
 
+const debug_feedback = (e:string) => {
+  emitter?.emit('debuglog', e)
+}
+
 onMounted(() => {
+  set_feedback(debug_feedback)
   websocket_manager.value = new WebsocketManager()
   execute_manager.value = new ExecuteManager(websocket_manager.value)
   websocket_manager.value.set_new_connect((x:WebsocketPack) => {
@@ -354,8 +360,8 @@ onUnmounted(() => {
   <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
     <v-tab>專案管理</v-tab>
     <v-tab>流程管理</v-tab>
-    <v-tab>參數管理</v-tab>
     <v-tab>工作管理</v-tab>
+    <v-tab>參數管理</v-tab>
     <v-tab>節點管理</v-tab>
     <v-tab>控制台</v-tab>
     <v-tab>紀錄</v-tab>
@@ -380,19 +386,19 @@ onUnmounted(() => {
       @delete="e => deleteTask(e)"
       @moveup="e => moveupTask(e)"
       @movedown="e => movedownTask(e)"
-      @parameter="page = 2" />
+      @parameter="page = 3" />
 
-    <ParameterPage v-show="page == 2" 
-      :select="selectProject"
-      @edit="e => editParameter(e)" />
-
-    <JobPage v-show="page == 3" 
+    <JobPage v-show="page == 2" 
       :projects="projects" 
       :select="selectTask"
       :owner="selectProject"
       @added="e => addJob(e)" 
       @edit="(e) => editJob(e)" 
       @delete="e => deleteJob(e)" />
+
+    <ParameterPage v-show="page == 3" 
+      :select="selectProject"
+      @edit="e => editParameter(e)" />
 
     <NodePage v-show="page == 4" 
       :manager="websocket_manager"

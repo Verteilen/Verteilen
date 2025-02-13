@@ -1,14 +1,14 @@
 {
     "projects": [
         {
-            "uuid": "1efe92a2-36fe-6a50-aa0b-2ee53dafddd6",
+            "uuid": "1efea105-653b-6f00-a241-a18ae7132a14",
             "title": "Test",
-            "description": "",
+            "description": "Hello World",
             "parameter": {
                 "numbers": [
                     {
                         "name": "frameCount",
-                        "value": 20
+                        "value": 0
                     },
                     {
                         "name": "iframeCount",
@@ -30,7 +30,8 @@
                 "strings": [
                     {
                         "name": "root",
-                        "value": "G:/Developer/Funique/4DGS/Test"
+                        "value": "G:/Developer/Funique/4DGS/Test",
+                        "s": false
                     },
                     {
                         "name": "output",
@@ -65,7 +66,7 @@
             },
             "task": [
                 {
-                    "uuid": "1efe92a2-3701-6161-b728-f71572a1c432",
+                    "uuid": "1efea105-653b-6f02-8683-2497a8bbe3a9",
                     "title": "整理階段",
                     "description": "從原始資料夾結構 弄成可以工作的樣子",
                     "cronjob": false,
@@ -74,7 +75,7 @@
                     "multiKey": "",
                     "jobs": [
                         {
-                            "uuid": "1efe92a2-3701-6160-b29f-0ad5e39628ba",
+                            "uuid": "1efea105-653b-6f01-8c8b-8c16fdc11788",
                             "type": 7,
                             "lua": "function split(s, sep)\n    local fields = {}\n    local sep = sep or \" \"\n    local pattern = string.format(\"([^%s]+)\", sep)\n    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)\n    return fields\nend\n\nm.messager(\"Env Init\")\n\nlocal root = env.getstring(\"root\")\nlocal prepare_folder = env.getstring(\"prepare\")\nlocal before_folder = env.getstring(\"before\")\nlocal after_folder = env.getstring(\"after\")\nlocal output_folder = env.getstring(\"output\")\n\nlocal CAM = env.getstring(\"CAM\")\nlocal images = env.getstring(\"images\")\nlocal sparse = env.getstring(\"sparse\")\n\no.deletedir(root..\"/\"..before_folder)\no.deletedir(root..\"/\"..after_folder)\no.deletedir(output_folder)\no.createdir(root..\"/\"..before_folder)\no.createdir(root..\"/\"..after_folder)\no.createdir(output_folder)\n\nm.messager(\"Get CAM list\")\nlocal prepare_folders = split(o.listdir(root..\"/\"..prepare_folder..\"/\"..CAM), \"\\n\")\n\nlocal cam_size = #(prepare_folders)\nm.messager(\"Get CAM count: \"..cam_size)\n\nlocal frame_size = 0\nif cam_size > 0 then\n    local f1_files = split(o.listfile(root..\"/\"..prepare_folder..\"/\"..CAM..\"/\"..prepare_folders[1]), \"\\n\")\n    frame_size = #(f1_files)\nend\nm.messager(\"Get Frame count: \"..frame_size)\n\nm.messager(\"Copy sparse folder\")\no.copydir(root..\"/\"..prepare_folder..\"/\"..sparse, root..\"/\"..before_folder..\"/\"..sparse)\n\nfor key=1,frame_size,1 do\n    o.createdir(root..\"/\"..before_folder..\"/\"..tostring(key)..\"/images\")\n    for key2=1,cam_size,1 do\n        local from = root..\"/\"..prepare_folder..\"/\"..CAM..\"/C\"..string.format(\"%04d\", key2)..\"/\"..string.format(\"%04d\", key2)..\"_\"..string.format(\"%06d\", key)..\".jpg\"\n        local to = root..\"/\"..before_folder..\"/\"..tostring(key)..\"/images/\"..string.format(\"%04d\", key2)..\".jpg\"\n        o.copyfile(from, to)\n    end\nend\n\nenv.setnumber(\"frameCount\", frame_size)\n\n",
                             "string_args": [],
@@ -84,7 +85,7 @@
                     ]
                 },
                 {
-                    "uuid": "1efe92a2-3701-6166-92bb-927378a5fe51",
+                    "uuid": "1efea105-653b-6f07-94a2-9c1203821350",
                     "title": "運算資料準備",
                     "description": "利用 Colmap 工具生成 .bin 資料",
                     "cronjob": true,
@@ -93,7 +94,7 @@
                     "multiKey": "",
                     "jobs": [
                         {
-                            "uuid": "1efe92a2-3701-6162-b74b-7b84e42cb5c2",
+                            "uuid": "1efea105-653b-6f03-b87a-7786ca5112db",
                             "type": 5,
                             "lua": "",
                             "string_args": [
@@ -103,7 +104,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-6163-a8ff-741f40701c3b",
+                            "uuid": "1efea105-653b-6f04-a9ce-ef8bd32a0726",
                             "type": 8,
                             "lua": "",
                             "string_args": [
@@ -115,7 +116,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-6164-9602-f9093c13a72d",
+                            "uuid": "1efea105-653b-6f05-ab90-d6ad63c3de84",
                             "type": 8,
                             "lua": "",
                             "string_args": [
@@ -127,7 +128,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-6165-98be-063e1cfd2707",
+                            "uuid": "1efea105-653b-6f06-bdda-4e6906bb89a6",
                             "type": 8,
                             "lua": "",
                             "string_args": [
@@ -141,7 +142,7 @@
                     ]
                 },
                 {
-                    "uuid": "1efe92a2-3701-616a-8ee2-41e40e50d770",
+                    "uuid": "1efea105-653b-6f0b-9e4c-5b9aa23559b8",
                     "title": "生成 I Frame",
                     "description": "生成完整 Frame",
                     "cronjob": false,
@@ -150,7 +151,7 @@
                     "multiKey": "",
                     "jobs": [
                         {
-                            "uuid": "1efe92a2-3701-6167-87e5-f8a0b2fda102",
+                            "uuid": "1efea105-653b-6f08-8334-9004fe0b1702",
                             "type": 5,
                             "lua": "",
                             "string_args": [
@@ -160,7 +161,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-6168-a536-9b459022fc6e",
+                            "uuid": "1efea105-653b-6f09-bdae-bfdf0f7f158f",
                             "type": 8,
                             "lua": "",
                             "string_args": [
@@ -172,7 +173,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-6169-b7b0-c31b2c67ee1e",
+                            "uuid": "1efea105-653b-6f0a-b405-70de00e1cb5e",
                             "type": 7,
                             "lua": "function split(s, sep)\n    local fields = {}\n    local sep = sep or \" \"\n    local pattern = string.format(\"([^%s]+)\", sep)\n    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)\n    return fields\nend\n\nlocal root = env.getstring(\"root\")\nlocal after_folder = env.getstring(\"after\")\n\nm.messager(\"Get CAM list\")\nlocal iframe_folders = split(o.listdir(root..\"/\"..after_folder..\"/\"..\"GOP20_I\"), \"\\n\")\n\nlocal iframeCount = #(iframe_folders)\nm.messager(\"Get IFrame count: \"..iframeCount)\n\nfor key,value in pairs(iframe_folders) do\n    local from = root..\"/\"..after_folder..\"/\"..\"GOP20_I\"..\"/\"..tostring(value)\n    local to = root..\"/\"..after_folder..\"/\"..\"GOP20_I\"..\"/\"..tostring(key)\n    o.rename(from, to)\nend\n\nenv.setnumber(\"iframeCount\", iframeCount)\n\n",
                             "string_args": [],
@@ -182,7 +183,7 @@
                     ]
                 },
                 {
-                    "uuid": "1efe92a2-3701-616f-822e-ebbc05aef0af",
+                    "uuid": "1efea105-653b-6f0f-aed5-6305170592a9",
                     "title": "降躁處理",
                     "description": "把渣渣刪掉 !",
                     "cronjob": true,
@@ -191,7 +192,7 @@
                     "multiKey": "",
                     "jobs": [
                         {
-                            "uuid": "1efe92a2-3701-616b-8ccc-22dd4ccb68fc",
+                            "uuid": "1efea105-653b-6f0c-bf0c-e5daf7afd661",
                             "type": 6,
                             "lua": "",
                             "string_args": [
@@ -202,33 +203,23 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-616c-8bba-0f885062afa5",
+                            "uuid": "1efea105-653b-6f0d-bd7b-8f8d102eb203",
                             "type": 8,
                             "lua": "",
                             "string_args": [
                                 "%root%/%after%/GOP20_I/%ck%/point_cloud/iteration_7000",
-                                "ply_to_ascii",
-                                "-i point_cloud_before.ply -o ascii.ply"
+                                "ply_denoise",
+                                "-i point_cloud_before.ply -o point_cloud.ply"
                             ],
                             "number_args": [],
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-616d-9dee-88d31ccda04a",
-                            "type": 7,
-                            "lua": "function split(s, sep)\n    local fields = {}\n    local sep = sep or \" \"\n    local pattern = string.format(\"([^%s]+)\", sep)\n    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)\n    return fields\nend\n\nlocal root = env.getstring(\"root\")\nlocal after_folder = env.getstring(\"after\")\nlocal ck = env.getstring(\"ck\")\n\nlocal path = root..\"/\"..after_folder..\"/GOP20_I/\"..tostring(ck)..\"/point_cloud/iteration_7000/ascii.ply\"\nm.messager_log(\"Load: \"..path)\n\nlocal data = o.readfile(path)\n\n",
-                            "string_args": [],
-                            "number_args": [],
-                            "boolean_args": []
-                        },
-                        {
-                            "uuid": "1efe92a2-3701-616e-b632-1ec0401590bb",
-                            "type": 8,
+                            "uuid": "1efea105-653b-6f0e-b679-a09d88cca6f0",
+                            "type": 2,
                             "lua": "",
                             "string_args": [
-                                "%root%/%after%/GOP20_I/%ck%/point_cloud/iteration_7000",
-                                "ply_return_ascii",
-                                "-i ascii.ply -o point_cloud.ply"
+                                "%root%/%after%/GOP20_I/%ck%/point_cloud/iteration_7000/point_cloud_before.ply"
                             ],
                             "number_args": [],
                             "boolean_args": []
@@ -236,7 +227,7 @@
                     ]
                 },
                 {
-                    "uuid": "1efe92a2-3701-6175-98fc-43a0b4dda52e",
+                    "uuid": "1efea105-653b-6f15-9377-b92f5969fb40",
                     "title": "Blend 資料準備",
                     "description": "生成多個 checkpoint 資料夾",
                     "cronjob": false,
@@ -245,7 +236,7 @@
                     "multiKey": "",
                     "jobs": [
                         {
-                            "uuid": "1efe92a2-3701-6170-b71c-497f56507fb5",
+                            "uuid": "1efea105-653b-6f10-9978-b8e5e29c018f",
                             "type": 7,
                             "lua": "function split(s, sep)\n    local fields = {}\n    local sep = sep or \" \"\n    local pattern = string.format(\"([^%s]+)\", sep)\n    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)\n    return fields\nend\n\nlocal root = env.getstring(\"root\")\nlocal after_folder = env.getstring(\"after\")\nlocal iframe_gap = env.getnumber(\"iframe_gap\")\n\nm.messager(\"Get CAM list\")\nlocal iframe_folders = split(o.listdir(root..\"/\"..after_folder..\"/\"..\"GOP20_I\"), \"\\n\")\n\nlocal iframeCount = #(iframe_folders)\nm.messager(\"Get IFrame count: \"..iframeCount)\n\nfor key,value in pairs(iframe_folders) do\n    local from = root..\"/\"..after_folder..\"/\"..\"GOP20_I\"..\"/\"..tostring(value)\n    local to = root..\"/\"..after_folder..\"/\"..tostring(key * iframe_gap)\n    o.copydir(from, to)\nend\no.deletedir(root..\"/\"..after_folder..\"/\"..\"GOP20_I\")\n",
                             "string_args": [],
@@ -253,7 +244,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-6171-88c1-686b65a4eaf9",
+                            "uuid": "1efea105-653b-6f11-9a7e-c4c3c447eace",
                             "type": 8,
                             "lua": "",
                             "string_args": [
@@ -265,7 +256,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-6172-b923-662a71a42432",
+                            "uuid": "1efea105-653b-6f12-adb0-5a36e912b59d",
                             "type": 8,
                             "lua": "",
                             "string_args": [
@@ -277,7 +268,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-6173-a800-b86c19a78e37",
+                            "uuid": "1efea105-653b-6f13-a28f-b71c696760b8",
                             "type": 8,
                             "lua": "",
                             "string_args": [
@@ -289,7 +280,7 @@
                             "boolean_args": []
                         },
                         {
-                            "uuid": "1efe92a2-3701-6174-8515-6041a492e6a2",
+                            "uuid": "1efea105-653b-6f14-b674-bd364b2c6382",
                             "type": 8,
                             "lua": "",
                             "string_args": [
@@ -303,7 +294,7 @@
                     ]
                 },
                 {
-                    "uuid": "1efe92a2-3701-6176-9424-790185ba78a2",
+                    "uuid": "1efea105-653b-6f16-9eec-7e86727ad268",
                     "title": "Blending",
                     "description": "生成 ply 序列!!",
                     "cronjob": false,
@@ -313,7 +304,7 @@
                     "jobs": []
                 },
                 {
-                    "uuid": "1efe92a2-3701-6177-bf95-79218f63fe14",
+                    "uuid": "1efea105-653b-6f17-b3bc-9d17d497f6dd",
                     "title": "Lut",
                     "description": "顏色校準",
                     "cronjob": false,
@@ -325,12 +316,5 @@
             ]
         }
     ],
-    "nodes": [
-        {
-            "ID": "1efe9fb9-814f-6c70-a37f-18c6079875b0",
-            "state": 0,
-            "url": "ws://127.0.0.1:12080/",
-            "connection_rate": 0
-        }
-    ]
+    "nodes": []
 }

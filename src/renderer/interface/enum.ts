@@ -21,7 +21,7 @@ export enum ProjectTemplate {
 }
 
 export enum ExecuteState {
-    NONE, RUNNING, FINISH, ERROR
+    NONE, RUNNING, FINISH, ERROR, SKIP
 }
 
 export const ExecuteStateText: { [key:number]:string } = {
@@ -29,6 +29,7 @@ export const ExecuteStateText: { [key:number]:string } = {
     1: '執行中',
     2: '完成',
     3: '錯誤',
+    4: '跳過',
 }
 
 export const ConnectionText: { [key:number]:string } = {

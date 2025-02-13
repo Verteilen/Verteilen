@@ -263,11 +263,38 @@ export class ExecuteManager{
     }
 
     SkipProject = () => {
-
+        if (this.current_projects.length == 0) return
+        if (this.current_p == undefined) {
+            this.current_p = this.current_projects[0]
+        } else {
+            const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
+            if (index == this.current_projects.length - 1){
+                this.current_p = undefined
+                this.state = ExecuteState.FINISH
+                messager_log(`[執行狀態] 跳過專案 此為最後執行專案`)
+            } else {
+                this.current_p = this.current_projects[index + 1]
+                messager_log(`[執行狀態] 跳過專案到 ${index}. ${this.current_p.uuid}`)
+            }
+        }
     }
 
     SkipTask = () => {
-        
+        if (this.current_p == undefined) return
+        if (this.current_t == undefined){
+            if(this.current_p.task.length > 0){
+                this.current_t = this.current_p.task[0]
+            } else {
+                const index = this.current_p.task.findIndex(x => x.uuid == this.current_t!.uuid)
+                if (index == this.current_p.task.length - 1){
+                    this.current_t = undefined
+                    messager_log(`[執行狀態] 跳過流程 此為最後執行流程`)
+                } else {
+                    this.current_t = this.current_p.task[index + 1]
+                    messager_log(`[執行狀態] 跳過流程到 ${index}. ${this.current_t.uuid}`)
+                }
+            }
+        }
     }
 
     //#region Feedback
