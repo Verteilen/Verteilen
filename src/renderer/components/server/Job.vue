@@ -50,15 +50,17 @@ const updateJob = () => {
     items.value = props.select?.jobs ?? []
     const ids = old.filter(x => x.s).map(x => x.uuid)
     items.value.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)
+    items.value.forEach(x => x.s = false)
     updateParameter()
     dirty.value = false
 }
 
 const checkPatterm = (type:number, checker:string):boolean => {
     const e = ( 
-        (checker == 'TwoPath' && ( type === JobType.COPY_DIR || type === JobType.COPY_FILE )) ||
-        (checker == 'OnePath' && ( type === JobType.DELETE_DIR || type === JobType.DELETE_FILE || type === JobType.CREATE_DIR || type === JobType.CREATE_FILE )) ||
+        (checker == 'TwoPath' && ( type === JobType.COPY_DIR || type === JobType.COPY_FILE || type === JobType.RENAME )) ||
+        (checker == 'OnePath' && ( type === JobType.DELETE_DIR || type === JobType.DELETE_FILE || type === JobType.CREATE_DIR )) ||
         (checker == 'Command' && ( type === JobType.COMMAND )) ||
+        (checker == 'Writer' && ( type === JobType.CREATE_FILE )) ||
         (checker == 'Script' && (type == JobType.LUA))
     );
     return e
@@ -97,14 +99,15 @@ const saveJobs = () => {
 }
 
 const cloneSelect = () => {
-    const buffer = items.value.filter(x => x.s)
+    const buffer = items.value.filter(x => x.s != undefined && x.s === true)
     buffer.forEach(x => x.uuid = uuidv6())
     items.value.push(...buffer)
 }
 
 const deleteSelect = () => {
-    items.value = items.value.filter(x => x.s)
+    items.value = items.value.filter(x => x.s == undefined || x.s === false)
     hasSelect.value = false
+    dirty.value = true
 }
 
 const confirmCreate = () => {
@@ -201,7 +204,7 @@ onUnmounted(() => {
         </div>
         <b-card ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
             <b-card-title>
-                當前選擇流程: {{ props.select.title }}
+                {{ props.select.title }}
             </b-card-title>
             <b-card-text>
                 <p>{{ props.select.description }}</p>
@@ -240,7 +243,7 @@ onUnmounted(() => {
                                 </b-dropdown>
                             </span>
                         </v-col>
-                        <v-col cols="2" style="padding-top: 30px;">
+                        <v-col cols="2" style="padding-top: 25px;">
                             <span style="float:right; font-size: small; height:100%;">{{ c.uuid }}</span>
                         </v-col>
                     </v-row>
@@ -251,6 +254,10 @@ onUnmounted(() => {
                 </div>
                 <div v-else-if="checkPatterm(c.type, 'OnePath')">
                     <v-text-field class="my-2" v-model="c.string_args[0]" label="路徑" hide-details></v-text-field>
+                </div>
+                <div v-else-if="checkPatterm(c.type, 'Writer')">
+                    <v-text-field class="my-2" v-model="c.string_args[0]" label="路徑" hide-details></v-text-field>
+                    <v-textarea class="my-2" v-model="c.string_args[1]" label="內容" hide-details></v-textarea>
                 </div>
                 <div v-else-if="checkPatterm(c.type, 'Command')">
                     <v-text-field class="my-2" v-model="c.string_args[0]" label="執行路徑" hide-details></v-text-field>

@@ -1,3 +1,9 @@
+.v-overlay__content {
+  --v-theme-surface-variant: 255, 255, 255;
+  --v-theme-on-surface-variant: 0, 0, 0;
+  border: 1px solid black;
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

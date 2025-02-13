@@ -42,16 +42,25 @@ onUnmounted(() => {
 
 <template>
     <b-container v-if="data != undefined" class="pt-4" style="max-height: 90vh; overflow-y: auto;">
-        <v-stepper :value="getselect(r)" v-for="r in Math.floor(data.task_state.length / 3)" :key="r" :mandatory="false" multiple>
+        <v-card v-if="data.project_index >= 0">
+            <v-card-title>
+                {{ $t('project') }}: {{ data.projects[data.project_index]?.title }}
+            </v-card-title>
+            <v-card-text>
+                <p>{{ $t('is-running') }}: {{ data.running }}</p>
+                <p>{{ $t('is-stop') }}: {{ data.running }}</p>
+            </v-card-text>
+        </v-card>
+        <v-stepper v-if="data.project_index >= 0" :value="getselect(r)" v-for="r in Math.floor(data.task_state.length / 3)" :key="r" :mandatory="false" multiple>
             <v-stepper-header>
                 <template v-for="i in page(r)" :key="i">
                     <v-divider v-if="i - 1" />
                     <v-stepper-item 
                         class="px-4 py-3 my-1"
                         style="background-color: transparent;"
-                        :style="{ 'color': getStateColor(data.task_state[getindex(r, i)]?.state) }"
+                        :style="{ 'color': getStateColor(data.task_state[getindex(r, i)]?.state ?? 0) }"
                         :value="getindex(r, i)"
-                        :title="data.projects[data.project_index].task[getindex(r, i)]?.title"
+                        :title="data.projects[data.project_index]?.task[getindex(r, i)]?.title ?? ''"
                         :complete="data.task_state[getindex(r, i)]?.state == 2">
                     </v-stepper-item>
                 </template>
@@ -59,7 +68,7 @@ onUnmounted(() => {
             </v-stepper-header>
         </v-stepper>
         <br /> <br />
-        <b-card no-body v-for="(task, i) in data.task_detail" :key="i" bg-variant="dark" :style="{ 'border-color': getStateColor(task.state) }" class="w-100 text-white mb-3 px-4">
+        <b-card no-body v-if="data.project_index >= 0" v-for="(task, i) in data.task_detail" :key="i" bg-variant="dark" :style="{ 'border-color': getStateColor(task.state) }" class="w-100 text-white mb-3 px-4">
             <b-card-header class="py-1">
                 <span style="margin-right: 10px;">Index: {{ task.index }}</span> 
                 <b-spinner small v-if="task.node.length > 0"></b-spinner>

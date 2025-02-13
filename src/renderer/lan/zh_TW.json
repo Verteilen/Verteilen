@@ -2,6 +2,25 @@
     "modeselect": {
         "title": "你擔任的角色"
     },
+    "toolbar": {
+        "project": "專案管理",
+        "task": "流程管理",
+        "job": "工作管理",
+        "parameter": "參數管理",
+        "node": "節點管理",
+        "console": "控制台",
+        "log": "紀錄"
+    },
+    "tooltip": {
+        "select-server": "作為伺服器下指令的一方",
+        "select-node": "作為節點負責運作的一方",
+        "project-id": "專案的 UUID",
+        "project-taskCount": "專案下的流程總數",
+        "task-id": "流程的 UUID",
+        "task-jobCount": "流程下的工作總數",
+        "task-cronjob": "用多台電腦執行的任務",
+        "task-multi": "單一電腦會使用多核心運算"
+    },
     "project": "專案",
     "task": "流程",
     "job": "工作",
@@ -24,5 +43,7 @@
     "skip-1": "跳過流程",
     "stop": "停下",
     "execute-keep": "執行 (保留)",
-    "parameter-setting": "參數設定"
+    "parameter-setting": "參數設定",
+    "is-running": "是否執行中",
+    "is-stop": "是否停止"
 }

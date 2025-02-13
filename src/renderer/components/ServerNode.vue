@@ -358,13 +358,13 @@ onUnmounted(() => {
 
 <template>
   <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
-    <v-tab>專案管理</v-tab>
-    <v-tab>流程管理</v-tab>
-    <v-tab>工作管理</v-tab>
-    <v-tab>參數管理</v-tab>
-    <v-tab>節點管理</v-tab>
-    <v-tab>控制台</v-tab>
-    <v-tab>紀錄</v-tab>
+    <v-tab>{{ $t('toolbar.project') }}</v-tab>
+    <v-tab>{{ $t('toolbar.task') }}</v-tab>
+    <v-tab>{{ $t('toolbar.job') }}</v-tab>
+    <v-tab>{{ $t('toolbar.parameter') }}</v-tab>
+    <v-tab>{{ $t('toolbar.node') }}</v-tab>
+    <v-tab>{{ $t('toolbar.console') }}</v-tab>
+    <v-tab>{{ $t('toolbar.log') }}</v-tab>
   </v-tabs>
   <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
     <ProjectPage v-show="page == 0" 

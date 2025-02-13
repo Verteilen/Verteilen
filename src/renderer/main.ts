@@ -16,7 +16,7 @@ import "bootstrap-vue-3/dist/bootstrap-vue-3.css";
 import "bootstrap/dist/css/bootstrap.css";
 import App from './App.vue';
 import { vuetify } from "./plugins/vuetify";
-import './style.css';
+import './style.scss';
 ;
 
 const app = createApp(App)

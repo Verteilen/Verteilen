@@ -10,6 +10,7 @@ export interface TaskTable {
     s: boolean
     ID: string
     cronjob: boolean
+    multi:boolean
     title: string
     description: string
     jobCount: number

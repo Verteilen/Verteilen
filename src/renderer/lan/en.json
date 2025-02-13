@@ -2,6 +2,25 @@
     "modeselect": {
         "title": "Your role"
     },
+    "toolbar": {
+        "project": "Project",
+        "task": "Task",
+        "job": "Job",
+        "parameter": "Parameter",
+        "node": "Node",
+        "console": "Console",
+        "log": "Log"
+    },
+    "tooltip": {
+        "select-server": "The one who send the command to client",
+        "select-node": "The one who received job request from server",
+        "project-id": "Project UUID",
+        "project-taskCount": "Total task count for this project",
+        "task-id": "Task UUID",
+        "task-jobCount": "Total job count for this task",
+        "task-cronjob": "Use multiple node to compute",
+        "task-multi": "Use multi-core to compute"
+    },
     "project": "Project",
     "task": "Task",
     "job": "JOB",
@@ -24,5 +43,7 @@
     "skip-1": "Skip Task",
     "stop": "Stop",
     "execute-keep": "Execute (Keep)",
-    "parameter-setting": "Parameter Setting"
+    "parameter-setting": "Parameter Setting",
+    "is-running": "Is Running",
+    "is-stop": "Is Stop"
 }

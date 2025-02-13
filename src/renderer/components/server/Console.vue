@@ -40,6 +40,7 @@ const receivedPack = (record:Record) => {
             state: ExecuteState.NONE
         }
     })
+    data.value!.task_detail = []
     const count = data.value?.projects[data.value!.project_index]?.task[data.value!.task_index]?.jobs.length ?? 0
     for(let i = 0; i < count; i++){
         data.value!.task_detail.push({
@@ -171,6 +172,7 @@ const skip = (type:number) => {
                     state: ExecuteState.NONE
                 }
             })
+            data.value!.task_detail = []
             const count = data.value?.projects[data.value!.project_index]?.task[data.value!.task_index]?.jobs.length ?? 0
             for(let i = 0; i < count; i++){
                 data.value!.task_detail.push({

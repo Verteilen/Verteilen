@@ -248,8 +248,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Task6 = ():Task => {
         uuid: uuidv6(),
         title: "Lut",
         description: "顏色校準",
-        cronjob: false,
-        cronjobKey: "",
+        cronjob: true,
+        cronjobKey: "frameCount",
         multi: true,
         multiKey: "lut_thread",
         jobs: [

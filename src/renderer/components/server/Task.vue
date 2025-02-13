@@ -37,6 +37,7 @@ const updateTask = () => {
             s: false,
             ID: x.uuid,
             cronjob: x.cronjob,
+            multi: x.multi,
             title: x.title,
             description: x.description,
             jobCount: x.jobs.length
@@ -51,6 +52,7 @@ const updateParameter = () => {
 }
 
 const createProject = () => {
+    createData.value = {cronjob: false, cronjobKey: para_keys.value[0], title: "", description: "", multi: false, multiKey: para_keys.value[0]}
     createModal.value = true
 }
 
@@ -177,7 +179,7 @@ const isLast = (uuid:string) => {
 }
 
 onMounted(() => {
-    fields.value = ['ID', 'cronjob', 'title', 'description', 'jobCount', 'detail']
+    fields.value = ['ID', 'cronjob', 'multi', 'title', 'description', 'jobCount', 'detail']
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateParameter', updateParameter)
     para_keys.value = props.select?.parameter.numbers.map(x => x.name) ?? []
@@ -201,14 +203,52 @@ onUnmounted(() => {
         </div>
         <b-card dark no-body ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
             <b-card-title>
-                當前選擇專案: {{ props.select.title }}
+                {{ props.select.title }}
             </b-card-title>
             <b-card-text>
-                敘述: {{ props.select.description }}
+                {{ props.select.description }}
             </b-card-text>
             <b-button variant="primary" @click="detailOpen">{{ $t('parameter-setting') }}</b-button>
         </b-card>
         <b-table dark striped hover :items="items" :fields="fields">
+            <template #head(ID)="data">
+                <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
+                        <span v-bind="props">ID</span>
+                    </template>
+                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.task-id') }}</p>
+                </v-tooltip>
+            </template>
+            <template #head(jobCount)="data">
+                <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
+                        <span v-bind="props">JobCount</span>
+                    </template>
+                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.task-jobCount') }}</p>
+                </v-tooltip>
+            </template>
+            <template #head(cronjob)="data">
+                <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
+                        <span v-bind="props">Cronjob</span>
+                    </template>
+                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.task-cronjob') }}</p>
+                </v-tooltip>
+            </template>
+            <template #head(multi)="data">
+                <v-tooltip location="top">
+                    <template v-slot:activator="{ props }">
+                        <span v-bind="props">Multi</span>
+                    </template>
+                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.task-multi') }}</p>
+                </v-tooltip>
+            </template>
+            <template #cell(cronjob)="data">
+                <v-icon>{{ data.item.cronjob ? 'mdi-checkbox-marked-circle' : 'mdi-cancel' }}</v-icon>
+            </template>
+            <template #cell(multi)="data">
+                <v-icon>{{ data.item.multi ? 'mdi-checkbox-marked-circle' : 'mdi-cancel' }}</v-icon>
+            </template>
             <template #cell(ID)="data">
                 <b-row>
                     <b-col cols="1">
@@ -234,7 +274,9 @@ onUnmounted(() => {
             <v-text-field class="mt-3" v-model="createData.description" label="輸入流程敘述" hide-details></v-text-field>
             <hr />
             <b-form-checkbox v-model="createData.cronjob">分散運算</b-form-checkbox>
-            <b-form-select class="mt-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :options="para_keys"></b-form-select>
+            <v-select class="my-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :items="para_keys" hide-details></v-select>
+            <b-form-checkbox v-if="createData.cronjob" v-model="createData.multi">多核運算</b-form-checkbox>
+            <v-select class="my-3" v-if="createData.cronjob && createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
             <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
         </b-modal>
         <b-modal title="編輯流程" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
@@ -242,12 +284,13 @@ onUnmounted(() => {
             <v-text-field class="mt-3" v-model="createData.description" label="輸入流程敘述" hide-details></v-text-field>
             <hr />
             <b-form-checkbox v-model="createData.cronjob">分散運算</b-form-checkbox>
-            <b-form-select class="mt-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :options="para_keys"></b-form-select>
+            <v-select class="my-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :items="para_keys" hide-details></v-select>
+            <b-form-checkbox v-if="createData.multi" v-model="createData.multi">多核運算</b-form-checkbox>
+            <v-select class="my-3" v-if="createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
             <b-button class="mt-3" variant="primary" @click="confirmEdit">修改</b-button>
         </b-modal>
     </div>
 </template>
 
 <style scoped>
-
 </style>

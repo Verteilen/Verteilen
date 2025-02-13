@@ -206,6 +206,22 @@ onUnmounted(() => {
         </div>
         <div>
             <b-table dark striped hover :items="items" :fields="fields">
+                <template #head(ID)="data">
+                    <v-tooltip location="top">
+                        <template v-slot:activator="{ props }">
+                            <span v-bind="props">ID</span>
+                        </template>
+                        <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.project-id') }}</p>
+                    </v-tooltip>
+                </template>
+                <template #head(taskCount)="data">
+                    <v-tooltip location="top">
+                        <template v-slot:activator="{ props }">
+                            <span v-bind="props">TaskCount</span>
+                        </template>
+                        <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.project-taskCount') }}</p>
+                    </v-tooltip>
+                </template>
                 <template #cell(ID)="data">
                     <b-row>
                         <b-col cols="1">

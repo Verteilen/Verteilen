@@ -38,7 +38,7 @@ const clientClick = () => {
                     <template v-slot:activator="{ props }">
                         <b-button v-bind="props" id="tooltip-server-1" class="w-100 h-100 mx-1" @click="serverClick">{{ $t('server') }}</b-button>
                     </template>
-                    <p class="text-body-1 text-indigo-darken-4">作為伺服器下指令的一方</p>
+                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-server') }}</p>
                 </v-tooltip>
             </div>
             <div class="col">
@@ -46,7 +46,7 @@ const clientClick = () => {
                     <template v-slot:activator="{ props }">
                         <b-button v-bind="props" class="w-100 h-100 mx-1" @click="clientClick">{{ $t('node') }}</b-button>    
                     </template>
-                    <p class="text-body-1 text-indigo-darken-4">作為節點負責運作的一方</p>
+                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-node') }}</p>
                 </v-tooltip>
             </div>
         </div>

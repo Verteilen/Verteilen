@@ -122,10 +122,10 @@ onUnmounted(() => {
         </div>
         <b-card no-body ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
             <b-card-title>
-                當前選擇專案: {{ props.select.title }}
+                {{ props.select.title }}
             </b-card-title>
             <b-card-text>
-                敘述: {{ props.select.description }}
+                {{ props.select.description }}
             </b-card-text>
         </b-card>
         <hr />
