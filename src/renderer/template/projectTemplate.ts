@@ -305,3 +305,18 @@ export const GetConcatProjectTemplate = (r:Project):Project => {
     r.parameter = para
     return r
 }
+
+export const GetTestProjectTemplate = (r:Project):Project => {
+    const para:Parameter = {
+        numbers: [
+            { name: "x", value: 0 },
+            { name: "count", value: 0 },
+        ],
+        strings: [
+            { name: "root", value: "" },
+        ],
+        booleans: [],
+    }
+    r.parameter = para
+    return r
+}

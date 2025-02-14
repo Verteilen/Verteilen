@@ -135,6 +135,7 @@ const confirmCreate = () => {
     )
     nextTick(() => {
         updateJob();
+        dirty.value = true
     })
 }
 
@@ -249,20 +250,20 @@ onUnmounted(() => {
                     </v-row>
                 </b-card-header>
                 <div v-if="checkPatterm(c.type, 'TwoPath')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" label="來源" hide-details></v-text-field>
-                    <v-text-field class="my-2" v-model="c.string_args[1]" label="目的" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" label="來源" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" label="目的" hide-details></v-text-field>
                 </div>
                 <div v-else-if="checkPatterm(c.type, 'OnePath')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" label="路徑" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" label="路徑" hide-details></v-text-field>
                 </div>
                 <div v-else-if="checkPatterm(c.type, 'Writer')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" label="路徑" hide-details></v-text-field>
-                    <v-textarea class="my-2" v-model="c.string_args[1]" label="內容" hide-details></v-textarea>
+                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" label="路徑" hide-details></v-text-field>
+                    <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" label="內容" hide-details></v-textarea>
                 </div>
                 <div v-else-if="checkPatterm(c.type, 'Command')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" label="執行路徑" hide-details></v-text-field>
-                    <v-text-field class="my-2" v-model="c.string_args[1]" label="命令" hide-details></v-text-field>
-                    <v-text-field class="my-2" v-model="c.string_args[2]" label="參數" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" label="執行路徑" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" label="命令" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" label="參數" hide-details></v-text-field>
                 </div>
                 <codemirror v-else-if="checkPatterm(c.type, 'Script')" v-model="c.lua" 
                     style="text-align:left;"

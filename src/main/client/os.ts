@@ -64,7 +64,7 @@ export const command = async (cwd:string, command:string, args:string):Promise<s
     messager(`[作業系統動作] 指令呼叫 command: ${command}`, tag)
     messager(`[作業系統動作] 指令呼叫 args: ${args}`, tag)
     return new Promise<string>((resolve, reject) => {
-        const child = spawn(command,  args.split(' '), { cwd: cwd })
+        const child = spawn(command,  args.split(' '), { cwd: cwd, shell: true })
         child.on('spawn', () => {
             messager(`[指令執行] 生成執行序`, tag)
         })

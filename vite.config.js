@@ -19,7 +19,7 @@ const config = defineConfig({
     build: {
         outDir: Path.join(__dirname, 'build', 'renderer'),
         chunkSizeWarningLimit: 1600,
-        emptyOutDir: true,
+        emptyOutDir: true
     },
     plugins: [
         vuePlugin(
@@ -38,6 +38,9 @@ const config = defineConfig({
             autoInstall: true,
         }),
     ],
+    define: {
+        __INTLIFY_JIT_COMPILATION__: true
+    },
 });
 
 module.exports = config;

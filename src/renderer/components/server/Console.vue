@@ -57,6 +57,7 @@ const feedback_message = (d:Setter) => {
     const index = data.value!.task_detail.findIndex(x => x.node == d.key)
     if(index == -1) return
     data.value!.task_detail[index].message.push(d.value)
+    
     props.logs.logs[0].logs[data.value!.task_index].task_detail[index].message.push(d.value)
     hasNewLog = true
 }
@@ -88,14 +89,7 @@ const execute_project_start = (uuid:string) => {
                     uuid: x.uuid,
                     state: ExecuteState.NONE
                 },
-                task_detail: x.jobs.map((y, jobindex) => {
-                    return {
-                        index: jobindex,
-                        node: "",
-                        message: [],
-                        state: ExecuteState.NONE
-                    }
-                })
+                task_detail: []
             }
         })
     }
@@ -122,6 +116,7 @@ const execute_task_start = (d:{uuid:string, count:number}) => {
     data.value!.task_index = index
     data.value!.task_state[index].state = ExecuteState.RUNNING
     data.value!.task_detail = []
+    props.logs.logs[0].logs[data.value!.task_index].task_detail = []
     for(let i = 0; i < d.count; i++){
         data.value!.task_detail.push({
             index: i,
@@ -129,9 +124,14 @@ const execute_task_start = (d:{uuid:string, count:number}) => {
             message: [],
             state: ExecuteState.NONE
         })
+        props.logs.logs[0].logs[data.value!.task_index].task_detail.push({
+            index: i,
+            node: "",
+            message: [],
+            state: ExecuteState.NONE
+        })
     }
     console.log("task_start", data.value!)
-
     props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.RUNNING
     props.logs.logs[0].logs[data.value!.task_index].start_timer = Date.now()
     hasNewLog = true

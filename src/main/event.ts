@@ -132,6 +132,9 @@ export const eventInit = () => {
         i18n.global.locale = data
         setupMenu()
     })
+    ipcMain.handle('eval', (event, str:string):string => {
+        return Function(`return ${str}`)()
+    })
 }
 
 export const ImportProject = () => {

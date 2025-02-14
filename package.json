@@ -46,6 +46,7 @@
     "codemirror": "^6.0.1",
     "compute_tool": "file:",
     "electron-vue-template": "file:",
+    "expressionparser": "^1.1.5",
     "http-server": "^14.1.1",
     "lua-in-js": "^2.2.5",
     "mitt": "^3.0.1",

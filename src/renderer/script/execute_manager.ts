@@ -1,3 +1,4 @@
+import { formula, init } from "expressionparser";
 import { CronJobState, ExecuteState, FeedBack, Header, Job, KeyValue, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
 import { emitter } from "../main";
 import { messager_log } from "./debugger";
@@ -40,6 +41,7 @@ export class ExecuteManager{
 
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
+            if(b == null || b == undefined || b.length == 0) continue
             job.string_args[i] = this.replacePara(job.string_args[i], [{ key: 'ck', value: n.toString() }])
             console.log("String replace: ", b, job.string_args[i])
         }
@@ -59,6 +61,7 @@ export class ExecuteManager{
             if(index == 0){
                 emitter.emit('executeSubtaskStart', { index:work.id - 1, node: ns.uuid })
             }
+            console.log(work, index)
             work.work[index].state = ExecuteState.RUNNING
             const job:Job = JSON.parse(JSON.stringify(task.jobs[index]))
             job.index = work.id
@@ -368,8 +371,16 @@ export class ExecuteManager{
         return [...new Set(arr)];
     }
 
-    private parse = (str:string) => {
-        return Function(`'use strict'; return (${str})`)()
+    private parse = (str:string, paras:Array<KeyValue>):string => {
+        str = str.substring(1, str.length - 1)
+        const parser = init(formula, (term: string) => {
+            const index = paras.findIndex(x => x.key == term)
+            if(index != -1) return Number(paras[index].value)
+            else return 0
+        });
+        const r = parser.expressionToValue(str).toString()
+        console.log(str, r)
+        return r
     }
     
     private get_idle = ():Array<WebsocketPack> => {
@@ -432,7 +443,7 @@ export class ExecuteManager{
     private _searchPara = (exp:string, paras:Array<KeyValue>) => {
         let d = exp
         paras.forEach(x => {
-            d.replace(x.key, x.value)
+            d = d.replace(x.key, x.value)
         })
         return d
     }
@@ -454,8 +465,7 @@ export class ExecuteManager{
                 state = !state
                 if(!state) { // End
                     if(useExp){
-                        store = this._searchPara(store, paras)
-                        buffer += this.parse(store).toString()
+                        buffer += this.parse(store, paras)
                     }else{
                         buffer += this._replacePara(store, paras)
                     }
