@@ -67,9 +67,9 @@ onUnmounted(() => {
 <template>
   <div class="float_button text-white" style="z-index: 5;">
     <b-button-group>
-      <b-button variant="primary" @click="panel = []">關閉所有</b-button>
-      <b-button :variant="autoScroll ? 'success' : 'danger'" @click="autoScroll = !autoScroll">自動滑動</b-button>
-      <b-button variant="primary" @click="clearMessage">清除</b-button>
+      <b-button variant="primary" @click="panel = []">{{ $t('close-all') }}</b-button>
+      <b-button :variant="autoScroll ? 'success' : 'danger'" @click="autoScroll = !autoScroll">{{ $t('auto-scroll') }}</b-button>
+      <b-button variant="primary" @click="clearMessage">{{ $t('clear') }}</b-button>
     </b-button-group>
   </div>
   <div class="flow text-white bg-grey-darken-4" ref="myDiv">

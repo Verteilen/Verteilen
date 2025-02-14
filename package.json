@@ -10,7 +10,7 @@
     "build": "node scripts/build.js && electron-builder",
     "build:web": "vite build",
     "build:node": "node scripts/node_builder.js",
-    "build:win": "node scripts/build.js && electron-builder --win",
+    "build:win": "node scripts/build.js && electron-builder --dir",
     "build:mac": "node scripts/build.js && electron-builder --mac",
     "build:linux": "node scripts/build.js && electron-builder --linux"
   },
@@ -46,6 +46,7 @@
     "codemirror": "^6.0.1",
     "compute_tool": "file:",
     "electron-vue-template": "file:",
+    "http-server": "^14.1.1",
     "lua-in-js": "^2.2.5",
     "mitt": "^3.0.1",
     "tcp-port-used": "^1.0.2",

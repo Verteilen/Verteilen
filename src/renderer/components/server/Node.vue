@@ -2,6 +2,7 @@
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ConnectionText, NodeTable } from '../../interface';
+import { isElectron } from '../../main';
 import { WebsocketManager } from '../../script/socket_manager';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -29,6 +30,7 @@ const createNode = () => {
 const deleteNode = () => {
     props.nodes.filter(x => x.s).map(x => x.ID).forEach(x => {
         props.manager?.server_stop(x, '伺服器手動斷線')
+        if(!isElectron) return
         window.electronAPI.send('server_stop', x, '伺服器手動斷線')
     })
 }

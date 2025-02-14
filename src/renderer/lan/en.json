@@ -45,5 +45,8 @@
     "execute-keep": "Execute (Keep)",
     "parameter-setting": "Parameter Setting",
     "is-running": "Is Running",
-    "is-stop": "Is Stop"
+    "is-stop": "Is Stop",
+    "clear": "Clear",
+    "auto-scroll": "Auto Scroll",
+    "close-all": "Close All"
 }

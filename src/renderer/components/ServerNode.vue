@@ -4,12 +4,14 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ExecuteRecord, Job, Log, Node, NodeTable, Parameter, Project, Record, Task, WebsocketPack } from '../interface';
+import { isElectron } from '../main';
 import { set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
 import ConsolePage from './server/Console.vue';
 import JobPage from './server/Job.vue';
 import LogPage from './server/Log.vue';
+import MenuBar from './server/Menu.vue';
 import NodePage from './server/Node.vue';
 import ParameterPage from './server/Parameter.vue';
 import ProjectPage from './server/Project.vue';
@@ -56,7 +58,7 @@ const saveRecord = ():Record => {
     nodes: nodes.value as Array<Node>
   }
   const k = JSON.stringify(record, null, 4)
-  window.electronAPI.send('save_record', k)
+  if(isElectron) window.electronAPI.send('save_record', k)
   return record
 }
 
@@ -259,7 +261,7 @@ const menuCreateProject = (e:IpcRendererEvent) => {
 }
 
 const menu_export_project = (e:IpcRendererEvent) => {
-  window.electronAPI.send("export_project", JSON.stringify(projects.value))
+  if(isElectron) window.electronAPI.send("export_project", JSON.stringify(projects.value))
 }
 
 const import_project_feedback = (e:IpcRendererEvent, text:string) => {
@@ -313,14 +315,16 @@ onMounted(() => {
       message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
     })
   })
+  updateHandle = setInterval(serverUpdate, 1000);
+  emitter?.on('updateNode', server_clients_update)
 
+  if(!isElectron) return
   window.electronAPI.send('menu', true)
   window.electronAPI.eventOn('createProject', menuCreateProject)
   window.electronAPI.eventOn('menu_export_project', menu_export_project)
   window.electronAPI.eventOn('run_all', run_all)
   window.electronAPI.eventOn('run_all_keep', run_all_keep)
   window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
-  emitter?.on('updateNode', server_clients_update)
   window.electronAPI.invoke('load_record').then(x => {
     const record:Record = JSON.parse(x)
     projects.value = record.projects
@@ -341,22 +345,23 @@ onMounted(() => {
   window.electronAPI.invoke('load_record').then(x => {
     log.value = JSON.parse(x)
   })
-  updateHandle = setInterval(serverUpdate, 1000);
 })
 
 onUnmounted(() => {
+  emitter?.off('updateNode', server_clients_update)
+  if(updateHandle != undefined) clearInterval(updateHandle)
+  if(!isElectron) return
   window.electronAPI.eventOff('createProject', menuCreateProject)
   window.electronAPI.eventOff('menu_export_project', menu_export_project)
   window.electronAPI.eventOff('run_all', run_all)
   window.electronAPI.eventOff('run_all_keep', run_all_keep)
   window.electronAPI.eventOff('import_project_feedback', import_project_feedback)
-  emitter?.off('updateNode', server_clients_update)
-  if(updateHandle != undefined) clearInterval(updateHandle)
 })
 
 </script>
 
 <template>
+  <MenuBar v-if="!isElectron" />
   <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
     <v-tab>{{ $t('toolbar.project') }}</v-tab>
     <v-tab>{{ $t('toolbar.task') }}</v-tab>

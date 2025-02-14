@@ -27,7 +27,6 @@ console.log(Chalk.blueBright('Transpiling renderer & main...'));
 Promise.allSettled([
     buildRenderer(),
     buildMain(),
-    buildNode(),
 ]).then(() => {
     console.log(Chalk.greenBright('Renderer & main successfully transpiled! (ready to be built with electron-builder)'));
 });

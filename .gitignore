@@ -2,6 +2,7 @@ node_modules
 dist
 build
 record.json
+preference.json
 .vscode
 .idea
 ply_tool/build

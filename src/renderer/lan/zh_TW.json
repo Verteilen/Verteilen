@@ -45,5 +45,8 @@
     "execute-keep": "執行 (保留)",
     "parameter-setting": "參數設定",
     "is-running": "是否執行中",
-    "is-stop": "是否停止"
+    "is-stop": "是否停止",
+    "clear": "清除",
+    "auto-scroll": "自動滑動",
+    "close-all": "全部關閉"
 }

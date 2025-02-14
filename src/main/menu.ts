@@ -1,10 +1,11 @@
 import { Menu } from 'electron';
-import { ImportProject } from './event';
+import { ImportProject, menu_state } from './event';
 import { mainWindow } from './main';
+import { i18n } from './plugins/i18n';
 
-const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> = [
+const template_file = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
     {
-        label: "File",
+        label: i18n.global.t('menu.file'),
         submenu: [
             { 
                 label: "New Project",
@@ -30,9 +31,12 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
             { type : 'separator' },
             { label: 'Quit', role: 'quit' }
         ]
-    },
+    }
+]
+
+const template_edit = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
     {
-        label: 'Edit',
+        label: i18n.global.t('menu.edit'),
         submenu: [
             { role: 'undo' },
             { role: 'redo' },
@@ -51,20 +55,27 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
                         label: 'en',
                         click: () => {
                             mainWindow?.webContents.send('locate', 'en')
+                            i18n.global.locale = 'en'
+                            setupMenu()
                         }
                     },
                     {
                         label: 'zh_TW',
                         click: () => {
                             mainWindow?.webContents.send('locate', 'zh_TW')
+                            i18n.global.locale = 'zh_TW'
+                            setupMenu()
                         }
                     }
                 ]
             },
         ]
-    },
+    }
+]
+
+const template_execute = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
     {
-        label: 'Execute',
+        label: i18n.global.t('menu.execute'),
         submenu: [
             {
                 label: 'Run All',
@@ -79,9 +90,12 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
                 }
             }
         ]
-    },
+    }
+]
+
+const template_helper = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
     {
-        label: 'Help',
+        label: i18n.global.t('menu.help'),
         submenu: [
             {
                 label: 'Console',
@@ -93,5 +107,23 @@ const template:Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)
     }
 ]
 
-const menu = Menu.buildFromTemplate(template)
-export default menu
+const template_server = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
+    ...template_file(),
+    ...template_edit(),
+    ...template_execute(),
+    ...template_helper()
+]
+
+const template_client = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
+    ...template_edit(),
+    ...template_helper()
+]
+
+export let menu_server = Menu.buildFromTemplate(template_server())
+export let menu_client = Menu.buildFromTemplate(template_client())
+
+export const setupMenu = () => {
+    menu_server = Menu.buildFromTemplate(template_server())
+    menu_client = Menu.buildFromTemplate(template_client())
+    mainWindow?.setMenu(menu_state ? menu_server : menu_client)
+}

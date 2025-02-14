@@ -4,15 +4,8 @@
     "directories": {
         "output": "dist"
     },
-
-    "nsis": {
-        "oneClick": false,
-        "perMachine": false,
-        "allowToChangeInstallationDirectory": true,
-        "shortcutName": "Compute Tool"
-    },
     "win": {
-        "target": "nsis"
+        "target": ["portable", "zip"]
     },
     "linux":  {
         "target": ["snap"]

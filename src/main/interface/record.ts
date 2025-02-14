@@ -39,3 +39,7 @@ export interface ExecutePack {
     projects: Array<Project>
     nodes: Array<WebsocketPack>
 }
+
+export interface Preference {
+    lan: string
+}

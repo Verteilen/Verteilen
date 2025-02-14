@@ -5,7 +5,6 @@ import { BusType, IMessage, ToastData } from '../interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const messages:Ref<Array<IMessage>> = ref([])
-let updateToastHandle:any
 
 const makeToast = (e:ToastData) => {
     messages.value.push(
@@ -29,12 +28,11 @@ const updateToast = () => {
 emitter?.on('makeToast', (e) => makeToast(e))
 
 onMounted(() => {
-    updateToastHandle = setInterval(updateToast, 1000)
-    
+    emitter?.on('updateHandle', updateToast)
 })
 
 onUnmounted(() => {
-    clearInterval(updateToastHandle)
+    emitter?.off('updateHandle', updateToast)
 })
 
 </script>

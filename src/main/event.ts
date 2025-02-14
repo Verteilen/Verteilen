@@ -3,9 +3,12 @@ import fs from "fs";
 import { clientinit } from "./client/client";
 import { dir_copy, dir_delete, file_copy, file_delete, fs_exist } from "./client/os";
 import { messager_log } from "./debugger";
-import { Log, Project, Record } from "./interface";
+import { Log, Preference, Project, Record } from "./interface";
 import { mainWindow } from "./main";
-import menu from "./menu";
+import { menu_client, menu_server, setupMenu } from "./menu";
+import { i18n } from "./plugins/i18n";
+
+export let menu_state = false
 
 export const eventInit = () => {
     clientinit()
@@ -21,8 +24,9 @@ export const eventInit = () => {
     ipcMain.on('menu', (event, on:boolean):void => {
         if(mainWindow == undefined) return;
         console.log(`[後台訊息] 工具列顯示設定為: ${on}`)
-        if(on) mainWindow.setMenu(menu)
-        else mainWindow.setMenu(null)
+        menu_state = on
+        if(on) mainWindow.setMenu(menu_server)
+        else mainWindow.setMenu(menu_client)
     })
     
     ipcMain.on('file_copy', (event, from:string, to:string):void => {
@@ -65,7 +69,7 @@ export const eventInit = () => {
         fs.writeFileSync('log.json', log)
     })
 
-    ipcMain.handle('load_log', (e, log:string) => {
+    ipcMain.handle('load_log', (e) => {
         const exist = fs.existsSync('log.json');
         messager_log(`[事件] 讀取 log.js, 檔案存在: ${exist}`)
         if(!exist){
@@ -76,6 +80,27 @@ export const eventInit = () => {
             return JSON.stringify(record)
         } else {
             const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+            return file.toString()
+        }
+    })
+
+    ipcMain.on('save_preference', (e, preference:string) => {
+        fs.writeFileSync('preference.json', preference)
+    })
+
+    ipcMain.handle('load_preference', (e) => {
+        const exist = fs.existsSync('preference.json');
+        messager_log(`[事件] 讀取 preference.js, 檔案存在: ${exist}`)
+        if(!exist){
+            const record:Preference = {
+                lan: 'zh_TW'
+            }
+            fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
+            i18n.global.locale = 'zh_TW'
+            setupMenu()
+            return JSON.stringify(record)
+        } else {
+            const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
             return file.toString()
         }
     })
@@ -101,6 +126,11 @@ export const eventInit = () => {
     ipcMain.on('export_project', (event, data:string) => {
         const p:Array<Project> = JSON.parse(data)
         ExportProject(p)
+    })
+    ipcMain.on('locate', (event, data:string) => {
+        // @ts-ignore
+        i18n.global.locale = data
+        setupMenu()
     })
 }
 

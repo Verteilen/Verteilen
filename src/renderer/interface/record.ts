@@ -45,3 +45,7 @@ export interface ExecuteRecord extends Record {
     task_state: Array<ExecuteData>
     task_detail: Array<ExecuteRecordTask>
 }
+
+export interface Preference {
+    lan: string
+}

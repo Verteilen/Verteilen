@@ -3,6 +3,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { isElectron } from '../../main';
 import { GetDefaultProjectTemplate, GetFUNIQUE_GS4ProjectTemplate } from '../../template/projectTemplate';
 
 interface PROPS {
@@ -178,17 +179,17 @@ onMounted(() => {
         }
     })
     updateProject()
-    window.electronAPI.eventOn('createProject', createProject)
-
     emitter?.on('updateProject', updateProject)
     emitter?.on('createProject', createProject)
+    if(!isElectron) return
+    window.electronAPI.eventOn('createProject', createProject)
 })
 
 onUnmounted(() => {
-    window.electronAPI.eventOff('createProject', createProject)
-
     emitter?.off('updateProject', updateProject)
     emitter?.off('createProject', createProject)
+    if(!isElectron) return
+    window.electronAPI.eventOff('createProject', createProject)
 })
 
 </script>
