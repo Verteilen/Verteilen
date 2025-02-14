@@ -169,16 +169,15 @@ const execute_job_finish = (d:{uuid:string, index:number, node:string}) => {
     //data.value!.task_detail[index].node = ""
 }
 
-const runningUpdate = () => {
-    if(!data.value!.running){
-
-    }else{
+const updateHandle = () => {
+    if(data.value!.running && !data.value!.stop){
         props.execute?.Update()
     }
-}
-
-const updateHandle = () => {
-    runningUpdate()
+    if(data.value!.stop){
+        if(props.execute!.jobstack == 0){
+            data.value!.running = false
+        }
+    }
     if(hasNewLog){
         emitter?.emit('updateLog', props.logs)
         hasNewLog = false
@@ -245,7 +244,6 @@ const skip = (type:number) => {
 
 const stop = () => {
     data.value!.stop = true
-    props.execute
 }
 
 onMounted(() => {

@@ -51,7 +51,7 @@ onUnmounted(() => {
                 <p>{{ $t('is-stop') }}: {{ data.running }}</p>
             </v-card-text>
         </v-card>
-        <v-stepper v-if="data.project_index >= 0" :value="getselect(r)" v-for="r in Math.floor(data.task_state.length / 3)" :key="r" :mandatory="false" multiple>
+        <v-stepper v-if="data.project_index >= 0" :value="getselect(r)" v-for="r in Math.ceil(data.task_state.length / totalLength)" :key="r" :mandatory="false" multiple>
             <v-stepper-header>
                 <template v-for="i in page(r)" :key="i">
                     <v-divider v-if="i - 1" />

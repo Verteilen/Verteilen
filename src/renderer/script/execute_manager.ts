@@ -14,6 +14,7 @@ export class ExecuteManager{
     state:ExecuteState = ExecuteState.NONE
     typeMap:{ [key:string]:Function } = {}
     websocket_manager:WebsocketManager
+    jobstack = 0
 
     constructor(_websocket_manager:WebsocketManager) {
         this.websocket_manager = _websocket_manager
@@ -53,6 +54,7 @@ export class ExecuteManager{
         wss.state = ExecuteState.RUNNING
         const stringdata = JSON.stringify(h)
         wss.websocket.send(stringdata)
+        this.jobstack = this.jobstack + 1
     }
     
     ExecuteCronTask = (project:Project, task:Task, work:CronJobState, ns:WebsocketPack) => {
@@ -313,6 +315,7 @@ export class ExecuteManager{
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
         
+        this.jobstack = this.jobstack - 1
         messager_log(`[執行狀態] 工作回傳 ${data.job_uuid} ${data.message}`)
         if(this.current_job.length > 0){
             emitter.emit('executeJobFinish', {uuid: data.job_uuid, index: 1, node: source.uuid})

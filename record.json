@@ -44,9 +44,15 @@
     ],
     "nodes": [
         {
-            "ID": "1efeb06e-1807-6cc0-9c54-317fc7e56947",
-            "state": 1,
+            "ID": "1efeb07c-c645-62c0-94cd-b8f6bf57043d",
+            "state": 0,
             "url": "ws://127.0.0.1:12080/",
+            "connection_rate": 0
+        },
+        {
+            "ID": "1efeb07c-c647-69d0-bbdf-6c0c9b13180b",
+            "state": 0,
+            "url": "ws://127.0.0.1:12081/",
             "connection_rate": 0
         }
     ]
