@@ -186,22 +186,26 @@ const updateHandle = () => {
 
 const execute = (type:number) => {
     process_type.value = type
-    data.value!.running = true
-    data.value!.stop = false
     const buffer:Record = {
         projects: data.value!.projects,
         nodes: data.value!.nodes
     }
-    const pass = props.execute?.Register(buffer.projects)
-    if(!pass){
-        data.value!.running = false
-        data.value!.stop = true
-        emitter?.emit('makeToast', {
-            title: '執行失敗',
-            message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
-            type: 'warning'
-        })
+    if(props.execute!.current_projects.length > 0){
+        data.value!.running = true
+        data.value!.stop = false
+    }else{
+        const pass = props.execute?.Register(buffer.projects)
+        if(!pass){
+            data.value!.running = false
+            data.value!.stop = true
+            emitter?.emit('makeToast', {
+                title: '執行失敗',
+                message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
+                type: 'warning'
+            })
+        }
     }
+    
 }
 
 const skip = (type:number) => {
@@ -240,6 +244,17 @@ const skip = (type:number) => {
         }
         
     }
+}
+
+const clean = () => {
+    props.execute!.Clean()
+    data.value!.project = ""
+    data.value!.task = ""
+    data.value!.project_index = -1
+    data.value!.task_index = -1
+    data.value!.project_state = []
+    data.value!.task_state = []
+    data.value!.task_detail = []
 }
 
 const stop = () => {
@@ -288,6 +303,9 @@ onUnmounted(() => {
                 <b-button-group class="my-1 w-100">
                     <b-button @click="skip(0)" :disabled="data.projects.length == 0 || data.running" variant="info">{{ $t('skip-0') }}</b-button>
                     <b-button @click="skip(1)" :disabled="data.projects.length == 0 || data.running" variant="info">{{ $t('skip-1') }}</b-button>
+                </b-button-group>
+                <b-button-group class="my-1 w-100">
+                    <b-button @click="clean()" :disabled="data.projects.length == 0 || data.running" variant="danger">{{ $t('clean') }}</b-button>
                 </b-button-group>
                 <b-button-group class="mb-3 w-100">
                     <b-button @click="stop()" :disabled="data.projects.length == 0 || data.stop" variant="danger">{{ $t('stop') }}</b-button>

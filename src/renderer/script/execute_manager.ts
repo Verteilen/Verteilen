@@ -256,6 +256,10 @@ export class ExecuteManager{
         return true
     }
 
+    Clean = () => {
+
+    }
+
     NewConnection = (source:WebsocketPack) => {
         if(this.state == ExecuteState.RUNNING && this.current_p != undefined){
             const h:Header = {
