@@ -1,3 +1,5 @@
+import { isElectron } from "../main"
+
 let feedback:Function | undefined = undefined
 
 export const set_feedback = (_feedback:Function) => {
@@ -12,6 +14,7 @@ export const messager = (msg:string, tag?:string) => {
 
 export const messager_log = (msg:string, tag?:string) => {
     messager(msg, tag)
+    if(!isElectron) return
     window.electronAPI.send('message', msg, tag);
     
 }
