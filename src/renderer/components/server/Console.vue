@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { BusType, ExecuteRecord, ExecuteState, Log, Record, Setter } from '../../interface';
+import { BusType, ExecuteRecord, ExecuteState, ExecutionLog, Log, Record, Setter } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 
@@ -22,6 +22,7 @@ const leftSize = ref(3)
 const rightSize = ref(9)
 const tag = ref(1)
 const process_type = ref(-1)
+let hasNewLog = false
 
 const receivedPack = (record:Record) => {
     data.value!.projects = record.projects
@@ -49,13 +50,15 @@ const receivedPack = (record:Record) => {
             message: [],
             state: ExecuteState.NONE
         })
-    }
+    }    
 }
 
 const feedback_message = (d:Setter) => {
     const index = data.value!.task_detail.findIndex(x => x.node == d.key)
     if(index == -1) return
     data.value!.task_detail[index].message.push(d.value)
+    props.logs.logs[0].logs[data.value!.task_index].task_detail[index].message.push(d.value)
+    hasNewLog = true
 }
 
 const execute_project_start = (uuid:string) => {
@@ -70,6 +73,34 @@ const execute_project_start = (uuid:string) => {
             state: ExecuteState.NONE
         }
     })
+
+    const target = data.value!.projects[data.value!.project_index]
+    const newlog:ExecutionLog = {
+        project: target,
+        state: ExecuteState.NONE,
+        start_timer: Date.now(),
+        end_timer: 0,
+        logs: target.task.map(x => {
+            return {
+                start_timer: 0,
+                end_timer: 0,
+                task_state: {
+                    uuid: x.uuid,
+                    state: ExecuteState.NONE
+                },
+                task_detail: x.jobs.map((y, jobindex) => {
+                    return {
+                        index: jobindex,
+                        node: "",
+                        message: [],
+                        state: ExecuteState.NONE
+                    }
+                })
+            }
+        })
+    }
+    props.logs.logs = [newlog].concat(props.logs.logs)
+    hasNewLog = true
 }
 
 const execute_project_finish = (uuid:string) => {
@@ -78,6 +109,9 @@ const execute_project_finish = (uuid:string) => {
     if(index == -1) return
     data.value!.project = ""
     data.value!.project_state[index].state = ExecuteState.FINISH
+
+    props.logs.logs[0].end_timer = Date.now()
+    hasNewLog = true
 }
 
 const execute_task_start = (d:{uuid:string, count:number}) => {
@@ -97,6 +131,10 @@ const execute_task_start = (d:{uuid:string, count:number}) => {
         })
     }
     console.log("task_start", data.value!)
+
+    props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.RUNNING
+    props.logs.logs[0].logs[data.value!.task_index].start_timer = Date.now()
+    hasNewLog = true
 }
 
 const execute_task_finish = (uuid:string) => {
@@ -106,6 +144,10 @@ const execute_task_finish = (uuid:string) => {
     if(index == -1) return
     data.value!.task = ""
     data.value!.task_state[index].state = ExecuteState.FINISH
+
+    props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.FINISH
+    props.logs.logs[0].logs[data.value!.task_index].end_timer = Date.now()
+    hasNewLog = true
 }
 
 const execute_subtask_start = (d:{index:number, node:string}) => {
@@ -137,6 +179,10 @@ const runningUpdate = () => {
 
 const updateHandle = () => {
     runningUpdate()
+    if(hasNewLog){
+        emitter?.emit('updateLog', props.logs)
+        hasNewLog = false
+    }
 }
 
 const execute = (type:number) => {

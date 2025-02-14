@@ -342,7 +342,7 @@ onMounted(() => {
       allUpdate()
     })
   })
-  window.electronAPI.invoke('load_record').then(x => {
+  window.electronAPI.invoke('load_log').then(x => {
     log.value = JSON.parse(x)
   })
 })

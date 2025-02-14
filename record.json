@@ -8,7 +8,7 @@
                 "numbers": [
                     {
                         "name": "frameCount",
-                        "value": 0
+                        "value": 20
                     },
                     {
                         "name": "iframeCount",
@@ -648,5 +648,12 @@
             ]
         }
     ],
-    "nodes": []
+    "nodes": [
+        {
+            "ID": "1efeacef-16ed-65b0-a99d-2e65aec4e184",
+            "state": 0,
+            "url": "ws://127.0.0.1:12080/",
+            "connection_rate": 0
+        }
+    ]
 }

@@ -7,13 +7,16 @@ export interface ExecuteData {
 }
 
 export interface ExecutionTaskLog {
-    project_state: Array<ExecuteData>
     task_state: ExecuteData
+    start_timer: number,
+    end_timer: number,
     task_detail: Array<ExecuteRecordTask>
 }
 
 export interface ExecutionLog {
-    prject: Project
+    project: Project
+    start_timer: number,
+    end_timer: number,
     state: ExecuteState
     logs: Array<ExecutionTaskLog>
 }
