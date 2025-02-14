@@ -22,6 +22,11 @@ FileSystem.rmSync(Path.join(__dirname, '..', 'build'), {
     force: true,
 })
 
+FileSystem.rmSync(Path.join(__dirname, '..', 'dist'), {
+    recursive: true,
+    force: true,
+})
+
 console.log(Chalk.blueBright('Transpiling renderer & main...'));
 
 Promise.allSettled([
