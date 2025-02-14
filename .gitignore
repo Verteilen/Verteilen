@@ -1,6 +1,7 @@
 node_modules
 dist
 build
+log.json
 record.json
 preference.json
 .vscode
