@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import fs from "fs";
 import { tag } from './client';
-import { messager } from "./debugger";
+import { messager, messager_log } from "./debugger";
 import { OnePath, TwoPath } from "./interface";
 
 export const file_copy = (data:TwoPath) => {
@@ -64,7 +64,7 @@ export const command = async (cwd:string, command:string, args:string):Promise<s
     messager(`[作業系統動作] 指令呼叫 command: ${command}`, tag)
     messager(`[作業系統動作] 指令呼叫 args: ${args}`, tag)
     return new Promise<string>((resolve, reject) => {
-        const child = spawn(command,  args.split(' '), { cwd: cwd })
+        const child = spawn(command,  args.split(' '), { cwd: cwd, shell: true, stdio: ['inherit', 'pipe', 'pipe'] })
         child.on('spawn', () => {
             messager(`[指令執行] 生成執行序`, tag)
         })
@@ -82,11 +82,13 @@ export const command = async (cwd:string, command:string, args:string):Promise<s
             messager(`[指令執行] 執行序弱關閉(close): ${code}`, tag)
             resolve(`執行成功 ${code}`)
         })
+        child.stdout.setEncoding('utf8');
         child.stdout.on('data', (chunk) => {
-            messager(`[指令一般訊息] : ${chunk.toString()}`, tag)
+            messager_log(`[指令一般訊息] : ${chunk.toString()}`, tag)
         })
+        child.stderr.setEncoding('utf8');
         child.stderr.on('data', (chunk) => {
-            messager(`[指令錯誤訊息] : ${chunk.toString()}`, tag)
+            messager_log(`[指令錯誤訊息] : ${chunk.toString()}`, tag)
         })
     })
 }

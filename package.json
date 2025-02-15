@@ -8,11 +8,14 @@
     "web": "vite",
     "node": "ts-node src/node/main.ts",
     "build": "node scripts/build.js && electron-builder",
-    "build:web": "vite build",
+    "build:web": "node scripts/build.js",
     "build:node": "node scripts/node_builder.js",
-    "build:win": "node scripts/build.js && electron-builder --dir",
+    "build:dir": "node scripts/build.js && electron-builder --dir",
+    "build:win": "node scripts/build.js && electron-builder --win",
     "build:mac": "node scripts/build.js && electron-builder --mac",
-    "build:linux": "node scripts/build.js && electron-builder --linux"
+    "build:linux": "node scripts/build.js && electron-builder --linux",
+    "docker:node": "docker_node.sh",
+    "docker:server": "docker_server.sh"
   },
   "repository": "https://github.com/deluze/electron-vue-template",
   "author": {
