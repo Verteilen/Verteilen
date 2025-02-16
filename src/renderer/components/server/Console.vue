@@ -171,7 +171,16 @@ const execute_job_finish = (d:{uuid:string, index:number, node:string}) => {
 
 const updateHandle = () => {
     if(data.value!.running && !data.value!.stop){
-        props.execute?.Update()
+        try {
+            props.execute?.Update()
+        }catch(err:any){
+            data.value!.stop = true
+            emitter?.emit('makeToast', {
+                title: '錯誤中斷',
+                message: '執行中出現錯誤: ' + err.name + '\n' + err.message,
+                type: 'danger'
+            })
+        }
     }
     if(data.value!.stop){
         if(props.execute!.jobstack == 0){
@@ -203,6 +212,9 @@ const execute = (type:number) => {
                 message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
                 type: 'warning'
             })
+        }else{
+            data.value!.running = true
+            data.value!.stop = false
         }
     }
     
@@ -248,6 +260,7 @@ const skip = (type:number) => {
 
 const clean = () => {
     props.execute!.Clean()
+    data.value!.projects = []
     data.value!.project = ""
     data.value!.task = ""
     data.value!.project_index = -1

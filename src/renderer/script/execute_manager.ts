@@ -12,7 +12,6 @@ export class ExecuteManager{
     current_job:Array<WorkState> = []
     current_multithread = 1
     state:ExecuteState = ExecuteState.NONE
-    typeMap:{ [key:string]:Function } = {}
     websocket_manager:WebsocketManager
     jobstack = 0
 
@@ -63,7 +62,7 @@ export class ExecuteManager{
             if(index == 0){
                 emitter.emit('executeSubtaskStart', { index:work.id - 1, node: ns.uuid })
             }
-            console.log(work, index)
+            if(index == -1) return
             work.work[index].state = ExecuteState.RUNNING
             const job:Job = JSON.parse(JSON.stringify(task.jobs[index]))
             job.index = work.id
@@ -257,7 +256,13 @@ export class ExecuteManager{
     }
 
     Clean = () => {
-
+        this.current_projects = []
+        this.current_p = undefined
+        this.current_t = undefined
+        this.current_cron = []
+        this.current_job = []
+        this.current_multithread = 1
+        this.state = ExecuteState.NONE
     }
 
     NewConnection = (source:WebsocketPack) => {

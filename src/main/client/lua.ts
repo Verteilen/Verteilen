@@ -4,6 +4,15 @@ import { parameter } from './execute';
 import { dir_copy, dir_create, dir_delete, dir_dirs, dir_files, file_copy, file_delete, file_read, file_write, fs_exist, rename as re } from './os';
 import { feedbackboolean, feedbacknumber, feedbackstring } from './parameter';
 
+const lib = `function split(s, sep)
+    local fields = {}
+    local sep = sep or " "
+    local pattern = string.format("([^%s]+)", sep)
+    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)
+    return fields
+end
+`
+
 function copyfile(from:string, to:string){
     file_copy({from:from,to:to})
 }
@@ -117,7 +126,7 @@ luaEnv.loadLib('m', message)
 
 export const LuaExecute = (lua:string) => {
     try {
-        const execc = luaEnv.parse(lua)
+        const execc = luaEnv.parse(lib + lua)
         const r = execc.exec()
     }catch(err){
         throw err

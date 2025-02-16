@@ -1,18 +1,14 @@
 export const DEFAULT = "// Enter your lua code here..."
 
-export const FUNIQUE_GS4_PREPARE:string = `function split(s, sep)
-    local fields = {}
-    local sep = sep or " "
-    local pattern = string.format("([^%s]+)", sep)
-    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)
-    return fields
-end
-
+// 準備資料夾 跟製作準備 colmap 資料夾結構
+export const FUNIQUE_GS4_PREPARE:string = `
 m.messager("Env Init")
 
 local root = env.getstring("root")
 local prepare_folder = env.getstring("prepare")
-local before_folder = env.getstring("before")
+local before_sort_folder = env.getstring("before_sort")
+local before_p_folder = env.getstring("before_p")
+local before_n_folder = env.getstring("before_n")
 local after_folder = env.getstring("after")
 local output_folder = env.getstring("output")
 
@@ -20,10 +16,14 @@ local CAM = env.getstring("CAM")
 local images = env.getstring("images")
 local sparse = env.getstring("sparse")
 
-o.deletedir(root.."/"..before_folder)
+o.deletedir(root.."/"..before_sort_folder)
+o.deletedir(root.."/"..before_p_folder)
+o.deletedir(root.."/"..before_n_folder)
 o.deletedir(root.."/"..after_folder)
 o.deletedir(output_folder)
-o.createdir(root.."/"..before_folder)
+o.createdir(root.."/"..before_sort_folder)
+o.createdir(root.."/"..before_p_folder)
+o.createdir(root.."/"..before_n_folder)
 o.createdir(root.."/"..after_folder)
 o.createdir(output_folder)
 
@@ -41,70 +41,104 @@ end
 m.messager("Get Frame count: "..frame_size)
 
 m.messager("Copy sparse folder")
-o.copydir(root.."/"..prepare_folder.."/"..sparse, root.."/"..before_folder.."/"..sparse)
+o.copydir(root.."/"..prepare_folder.."/"..sparse, root.."/"..before_sort_folder.."/"..sparse)
 
 for key=1,frame_size,1 do
-    o.createdir(root.."/"..before_folder.."/"..tostring(key).."/images")
+    o.createdir(root.."/"..before_sort_folder.."/"..tostring(key).."/images")
     for key2=1,cam_size,1 do
         local from = root.."/"..prepare_folder.."/"..CAM.."/C"..string.format("%04d", key2).."/"..string.format("%04d", key2).."_"..string.format("%06d", key)..".jpg"
-        local to = root.."/"..before_folder.."/"..tostring(key).."/images/"..string.format("%04d", key2)..".jpg"
+        local to = root.."/"..before_sort_folder.."/"..tostring(key).."/images/"..string.format("%04d", key2)..".jpg"
         o.copyfile(from, to)
     end
 end
 
 env.setnumber("frameCount", frame_size)
-
 `
 
-export const FUNIQUE_GS4_IFRAMEFOLDER:string = `function split(s, sep)
-    local fields = {}
-    local sep = sep or " "
-    local pattern = string.format("([^%s]+)", sep)
-    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)
-    return fields
-end
-
+// 把 colmap 結果分成 正, 反 資料夾結構
+export const FUNIQUE_GS4_COPY:string = `
 local root = env.getstring("root")
-local after_folder = env.getstring("after")
-
-m.messager("Get CAM list")
-local iframe_folders = split(o.listdir(root.."/"..after_folder.."/".."GOP20_I"), "\\n")
-
-local iframeCount = #(iframe_folders)
-m.messager("Get IFrame count: "..iframeCount)
-
-for key,value in pairs(iframe_folders) do
-    local from = root.."/"..after_folder.."/".."GOP20_I".."/"..tostring(value)
-    local to = root.."/"..after_folder.."/".."GOP20_I".."/"..tostring(key)
-    o.rename(from, to)
-end
-
-env.setnumber("iframeCount", iframeCount)
-
-`
-
-export const FUNIQUE_GS4_IFRAMEFOLDER_DONE:string = `function split(s, sep)
-    local fields = {}
-    local sep = sep or " "
-    local pattern = string.format("([^%s]+)", sep)
-    string.gsub(s, pattern, function(c) fields[#fields + 1] = c end)
-    return fields
-end
-
-local root = env.getstring("root")
-local after_folder = env.getstring("after")
+local before_sort_folder = env.getstring("before_sort")
+local before_p_folder = env.getstring("before_p")
+local before_n_folder = env.getstring("before_n")
 local iframe_gap = env.getnumber("iframe_gap")
+local frame_count = env.getnumber("frameCount")
+local group_size = env_getnumber("group_size")
+
+local z = 1
+local p = 1
+local n = 1
+
+m.messager("Copy dir to position or negative folder")
+local from = ""
+local to = ""
+for i=1,frame_count,group_size do
+    local step = ((group_size / 2) * (z - 1))
+
+    from = root.."/"..before_sort_folder.."/"..tostring(i)
+    to = root.."/"..before_p_folder....tostring(i - step)
+    o.copydir(from, to)
+
+    p = p + 1
+    n = n + 1
+
+    for j = 1,(group_size/2)-1,1 do
+        if i + j > frame_count then 
+            n = n - 1
+            goto skip 
+        end
+        local r = j + p
+        from = root.."/"..before_sort_folder.."/"..tostring(i+j)
+        to = root.."/"..before_p_folder....tostring(r)
+        o.copydir(from, to)
+    end
+    
+    for j = 1,(group_size/2)-1,1 do
+        if i + j > frame_count then 
+            n = n - 1
+            goto skip 
+        end
+        local nj = group_size/2 - j
+        local r = nj + i - step
+        from = root.."/"..before_sort_folder.."/"..tostring(i+j+9)
+        to = root.."/"..before_p_folder....tostring(r)
+        o.copydir(from, to)
+    end
+
+    from = root.."/"..before_sort_folder.."/"..tostring(i + group_size - 1)
+    to = root.."/"..before_n_folder....tostring(i - step)
+    o.copydir(from, to)
+
+    z = z + 1
+end
+
+::skip::
+
+env.setnumber("p_size", p - 1)
+env.setnumber("n_size", n - 1)
+
+`
+
+// 計算有多少 IFrame 正, 反
+export const FUNIQUE_GS4_IFRAMEFOLDER:string = `
+local root = env.getstring("root")
+local after_folder = env.getstring("after")
 
 m.messager("Get CAM list")
-local iframe_folders = split(o.listdir(root.."/"..after_folder.."/".."GOP20_I"), "\\n")
+local iframe_folders_p = split(o.listdir(root.."/"..after_folder.."/".."GOP_P20_I"), "\\n")
+local iframe_folders_n = split(o.listdir(root.."/"..after_folder.."/".."GOP_N20_I"), "\\n")
 
-local iframeCount = #(iframe_folders)
-m.messager("Get IFrame count: "..iframeCount)
+local iframeCount_p = #(iframe_folders_p)
+local iframeCount_n = #(iframe_folders_n)
 
-for key,value in pairs(iframe_folders) do
-    local from = root.."/"..after_folder.."/".."GOP20_I".."/"..tostring(value)
-    local to = root.."/"..after_folder.."/"..tostring(key * iframe_gap)
-    o.copydir(from, to)
-end
-o.deletedir(root.."/"..after_folder.."/".."GOP20_I")
+m.messager("Get + IFrame count: "..iframeCount_p)
+m.messager("Get - IFrame count: "..iframeCount_n)
+
+env.setnumber("p_iframe_size", iframeCount_p)
+env.setnumber("n_iframe_size", iframeCount_n)
+`
+
+// 將 Blend 結果弄成結果資料夾
+export const FUNIQUE_GS4_PLYDone:string = `
+
 `

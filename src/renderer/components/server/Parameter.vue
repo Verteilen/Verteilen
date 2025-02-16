@@ -64,6 +64,17 @@ const rename = (type:number, oldname:string) => {
     renameModal.value = true;
 }
 
+const confirmRename = () => {
+    renameModal.value = false;
+    const bs = buffer.value.booleans.filter(x => x.name == renameData.value.oldname)
+    const ss = buffer.value.strings.filter(x => x.name == renameData.value.oldname)
+    const ns = buffer.value.numbers.filter(x => x.name == renameData.value.oldname)
+    if(bs.length > 0) bs.forEach(x => x.name = renameData.value.name)
+    if(ss.length > 0) ss.forEach(x => x.name = renameData.value.name)
+    if(ns.length > 0) ns.forEach(x => x.name = renameData.value.name)
+    dirty.value = true
+}
+
 const deleteSelect = () => {
     const bs = buffer.value.booleans.filter(x => !x.s)
     const ss = buffer.value.strings.filter(x => !x.s)
@@ -78,10 +89,6 @@ const deleteSelect = () => {
 const confirmCreate = () => {
     createModal.value = false
     getArray(createData.value.type).push({ name: createData.value.name, value: 0 })
-    dirty.value = true
-}
-
-const confirmRename = () => {
     dirty.value = true
 }
 
