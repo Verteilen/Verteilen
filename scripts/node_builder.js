@@ -15,10 +15,9 @@ function copyPackageJson() {
     return copyFile(from, to)
 }
 
-Promise.allSettled([
-    buildNode(),
-    copyPackageJson()
-]).then(() => {
-    writeFile(Path.join(__dirname, '..', 'build', 'node', 'run.sh'), '#!/bin/bash\n\nnode .\nread -p "Press enter to continue"')
-    console.log(Chalk.greenBright('Node successfully transpiled!'));
+buildNode().then(() => {
+    copyPackageJson().then(() => {
+        writeFile(Path.join(__dirname, '..', 'build', 'node', 'run.sh'), '#!/bin/bash\n\nnode .\nread -p "Press enter to continue"')
+        console.log(Chalk.greenBright('Node successfully transpiled!'));
+    }).catch(err => console.error(err))
 }).catch(err => console.error(err))
