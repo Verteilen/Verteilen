@@ -308,6 +308,7 @@ onUnmounted(() => {
     <b-container fluid v-if="data != undefined">
         <b-row style="height: calc(100vh - 55px)" class="w-100">
             <b-col :cols="leftSize" style="border-right: brown 1px solid;">
+                {{ props.execute?.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH).length > 0).length }}
                 <b-button-group class="mt-3 w-100">
                     <b-button @click="execute(0)" :disabled="data.projects.length == 0 || data.running" variant="success">{{ $t('execute-0') }}</b-button>
                     <b-button @click="execute(1)" :disabled="data.projects.length == 0 || data.running" variant="success">{{ $t('execute-1') }}</b-button>
@@ -345,5 +346,6 @@ onUnmounted(() => {
 <style scoped>
 
 </style>
+
 
 

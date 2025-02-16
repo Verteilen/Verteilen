@@ -112,7 +112,7 @@ export class ExecuteManager{
                     allworks.push(...x.work)
                 })
                 
-                if(this.current_cron.length == task.jobs.length && allworks.filter(x => x.state != ExecuteState.FINISH).length == 0){
+                if(this.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH).length > 0).length == 0){
                     allJobFinish = true
                 }else{
                     // Assign worker
@@ -158,7 +158,7 @@ export class ExecuteManager{
 
                 if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN)
                 {
-                    if(this.current_job.length == task.jobs.length && this.current_job.filter(x => x.state != ExecuteState.FINISH).length == 0){
+                    if(this.current_job.length == task.jobs.length && this.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH).length > 0).length == 0){
                         allJobFinish = true
                     }else{
                         if(this.current_job.length != task.jobs.length){
