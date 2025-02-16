@@ -39,11 +39,14 @@
 
 ![Lua](./docs/luaJob.png)
 
-你可以在工作中定義 Lua 腳本運行
+你可以在工作中定義 Lua 腳本運行\
+針對 Lua 可以使用的函式, 可以參考[這裡](./docs/Lua.md)
 
 ### 變數表達式
 
-使用了 expressionparser 當作為表達式使用, 這樣可以克服 eval 的不支援問題
+![commandJob](./docs/commanJob.png)
+
+使用了 [expressionparser](https://www.npmjs.com/package/expressionparser) 當作為表達式使用, 這樣可以克服 eval 的不支援問題
 
 ### 監控系統
 
@@ -54,6 +57,7 @@
 ## 功能一覽
 
 - [x] 任務排序資料結構
+- [x] 樣板支援
 - [x] 即時監控 UI 管理頁面
 - [x] 分散式運算支援
 - [x] 腳本支援
