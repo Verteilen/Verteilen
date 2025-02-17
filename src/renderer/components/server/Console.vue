@@ -25,6 +25,17 @@ const process_type = ref(-1)
 let hasNewLog = false
 
 const receivedPack = (record:Record) => {
+    const pass = props.execute!.Register(record.projects)
+    if(pass == -1){
+        data.value!.running = false
+        data.value!.stop = true
+        emitter?.emit('makeToast', {
+            title: '執行失敗',
+            message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
+            type: 'warning'
+        })
+    }
+    
     data.value!.projects = record.projects
     data.value!.nodes = record.nodes
     data.value!.project_state = data.value!.projects.map(x => {
@@ -33,7 +44,7 @@ const receivedPack = (record:Record) => {
             state: ExecuteState.NONE
         }
     })
-    data.value!.project_index = 0
+    data.value!.project_index = pass
     data.value!.task_index = 0
     data.value!.task_state = data.value!.projects[0].task.map(x => {
         return {
@@ -50,7 +61,28 @@ const receivedPack = (record:Record) => {
             message: [],
             state: ExecuteState.NONE
         })
-    }    
+    }
+    
+    const target = data.value!.projects[data.value!.project_index]
+    const newlog:ExecutionLog = {
+        project: target,
+        state: ExecuteState.NONE,
+        start_timer: Date.now(),
+        end_timer: 0,
+        logs: target.task.map(x => {
+            return {
+                start_timer: 0,
+                end_timer: 0,
+                task_state: {
+                    uuid: x.uuid,
+                    state: ExecuteState.NONE
+                },
+                task_detail: []
+            }
+        })
+    }
+    props.logs.logs = [newlog].concat(props.logs.logs)
+    hasNewLog = true
 }
 
 const feedback_message = (d:Setter) => {
@@ -175,11 +207,13 @@ const updateHandle = () => {
             props.execute?.Update()
         }catch(err:any){
             data.value!.stop = true
+            const str = '執行中出現錯誤: ' + err.name + '\n' + err.message
             emitter?.emit('makeToast', {
                 title: '錯誤中斷',
-                message: '執行中出現錯誤: ' + err.name + '\n' + err.message,
+                message: str,
                 type: 'danger'
             })
+            console.error(err)
         }
     }
     if(data.value!.stop){
@@ -195,29 +229,8 @@ const updateHandle = () => {
 
 const execute = (type:number) => {
     process_type.value = type
-    const buffer:Record = {
-        projects: data.value!.projects,
-        nodes: data.value!.nodes
-    }
-    if(props.execute!.current_projects.length > 0){
-        data.value!.running = true
-        data.value!.stop = false
-    }else{
-        const pass = props.execute?.Register(buffer.projects)
-        if(!pass){
-            data.value!.running = false
-            data.value!.stop = true
-            emitter?.emit('makeToast', {
-                title: '執行失敗',
-                message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
-                type: 'warning'
-            })
-        }else{
-            data.value!.running = true
-            data.value!.stop = false
-        }
-    }
-    
+    data.value!.running = true
+    data.value!.stop = false
 }
 
 const skip = (type:number) => {
@@ -225,7 +238,10 @@ const skip = (type:number) => {
         // Project
         data.value!.project_state[data.value!.project_index].state = ExecuteState.FINISH
         data.value!.project_index += 1
-        if(data.value!.project_index == data.value!.projects.length) data.value!.project_index = -1
+        if(data.value!.project_index == data.value!.projects.length) {
+            data.value!.project_index = -1
+            clean()
+        }
         else {
             data.value!.task_state = data.value!.projects[data.value!.project_index].task.map(x => {
                 return {
@@ -234,7 +250,9 @@ const skip = (type:number) => {
                 }
             })
             data.value!.task_detail = []
-            const count = data.value?.projects[data.value!.project_index]?.task[data.value!.task_index]?.jobs.length ?? 0
+            const p = data.value!.projects[data.value!.project_index]
+            const t = p.task[data.value!.task_index]
+            const count = props.execute!.get_task_state_count(p, t)
             for(let i = 0; i < count; i++){
                 data.value!.task_detail.push({
                     index: i,
@@ -243,8 +261,9 @@ const skip = (type:number) => {
                     state: ExecuteState.NONE
                 })
             }
+            const index = props.execute!.SkipProject()
+            console.log("跳過專案", index)
         }
-        props.execute!.SkipProject()
     }else if (type == 1){
         // Task
         data.value!.task_state[data.value!.task_index].state = ExecuteState.FINISH
@@ -252,7 +271,21 @@ const skip = (type:number) => {
         if(data.value!.task_index == data.value!.task_state.length) {
             skip(0)
         }else{
-            props.execute!.SkipTask()
+            data.value!.task_state[data.value!.task_index].state = ExecuteState.RUNNING
+            data.value!.task_detail = []
+            const p = data.value!.projects[data.value!.project_index]
+            const t = p.task[data.value!.task_index]
+            const count = props.execute!.get_task_state_count(p, t)
+            for(let i = 0; i < count; i++){
+                data.value!.task_detail.push({
+                    index: i,
+                    node: "",
+                    message: [],
+                    state: ExecuteState.NONE
+                })
+            }
+            const index = props.execute!.SkipTask()
+            console.log("跳過流程", index)
         }
         
     }
@@ -308,7 +341,6 @@ onUnmounted(() => {
     <b-container fluid v-if="data != undefined">
         <b-row style="height: calc(100vh - 55px)" class="w-100">
             <b-col :cols="leftSize" style="border-right: brown 1px solid;">
-                {{ props.execute?.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH).length > 0).length }}
                 <b-button-group class="mt-3 w-100">
                     <b-button @click="execute(0)" :disabled="data.projects.length == 0 || data.running" variant="success">{{ $t('execute-0') }}</b-button>
                     <b-button @click="execute(1)" :disabled="data.projects.length == 0 || data.running" variant="success">{{ $t('execute-1') }}</b-button>

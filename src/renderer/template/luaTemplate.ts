@@ -1,4 +1,4 @@
-export const DEFAULT = "// Enter your lua code here..."
+export const DEFAULT = "// Enter your lua code here.."
 
 // 準備資料夾 跟製作準備 colmap 資料夾結構
 export const FUNIQUE_GS4_PREPARE:string = `
@@ -63,7 +63,7 @@ local before_p_folder = env.getstring("before_p")
 local before_n_folder = env.getstring("before_n")
 local iframe_gap = env.getnumber("iframe_gap")
 local frame_count = env.getnumber("frameCount")
-local group_size = env_getnumber("group_size")
+local group_size = env.getnumber("group_size")
 
 local z = 1
 local p = 1
@@ -76,7 +76,7 @@ for i=1,frame_count,group_size do
     local step = ((group_size / 2) * (z - 1))
 
     from = root.."/"..before_sort_folder.."/"..tostring(i)
-    to = root.."/"..before_p_folder....tostring(i - step)
+    to = root.."/"..before_p_folder.."/"..tostring(i - step)
     o.copydir(from, to)
 
     p = p + 1
@@ -87,10 +87,11 @@ for i=1,frame_count,group_size do
             n = n - 1
             goto skip 
         end
-        local r = j + p
+        local r = p
         from = root.."/"..before_sort_folder.."/"..tostring(i+j)
-        to = root.."/"..before_p_folder....tostring(r)
+        to = root.."/"..before_p_folder.."/"..tostring(r)
         o.copydir(from, to)
+        p = p + 1
     end
     
     for j = 1,(group_size/2)-1,1 do
@@ -101,12 +102,13 @@ for i=1,frame_count,group_size do
         local nj = group_size/2 - j
         local r = nj + i - step
         from = root.."/"..before_sort_folder.."/"..tostring(i+j+9)
-        to = root.."/"..before_p_folder....tostring(r)
+        to = root.."/"..before_n_folder.."/"..tostring(r)
         o.copydir(from, to)
+        n = n + 1
     end
 
     from = root.."/"..before_sort_folder.."/"..tostring(i + group_size - 1)
-    to = root.."/"..before_n_folder....tostring(i - step)
+    to = root.."/"..before_n_folder.."/"..tostring(i - step)
     o.copydir(from, to)
 
     z = z + 1

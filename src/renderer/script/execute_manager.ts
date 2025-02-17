@@ -238,21 +238,35 @@ export class ExecuteManager{
         }
     }
 
-    Register = (projects:Array<Project>):boolean => {
+    Register = (projects:Array<Project>):number => {
         messager_log(`[執行狀態] 開始執行, 專案數: ${projects.length}, 電腦數: ${this.websocket_manager.targets.length}`)
         if(this.state == ExecuteState.RUNNING){
             messager_log(`[執行狀態] 初始化錯誤, 目前已經有專案群集在列表中執行了`)
-            return false
+            return -1
+        }
+        if(projects.map(x => x.task.length).reduce((acc, cur) => acc + cur, 0) == 0){
+            messager_log(`[執行狀態] 沒有流程可以被執行`)
+            return -1
         }
         if(!this.validation(projects)){
             messager_log(`[執行狀態] 初始化錯誤, 檢查格式出現問題`)
-            return false
+            return -1
         }
         this.state = ExecuteState.RUNNING
         messager_log(`[執行狀態] 初始化成功, 進入執行階段`)
 
         this.current_projects = projects
-        return true
+        let i = 0
+        for(const x of this.current_projects){
+            if(x.task.length > 0){
+                this.current_p = x;
+                this.current_t = this.current_p.task[0]
+                break;
+            }else{
+                i++
+            }
+        }
+        return i
     }
 
     Clean = () => {
@@ -276,38 +290,44 @@ export class ExecuteManager{
         }
     }
 
-    SkipProject = () => {
-        if (this.current_projects.length == 0) return
+    SkipProject = ():number => {
+        if (this.current_projects.length == 0) return -1
         if (this.current_p == undefined) {
             this.current_p = this.current_projects[0]
+            this.state = ExecuteState.RUNNING
+            return 0
         } else {
             const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
             if (index == this.current_projects.length - 1){
                 this.current_p = undefined
                 this.state = ExecuteState.FINISH
                 messager_log(`[執行狀態] 跳過專案 此為最後執行專案`)
+                return -1
             } else {
                 this.current_p = this.current_projects[index + 1]
                 messager_log(`[執行狀態] 跳過專案到 ${index}. ${this.current_p.uuid}`)
+                return index
             }
         }
     }
 
-    SkipTask = () => {
-        if (this.current_p == undefined) return
+    SkipTask = ():number => {
+        if (this.current_p == undefined) return -1
         if (this.current_t == undefined){
             if(this.current_p.task.length > 0){
                 this.current_t = this.current_p.task[0]
+            } 
+            return 0
+        } else {
+            const index = this.current_p.task.findIndex(x => x.uuid == this.current_t!.uuid)
+            if (index == this.current_p.task.length - 1){
+                this.current_t = undefined
+                messager_log(`[執行狀態] 跳過流程 此為最後執行流程`)
             } else {
-                const index = this.current_p.task.findIndex(x => x.uuid == this.current_t!.uuid)
-                if (index == this.current_p.task.length - 1){
-                    this.current_t = undefined
-                    messager_log(`[執行狀態] 跳過流程 此為最後執行流程`)
-                } else {
-                    this.current_t = this.current_p.task[index + 1]
-                    messager_log(`[執行狀態] 跳過流程到 ${index}. ${this.current_t.uuid}`)
-                }
+                this.current_t = this.current_p.task[index + 1]
+                messager_log(`[執行狀態] 跳過流程到 ${index}. ${this.current_t.uuid}`)
             }
+            return index
         }
     }
 
@@ -379,7 +399,21 @@ export class ExecuteManager{
     //#endregion
 
     //#region Utility
-    removeDups = (arr: any[]): any[] => {
+    get_task_state_count(p:Project, t:Task){
+        if (t.cronjob){
+            return this.get_number(t.cronjobKey, p)
+        }else{
+            return t.jobs.length
+        }
+    }
+
+    get_number(key:string, p:Project){
+        const f = p.parameter.numbers.find(x => x.name == key)
+        if(f == undefined) return -1
+        return f.value
+    }
+
+    private removeDups = (arr: any[]): any[] => {
         return [...new Set(arr)];
     }
 
