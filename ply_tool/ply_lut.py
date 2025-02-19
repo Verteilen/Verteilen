@@ -43,6 +43,16 @@ lut_path = args.lut
 ply_path = args.input
 ply_output_path = args.output
 
+if lut_path is None:
+    print ("please specify input lut file")
+    sys.exit()
+if ply_path is None:
+    print ("please specify input ply file")
+    sys.exit()
+if ply_output_path is None:
+    print ("please specify output ply file")
+    sys.exit()
+
 gsData = PlyData.read(ply_path)
 lut = colour.read_LUT(lut_path)
 

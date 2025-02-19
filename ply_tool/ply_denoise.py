@@ -1,6 +1,7 @@
 import numpy as np
 import argparse
 import os
+import sys
 from plyfile import PlyData, PlyElement, PlyProperty, PlyListProperty
 
 def calculate_rgb(f_dc_0, f_dc_1, f_dc_2):
@@ -20,10 +21,10 @@ output_file = args.output
 
 if input_file is None:
     print ("please specify input ply file")
-    exit()
+    sys.exit()
 if output_file is None:
     print ("please specify output ply file")
-    exit()
+    sys.exit()
 
 if os.path.isfile('temp.ply'):
     os.remove('temp.ply')

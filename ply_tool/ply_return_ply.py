@@ -1,5 +1,6 @@
 import numpy 
 import argparse
+import sys
 from plyfile import PlyData, PlyElement
 
 # get arguments
@@ -12,10 +13,10 @@ output_file = args.output
 
 if input_file is None:
     print ("please specify input ply file")
-    exit()
+    sys.exit()
 if output_file is None:
     print ("please specify output ply file")
-    exit()
+    sys.exit()
 
 plyData = PlyData.read(input_file)
 plyData.text = False

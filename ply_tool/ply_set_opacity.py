@@ -1,4 +1,5 @@
 import numpy 
+import sys
 import argparse
 from plyfile import PlyData, PlyElement
 
@@ -19,10 +20,10 @@ opacity_scale = args.opacity_scale
 
 if input_file is None:
     print ("please specify input ply file")
-    exit()
+    sys.exit()
 if output_file is None:
     print ("please specify output ply file")
-    exit()
+    sys.exit()
 
 plyData = PlyData.read(input_file)
 

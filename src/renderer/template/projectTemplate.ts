@@ -1,13 +1,13 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Job, JobType, Parameter, Project, Task } from "../interface";
-import { FUNIQUE_GS4_COPY, FUNIQUE_GS4_IFRAMEFOLDER, FUNIQUE_GS4_PREPARE } from "./luaTemplate";
+import { FUNIQUE_GS4_BLEND_PREPARE, FUNIQUE_GS4_IFRAMEFOLDER, FUNIQUE_GS4_PREPARE } from "./luaTemplate";
 
 export const GetDefaultProjectTemplate = (r:Project):Project => {
     return r
 }
 
 // 從原始資料夾結構 弄成可以工作的樣子
-const GetFUNIQUE_GS4ProjectTemplate_Task0 = ():Task => {
+const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
     const sortjob:Job = {
         uuid: uuidv6(),
         type: JobType.LUA,
@@ -32,7 +32,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task0 = ():Task => {
 }
 
 // 利用 Colmap 工具生成 .bin 資料
-const GetFUNIQUE_GS4ProjectTemplate_Task1 = ():Task => {
+const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
     const createsp:Job = {
         uuid: uuidv6(),
         type: JobType.CREATE_DIR,
@@ -84,70 +84,37 @@ const GetFUNIQUE_GS4ProjectTemplate_Task1 = ():Task => {
     return t
 }
 
-// 優化品質做的準備
-const GetFUNIQUE_GS4ProjectTemplate_Task2 = ():Task => {
-    const copyhelper:Job = {
-        uuid: uuidv6(),
-        type: JobType.LUA,
-        lua: FUNIQUE_GS4_COPY,
-        string_args: [],
-        number_args: [],
-        boolean_args: []
-    }
-    const t:Task = {
-        uuid: uuidv6(),
-        title: "排序改變",
-        description: "優化品質複製",
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
-        jobs: [
-            copyhelper
-        ]
-    }
-    return t
-}
-
 // 生成完整 Frame
-const GetFUNIQUE_GS4ProjectTemplate_Task3 = ():Task => {
-    const createdir_p:Job = {
+const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
+    const createdir:Job = {
         uuid: uuidv6(),
         type: JobType.CREATE_DIR,
         lua: "",
-        string_args: ["%root%/%after%/GOP_P20_I"],
+        string_args: ["%root%/%after%/GOP_20_I"],
         number_args: [],
         boolean_args: []
     }
-    const createdir_n:Job = {
-        uuid: uuidv6(),
-        type: JobType.CREATE_DIR,
-        lua: "",
-        string_args: ["%root%/%after%/GOP_N20_I"],
-        number_args: [],
-        boolean_args: []
-    }
-    const command2:Job = {
+    const command1:Job = {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%", "python", "train_sequence.py --start 0 --end %frameCount% --cuda 0 --data %root%/%before_p% --output %root%/%after%/GOP_P20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
+        string_args: ["%root%/%after%", "python", "train_sequence.py --start 0 --end %frameCount% --cuda 0 --data %root%/%before_p% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
         number_args: [],
         boolean_args: []
     }
-    const command3:Job = {
-        uuid: uuidv6(),
-        type: JobType.COMMAND,
-        lua: "",
-        string_args: ["%root%/%after%", "python", "train_sequence.py --start 0 --end %frameCount% --cuda 0 --data %root%/%before_n% --output %root%/%after%/GOP_N20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
-        number_args: [],
-        boolean_args: []
-    }
-    const renameDir:Job = {
+    const count:Job = {
         uuid: uuidv6(),
         type: JobType.LUA,
         lua: FUNIQUE_GS4_IFRAMEFOLDER,
         string_args: [],
+        number_args: [],
+        boolean_args: []
+    }
+    const backup:Job = {
+        uuid: uuidv6(),
+        type: JobType.COPY_DIR,
+        lua: "",
+        string_args: ["%root%/%after%/GOP_20_I", "%root%/%after%/GOP_20_I_Backup"],
         number_args: [],
         boolean_args: []
     }
@@ -160,18 +127,17 @@ const GetFUNIQUE_GS4ProjectTemplate_Task3 = ():Task => {
         multi: false,
         multiKey: "",
         jobs: [
-            createdir_p,
-            createdir_n,
-            command3,
-            command2,
-            renameDir
+            createdir,
+            command1,
+            count,
+            backup
         ]
     }
     return t
 }
 
-// 把渣渣刪掉 ! (正)
-const GetFUNIQUE_GS4ProjectTemplate_Task4 = ():Task => {
+// 把渣渣刪掉 !
+const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
     const renamee:Job = {
         uuid: uuidv6(),
         type: JobType.RENAME,
@@ -201,7 +167,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task4 = ():Task => {
         title: "降躁處理 (正)",
         description: "把渣渣刪掉 !",
         cronjob: true,
-        cronjobKey: "p_iframe_size",
+        cronjobKey: "iframe_size",
         multi: false,
         multiKey: "",
         jobs: [
@@ -213,51 +179,58 @@ const GetFUNIQUE_GS4ProjectTemplate_Task4 = ():Task => {
     return t
 }
 
-// 把渣渣刪掉 ! (反)
-const GetFUNIQUE_GS4ProjectTemplate_Task5 = ():Task => {
-    const renamee:Job = {
+// 排序改變 優化品質做的準備
+const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
+    const copyhelper:Job = {
         uuid: uuidv6(),
-        type: JobType.RENAME,
-        lua: "",
-        string_args: ["%root%/%after%/GOP_N20_I/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000/point_cloud.ply", "%root%/%after%/GOP_N20_I/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
-        number_args: [],
-        boolean_args: []
-    }
-    const command1:Job = {
-        uuid: uuidv6(),
-        type: JobType.COMMAND,
-        lua: "",
-        string_args: ["%root%/%after%/GOP_N20_I/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply"],
-        number_args: [],
-        boolean_args: []
-    }
-    const deleted:Job = {
-        uuid: uuidv6(),
-        type: JobType.DELETE_FILE,
-        lua: "",
-        string_args: ["%root%/%after%/GOP_N20_I/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
+        type: JobType.LUA,
+        lua: FUNIQUE_GS4_BLEND_PREPARE,
+        string_args: [],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "降躁處理 (反)",
-        description: "把渣渣刪掉 !",
-        cronjob: true,
-        cronjobKey: "n_iframe_size",
+        title: "排序改變",
+        description: "優化品質複製",
+        cronjob: false,
+        cronjobKey: "",
         multi: false,
         multiKey: "",
         jobs: [
-            renamee,
-            command1,
-            deleted
+            copyhelper
+        ]
+    }
+    return t
+}
+
+// Blend 生成多個 checkpoint 資料夾
+const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
+    const command1:Job = {
+        uuid: uuidv6(),
+        type: JobType.COMMAND,
+        lua: "",
+        string_args: ["%root%/%after%/BLEND_P%{ ck - 1 * iframe_gap }%_R", "python", "train_sequence.py --start %{ (ck - 1) * iframe_gap }% --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/BLEND_P%{ (ck - 1) * iframe_gap }% --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Blend 資料準備 (正)",
+        description: "生成多個 checkpoint 資料夾",
+        cronjob: true,
+        cronjobKey: "blend",
+        multi: false,
+        multiKey: "",
+        jobs: [
+            command1
         ]
     }
     return t
 }
 
 // Blend 生成多個 checkpoint 資料夾 (正)
-const GetFUNIQUE_GS4ProjectTemplate_Task6 = ():Task => {
+const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_P = ():Task => {
     const createdir:Job = {
         uuid: uuidv6(),
         type: JobType.COPY_DIR,
@@ -291,7 +264,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task6 = ():Task => {
 }
 
 // Blend 生成多個 checkpoint 資料夾 (反)
-const GetFUNIQUE_GS4ProjectTemplate_Task7 = ():Task => {
+const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_N = ():Task => {
     const createdir:Job = {
         uuid: uuidv6(),
         type: JobType.COPY_DIR,
@@ -325,7 +298,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task7 = ():Task => {
 }
 
 // 生成 ply 序列!!
-const GetFUNIQUE_GS4ProjectTemplate_Task8 = ():Task => {
+const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
     //%root%/%after%/GOP_N20_I
     //%root%/%after%/GOP_P20_I
     const t:Task = {
@@ -343,7 +316,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Task8 = ():Task => {
 }
 
 // Lut 顏色校準
-const GetFUNIQUE_GS4ProjectTemplate_Task9 = ():Task => {
+const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
         type: JobType.COMMAND,
@@ -375,37 +348,75 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "lut_thread", value: 5 },
             { name: "group_size", value: 20 },
             { name: "blend", value: 4 },
-            { name: "p_size", value: 0 },
-            { name: "n_size", value: 0 },
-            { name: "n_iframe_size", value: 0 },
-            { name: "p_iframe_size", value: 0 },
+            { name: "contribute", value: 2 },
+            { name: "iframe_size", value: 0 },
         ],
         strings: [
             { name: "root", value: "G:/Developer/Funique/4DGS/Test" },
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out" },
             { name: "prepare", value: "Prepare" },
-            { name: "before_sort", value: "before_sort" },
-            { name: "before_p", value: "before_p" },
-            { name: "before_n", value: "before_n" },
+            { name: "before", value: "before" },
             { name: "after", value: "after" },
             { name: "CAM", value: "CAM" },
             { name: "images", value: "images" },
             { name: "sparse", value: "sparse" },
         ],
-        booleans: [],
+        booleans: [
+            { name: "input_start_0", value: false },
+        ],
     }
     r.parameter = para
     r.task.push(...[
-        GetFUNIQUE_GS4ProjectTemplate_Task0(),
-        GetFUNIQUE_GS4ProjectTemplate_Task1(),
-        GetFUNIQUE_GS4ProjectTemplate_Task2(),
-        GetFUNIQUE_GS4ProjectTemplate_Task3(),
-        GetFUNIQUE_GS4ProjectTemplate_Task4(),
-        GetFUNIQUE_GS4ProjectTemplate_Task5(),
-        GetFUNIQUE_GS4ProjectTemplate_Task6(),
-        GetFUNIQUE_GS4ProjectTemplate_Task7(),
-        GetFUNIQUE_GS4ProjectTemplate_Task8(),
-        GetFUNIQUE_GS4ProjectTemplate_Task9()
+        GetFUNIQUE_GS4ProjectTemplate_Prepare(),
+        GetFUNIQUE_GS4ProjectTemplate_Colmap(),
+        GetFUNIQUE_GS4ProjectTemplate_IFrame(),
+        GetFUNIQUE_GS4ProjectTemplate_Denoise(),
+        GetFUNIQUE_GS4ProjectTemplate_BlendPrepare(),
+        GetFUNIQUE_GS4ProjectTemplate_Checkpoint(),
+        GetFUNIQUE_GS4ProjectTemplate_PlyList(),
+        GetFUNIQUE_GS4ProjectTemplate_Lut()
+    ])
+    return r
+}
+
+export const GetFUNIQUE_GS4ProjectTemplate_v2 = (r:Project):Project => {
+    const para:Parameter = {
+        numbers: [
+            { name: "frameCount", value: 0 },
+            { name: "iframe_gap", value: 5 },
+            { name: "lut_thread", value: 5 },
+            { name: "group_size", value: 20 },
+            { name: "blend", value: 4 },
+            { name: "contribute", value: 2 },
+            { name: "p_size", value: 0 },
+            { name: "n_size", value: 0 },
+            { name: "iframe_size", value: 0 },
+        ],
+        strings: [
+            { name: "root", value: "G:/Developer/Funique/4DGS/Test" },
+            { name: "output", value: "G:/Developer/Funique/4DGS/Test/out" },
+            { name: "prepare", value: "Prepare" },
+            { name: "before", value: "before" },
+            { name: "after", value: "after" },
+            { name: "CAM", value: "CAM" },
+            { name: "images", value: "images" },
+            { name: "sparse", value: "sparse" },
+        ],
+        booleans: [
+            { name: "input_start_0", value: false },
+        ],
+    }
+    r.parameter = para
+    r.task.push(...[
+        GetFUNIQUE_GS4ProjectTemplate_Prepare(),
+        GetFUNIQUE_GS4ProjectTemplate_Colmap(),
+        GetFUNIQUE_GS4ProjectTemplate_IFrame(),
+        GetFUNIQUE_GS4ProjectTemplate_Denoise(),
+        GetFUNIQUE_GS4ProjectTemplate_BlendPrepare(),
+        GetFUNIQUE_GS4ProjectTemplate_Checkpoint_P(),
+        GetFUNIQUE_GS4ProjectTemplate_Checkpoint_N(),
+        GetFUNIQUE_GS4ProjectTemplate_PlyList(),
+        GetFUNIQUE_GS4ProjectTemplate_Lut()
     ])
     return r
 }

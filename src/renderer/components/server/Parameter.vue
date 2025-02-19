@@ -25,7 +25,7 @@ const buffer:Ref<Parameter> = ref({ numbers: [], strings: [], booleans: [] })
 
 const updateParameter = () => {
     if( props.select == undefined) return
-    buffer.value = props.select.parameter
+    buffer.value = JSON.parse(JSON.stringify(props.select.parameter))
     dirty.value = false
 }
 

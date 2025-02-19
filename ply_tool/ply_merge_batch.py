@@ -54,7 +54,7 @@ try:
     f = open(config_path)
 except IOError:
     print("Config file not found")
-    exit()
+    sys.exit()
 
 
 config = read_json_file(config_path)
@@ -79,7 +79,7 @@ try:
     me = int(merge_e)
 except ValueError:
     print("seq_s, seq_e, merge_s, merge_e should be integer")
-    exit()
+    sys.exit()
     
 for i in range(ss, se):
     plys_path = []

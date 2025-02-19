@@ -50,10 +50,10 @@ average_opacity = args.average_opacity
 
 if input_file is None:
     print ("please specify input ply list file")
-    exit()
+    sys.exit()
 if output_file is None:
     print ("please specify output ply file")
-    exit()
+    sys.exit()
 
 plys_path = read_ply_file_list(input_file)
 merge_ply(plys_path, output_file, average_opacity is not None)

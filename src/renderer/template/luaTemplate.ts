@@ -6,24 +6,19 @@ m.messager("Env Init")
 
 local root = env.getstring("root")
 local prepare_folder = env.getstring("prepare")
-local before_sort_folder = env.getstring("before_sort")
-local before_p_folder = env.getstring("before_p")
-local before_n_folder = env.getstring("before_n")
+local before_folder = env.getstring("before")
 local after_folder = env.getstring("after")
 local output_folder = env.getstring("output")
+local input_start_0 = env.getboolean("input_start_0")
 
 local CAM = env.getstring("CAM")
 local images = env.getstring("images")
 local sparse = env.getstring("sparse")
 
-o.deletedir(root.."/"..before_sort_folder)
-o.deletedir(root.."/"..before_p_folder)
-o.deletedir(root.."/"..before_n_folder)
+o.deletedir(root.."/"..before_folder)
 o.deletedir(root.."/"..after_folder)
 o.deletedir(output_folder)
-o.createdir(root.."/"..before_sort_folder)
-o.createdir(root.."/"..before_p_folder)
-o.createdir(root.."/"..before_n_folder)
+o.createdir(root.."/"..before_folder)
 o.createdir(root.."/"..after_folder)
 o.createdir(output_folder)
 
@@ -32,6 +27,12 @@ local prepare_folders = split(o.listdir(root.."/"..prepare_folder.."/"..CAM), "\
 
 local cam_size = #(prepare_folders)
 m.messager("Get CAM count: "..cam_size)
+
+local minus = 1
+
+if input_start_0 then
+    minus = 0
+end
 
 local frame_size = 0
 if cam_size > 0 then
@@ -46,7 +47,7 @@ o.copydir(root.."/"..prepare_folder.."/"..sparse, root.."/"..before_sort_folder.
 for key=1,frame_size,1 do
     o.createdir(root.."/"..before_sort_folder.."/"..tostring(key).."/images")
     for key2=1,cam_size,1 do
-        local from = root.."/"..prepare_folder.."/"..CAM.."/C"..string.format("%04d", key2).."/"..string.format("%04d", key2).."_"..string.format("%06d", key)..".jpg"
+        local from = root.."/"..prepare_folder.."/"..CAM.."/C"..string.format("%04d", key2 - minus).."/"..string.format("%04d", key2).."_"..string.format("%06d", key)..".jpg"
         local to = root.."/"..before_sort_folder.."/"..tostring(key).."/images/"..string.format("%04d", key2)..".jpg"
         o.copyfile(from, to)
     end
@@ -55,15 +56,57 @@ end
 env.setnumber("frameCount", frame_size)
 `
 
-// 把 colmap 結果分成 正, 反 資料夾結構
+// 計算有多少 IFrame
+export const FUNIQUE_GS4_IFRAMEFOLDER:string = `
+local root = env.getstring("root")
+local after_folder = env.getstring("after")
+
+m.messager("Get CAM list")
+local iframe_folders = split(o.listdir(root.."/"..after_folder.."/".."GOP_20_I"), "\\n")
+
+local iframeCount = #(iframe_folders)
+
+m.messager("Get IFrame count: "..iframeCount)
+
+env.setnumber("iframe_size", iframeCount)
+`
+
+// 分成 4 個資寮夾
+export const FUNIQUE_GS4_BLEND_PREPARE:string = `
+local root = env.getstring("root")
+local after_folder = env.getstring("after")
+local iframe_size = env.getnumber("iframe_size")
+local group_size = env.getnumber("group_size")
+local blend = env.getnumber("blend")
+
+local step = math.round(group_size / blend)
+local current = 1
+
+for i=1,step,1 do
+    local path = root.."/"..after_folder.."/".."BLEND_P"..string.format("%2d", (i - 1) * step).."_I"
+    o.createdir(path)
+end
+
+for i=1,iframe_size,1 do
+    local from = root.."/"..after_folder.."/GOP_P20_I/"..tostring(i-1)
+    local to = root.."/"..after_folder.."/".."BLEND_P"..tostring(current - 1).."_I"
+    o.copydir(from, to)
+    current = current + 1
+    if current > step then
+        current = 1
+    end
+end
+`
+
+// 分正負
 export const FUNIQUE_GS4_COPY:string = `
 local root = env.getstring("root")
 local before_sort_folder = env.getstring("before_sort")
-local before_p_folder = env.getstring("before_p")
-local before_n_folder = env.getstring("before_n")
+local before_folder = env.getstring("before")
 local iframe_gap = env.getnumber("iframe_gap")
 local frame_count = env.getnumber("frameCount")
 local group_size = env.getnumber("group_size")
+local blend = env.getnumber("blend")
 
 local z = 1
 local p = 1
@@ -119,25 +162,6 @@ end
 env.setnumber("p_size", p - 1)
 env.setnumber("n_size", n - 1)
 
-`
-
-// 計算有多少 IFrame 正, 反
-export const FUNIQUE_GS4_IFRAMEFOLDER:string = `
-local root = env.getstring("root")
-local after_folder = env.getstring("after")
-
-m.messager("Get CAM list")
-local iframe_folders_p = split(o.listdir(root.."/"..after_folder.."/".."GOP_P20_I"), "\\n")
-local iframe_folders_n = split(o.listdir(root.."/"..after_folder.."/".."GOP_N20_I"), "\\n")
-
-local iframeCount_p = #(iframe_folders_p)
-local iframeCount_n = #(iframe_folders_n)
-
-m.messager("Get + IFrame count: "..iframeCount_p)
-m.messager("Get - IFrame count: "..iframeCount_n)
-
-env.setnumber("p_iframe_size", iframeCount_p)
-env.setnumber("n_iframe_size", iframeCount_n)
 `
 
 // 將 Blend 結果弄成結果資料夾

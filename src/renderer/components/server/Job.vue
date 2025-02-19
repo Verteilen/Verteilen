@@ -46,7 +46,7 @@ const setdirty = () => {
 }
 
 const updateJob = () => {
-    const old:Array<Job> = Object.create(items.value)
+    const old:Array<Job> = JSON.parse(JSON.stringify(items.value))
     items.value = props.select?.jobs ?? []
     const ids = old.filter(x => x.s).map(x => x.uuid)
     items.value.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)

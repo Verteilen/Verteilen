@@ -1,3 +1,8 @@
+export enum JobCategory {
+    Condition,
+    Execution
+}
+
 export enum JobType {
     COPY_FILE,
     COPY_DIR,
