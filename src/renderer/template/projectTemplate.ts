@@ -343,7 +343,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
 export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
         numbers: [
-            { name: "frameCount", value: 0 },
+            { name: "frameCount", value: 20 },
             { name: "iframe_gap", value: 5 },
             { name: "lut_thread", value: 5 },
             { name: "group_size", value: 20 },
@@ -382,7 +382,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
 export const GetFUNIQUE_GS4ProjectTemplate_v2 = (r:Project):Project => {
     const para:Parameter = {
         numbers: [
-            { name: "frameCount", value: 0 },
+            { name: "frameCount", value: 20 },
             { name: "iframe_gap", value: 5 },
             { name: "lut_thread", value: 5 },
             { name: "group_size", value: 20 },

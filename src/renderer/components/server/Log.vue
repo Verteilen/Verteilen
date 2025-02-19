@@ -78,7 +78,12 @@ onUnmounted(() => {
                 </b-button-group>
                 <v-list v-model:selected="selection" @update:selected="current = -1">
                     <v-list-item v-for="(item, i) in props.logs.logs" :key="i" :value="i">
-                        {{ item.project.title }}
+                        <v-list-item-title>
+                            {{ $t('project') }}: {{ item.project.title }}    
+                        </v-list-item-title>
+                        <v-list-item-subtitle>
+                            {{ new Date(item.start_timer).toUTCString() }}    
+                        </v-list-item-subtitle>
                     </v-list-item>
                 </v-list>
             </b-col>

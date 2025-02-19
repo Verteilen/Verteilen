@@ -34,6 +34,7 @@ const receivedPack = (record:Record) => {
             message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
             type: 'warning'
         })
+        return
     }
     
     data.value!.projects = record.projects
@@ -52,6 +53,7 @@ const receivedPack = (record:Record) => {
             state: ExecuteState.NONE
         }
     })
+    data.value!.task_state[0].state = ExecuteState.RUNNING
     data.value!.task_detail = []
     const count = data.value?.projects[data.value!.project_index]?.task[data.value!.task_index]?.jobs.length ?? 0
     for(let i = 0; i < count; i++){

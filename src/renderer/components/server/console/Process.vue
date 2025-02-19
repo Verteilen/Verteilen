@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
 import { ExecuteRecord, ExecuteState } from '../../../interface';
 
 const data = defineModel<ExecuteRecord>()
 const totalLength = ref(4)
-const test =ref([])
+const panelValue:Ref<Array<number>> = ref([])
 
 const getStateColor = (state:number):string => {
     if (state == ExecuteState.NONE) return colors.teal.base
-    else if (state == ExecuteState.RUNNING) return colors.indigo.darken3
-    else if (state == ExecuteState.FINISH) return colors.green.darken3
+    else if (state == ExecuteState.RUNNING) return colors.indigo.lighten1
+    else if (state == ExecuteState.FINISH) return colors.green.base
     else return colors.red.darken4
 }
 
@@ -47,8 +47,14 @@ onUnmounted(() => {
                 {{ $t('project') }}: {{ data.projects[data.project_index]?.title }}
             </v-card-title>
             <v-card-text>
-                <p>{{ $t('is-running') }}: {{ data.running }}</p>
-                <p>{{ $t('is-stop') }}: {{ data.running }}</p>
+                <p>{{ $t('is-running') }}: 
+                    <v-icon v-if="data.running" color="success" icon="mdi-checkbox-marked-circle" end ></v-icon>
+                    <v-icon v-else color="danger" icon="mdi-cancel" end ></v-icon>
+                </p>
+                <p>{{ $t('is-stop') }}:
+                    <v-icon v-if="data.stop" color="success" icon="mdi-checkbox-marked-circle" end ></v-icon>
+                    <v-icon v-else color="danger" icon="mdi-cancel" end ></v-icon>
+                </p>
             </v-card-text>
         </v-card>
         <v-stepper v-if="data.project_index >= 0" :value="getselect(r)" v-for="r in Math.ceil(data.task_state.length / totalLength)" :key="r" :mandatory="false" multiple>
@@ -68,15 +74,17 @@ onUnmounted(() => {
             </v-stepper-header>
         </v-stepper>
         <br /> <br />
-        <b-card no-body v-if="data.project_index >= 0" v-for="(task, i) in data.task_detail" :key="i" bg-variant="dark" :style="{ 'border-color': getStateColor(task.state) }" class="w-100 text-white mb-3 px-4">
-            <b-card-header class="py-1">
-                <span style="margin-right: 10px;">Index: {{ task.index }}</span> 
-                <b-spinner small v-if="task.node.length > 0"></b-spinner>
-            </b-card-header>
-            <b-card-text v-if="task.node.length > 0" class="py-3" style="min-height: 50px;">
-                <p style="line-height: 15px; margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>
-            </b-card-text>
-        </b-card>
+        <v-expansion-panels v-if="data.project_index >= 0" v-model="panelValue">
+            <v-expansion-panel v-for="(task, i) in data.task_detail" :key="i"
+                class="w-100 text-white mb-3 px-4">
+                <v-expansion-panel-title :style="{ 'color': getStateColor(task.state) }" style="background-color: transparent;">
+                    Index: {{ task.index }}
+                </v-expansion-panel-title>
+                <v-expansion-panel-text class="py-3" style="min-height: 50px;">
+                    <p style="line-height: 15px; margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>    
+                </v-expansion-panel-text>
+            </v-expansion-panel>
+        </v-expansion-panels>
         <br /> <br />
     </b-container>
 </template>
