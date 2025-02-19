@@ -26,8 +26,11 @@
             "to": "static",
             "filter": ["**/*"]
         },
-	"!build",
-	"!dist",
-	"!scripts"
+        "!ply_tool",
+        "!docs",
+        "!.github",
+        "!build",
+        "!dist",
+        "!scripts"
     ]
 }
