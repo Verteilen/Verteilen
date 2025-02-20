@@ -305,6 +305,7 @@ const debug_feedback = (e:string) => {
 }
 
 const onChangeLan = (e:string) => {
+  lanSelect.value = e
   // @ts-ignore
   i18n.global.locale = e
   if(!isElectron) return
@@ -385,9 +386,19 @@ onUnmounted(() => {
     <v-tab>{{ $t('toolbar.node') }}</v-tab>
     <v-tab>{{ $t('toolbar.console') }}</v-tab>
     <v-tab>{{ $t('toolbar.log') }}</v-tab>
-    <v-select v-if="!isElectron" v-model="lanSelect" :items="lan" @update:modelValue="onChangeLan" max-width="150px">
-
-    </v-select>
+    <v-menu v-if="!isElectron">
+        <template v-slot:activator="{ props }">
+          <v-btn class="mt-1" v-bind="props">
+            <v-icon class="pr-2" icon="mdi-web"></v-icon>
+            {{ lanSelect }}
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item v-for="(locate, i) in lan" :key="i" :value="locate" @click="onChangeLan(locate)">
+            {{ locate }}
+          </v-list-item>
+        </v-list>
+      </v-menu>
   </v-tabs>
   <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
     <ProjectPage v-show="page == 0" 
