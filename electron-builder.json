@@ -27,11 +27,12 @@
             "to": "static",
             "filter": ["**/*"]
         },
-        "!ply_tool",
-        "!docs",
+        "!.git",
         "!.github",
         "!build",
         "!dist",
+        "!docs",
+        "!ply_tool",
         "!scripts"
     ]
 }
