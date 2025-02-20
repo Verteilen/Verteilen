@@ -61,7 +61,6 @@ Source: "dist\win-unpacked\libEGL.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\win-unpacked\libGLESv2.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\win-unpacked\LICENSE.electron.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\win-unpacked\LICENSES.chromium.html"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\win-unpacked\preference.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\win-unpacked\resources.pak"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\win-unpacked\snapshot_blob.bin"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\win-unpacked\v8_context_snapshot.bin"; DestDir: "{app}"; Flags: ignoreversion
