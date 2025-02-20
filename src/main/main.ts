@@ -1,4 +1,4 @@
-import { app, autoUpdater, BrowserWindow, dialog, session } from 'electron';
+import { app, BrowserWindow, session } from 'electron';
 import { join } from 'path';
 import './client/client';
 import { eventInit } from './event';
@@ -35,10 +35,6 @@ function createWindow () {
   if(process.env.NODE_ENV === 'development'){
     mainWindow?.webContents.openDevTools()
   }
-
-  setInterval(() => {
-    autoUpdater.checkForUpdates()
-  }, 60000)
 }
 
 app.whenReady().then(() => {
@@ -66,24 +62,4 @@ app.whenReady().then(() => {
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit()
 });
-
-autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  const dialogOpts:Electron.MessageBoxOptions = {
-    type: 'info',
-    buttons: ['Restart', 'Later'],
-    title: 'Application Update',
-    message: process.platform === 'win32' ? releaseNotes : releaseName,
-    detail:
-      'A new version has been downloaded. Restart the application to apply the updates.'
-  }
-
-  dialog.showMessageBox(mainWindow!, dialogOpts).then((returnValue) => {
-    if (returnValue.response === 0) autoUpdater.quitAndInstall()
-  })
-})
-
-autoUpdater.on('error', (message) => {
-  console.error('There was a problem updating the application')
-  console.error(message)
-})
 
