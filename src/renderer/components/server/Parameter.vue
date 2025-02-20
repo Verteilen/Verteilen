@@ -161,21 +161,21 @@ onUnmounted(() => {
                 </b-col>
             </b-row>
         </b-container>
-        <b-modal title="新增參數" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <b-form-checkbox v-model="createData.temp">使用樣板</b-form-checkbox>
+        <b-modal :title="$t('modal.new-parameter')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <b-form-checkbox v-model="createData.temp">{{ $t('useTemplate') }}</b-form-checkbox>
             <div v-if="createData.temp">
 
             </div>
             <div v-else>
-                <v-text-field class="mt-3" v-model="createData.name" required label="輸入參數名稱" hide-details></v-text-field>
-                <v-select class="mt-3" v-model="createData.type" :items="options" item-title="text" label="資料型態" hide-details></v-select>
+                <v-text-field class="mt-3" v-model="createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                <v-select class="mt-3" v-model="createData.type" :items="options" item-title="text" :label="$t('modal.parameter-datatype')" hide-details></v-select>
             </div>
             
-            <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
+            <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
         </b-modal>
-        <b-modal title="新增參數" v-model="renameModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="renameData.name" required label="輸入參數名稱" hide-details></v-text-field>
-            <b-button class="mt-3" variant="primary" @click="confirmRename">改名</b-button>
+        <b-modal :title="$t('modal.rename-parameter')" v-model="renameModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <v-text-field v-model="renameData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+            <b-button class="mt-3" variant="primary" @click="confirmRename">{{ $t('rename') }}</b-button>
         </b-modal>
     </div>
 </template>

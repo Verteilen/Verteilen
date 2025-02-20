@@ -261,33 +261,33 @@ onUnmounted(() => {
             </template>
             <template #cell(detail)="data">
                 <b-dropdown :text="$t('action')" class="text-white m-md-2">
-                    <b-dropdown-item @click="datachoose(data.item.ID)">查看</b-dropdown-item>
-                    <b-dropdown-item @click="dataedit(data.item.ID)">編輯</b-dropdown-item>
+                    <b-dropdown-item @click="datachoose(data.item.ID)">{{ $t('check') }}</b-dropdown-item>
+                    <b-dropdown-item @click="dataedit(data.item.ID)">{{ $t('edit') }}</b-dropdown-item>
                     <b-dropdown-divider></b-dropdown-divider>
                     <b-dropdown-item :disabled="isFirst(data.item.ID)" @click="moveup(data.item.ID)">{{ $t('moveup') }}</b-dropdown-item>
                     <b-dropdown-item :disabled="isLast(data.item.ID)" @click="movedown(data.item.ID)">{{ $t('movedown') }}</b-dropdown-item>
                 </b-dropdown>
             </template>
         </b-table>
-        <b-modal title="新增流程" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="createData.title" required label="輸入流程名稱" hide-details></v-text-field>
-            <v-text-field class="mt-3" v-model="createData.description" label="輸入流程敘述" hide-details></v-text-field>
+        <b-modal :title="$t('modal.new-task')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <v-text-field v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
+            <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
             <hr />
-            <b-form-checkbox v-model="createData.cronjob">分散運算</b-form-checkbox>
+            <b-form-checkbox v-model="createData.cronjob">{{ $t('cronjob') }}</b-form-checkbox>
             <v-select class="my-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :items="para_keys" hide-details></v-select>
-            <b-form-checkbox v-if="createData.cronjob" v-model="createData.multi">多核運算</b-form-checkbox>
+            <b-form-checkbox v-if="createData.cronjob" v-model="createData.multi">{{ $t('multicore') }}</b-form-checkbox>
             <v-select class="my-3" v-if="createData.cronjob && createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
-            <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
+            <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
         </b-modal>
-        <b-modal title="編輯流程" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="createData.title" required label="輸入流程名稱" hide-details></v-text-field>
-            <v-text-field class="mt-3" v-model="createData.description" label="輸入流程敘述" hide-details></v-text-field>
+        <b-modal :title="$t('modal.modify-task')" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <v-text-field v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
+            <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
             <hr />
-            <b-form-checkbox v-model="createData.cronjob">分散運算</b-form-checkbox>
+            <b-form-checkbox v-model="createData.cronjob">{{ $t('cronjob') }}</b-form-checkbox>
             <v-select class="my-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :items="para_keys" hide-details></v-select>
-            <b-form-checkbox v-if="createData.multi" v-model="createData.multi">多核運算</b-form-checkbox>
+            <b-form-checkbox v-if="createData.multi" v-model="createData.multi">{{ $t('multicore') }}</b-form-checkbox>
             <v-select class="my-3" v-if="createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
-            <b-button class="mt-3" variant="primary" @click="confirmEdit">修改</b-button>
+            <b-button class="mt-3" variant="primary" @click="confirmEdit">{{ $t('modify') }}</b-button>
         </b-modal>
     </div>
 </template>

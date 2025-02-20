@@ -4,6 +4,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { isElectron } from '../../main';
+import { i18n } from '../../plugins/i18n';
 import { GetDefaultProjectTemplate, GetFUNIQUE_GS4ProjectTemplate } from '../../template/projectTemplate';
 
 interface PROPS {
@@ -69,6 +70,10 @@ const dataedit = (uuid:string) => {
     editUUID.value = uuid;
 }
 
+const dataexport = (uuid:string) => {
+
+}
+
 const deleteSelect = () => {
     emits('delete', items.value.filter(x => x.s).map(x => x.ID))
     nextTick(() => {
@@ -112,7 +117,7 @@ const confirmCreate = () => {
     if (createData.value.useTemp && createData.value.temp == ProjectTemplate.DEFAULT){
         buffer = GetDefaultProjectTemplate(buffer)
     }
-    else if (createData.value.useTemp && createData.value.temp == ProjectTemplate.GS4){
+    else if (createData.value.useTemp && createData.value.temp == ProjectTemplate.FUNIQUE_GS4){
         buffer = GetFUNIQUE_GS4ProjectTemplate(buffer)
     }
     emits('added', 
@@ -150,7 +155,7 @@ const moveup = (uuid:string) => {
 }
 
 const ProjectTemplateTranslate = (t:number):string => {
-    return ProjectTemplateText[t]
+    return i18n.global.t(ProjectTemplateText[t])
 }
 
 const movedown = (uuid:string) => {
@@ -171,16 +176,21 @@ const isLast = (uuid:string) => {
     return index == props.projects.length - 1
 }
 
-onMounted(() => {
+const updateLocate = () => {
     temps.value = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: ProjectTemplateTranslate(index as ProjectTemplate),
             value: index
         }
     })
+}
+
+onMounted(() => {
+    updateLocate()
     updateProject()
     emitter?.on('updateProject', updateProject)
     emitter?.on('createProject', createProject)
+    emitter?.on('updateLocate', updateLocate)
     if(!isElectron) return
     window.electronAPI.eventOn('createProject', createProject)
 })
@@ -188,6 +198,7 @@ onMounted(() => {
 onUnmounted(() => {
     emitter?.off('updateProject', updateProject)
     emitter?.off('createProject', createProject)
+    emitter?.off('updateLocate', updateLocate)
     if(!isElectron) return
     window.electronAPI.eventOff('createProject', createProject)
 })
@@ -235,8 +246,9 @@ onUnmounted(() => {
                 </template>
                 <template #cell(detail)="data">
                     <b-dropdown :text="$t('action')" class="text-white m-md-2">
-                        <b-dropdown-item @click="datachoose(data.item.ID)">查看</b-dropdown-item>
-                        <b-dropdown-item @click="dataedit(data.item.ID)">編輯</b-dropdown-item>
+                        <b-dropdown-item @click="datachoose(data.item.ID)">{{ $t('check') }}</b-dropdown-item>
+                        <b-dropdown-item @click="dataedit(data.item.ID)">{{ $t('edit') }}</b-dropdown-item>
+                        <b-dropdown-item @click="dataexport(data.item.ID)">{{ $t('export') }}</b-dropdown-item>
                         <b-dropdown-divider></b-dropdown-divider>
                         <b-dropdown-item :disabled="isFirst(data.item.ID)" @click="moveup(data.item.ID)">{{ $t('moveup') }}</b-dropdown-item>
                         <b-dropdown-item :disabled="isLast(data.item.ID)" @click="movedown(data.item.ID)">{{ $t('movedown') }}</b-dropdown-item>
@@ -244,18 +256,18 @@ onUnmounted(() => {
                 </template>
             </b-table>
         </div>
-        <b-modal title="新增專案" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="createData.title" required label="輸入專案名稱" hide-details></v-text-field>
-            <v-text-field class="mt-3" v-model="createData.description" label="輸入專案敘述" hide-details></v-text-field>
+        <b-modal :title="$t('modal.new-project')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <v-text-field v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
+            <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
             <br />
-            <b-form-checkbox v-model="createData.useTemp">使用樣板</b-form-checkbox>
+            <b-form-checkbox v-model="createData.useTemp">{{ $t('useTemplate') }}</b-form-checkbox>
             <v-select v-if="createData.useTemp" class="mt-3" v-model="createData.temp" :items="temps" item-title="text" hide-details></v-select>
-            <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
+            <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
         </b-modal>
-        <b-modal title="編輯專案" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="createData.title" required label="輸入專案名稱" hide-details></v-text-field>
-            <v-text-field class="mt-3" v-model="createData.description" label="輸入專案敘述" hide-details></v-text-field>
-            <b-button class="mt-3" variant="primary" @click="confirmEdit">修改</b-button>
+        <b-modal :title="$t('modal.modify-project')" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <v-text-field v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
+            <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
+            <b-button class="mt-3" variant="primary" @click="confirmEdit">{{ $t('modify') }}</b-button>
         </b-modal>
     </div>
 </template>

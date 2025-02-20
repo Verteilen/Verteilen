@@ -11,6 +11,7 @@ export type BusType = {
     updateTask: void
     updateJob: void
     updateParameter: void
+    updateLocate: void
     updateNode: Array<NodeTable>
     execute: Record
     updateCurrent: ExecutionLog,

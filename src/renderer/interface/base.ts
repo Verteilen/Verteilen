@@ -8,6 +8,7 @@ export interface Job {
     s?: boolean
     index?:number
     uuid: string
+    category: number
     type: number
     lua: string
     string_args: Array<string>

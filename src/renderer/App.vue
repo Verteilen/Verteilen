@@ -29,6 +29,7 @@ const locate = (e:IpcRendererEvent, v:string) => {
   // @ts-ignore
   t.locale = v
   preference.value.lan = v
+  emitter?.emit('updateLocate')
   if(!isElectron) return
   window.electronAPI.send('save_preference', JSON.stringify(preference.value, null, 4))
 }
@@ -57,6 +58,6 @@ onUnmounted(() => {
 <template>
   <ServerClientSelection v-if="mode == -1" />
   <ClientNode v-else-if="mode == 0"/>
-  <ServerNode v-else-if="mode == 1"/>
+  <ServerNode v-else-if="mode == 1" :preference="preference"/>
   <Messager />
 </template>

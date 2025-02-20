@@ -373,8 +373,8 @@ onUnmounted(() => {
                     <b-button @click="stop()" :disabled="data.projects.length == 0 || data.stop" variant="danger">{{ $t('stop') }}</b-button>
                 </b-button-group>
                 <b-list-group>
-                    <b-list-group-item href="#" variant="dark" @click="tag = 0" :active="tag == 0">專案進程</b-list-group-item>
-                    <b-list-group-item href="#" variant="dark" @click="tag = 1" :active="tag == 1">儀錶板</b-list-group-item>
+                    <b-list-group-item href="#" variant="dark" @click="tag = 0" :active="tag == 0">{{ $t('console.list') }}</b-list-group-item>
+                    <b-list-group-item href="#" variant="dark" @click="tag = 1" :active="tag == 1">{{ $t('console.dashboard') }}</b-list-group-item>
                     <b-list-group-item href="#" variant="dark" @click="tag = 2" :active="tag == 2">Debug Log</b-list-group-item>
                 </b-list-group>
             </b-col>

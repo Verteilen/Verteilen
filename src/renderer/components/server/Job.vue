@@ -2,9 +2,9 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { } from 'vue-codemirror';
-import { BusType, Job, JobType, JobTypeText, LUATemplate, LUATemplateText, Project, Task } from '../../interface';
+import { BusType, Job, JobCategory, JobCategoryText, JobType, JobTypeText, LUATemplate, LUATemplateText, Project, Task } from '../../interface';
 import { DEFAULT, FUNIQUE_GS4_PREPARE } from '../../template/luaTemplate';
+import { i18n } from './../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -30,9 +30,10 @@ const emits = defineEmits<{
 }>()
 const hasSelect = ref(false)
 const createModal = ref(false)
-const createData = ref({type: 0, spe_template: 0})
+const createData = ref({category: 0, type: 0, spe_template: 0})
 const items:Ref<Array<JobTable>> = ref([])
 const types:Ref<Array<{  }>> = ref([])
+const categorise:Ref<Array<{ }>> = ref([])
 const lua_types:Ref<Array<{  }>> = ref([])
 const para_keys:Ref<Array<{ value: string, text: string }>> = ref([])
 const dirty = ref(false)
@@ -77,11 +78,14 @@ const taskchange = () => {
     dirty.value = true
 }
 
+const JobCategoryTranslate = (t:number):string => {
+    return i18n.global.t(JobCategoryText[t])
+}
 const JobTypeTranslate = (t:number):string => {
-    return JobTypeText[t]
+    return i18n.global.t(JobTypeText[t])
 }
 const LUATemplateTranslate = (t:number):string => {
-    return LUATemplateText[t]
+    return i18n.global.t(LUATemplateText[t])
 }
 
 const changeCronKey = (key:string) => {
@@ -89,7 +93,7 @@ const changeCronKey = (key:string) => {
 }
 
 const createJob = () => {
-    createData.value = {type: 0, spe_template: 0};
+    createData.value = {category: 0, type: 0, spe_template: 0};
     createModal.value = true
 }
 
@@ -126,6 +130,7 @@ const confirmCreate = () => {
     emits('added', 
         [{ 
             uuid: uuidv6(),
+            category: createData.value.category,
             type: createData.value.type,
             lua: code,
             string_args: [],
@@ -168,7 +173,13 @@ const isLast = (uuid:string) => {
     return index == props.select.jobs.length - 1
 }
 
-onMounted(() => {
+const updateLocate = () => {
+    categorise.value = Object.keys(JobCategory).filter(key => isNaN(Number(key))).map((x, index) => {
+        return {
+            text: JobCategoryTranslate(index as JobCategory),
+            value: index
+        }
+    })
     types.value = Object.keys(JobType).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: JobTypeTranslate(index as JobType),
@@ -181,14 +192,20 @@ onMounted(() => {
             value: index
         }
     })
+}
+
+onMounted(() => {
+    updateLocate()
     updateJob()
     emitter?.on('updateJob', updateJob)
     emitter?.on('updateParameter', updateParameter)
+    emitter?.on('updateLocate', updateLocate)
 })
 
 onUnmounted(() => {
     emitter?.off('updateJob', updateJob)
     emitter?.off('updateParameter', updateParameter)
+    emitter?.off('updateLocate', updateLocate)
 })
 
 </script>
@@ -211,7 +228,7 @@ onUnmounted(() => {
                 <p>{{ props.select.description }}</p>
                 <v-row>
                     <v-col cols="4" class="pt-6">
-                        <b-form-checkbox type="checkbox" @change="taskchange" v-model="props.select.cronjob">群集運算</b-form-checkbox>
+                        <b-form-checkbox type="checkbox" @change="taskchange" v-model="props.select.cronjob">{{ $t('cronjob') }}</b-form-checkbox>
                     </v-col>
                     <v-col>
                         <v-select v-if="props.select.cronjob" v-model="props.select.cronjobKey" @change="(e: string) => changeCronKey(e)" item-title="text" item-value="text" :items="para_keys" hide-details></v-select>
@@ -219,7 +236,7 @@ onUnmounted(() => {
                 </v-row>
                 <v-row>
                     <v-col cols="4" class="pt-6">
-                        <b-form-checkbox type="checkbox" @change="taskchange" v-model="props.select.multi">多核運算</b-form-checkbox>
+                        <b-form-checkbox type="checkbox" @change="taskchange" v-model="props.select.multi">{{ $t('multicore') }}</b-form-checkbox>
                     </v-col>
                     <v-col>
                         <v-select v-if="props.select.multi" v-model="props.select.multiKey" @change="(e: string) => changeCronKey(e)" item-title="text" item-value="text" :items="para_keys" hide-details></v-select>
@@ -275,10 +292,11 @@ onUnmounted(() => {
                     @change="setdirty"/>
             </b-card>
         </div>
-        <b-modal title="新增工作" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <b-form-select v-model="createData.type" :options="types" item-title="text"></b-form-select>
-            <b-form-select class="mt-3" v-if="checkPatterm(createData.type, 'Script')" v-model="createData.spe_template" :options="lua_types" item-title="text"></b-form-select>
-            <b-button class="mt-3" variant="primary" @click="confirmCreate">新增</b-button>
+        <b-modal :title="$t('modal.new-job')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <b-form-select class="mt-3" v-model="createData.category" :options="categorise" item-title="text"></b-form-select>
+            <b-form-select class="mt-3" v-if="createData.category == 1" v-model="createData.type" :options="types" item-title="text"></b-form-select>
+            <b-form-select class="mt-3" v-if="createData.category == 1 && checkPatterm(createData.type, 'Script')" v-model="createData.spe_template" :options="lua_types" item-title="text"></b-form-select>
+            <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
         </b-modal>
     </div>
 </template>

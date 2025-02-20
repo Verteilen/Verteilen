@@ -2,6 +2,23 @@
     "modeselect": {
         "title": "Your role"
     },
+    "modal": {
+        "new-project": "New Project",
+        "modify-project": "Modify Project",
+        "enter-project-name": "Enter Project Name",
+        "enter-project-description": "Enter Project Description",
+        "new-task": "New Task",
+        "modify-task": "Modify Task",
+        "enter-task-name": "Enter Task Name",
+        "enter-task-description": "Enter Task Description",
+        "new-job": "New Job",
+        "new-parameter": "New Parameter",
+        "rename-parameter": "Rename Parameter",
+        "enter-parameter-name": "Enter Parameter Name",
+        "parameter-datatype": "Datatype",
+        "new-node": "New Node",
+        "enter-node-address": "Enter Node Address"
+    },
     "toolbar": {
         "project": "Project",
         "task": "Task",
@@ -21,6 +38,48 @@
         "task-cronjob": "Use multiple node to compute",
         "task-multi": "Use multi-core to compute"
     },
+    "enum":{
+        "jobtype": {
+            "copy-file": "Copy File",
+            "copy-dir": "Copy Dir",
+            "delete-file": "Delete File",
+            "delete-dir": "Delete Dir",
+            "create-file": "Create File",
+            "create-dir": "Create Dir",
+            "rename": "Rename Path",
+            "lua": "Lua",
+            "command": "Command"
+        },
+        "project": {
+            "default": "Default",
+            "gs4": "Funique GS4"
+        },
+        "state": {
+            "none": "Prepare",
+            "running": "Running",
+            "finish": "Finish",
+            "error": "Error",
+            "skip": "Skip"
+        },
+        "lua": {
+            "default": "Default",
+            "gs4-sort": "GS4 Sorting Prepare Folder"
+        },
+        "connection": {
+            "connecting": "Connecting...",
+            "connected": "Connected",
+            "closing": "Closing...",
+            "closed": "Closed"
+        },
+        "category": {
+            "condition": "Condition",
+            "execution": "Execution"
+        }
+    },
+    "console": {
+        "list": "Project List",
+        "dashboard": "Dashboard"
+    },
     "project": "Project",
     "task": "Task",
     "job": "JOB",
@@ -32,16 +91,21 @@
     "server": "Server",
     "node": "Node",
     "action": "Action",
+    "check": "Check",
+    "edit": "Edit",
+    "modify": "Modify",
     "moveup": "Move-Up",
     "movedown": "Move-Down",
     "rename": "Rename",
     "execute": "Execute",
-    "execute-0": "Execute-All",
-    "execute-1": "Execute-Project",
-    "execute-2": "Execute-Task",
+    "execute-0": "All",
+    "execute-1": "Project",
+    "execute-2": "Task",
     "skip-0": "Skip Project",
     "skip-1": "Skip Task",
     "stop": "Stop",
+    "export": "Export",
+    "useTemplate": "Use Template",
     "execute-keep": "Execute (Keep)",
     "parameter-setting": "Parameter Setting",
     "is-running": "Is Running",
@@ -49,5 +113,7 @@
     "clear": "Clear",
     "auto-scroll": "Auto Scroll",
     "close-all": "Close All",
-    "clean": "Clean"
+    "clean": "Clean",
+    "cronjob": "Cronjob",
+    "multicore": "Multicore"
 }

@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { Job, JobType, Parameter, Project, Task } from "../interface";
+import { Job, JobCategory, JobType, Parameter, Project, Task } from "../interface";
 import { FUNIQUE_GS4_BLEND_PREPARE, FUNIQUE_GS4_IFRAMEFOLDER, FUNIQUE_GS4_PREPARE } from "./luaTemplate";
 
 export const GetDefaultProjectTemplate = (r:Project):Project => {
@@ -10,6 +10,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
 const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
     const sortjob:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.LUA,
         lua: FUNIQUE_GS4_PREPARE,
         string_args: [],
@@ -35,6 +36,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
 const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
     const createsp:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
         lua: "",
         string_args: ["%root%/%before%/%{ ck - 1 }%/sparse/0"],
@@ -43,6 +45,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
     }
     const command1:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "feature_extractor --database_path sparse/0/database.db --image_path images"],
@@ -51,6 +54,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
     }
     const command2:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "exhaustive_matcher --database_path sparse/0/database.db"],
@@ -59,6 +63,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
     }
     const command3:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "point_triangulator --database sparse/0/database.db --image_path images --input_path ../sparse/0/TXT/edit --output_path sparse/0"],
@@ -88,6 +93,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
 const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
     const createdir:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
         lua: "",
         string_args: ["%root%/%after%/GOP_20_I"],
@@ -96,6 +102,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
     }
     const command1:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%root%/%after%", "python", "train_sequence.py --start 0 --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
@@ -104,6 +111,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
     }
     const count:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.LUA,
         lua: FUNIQUE_GS4_IFRAMEFOLDER,
         string_args: [],
@@ -112,6 +120,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
     }
     const backup:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COPY_DIR,
         lua: "",
         string_args: ["%root%/%after%/GOP_20_I", "%root%/%after%/GOP_20_I_Backup"],
@@ -140,6 +149,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
 const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
     const renamee:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.RENAME,
         lua: "",
         string_args: ["%root%/%after%/GOP_P20_I/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000/point_cloud.ply", "%root%/%after%/GOP_P20_I/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
@@ -148,6 +158,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
     }
     const command1:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%root%/%after%/GOP_P20_I/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply"],
@@ -156,6 +167,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
     }
     const deleted:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.DELETE_FILE,
         lua: "",
         string_args: ["%root%/%after%/GOP_P20_I/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
@@ -183,6 +195,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
 const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
     const copyhelper:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.LUA,
         lua: FUNIQUE_GS4_BLEND_PREPARE,
         string_args: [],
@@ -208,6 +221,7 @@ const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
 const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%root%/%after%/BLEND_P%{ ck - 1 * iframe_gap }%_R", "python", "train_sequence.py --start %{ (ck - 1) * iframe_gap }% --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/BLEND_P%{ (ck - 1) * iframe_gap }% --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
@@ -233,6 +247,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
 const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_P = ():Task => {
     const createdir:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COPY_DIR,
         lua: "",
         string_args: ["%root%/%after%/GOP_P20_I", "%root%/%after%/GOP_P%{ ck - 1 * iframe_gap }%_R"],
@@ -241,6 +256,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_P = ():Task => {
     }
     const command1:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%root%/%after%/GOP_P%{ ck - 1 * iframe_gap }%_R", "python", "train_sequence.py --start %{ iframe_gap * 0 }% --end %p_size% --cuda 0 --data %root%/%before_p% --output %root%/%after%/GOP_P%{ ck - 1 * iframe_gap }%_R --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
@@ -267,6 +283,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_P = ():Task => {
 const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_N = ():Task => {
     const createdir:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COPY_DIR,
         lua: "",
         string_args: ["%root%/%after%/GOP_N20_I", "%root%/%after%/GOP_N%{ ck - 1 * iframe_gap }%_R"],
@@ -275,6 +292,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_N = ():Task => {
     }
     const command1:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%root%/%after%/GOP_N%{ ck - 1 * iframe_gap }%_R", "python", "train_sequence.py --start %{ iframe_gap * 0 }% --end %n_size% --cuda 0 --data %root%/%before_n% --output %root%/%after%/GOP_N%{ ck - 1 * iframe_gap }%_R --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
@@ -319,6 +337,7 @@ const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
 const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
+        category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%root%/%output%/", "ply_lut", "-i %root%/%after%/%{ ck }%_merged.ply -o %root%/%after%/%{ ck }%.ply"],

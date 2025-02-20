@@ -3,6 +3,7 @@ import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ConnectionText, NodeTable } from '../../interface';
 import { isElectron } from '../../main';
+import { i18n } from '../../plugins/i18n';
 import { WebsocketManager } from '../../script/socket_manager';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -48,7 +49,7 @@ const confirmConnection = () => {
 }
 
 const translate_state = (state:number):string => {
-    return ConnectionText[state]
+    return i18n.global.t(ConnectionText[state])
 }
 
 onMounted(() => {
@@ -78,9 +79,9 @@ onUnmounted(() => {
                 <p>{{ translate_state(data.item.state) }}</p>
             </template>
         </b-table>
-        <b-modal title="新增節點" v-model="connectionModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <b-form-input v-model="connectionData.url" required placeholder="輸入節點位址"></b-form-input>
-            <b-button class="mt-3" variant="primary" @click="confirmConnection">新增</b-button>
+        <b-modal :title="$t('modal.new-node')" v-model="connectionModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
+            <b-form-input v-model="connectionData.url" required :placeholder="$t('modal.enter-node-address')"></b-form-input>
+            <b-button class="mt-3" variant="primary" @click="confirmConnection">{{ $t('create') }}</b-button>
         </b-modal>
     </div>
 </template>

@@ -3,15 +3,15 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecuteRecord, Job, Log, Node, NodeTable, Parameter, Project, Record, Task, WebsocketPack } from '../interface';
+import { BusType, ExecuteRecord, Job, Log, Node, NodeTable, Parameter, Preference, Project, Record, Task, WebsocketPack } from '../interface';
 import { isElectron } from '../main';
 import { set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
+import { i18n } from './../plugins/i18n';
 import ConsolePage from './server/Console.vue';
 import JobPage from './server/Job.vue';
 import LogPage from './server/Log.vue';
-import MenuBar from './server/Menu.vue';
 import NodePage from './server/Node.vue';
 import ParameterPage from './server/Parameter.vue';
 import ProjectPage from './server/Project.vue';
@@ -19,11 +19,19 @@ import TaskPage from './server/Task.vue';
 
 const websocket_manager:Ref<WebsocketManager | undefined> = ref(undefined)
 const execute_manager:Ref<ExecuteManager | undefined> = ref(undefined)
-
+  
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
 
+interface PROPS {
+    preference: Preference
+}
+
+const props = defineProps<PROPS>()
 const page = ref(0)
+const lan = ref(['en', 'zh_tw'])
+const lanSelect = ref(i18n.global.locale as string)
+
 const projects:Ref<Array<Project>> = ref([])
 const projects_exe:Ref<ExecuteRecord>  = ref({
   projects: [],
@@ -296,6 +304,13 @@ const debug_feedback = (e:string) => {
   emitter?.emit('debuglog', e)
 }
 
+const onChangeLan = (e:string) => {
+  // @ts-ignore
+  i18n.global.locale = e
+  if(!isElectron) return
+  window.electronAPI.send('save_preference', JSON.stringify(props.preference, null, 4))
+}
+
 onMounted(() => {
   set_feedback(debug_feedback)
   websocket_manager.value = new WebsocketManager()
@@ -370,6 +385,9 @@ onUnmounted(() => {
     <v-tab>{{ $t('toolbar.node') }}</v-tab>
     <v-tab>{{ $t('toolbar.console') }}</v-tab>
     <v-tab>{{ $t('toolbar.log') }}</v-tab>
+    <v-select v-if="!isElectron" v-model="lanSelect" :items="lan" @update:modelValue="onChangeLan" max-width="150px">
+
+    </v-select>
   </v-tabs>
   <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
     <ProjectPage v-show="page == 0" 
