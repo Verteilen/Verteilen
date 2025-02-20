@@ -9,8 +9,7 @@
         "icon": "src/renderer/assets/vite.ico"
     },
     "linux":  {
-        "target": ["snap"],
-        "publish": ["github"]
+        "target": ["snap"]
     },
     "files": [
         {
