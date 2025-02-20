@@ -11,6 +11,7 @@ export enum ConditionResult {
     ThrowTask,
     SkipSubTask,
     ThrowSubTask,
+    Pause,
 }
 
 export enum JobType {
@@ -23,6 +24,11 @@ export enum JobType {
     RENAME,
     LUA,
     COMMAND
+}
+
+export enum JobType2 {
+    CHECK_PATH,
+    LUA
 }
 
 export enum LUATemplate {
@@ -59,6 +65,17 @@ export const ConnectionText: { [key:number]:string } = {
     3: 'enum.connection.closed',
 }
 
+export const JobResultText: { [key:number]:string } = {
+    0: 'enum.jobresult.none',
+    1: 'enum.jobresult.skip-project',
+    2: 'enum.jobresult.throw-project',
+    3: 'enum.jobresult.skip-task',
+    4: 'enum.jobresult.throw-task',
+    5: 'enum.jobresult.skip-subtask',
+    6: 'enum.jobresult.throw-subtask',
+    7: 'enum.jobresult.pause'
+}
+
 export const JobTypeText: { [key:number]:string } = {
     0: 'enum.jobtype.copy-file',
     1: 'enum.jobtype.copy-dir',
@@ -69,6 +86,11 @@ export const JobTypeText: { [key:number]:string } = {
     6: 'enum.jobtype.rename',
     7: 'enum.jobtype.lua',
     8: 'enum.jobtype.command'
+}
+
+export const JobType2Text: { [key:number]:string } = {
+    0: 'enum.jobtype2.check-path',
+    1: 'enum.jobtype.lua'
 }
 
 export const LUATemplateText: { [key:number]:string } = {

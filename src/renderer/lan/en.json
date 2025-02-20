@@ -38,6 +38,15 @@
         "task-cronjob": "Use multiple node to compute",
         "task-multi": "Use multi-core to compute"
     },
+    "jobpage": {
+        "if-error": "If Error",
+        "from": "From",
+        "to": "To",
+        "path": "Path",
+        "content": "Content",
+        "command": "Command",
+        "parameters": "Parameters"
+    },
     "enum":{
         "jobtype": {
             "copy-file": "Copy File",
@@ -49,6 +58,20 @@
             "rename": "Rename Path",
             "lua": "Lua",
             "command": "Command"
+        },
+        "jobtype2": {
+            "check-path": "Check Path",
+            "lua": "Lua"
+        },
+        "jobresult": {
+            "none": "None",
+            "skip-project": "Skip Project",
+            "throw-project": "Throw Project",
+            "skip-task": "Skip Task",
+            "throw-task": "Throw Task",
+            "skip-subtask": "Skip SubTask",
+            "throw-subtask": "Throw SubTask",
+            "pause": "Pause"
         },
         "project": {
             "default": "Default",

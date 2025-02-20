@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Job, JobCategory, JobCategoryText, JobType, JobTypeText, LUATemplate, LUATemplateText, Project, Task } from '../../interface';
+import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, LUATemplate, LUATemplateText, Project, Task } from '../../interface';
 import { DEFAULT, FUNIQUE_GS4_PREPARE } from '../../template/luaTemplate';
 import { i18n } from './../../plugins/i18n';
 
@@ -33,6 +33,8 @@ const createModal = ref(false)
 const createData = ref({category: 0, type: 0, spe_template: 0})
 const items:Ref<Array<JobTable>> = ref([])
 const types:Ref<Array<{  }>> = ref([])
+const types2:Ref<Array<{  }>> = ref([])
+const result:Ref<Array<{ }>> = ref([])
 const categorise:Ref<Array<{ }>> = ref([])
 const lua_types:Ref<Array<{  }>> = ref([])
 const para_keys:Ref<Array<{ value: string, text: string }>> = ref([])
@@ -56,15 +58,19 @@ const updateJob = () => {
     dirty.value = false
 }
 
-const checkPatterm = (type:number, checker:string):boolean => {
-    const e = ( 
+const checkPatterm = (category:number, type:number, checker:string):boolean => {
+    const e = category == JobCategory.Execution && ( 
         (checker == 'TwoPath' && ( type === JobType.COPY_DIR || type === JobType.COPY_FILE || type === JobType.RENAME )) ||
         (checker == 'OnePath' && ( type === JobType.DELETE_DIR || type === JobType.DELETE_FILE || type === JobType.CREATE_DIR )) ||
         (checker == 'Command' && ( type === JobType.COMMAND )) ||
         (checker == 'Writer' && ( type === JobType.CREATE_FILE )) ||
         (checker == 'Script' && (type == JobType.LUA))
     );
-    return e
+    const e2 = category == JobCategory.Condition && (
+        (checker == 'Script_n' && (type == JobType2.LUA)) ||
+        (checker == 'OnePath_n' && (type == JobType2.CHECK_PATH))
+    )
+    return e || e2
 }
 
 const datachange = (id:string, e:boolean) => {
@@ -83,6 +89,12 @@ const JobCategoryTranslate = (t:number):string => {
 }
 const JobTypeTranslate = (t:number):string => {
     return i18n.global.t(JobTypeText[t])
+}
+const JobType2Translate = (t:number):string => {
+    return i18n.global.t(JobType2Text[t])
+}
+const JobResultTranslate = (t:number):string => {
+    return i18n.global.t(JobResultText[t])
 }
 const LUATemplateTranslate = (t:number):string => {
     return i18n.global.t(LUATemplateText[t])
@@ -134,7 +146,7 @@ const confirmCreate = () => {
             type: createData.value.type,
             lua: code,
             string_args: [],
-            number_args: [],
+            number_args: [0],
             boolean_args: []
         }]
     )
@@ -186,6 +198,18 @@ const updateLocate = () => {
             value: index
         }
     })
+    types2.value = Object.keys(JobType2).filter(key => isNaN(Number(key))).map((x, index) => {
+        return {
+            text: JobType2Translate(index as JobType2),
+            value: index
+        }
+    })
+    result.value = Object.keys(ConditionResult).filter(key => isNaN(Number(key))).map((x, index) => {
+        return {
+            text: JobResultTranslate(index as ConditionResult),
+            value: index
+        }
+    })
     lua_types.value = Object.keys(LUATemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: LUATemplateTranslate(index as LUATemplate),
@@ -220,6 +244,7 @@ onUnmounted(() => {
                 <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">{{ $t('delete') }}</b-button>
             </b-button-group>
         </div>
+        <!-- Task Card -->
         <b-card ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
             <b-card-title>
                 {{ props.select.title }}
@@ -245,6 +270,7 @@ onUnmounted(() => {
             </b-card-text>
         </b-card>
         <hr />
+        <!-- Job List Cards -->
         <div v-if="select != undefined" class="pb-7">
             <b-card v-for="(c, i) in items" no-body :key="i" bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
                 <b-card-header>
@@ -253,7 +279,7 @@ onUnmounted(() => {
                             <b-form-checkbox type="checkbox" v-model="c.s" @change="(e: boolean) => datachange(c.uuid, e)"></b-form-checkbox>
                         </v-col>
                         <v-col>
-                            {{ i }}. {{ JobTypeTranslate(c.type) }}
+                            {{ i }}. {{ c.category == 0 ? JobType2Translate(c.type) : JobTypeTranslate(c.type) }}
                             <span>
                                 <b-dropdown :text="$t('action')" class="text-white m-md-2">
                                     <b-dropdown-item :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">{{ $t('moveup') }}</b-dropdown-item>
@@ -266,36 +292,56 @@ onUnmounted(() => {
                         </v-col>
                     </v-row>
                 </b-card-header>
-                <div v-if="checkPatterm(c.type, 'TwoPath')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" label="來源" hide-details></v-text-field>
-                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" label="目的" hide-details></v-text-field>
+                <!-- Condition -->
+                <div v-if="checkPatterm(c.category, c.type, 'Script_n')">
+                    <v-select v-model="c.number_args[0]" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                    <codemirror  v-model="c.lua" 
+                        style="text-align:left;"
+                        :style="{ height: '40vh' }"
+                        :autofocus="true"
+                        :indent-with-tab="true"
+                        :tab-size="2" 
+                        mode="text/x-lua"
+                        @change="setdirty"/>
                 </div>
-                <div v-else-if="checkPatterm(c.type, 'OnePath')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" label="路徑" hide-details></v-text-field>
+                <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
+                    <v-select v-model="c.number_args[0]" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
                 </div>
-                <div v-else-if="checkPatterm(c.type, 'Writer')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" label="路徑" hide-details></v-text-field>
-                    <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" label="內容" hide-details></v-textarea>
+                <!-- Execution -->
+                <div v-else-if="checkPatterm(c.category, c.type, 'TwoPath')">
+                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.from')" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.to')" hide-details></v-text-field>
                 </div>
-                <div v-else-if="checkPatterm(c.type, 'Command')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" label="執行路徑" hide-details></v-text-field>
-                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" label="命令" hide-details></v-text-field>
-                    <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" label="參數" hide-details></v-text-field>
+                <div v-else-if="checkPatterm(c.category, c.type, 'OnePath')">
+                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
                 </div>
-                <codemirror v-else-if="checkPatterm(c.type, 'Script')" v-model="c.lua" 
-                    style="text-align:left;"
-                    :style="{ height: '40vh' }"
-                    :autofocus="true"
-                    :indent-with-tab="true"
-                    :tab-size="2" 
-                    mode="text/x-lua"
-                    @change="setdirty"/>
+                <div v-else-if="checkPatterm(c.category, c.type, 'Writer')">
+                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                    <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.content')" hide-details></v-textarea>
+                </div>
+                <div v-else-if="checkPatterm(c.category, c.type, 'Command')">
+                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
+                    <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
+                </div>
+                <div v-else-if="checkPatterm(c.category, c.type, 'Script')">
+                    <codemirror  v-model="c.lua" 
+                        style="text-align:left;"
+                        :style="{ height: '40vh' }"
+                        :autofocus="true"
+                        :indent-with-tab="true"
+                        :tab-size="2" 
+                        mode="text/x-lua"
+                        @change="setdirty"/>
+                </div>
             </b-card>
         </div>
         <b-modal :title="$t('modal.new-job')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
             <b-form-select class="mt-3" v-model="createData.category" :options="categorise" item-title="text"></b-form-select>
+            <b-form-select class="mt-3" v-if="createData.category == 0" v-model="createData.type" :options="types2" item-title="text"></b-form-select>
             <b-form-select class="mt-3" v-if="createData.category == 1" v-model="createData.type" :options="types" item-title="text"></b-form-select>
-            <b-form-select class="mt-3" v-if="createData.category == 1 && checkPatterm(createData.type, 'Script')" v-model="createData.spe_template" :options="lua_types" item-title="text"></b-form-select>
+            <b-form-select class="mt-3" v-if="createData.category == 1 && checkPatterm(createData.category, createData.type, 'Script')" v-model="createData.spe_template" :options="lua_types" item-title="text"></b-form-select>
             <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
         </b-modal>
     </div>

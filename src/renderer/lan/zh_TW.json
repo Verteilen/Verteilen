@@ -38,6 +38,15 @@
         "task-cronjob": "用多台電腦執行的任務",
         "task-multi": "單一電腦會使用多核心運算"
     },
+    "jobpage": {
+        "if-error": "如果出錯",
+        "from": "來源",
+        "to": "目的",
+        "path": "路徑",
+        "content": "內容",
+        "command": "命令",
+        "parameters": "參數值"
+    },
     "enum":{
         "jobtype": {
             "copy-file": "複製檔案",
@@ -49,6 +58,20 @@
             "rename": "改名",
             "lua": "LUA 腳本",
             "command": "指令執行"
+        },
+        "jobtype2": {
+            "check-path": "檢查路徑",
+            "lua": "LUA 腳本"
+        },
+        "jobresult": {
+            "none": "無",
+            "skip-project": "跳過專案",
+            "throw-project": "放棄專案",
+            "skip-task": "跳過流程",
+            "throw-task": "放棄流程",
+            "skip-subtask": "跳過子流程",
+            "throw-subtask": "放棄子流程",
+            "pause": "暫停"
         },
         "project": {
             "default": "預設",
