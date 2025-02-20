@@ -37,7 +37,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         uuid: uuidv6(),
         type: JobType.CREATE_DIR,
         lua: "",
-        string_args: ["%root%/%before_sort%/%ck%/sparse"],
+        string_args: ["%root%/%before%/%{ ck - 1 }%/sparse/0"],
         number_args: [],
         boolean_args: []
     }
@@ -45,7 +45,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%before_sort%/%ck%", "colmap", "feature_extractor --database_path sparse/database.db --image_path images"],
+        string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "feature_extractor --database_path sparse/0/database.db --image_path images"],
         number_args: [],
         boolean_args: []
     }
@@ -53,7 +53,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%before_sort%/%ck%", "colmap", "exhaustive_matcher --database_path sparse/database.db"],
+        string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "exhaustive_matcher --database_path sparse/0/database.db"],
         number_args: [],
         boolean_args: []
     }
@@ -61,7 +61,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%before_sort%/%ck%", "colmap", "point_triangulator --database sparse/database.db --image_path images --input_path ../sparse/0/TXT/edit --output_path sparse"],
+        string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "point_triangulator --database sparse/0/database.db --image_path images --input_path ../sparse/0/TXT/edit --output_path sparse/0"],
         number_args: [],
         boolean_args: []
     }
@@ -98,7 +98,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         uuid: uuidv6(),
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%", "python", "train_sequence.py --start 0 --end %frameCount% --cuda 0 --data %root%/%before_p% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
+        string_args: ["%root%/%after%", "python", "train_sequence.py --start 0 --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -361,9 +361,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "images", value: "images" },
             { name: "sparse", value: "sparse" },
         ],
-        booleans: [
-            { name: "input_start_0", value: false },
-        ],
+        booleans: [],
     }
     r.parameter = para
     r.task.push(...[
@@ -373,48 +371,6 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
         GetFUNIQUE_GS4ProjectTemplate_Denoise(),
         GetFUNIQUE_GS4ProjectTemplate_BlendPrepare(),
         GetFUNIQUE_GS4ProjectTemplate_Checkpoint(),
-        GetFUNIQUE_GS4ProjectTemplate_PlyList(),
-        GetFUNIQUE_GS4ProjectTemplate_Lut()
-    ])
-    return r
-}
-
-export const GetFUNIQUE_GS4ProjectTemplate_v2 = (r:Project):Project => {
-    const para:Parameter = {
-        numbers: [
-            { name: "frameCount", value: 20 },
-            { name: "iframe_gap", value: 5 },
-            { name: "lut_thread", value: 5 },
-            { name: "group_size", value: 20 },
-            { name: "blend", value: 4 },
-            { name: "contribute", value: 2 },
-            { name: "p_size", value: 0 },
-            { name: "n_size", value: 0 },
-            { name: "iframe_size", value: 0 },
-        ],
-        strings: [
-            { name: "root", value: "G:/Developer/Funique/4DGS/Test" },
-            { name: "output", value: "G:/Developer/Funique/4DGS/Test/out" },
-            { name: "prepare", value: "Prepare" },
-            { name: "before", value: "before" },
-            { name: "after", value: "after" },
-            { name: "CAM", value: "CAM" },
-            { name: "images", value: "images" },
-            { name: "sparse", value: "sparse" },
-        ],
-        booleans: [
-            { name: "input_start_0", value: false },
-        ],
-    }
-    r.parameter = para
-    r.task.push(...[
-        GetFUNIQUE_GS4ProjectTemplate_Prepare(),
-        GetFUNIQUE_GS4ProjectTemplate_Colmap(),
-        GetFUNIQUE_GS4ProjectTemplate_IFrame(),
-        GetFUNIQUE_GS4ProjectTemplate_Denoise(),
-        GetFUNIQUE_GS4ProjectTemplate_BlendPrepare(),
-        GetFUNIQUE_GS4ProjectTemplate_Checkpoint_P(),
-        GetFUNIQUE_GS4ProjectTemplate_Checkpoint_N(),
         GetFUNIQUE_GS4ProjectTemplate_PlyList(),
         GetFUNIQUE_GS4ProjectTemplate_Lut()
     ])

@@ -415,7 +415,8 @@ onUnmounted(() => {
       :logs="log"
       v-model="projects_exe"/>
       
-    <LogPage v-show="page == 6" :logs="log" />
+    <LogPage v-show="page == 6" :logs="log" 
+      v-model="projects_exe"/>
   </div>
 </template>
 

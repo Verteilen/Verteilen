@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { BusType, ExecuteState, Log } from '../../interface';
+import { BusType, ExecuteRecord, ExecuteState, Log } from '../../interface';
 import { isElectron } from '../../main';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -11,6 +11,7 @@ interface PROPS {
     logs: Log
 }
 
+const data = defineModel<ExecuteRecord>()
 const props = defineProps<PROPS>()
 const leftSize = ref(3)
 const rightSize = ref(9)
@@ -18,6 +19,8 @@ const totalLength = ref(4)
 const current:Ref<number> = ref(-1)
 const selection:Ref<Array<number>> = ref([])
 const getselect = computed(() => selection.value.length == 0 ? undefined : props.logs.logs[selection.value[0]])
+const getselectTask = computed(() => getselect.value == undefined || current.value == -1 ? undefined : getselect.value.logs[current.value])
+const panelValue:Ref<Array<number>> = ref([])
 
 const getEnable = (r:number):Array<number> => {
     if(getselect.value == undefined || current.value == -1) return []
@@ -29,6 +32,7 @@ const getEnable = (r:number):Array<number> => {
 
 const setEnable = (index:number) => {
     current.value = index
+    panelValue.value = []
 }
 
 const updateLog = (log:Log) => {
@@ -55,7 +59,12 @@ const getindex = (r:number, i:number):number => {
 }
 
 const clean = () => {
-    props.logs.logs = []
+    props.logs.logs = props.logs.logs.filter(x => {
+        const c1 = data.value!.projects.length > 0 && data.value!.project_index >= 0 && x.project.uuid == data.value?.projects[data.value?.project_index].uuid
+        const c2 = x.start_timer != 0
+        const c3 = x.end_timer == 0
+        return c1 && c2 && c3
+    })
     updateLog(props.logs)
 }
 
@@ -90,7 +99,7 @@ onUnmounted(() => {
             <b-col :cols="rightSize" v-if="getselect != undefined">
                 <v-stepper :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
                     <v-stepper-header>
-                        <template v-for="i in page(r)" :key="i">
+                        <template v-for="i in page(r - 1)" :key="i">
                             <v-divider v-if="i - 1" />
                             <v-stepper-item 
                                 @click="setEnable(getindex(r, i))"
@@ -104,6 +113,19 @@ onUnmounted(() => {
                         </template>
                     </v-stepper-header>
                 </v-stepper>
+                <br /> 
+                <v-expansion-panels v-if="getselectTask != undefined" v-model="panelValue" multiple>
+                    <v-expansion-panel v-for="(task, i) in getselectTask.task_detail" :key="i"
+                        class="w-100 text-white mb-3 px-4">
+                        <v-expansion-panel-title :style="{ 'color': getStateColor(task.state) }" style="background-color: transparent;">
+                            Index: {{ task.index }}
+                        </v-expansion-panel-title>
+                        <v-expansion-panel-text class="py-3" style="min-height: 50px;">
+                            <p style="line-height: 15px; margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>    
+                        </v-expansion-panel-text>
+                    </v-expansion-panel>
+                </v-expansion-panels>
+                <br /> <br />
             </b-col>
         </b-row>
     </b-container>

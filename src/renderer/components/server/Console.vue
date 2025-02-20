@@ -132,7 +132,10 @@ const execute_project_start = (uuid:string) => {
 }
 
 const execute_project_finish = (uuid:string) => {
-    if(process_type.value == 1) data.value!.running = false
+    if(process_type.value == 1) {
+        data.value!.running = false
+        data.value!.stop = true
+    }
     const index = data.value!.projects.findIndex(x => x.uuid == uuid)
     if(index == -1) return
     data.value!.project = ""
@@ -172,7 +175,10 @@ const execute_task_start = (d:{uuid:string, count:number}) => {
 }
 
 const execute_task_finish = (uuid:string) => {
-    if(process_type.value == 2) data.value!.running = false
+    if(process_type.value == 2) {
+        data.value!.running = false
+        data.value!.stop = true
+    }
     if (data.value!.project_index == -1) return
     const index = data.value!.projects[data.value!.project_index].task.findIndex(x => x.uuid == uuid)
     if(index == -1) return
@@ -188,11 +194,17 @@ const execute_subtask_start = (d:{index:number, node:string}) => {
     console.log("execute_subtask_start", d, data.value!)
     data.value!.task_detail[d.index].node = d.node
     data.value!.task_detail[d.index].state = ExecuteState.RUNNING
+
+    props.logs.logs[0].logs[data.value!.task_index].task_detail[d.index].state = ExecuteState.RUNNING
+    hasNewLog = true
 }
 
 const execute_subtask_end = (d:{index:number, node:string}) => {
     data.value!.task_detail[d.index].node = ""
     data.value!.task_detail[d.index].state = ExecuteState.FINISH
+
+    props.logs.logs[0].logs[data.value!.task_index].task_detail[d.index].state = ExecuteState.FINISH
+    hasNewLog = true
 }
 
 const execute_job_start = (d:{uuid:string, index:number, node:string}) => {
@@ -294,6 +306,8 @@ const skip = (type:number) => {
 }
 
 const clean = () => {
+    props.logs.logs[0].end_timer = Date.now()
+    hasNewLog = true
     props.execute!.Clean()
     data.value!.projects = []
     data.value!.project = ""
@@ -359,9 +373,9 @@ onUnmounted(() => {
                     <b-button @click="stop()" :disabled="data.projects.length == 0 || data.stop" variant="danger">{{ $t('stop') }}</b-button>
                 </b-button-group>
                 <b-list-group>
-                    <b-list-group-item href="#" @click="tag = 0" :active="tag == 0">專案進程</b-list-group-item>
-                    <b-list-group-item href="#" @click="tag = 1" :active="tag == 1">儀錶板</b-list-group-item>
-                    <b-list-group-item href="#" @click="tag = 2" :active="tag == 2">Debug Log</b-list-group-item>
+                    <b-list-group-item href="#" variant="dark" @click="tag = 0" :active="tag == 0">專案進程</b-list-group-item>
+                    <b-list-group-item href="#" variant="dark" @click="tag = 1" :active="tag == 1">儀錶板</b-list-group-item>
+                    <b-list-group-item href="#" variant="dark" @click="tag = 2" :active="tag == 2">Debug Log</b-list-group-item>
                 </b-list-group>
             </b-col>
             <b-col :cols="rightSize" v-show="tag == 0">

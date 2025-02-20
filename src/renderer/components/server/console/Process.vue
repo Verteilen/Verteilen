@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, Ref, ref } from 'vue';
+import { Emitter } from 'mitt';
+import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { ExecuteRecord, ExecuteState } from '../../../interface';
+import { BusType, ExecuteRecord, ExecuteState } from '../../../interface';
+
+const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 const data = defineModel<ExecuteRecord>()
 const totalLength = ref(4)
@@ -30,12 +33,36 @@ const getselect = (r:number):Array<number> => {
     else return []
 }
 
+const ExecuteSubtaskStart = (d:{index:number, node:string}) => {
+    nextTick(() => {
+        const v = !panelValue.value.includes(d.index - 1)
+        if(v) panelValue.value.push(d.index - 1)
+    })
+}
+
+const ExecuteSubtaskFinish = (d:{index:number, node:string}) => {
+    nextTick(() => {
+        const v = panelValue.value.findIndex(x => x == d.index - 1)
+        if(v != -1) panelValue.value.splice(v, 1)
+    })
+}
+
+const ExecuteTaskStart = (d:{uuid:string, count:number}) => {
+    nextTick(() => {
+        panelValue.value = []
+    })
+}
+
 onMounted(() => {
-    
+    emitter?.on('executeSubtaskStart', ExecuteSubtaskStart)
+    emitter?.on('executeSubtaskFinish', ExecuteSubtaskFinish)
+    emitter?.on('executeTaskStart', ExecuteTaskStart)
 })
 
 onUnmounted(() => {
-    
+    emitter?.off('executeSubtaskStart', ExecuteSubtaskStart)
+    emitter?.off('executeSubtaskFinish', ExecuteSubtaskFinish)
+    emitter?.off('executeTaskStart', ExecuteTaskStart)
 })
 
 </script>
@@ -59,10 +86,11 @@ onUnmounted(() => {
         </v-card>
         <v-stepper v-if="data.project_index >= 0" :value="getselect(r)" v-for="r in Math.ceil(data.task_state.length / totalLength)" :key="r" :mandatory="false" multiple>
             <v-stepper-header>
-                <template v-for="i in page(r)" :key="i">
+                <template v-for="i in page(r - 1)" :key="i">
                     <v-divider v-if="i - 1" />
                     <v-stepper-item 
                         class="px-4 py-3 my-1"
+                        :disabled="true"
                         style="background-color: transparent;"
                         :style="{ 'color': getStateColor(data.task_state[getindex(r, i)]?.state ?? 0) }"
                         :value="getindex(r, i)"
@@ -70,11 +98,10 @@ onUnmounted(() => {
                         :complete="data.task_state[getindex(r, i)]?.state == 2">
                     </v-stepper-item>
                 </template>
-                
             </v-stepper-header>
         </v-stepper>
-        <br /> <br />
-        <v-expansion-panels v-if="data.project_index >= 0" v-model="panelValue">
+        <br /> 
+        <v-expansion-panels v-if="data.project_index >= 0" v-model="panelValue" multiple>
             <v-expansion-panel v-for="(task, i) in data.task_detail" :key="i"
                 class="w-100 text-white mb-3 px-4">
                 <v-expansion-panel-title :style="{ 'color': getStateColor(task.state) }" style="background-color: transparent;">

@@ -9,7 +9,6 @@ local prepare_folder = env.getstring("prepare")
 local before_folder = env.getstring("before")
 local after_folder = env.getstring("after")
 local output_folder = env.getstring("output")
-local input_start_0 = env.getboolean("input_start_0")
 
 local CAM = env.getstring("CAM")
 local images = env.getstring("images")
@@ -28,12 +27,6 @@ local prepare_folders = split(o.listdir(root.."/"..prepare_folder.."/"..CAM), "\
 local cam_size = #(prepare_folders)
 m.messager("Get CAM count: "..cam_size)
 
-local minus = 1
-
-if input_start_0 then
-    minus = 0
-end
-
 local frame_size = 0
 if cam_size > 0 then
     local f1_files = split(o.listfile(root.."/"..prepare_folder.."/"..CAM.."/"..prepare_folders[1]), "\\n")
@@ -42,14 +35,15 @@ end
 m.messager("Get Frame count: "..frame_size)
 
 m.messager("Copy sparse folder")
-o.copydir(root.."/"..prepare_folder.."/"..sparse, root.."/"..before_sort_folder.."/"..sparse)
+o.copydir(root.."/"..prepare_folder.."/"..sparse, root.."/"..before_folder.."/"..sparse)
 
 for key=1,frame_size,1 do
-    o.createdir(root.."/"..before_sort_folder.."/"..tostring(key).."/images")
+    o.createdir(root.."/"..before_folder.."/"..tostring(key - 1).."/images")
     for key2=1,cam_size,1 do
-        local from = root.."/"..prepare_folder.."/"..CAM.."/C"..string.format("%04d", key2 - minus).."/"..string.format("%04d", key2).."_"..string.format("%06d", key)..".jpg"
-        local to = root.."/"..before_sort_folder.."/"..tostring(key).."/images/"..string.format("%04d", key2)..".jpg"
+        local from = root.."/"..prepare_folder.."/"..CAM.."/C"..string.format("%04d", key2).."/"..string.format("%04d", key2).."_"..string.format("%06d", key)..".jpg"
+        local to = root.."/"..before_folder.."/"..tostring(key - 1).."/images/"..string.format("%04d", key2)..".jpg"
         o.copyfile(from, to)
+        m.messager_log("Copy file: '"..from.."'   to  '"..to.."'")
     end
 end
 
