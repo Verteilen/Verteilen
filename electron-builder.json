@@ -5,10 +5,12 @@
         "output": "dist"
     },
     "win": {
-        "target": ["portable"]
+        "target": "msi",
+        "icon": "src/renderer/assets/vite.ico"
     },
     "linux":  {
-        "target": ["snap"]
+        "target": ["snap"],
+        "publish": ["github"]
     },
     "files": [
         {
