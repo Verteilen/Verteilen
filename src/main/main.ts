@@ -7,11 +7,6 @@ import './plugins/i18n';
 
 export let mainWindow:BrowserWindow | undefined = undefined
 
-const server = 'https://your-deployment-url.com'
-const url = `${server}/update/${process.platform}/${app.getVersion()}`
-
-autoUpdater.setFeedURL({ url })
-
 function createWindow () {
   mainWindow = new BrowserWindow({
     width: 1280,
