@@ -88,13 +88,15 @@ local current = 1
 
 for i=1,step,1 do
     local path = root.."/"..after_folder.."/".."BLEND_P"..string.format("%2d", (i - 1) * step).."_I"
+    m.messager("Create folder: "..path)
     o.createdir(path)
 end
 
 for i=1,iframe_size,1 do
     local from = root.."/"..after_folder.."/GOP_P20_I/"..tostring(i-1)
-    local to = root.."/"..after_folder.."/".."BLEND_P"..tostring(current - 1).."_I"
+    local to = root.."/"..after_folder.."/".."BLEND_P"..string.format("%2d", (current - 1) * step).."_I"
     o.copydir(from, to)
+
     current = current + 1
     if current > step then
         current = 1
