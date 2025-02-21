@@ -2,7 +2,7 @@
     "name": "compute_tool_node",
     "version": "0.1.0",
     "description": "A minimal Electron + Vue application",
-    "main": "main/main.js",
+    "main": "index.js",
     "repository": "https://github.com/deluze/electron-vue-template",
     "dependencies": {
         "electron-vue-template": "file:",
