@@ -115,7 +115,7 @@ export class ExecuteManager{
                     allworks.push(...x.work)
                 })
                 
-                if(this.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length > 0).length == 0){
+                if(this.check_all_cron_end()){
                     allJobFinish = true
                 }else{
                     // Assign worker
@@ -161,7 +161,7 @@ export class ExecuteManager{
 
                 if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN)
                 {
-                    if(this.current_job.length == task.jobs.length && this.current_job.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length == 0){
+                    if(this.check_single_end()){
                         allJobFinish = true
                     }else{
                         if(this.current_job.length != task.jobs.length){
@@ -539,6 +539,9 @@ export class ExecuteManager{
     //#endregion
 
     //#region 
+    private check_all_cron_end = () => {
+        return this.current_cron.filter(x => !this.check_cron_end(x)).length == 0
+    }
     private check_cron_end = (cron:CronJobState) => {
         return cron.work.filter(x => x.state != ExecuteState.FINISH && x.state != ExecuteState.ERROR).length == 0
     }
