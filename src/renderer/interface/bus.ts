@@ -26,7 +26,7 @@ export type BusType = {
     executeSubtaskStart: { index:number, node:string }
     executeSubtaskFinish: { index:number, node:string }
     executeJobStart: { uuid:string, index:number, node:string }
-    executeJobFinish: { uuid:string, index:number, node:string }
+    executeJobFinish: { uuid:string, index:number, node:string, meta:number }
 
     analysis: { name:string, h:Header, c:WebsocketPack | undefined }
     debuglog: string

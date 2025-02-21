@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { BusType, ExecuteRecord, ExecuteState, ExecutionLog, Log, Record, Setter } from '../../interface';
+import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, JobCategory, Log, Record, Setter } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 
@@ -21,6 +21,11 @@ const props = defineProps<PROPS>()
 const leftSize = ref(3)
 const rightSize = ref(9)
 const tag = ref(1)
+/**
+ * 0: All\
+ * 1: Project\
+ * 2: Task
+ */
 const process_type = ref(-1)
 let hasNewLog = false
 
@@ -46,6 +51,7 @@ const receivedPack = (record:Record) => {
         }
     })
     data.value!.project_index = pass
+    data.value!.project = record.projects[pass].uuid
     data.value!.task_index = 0
     data.value!.task_state = data.value!.projects[0].task.map(x => {
         return {
@@ -172,7 +178,6 @@ const execute_task_start = (d:{uuid:string, count:number}) => {
             state: ExecuteState.NONE
         })
     }
-    console.log("task_start", data.value!)
     props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.RUNNING
     props.logs.logs[0].logs[data.value!.task_index].start_timer = Date.now()
     hasNewLog = true
@@ -195,7 +200,6 @@ const execute_task_finish = (uuid:string) => {
 }
 
 const execute_subtask_start = (d:{index:number, node:string}) => {
-    console.log("execute_subtask_start", d, data.value!)
     data.value!.task_detail[d.index].node = d.node
     data.value!.task_detail[d.index].state = ExecuteState.RUNNING
 
@@ -215,7 +219,45 @@ const execute_job_start = (d:{uuid:string, index:number, node:string}) => {
     //data.value!.task_detail[index].node = node
 }
 
-const execute_job_finish = (d:{uuid:string, index:number, node:string}) => {
+const execute_job_finish = (d:{uuid:string, index:number, node:string, meta:number}) => {
+    if (d.meta == 1){
+        const task = data.value!.projects[data.value!.project_index].task[data.value!.task_index]
+        const index = task.jobs.findIndex(x => x.uuid == d.uuid)
+        if(index != -1 && task.jobs[index].category == JobCategory.Condition){
+            const cr:ConditionResult = task.jobs[index].number_args[0] as ConditionResult
+            if(cr == ConditionResult.None) return
+            stop()
+            let timer:any
+            timer = setInterval(() => {
+                if(data.value!.running == false){
+                    hasNewLog = true
+                    clearInterval(timer)
+                    if (cr == ConditionResult.Pause) return
+                    const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
+                    props.logs.logs[data.value!.project_index].logs[data.value!.task_index].task_detail[index].state = state
+                    props.logs.logs[data.value!.project_index].logs[data.value!.task_index].task_state.state = state
+                    if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
+                        props.logs.logs[data.value!.project_index].state = state
+                        skip(0, state)
+                        if(data.value!.project.length > 0){
+                            if(process_type.value == 0){
+                                execute(process_type.value)
+                            }
+                        }
+                    }
+                    else if (cr == ConditionResult.SkipTask || cr == ConditionResult.ThrowTask){
+                        skip(1, state)
+                        if(data.value!.project.length > 0){
+                            if(process_type.value == 0){
+                                execute(process_type.value)
+                            }
+                        }
+                    }
+                }
+            }, 1000);
+            
+        }
+    }
     //data.value!.task_detail[index].node = ""
 }
 
@@ -251,10 +293,10 @@ const execute = (type:number) => {
     data.value!.stop = false
 }
 
-const skip = (type:number) => {
+const skip = (type:number, state?:ExecuteState) => {
     if(type == 0){
         // Project
-        data.value!.project_state[data.value!.project_index].state = ExecuteState.FINISH
+        data.value!.project_state[data.value!.project_index].state = state != undefined ? state : ExecuteState.FINISH
         data.value!.project_index += 1
         if(data.value!.project_index == data.value!.projects.length) {
             data.value!.project_index = -1
@@ -284,12 +326,12 @@ const skip = (type:number) => {
         }
     }else if (type == 1){
         // Task
-        data.value!.task_state[data.value!.task_index].state = ExecuteState.FINISH
+        data.value!.task_state[data.value!.task_index].state = state != undefined ? state : ExecuteState.FINISH
         data.value!.task_index += 1
         if(data.value!.task_index == data.value!.task_state.length) {
             skip(0)
         }else{
-            data.value!.task_state[data.value!.task_index].state = ExecuteState.RUNNING
+            data.value!.task_state[data.value!.task_index].state = state != undefined ? state : ExecuteState.FINISH
             data.value!.task_detail = []
             const p = data.value!.projects[data.value!.project_index]
             const t = p.task[data.value!.task_index]

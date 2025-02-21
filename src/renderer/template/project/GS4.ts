@@ -1,6 +1,41 @@
 import { v6 as uuidv6 } from 'uuid';
-import { Job, JobCategory, JobType, Parameter, Project, Task } from "../../interface";
+import { ConditionResult, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
 import { FUNIQUE_GS4_BLEND_PREPARE, FUNIQUE_GS4_IFRAMEFOLDER, FUNIQUE_GS4_PREPARE } from "./../lua/GS4";
+
+const GetFUNIQUE_GS4ProjectTemplate_Checker = ():Task => {
+    const prepareExist:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Condition,
+        type: JobType2.CHECK_PATH,
+        lua: "",
+        string_args: ["%root%/%prepare%"],
+        number_args: [ConditionResult.ThrowProject],
+        boolean_args: []
+    }
+    const videogsExist:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Condition,
+        type: JobType2.CHECK_PATH,
+        lua: "",
+        string_args: ["%videogs%"],
+        number_args: [ConditionResult.ThrowProject],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "檢查階段",
+        description: "從原始資料檢查正確性",
+        cronjob: false,
+        cronjobKey: "",
+        multi: false,
+        multiKey: "",
+        jobs: [
+            prepareExist,
+            videogsExist
+        ]
+    }
+    return t
+}
 
 // 從原始資料夾結構 弄成可以工作的樣子
 const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
@@ -320,6 +355,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
     }
     r.parameter = para
     r.task.push(...[
+        GetFUNIQUE_GS4ProjectTemplate_Checker(),
         GetFUNIQUE_GS4ProjectTemplate_Prepare(),
         GetFUNIQUE_GS4ProjectTemplate_Colmap(),
         GetFUNIQUE_GS4ProjectTemplate_IFrame(),

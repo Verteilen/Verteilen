@@ -87,6 +87,11 @@ onUnmounted(() => {
                 </b-button-group>
                 <v-list v-model:selected="selection" @update:selected="current = -1">
                     <v-list-item v-for="(item, i) in props.logs.logs" :key="i" :value="i">
+                        <template v-slot:prepend>
+                            <v-icon color="primary" v-if="item.state == ExecuteState.NONE || item.state == ExecuteState.RUNNING">mdi-book</v-icon>
+                            <v-icon color="danger" v-else-if="item.state == ExecuteState.ERROR || item.state == ExecuteState.SKIP">mdi-minus</v-icon>
+                            <v-icon color="success" v-else-if="item.state == ExecuteState.FINISH">mdi-check</v-icon>
+                        </template>
                         <v-list-item-title>
                             {{ $t('project') }}: {{ item.project.title }}    
                         </v-list-item-title>

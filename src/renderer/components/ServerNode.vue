@@ -377,7 +377,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <MenuBar v-if="!isElectron" />
   <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
     <v-tab>{{ $t('toolbar.project') }}</v-tab>
     <v-tab>{{ $t('toolbar.task') }}</v-tab>

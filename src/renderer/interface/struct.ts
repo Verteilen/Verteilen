@@ -39,6 +39,7 @@ export interface Setter {
 
 export interface FeedBack {
     job_uuid: string
+    meta: number
     message: string
 }
 

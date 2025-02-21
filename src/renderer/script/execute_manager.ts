@@ -12,8 +12,10 @@ export class ExecuteManager{
     current_job:Array<WorkState> = []
     current_multithread = 1
     state:ExecuteState = ExecuteState.NONE
+    t_state:ExecuteState = ExecuteState.NONE 
     websocket_manager:WebsocketManager
     jobstack = 0
+
 
     constructor(_websocket_manager:WebsocketManager) {
         this.websocket_manager = _websocket_manager
@@ -79,6 +81,7 @@ export class ExecuteManager{
         if(!hasJob){
             emitter.emit('executeTaskStart', { uuid: task.uuid, count: 1 })
             emitter.emit('executeTaskFinish', task.uuid)
+            console.log(`[執行跳過] 沒有工作存在 ${task.uuid}`)
             allJobFinish = true
         }else{
             if(task.cronjob){
@@ -112,11 +115,11 @@ export class ExecuteManager{
                     allworks.push(...x.work)
                 })
                 
-                if(this.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH).length > 0).length == 0){
+                if(this.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length > 0).length == 0){
                     allJobFinish = true
                 }else{
                     // Assign worker
-                    const needs = this.current_cron.filter(x => x.uuid == '' && x.work.filter(y => y.state != ExecuteState.FINISH).length > 0)
+                    const needs = this.current_cron.filter(x => x.uuid == '' && x.work.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length > 0)
                     const min = Math.min(needs.length, ns.length)
                     for(let i = 0; i < min; i++){
                         needs[i].uuid = ns[i].uuid
@@ -158,7 +161,7 @@ export class ExecuteManager{
 
                 if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN)
                 {
-                    if(this.current_job.length == task.jobs.length && this.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH).length > 0).length == 0){
+                    if(this.current_job.length == task.jobs.length && this.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length > 0).length == 0){
                         allJobFinish = true
                     }else{
                         if(this.current_job.length != task.jobs.length){
@@ -184,16 +187,20 @@ export class ExecuteManager{
             if(index == project.task.length - 1){
                 // Finish
                 this.current_t = undefined
+                this.t_state = ExecuteState.FINISH
             }else{
                 // Next
                 this.current_t = project.task[index + 1]
             }
+            this.current_job = []
+            this.current_cron = []
         }
     }
 
     ExecuteProject = (project:Project) => {
-        if(this.current_t == undefined && project.task.length > 0){
+        if(this.current_t == undefined && project.task.length > 0 && this.t_state != ExecuteState.FINISH){
             this.current_t = project.task[0]
+            this.t_state = ExecuteState.RUNNING
             messager_log(`[執行狀態] 開始執行流程 ${this.current_t.uuid}`)
             messager_log(`[執行狀態] 偵測當前流程 cron 狀態: ${this.current_t.cronjob}`)
             this.current_job = []
@@ -209,8 +216,10 @@ export class ExecuteManager{
             if(index == this.current_projects.length - 1){
                 // Finish
                 messager_log(`[執行狀態] 結束執行專案 ${this.current_p?.uuid}`)
+                emitter.emit('executeProjectFinish', this.current_p?.uuid ?? '' )
                 this.current_p = undefined
                 this.state = ExecuteState.FINISH
+                this.t_state = ExecuteState.NONE
             }else{
                 // Next
                 this.current_p = this.current_projects[index + 1]
@@ -347,16 +356,16 @@ export class ExecuteManager{
         this.jobstack = this.jobstack - 1
         messager_log(`[執行狀態] 工作回傳 ${data.job_uuid} ${data.message}`)
         if(this.current_job.length > 0){
-            emitter.emit('executeJobFinish', {uuid: data.job_uuid, index: 1, node: source.uuid})
+            emitter.emit('executeJobFinish', {uuid: data.job_uuid, index: 0, node: source.uuid, meta: data.meta})
             emitter.emit('executeSubtaskFinish', {index: 0, node: source.uuid})
-            this.current_job[this.current_job.length - 1].state = ExecuteState.FINISH
+            this.current_job[this.current_job.length - 1].state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
         }
         if(this.current_cron.length > 0){
             const index = this.current_cron.findIndex(x => x.uuid == source.uuid)
             const jindex = this.current_cron[index].work.findIndex(x => x.uuid == data.job_uuid)
-            emitter.emit('executeJobFinish', {uuid: data.job_uuid, index: this.current_cron[index].id - 1, node: source.uuid})
-            this.current_cron[index].work[jindex].state = ExecuteState.FINISH
-            if(this.current_cron[index].work.filter(x => x.state != ExecuteState.FINISH).length == 0){
+            emitter.emit('executeJobFinish', {uuid: data.job_uuid, index: this.current_cron[index].id - 1, node: source.uuid, meta: data.meta})
+            this.current_cron[index].work[jindex].state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
+            if(this.check_cron_end(this.current_cron[index])){
                 emitter.emit('executeSubtaskFinish', { index: this.current_cron[index].id - 1, node: this.current_cron[index].uuid })
                 this.current_cron[index].uuid = ''
             }
@@ -524,6 +533,12 @@ export class ExecuteManager{
             if(!state && v != '%') buffer += v
         }
         return buffer
+    }
+    //#endregion
+
+    //#region 
+    private check_cron_end = (cron:CronJobState) => {
+        return cron.work.filter(x => x.state != ExecuteState.FINISH && x.state != ExecuteState.ERROR).length == 0
     }
     //#endregion
 }

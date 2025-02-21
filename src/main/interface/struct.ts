@@ -38,6 +38,11 @@ export interface Setter {
 
 export interface FeedBack {
     job_uuid: string
+    /**
+     * 0: Success\
+     * 1: Failed
+     */
+    meta: number
     message: string
 }
 

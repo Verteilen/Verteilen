@@ -11,6 +11,7 @@ export interface Node {
 
 export interface Job {
     uuid: string
+    category: number
     type: number
     lua: string
     index?: number

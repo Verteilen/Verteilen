@@ -9,8 +9,6 @@ export enum ConditionResult {
     ThrowProject,
     SkipTask,
     ThrowTask,
-    SkipSubTask,
-    ThrowSubTask,
     Pause,
 }
 
@@ -71,9 +69,7 @@ export const JobResultText: { [key:number]:string } = {
     2: 'enum.jobresult.throw-project',
     3: 'enum.jobresult.skip-task',
     4: 'enum.jobresult.throw-task',
-    5: 'enum.jobresult.skip-subtask',
-    6: 'enum.jobresult.throw-subtask',
-    7: 'enum.jobresult.pause'
+    5: 'enum.jobresult.pause'
 }
 
 export const JobTypeText: { [key:number]:string } = {

@@ -294,7 +294,7 @@ onUnmounted(() => {
                 </b-card-header>
                 <!-- Condition -->
                 <div v-if="checkPatterm(c.category, c.type, 'Script_n')">
-                    <v-select v-model="c.number_args[0]" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
                     <codemirror  v-model="c.lua" 
                         style="text-align:left;"
                         :style="{ height: '40vh' }"
@@ -305,7 +305,7 @@ onUnmounted(() => {
                         @change="setdirty"/>
                 </div>
                 <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
-                    <v-select v-model="c.number_args[0]" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
                     <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
                 </div>
                 <!-- Execution -->
