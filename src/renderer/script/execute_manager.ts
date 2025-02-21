@@ -403,7 +403,7 @@ export class ExecuteManager{
         if (t.cronjob){
             return this.get_number(t.cronjobKey, p)
         }else{
-            return t.jobs.length
+            return 1
         }
     }
 

@@ -152,9 +152,13 @@ const execute_task_start = (d:{uuid:string, count:number}) => {
     data.value!.task = d.uuid
     data.value!.task_index = index
     data.value!.task_state[index].state = ExecuteState.RUNNING
-    data.value!.task_detail = []
     props.logs.logs[0].logs[data.value!.task_index].task_detail = []
-    for(let i = 0; i < d.count; i++){
+
+    data.value!.task_detail = []
+    const p = data.value!.projects[data.value!.project_index]
+    const t = p.task[data.value!.task_index]
+    const count = props.execute!.get_task_state_count(p, t)
+    for(let i = 0; i < count; i++){
         data.value!.task_detail.push({
             index: i,
             node: "",

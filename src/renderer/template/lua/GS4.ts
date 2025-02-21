@@ -55,14 +55,24 @@ export const FUNIQUE_GS4_IFRAMEFOLDER:string = `
 local root = env.getstring("root")
 local after_folder = env.getstring("after")
 
-m.messager("Get CAM list")
-local iframe_folders = split(o.listdir(root.."/"..after_folder.."/".."GOP_20_I"), "\\n")
+local p = root.."/"..after_folder.."/GOP_20_I/checkpoint"
+local result = 0
 
+m.messager("Get CAM list")
+local iframe_folders = split(o.listdir(p), "\\n")
 local iframeCount = #(iframe_folders)
 
-m.messager("Get IFrame count: "..iframeCount)
 
-env.setnumber("iframe_size", iframeCount)
+for key,value in pairs(iframe_folders) do
+    local e = root.."/"..value.."/point_cloud"
+    local hasFolder = o.exist(e)
+    if hasFolder then
+        result = result + 1
+    end
+end
+
+m.messager("Get IFrame count: "..tostring(result))
+env.setnumber("iframe_size", result)
 `
 
 // 分成 4 個資寮夾
