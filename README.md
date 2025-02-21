@@ -83,9 +83,7 @@
 
 ## 專案樣板內容
 
-### GS4
-
-透過一連串的演算, 從 gaussian splatting 3d 到 gaussian splatting 4d 的方法論
+- [GS4](./docs/GS4.md)
 
 ## 功能一覽
 
