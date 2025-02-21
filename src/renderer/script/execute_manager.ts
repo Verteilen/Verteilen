@@ -161,7 +161,7 @@ export class ExecuteManager{
 
                 if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN)
                 {
-                    if(this.current_job.length == task.jobs.length && this.current_cron.filter(x => x.work.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length > 0).length == 0){
+                    if(this.current_job.length == task.jobs.length && this.current_job.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length == 0){
                         allJobFinish = true
                     }else{
                         if(this.current_job.length != task.jobs.length){
@@ -357,10 +357,12 @@ export class ExecuteManager{
         messager_log(`[執行狀態] 工作回傳 ${data.job_uuid} ${data.message}`)
         if(this.current_job.length > 0){
             emitter.emit('executeJobFinish', {uuid: data.job_uuid, index: 0, node: source.uuid, meta: data.meta})
-            emitter.emit('executeSubtaskFinish', {index: 0, node: source.uuid})
             this.current_job[this.current_job.length - 1].state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
+            if(this.check_single_end()){
+                emitter.emit('executeSubtaskFinish', {index: 0, node: source.uuid})
+            }
         }
-        if(this.current_cron.length > 0){
+        else if(this.current_cron.length > 0){
             const index = this.current_cron.findIndex(x => x.uuid == source.uuid)
             const jindex = this.current_cron[index].work.findIndex(x => x.uuid == data.job_uuid)
             emitter.emit('executeJobFinish', {uuid: data.job_uuid, index: this.current_cron[index].id - 1, node: source.uuid, meta: data.meta})
@@ -539,6 +541,10 @@ export class ExecuteManager{
     //#region 
     private check_cron_end = (cron:CronJobState) => {
         return cron.work.filter(x => x.state != ExecuteState.FINISH && x.state != ExecuteState.ERROR).length == 0
+    }
+    private check_single_end = () => {
+        if(this.current_t == undefined) return false
+        return this.current_job.length == this.current_t.jobs.length && this.current_job.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length == 0
     }
     //#endregion
 }
