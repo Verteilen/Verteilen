@@ -118,9 +118,12 @@ export const execute_job_con = (job:Job) => {
                 }
             case JobType2.LUA:
                 {
-                    const data:TwoPath = { from: job.string_args[0], to: job.string_args[1] }
-                    dir_copy(data)
-                    resolve(`複製資料夾成功, ${data.from}, ${data.to}`)
+                    const r = LuaExecute(job.lua)
+                    if(r != undefined && r == 0){
+                        resolve(`執行 Lua 成功`)
+                    }else{
+                        reject(`執行 Lua 失敗`)
+                    }
                     break
                 }
         }
