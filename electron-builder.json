@@ -1,5 +1,6 @@
 {
     "appId": "com.compute.app",
+    "productName": "Compute Tool",
     "compression": "maximum",
     "directories": {
         "output": "dist"
@@ -7,6 +8,9 @@
     "win": {
         "target": "msi",
         "icon": "src/renderer/assets/vite.ico"
+    },
+    "msi": {
+        "runAfterFinish": false
     },
     "linux":  {
         "target": ["snap"]
