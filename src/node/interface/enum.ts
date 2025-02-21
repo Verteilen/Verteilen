@@ -4,6 +4,22 @@ export enum ExecuteState {
     Finish
 }
 
+export enum JobCategory {
+    Condition,
+    Execution
+}
+
+export enum ConditionResult {
+    None,
+    SkipProject,
+    ThrowProject,
+    SkipTask,
+    ThrowTask,
+    SkipSubTask,
+    ThrowSubTask,
+    Pause,
+}
+
 export enum JobType {
     COPY_FILE,
     COPY_DIR,
@@ -14,6 +30,11 @@ export enum JobType {
     RENAME,
     LUA,
     COMMAND
+}
+
+export enum JobType2 {
+    CHECK_PATH,
+    LUA
 }
 
 export const JobTypeText: { [key:number]:string } = {

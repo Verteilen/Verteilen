@@ -118,7 +118,7 @@ luaEnv.loadLib('m', message)
 export const LuaExecute = (lua:string) => {
     try {
         const execc = luaEnv.parse(lua)
-        const r = execc.exec()
+        return execc.exec()
     }catch(err){
         throw err
     }

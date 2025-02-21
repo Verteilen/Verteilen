@@ -1,8 +1,8 @@
 import { settag, source, tag } from "./client";
 import { messager_log } from "./debugger";
-import { FeedBack, Header, Job, JobType, JobTypeText, OnePath, Parameter, Setter, TwoPath } from "./interface";
+import { FeedBack, Header, Job, JobCategory, JobType, JobType2, JobTypeText, OnePath, Parameter, Setter, TwoPath } from "./interface";
 import { LuaExecute } from "./lua";
-import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write, rename } from "./os";
+import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write, fs_exist, rename } from "./os";
 
 export let current_job:Job | undefined = undefined
 export let parameter:Parameter | undefined = undefined
@@ -15,7 +15,27 @@ export const execute_job = (job:Job) => {
     settag(job.uuid)
     messager_log(`[執行狀態] ${job.uuid}  ${JobTypeText[job.type]}`, tag)
     current_job = job
-    new Promise<string>((resolve, reject) => {
+    const child = current_job.category == JobCategory.Execution ? execute_job_exe(job) : execute_job_con(job)
+    child.then(x => {
+        messager_log(`[執行成功] ${x}`, tag)
+        const data:FeedBack = { job_uuid: job.uuid, message: x }
+        const h:Header = { name: 'feedback_job', data: data }
+        source?.send(JSON.stringify(h))
+        current_job = undefined
+        settag(undefined)
+    })
+    .catch(err => {
+        messager_log(`[執行狀態] 錯誤: ${err}`, tag)
+        const data:FeedBack = { job_uuid: job.uuid, message: err }
+        const h:Header = { name: 'feedback_job', data: data }
+        source?.send(JSON.stringify(h))
+        current_job = undefined
+        settag(undefined)
+    })
+}
+
+export const execute_job_exe = (job:Job) => {
+    return new Promise<string>((resolve, reject) => {
         switch(job.type as JobType){
             case JobType.COPY_FILE:
                 {
@@ -80,21 +100,33 @@ export const execute_job = (job:Job) => {
                 })
                 break
         }
-    }).then(x => {
-        messager_log(`[執行成功] ${x}`, tag)
-        const data:FeedBack = { job_uuid: job.uuid, message: x }
-        const h:Header = { name: 'feedback_job', data: data }
-        source?.send(JSON.stringify(h))
-        current_job = undefined
-        settag(undefined)
     })
-    .catch(err => {
-        messager_log(`[執行狀態] 錯誤: ${err}`, tag)
-        const data:FeedBack = { job_uuid: job.uuid, message: err }
-        const h:Header = { name: 'feedback_job', data: data }
-        source?.send(JSON.stringify(h))
-        current_job = undefined
-        settag(undefined)
+}
+
+export const execute_job_con = (job:Job) => {
+    return new Promise<string>((resolve, reject) => {
+        switch(job.type as JobType2){
+            case JobType2.CHECK_PATH:
+                {
+                    const data:OnePath = { path: job.string_args[0] }
+                    if(fs_exist(data)){
+                        resolve(`路徑存在 ${data.path}`)
+                    }else{
+                        reject(`路徑不存在 ${data.path}`)
+                    }
+                    break
+                }
+            case JobType2.LUA:
+                {
+                    const r = LuaExecute(job.lua)
+                    if(r != undefined && r == 0){
+                        resolve(`執行 Lua 成功`)
+                    }else{
+                        reject(`執行 Lua 失敗`)
+                    }
+                    break
+                }
+        }
     })
 }
 
