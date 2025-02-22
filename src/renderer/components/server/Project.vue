@@ -47,6 +47,13 @@ const updateProject = () => {
     items.value.filter(x => ids.includes(x.ID)).forEach(x => x.s = true)
 }
 
+const recoverProject = (p:Project) => {
+    emits('added', [p])
+    items.value.forEach(x => {
+        datachange(x.ID, false)
+    })
+}
+
 const createProject = () => {
     createData.value = {title: "", description: "", useTemp: false, temp: 0};
     createModal.value = true
@@ -99,10 +106,16 @@ const cloneSelect = () => {
     nextTick(() => {
         updateProject();
     })
+    items.value.forEach(x => {
+        datachange(x.ID, false)
+    })
 }
 
 const execute = (keep:boolean) => {
     emits('execute', items.value.filter(x => x.s).map(x => x.ID), keep)
+    items.value.forEach(x => {
+        datachange(x.ID, false)
+    })
 }
 
 const confirmCreate = () => {
@@ -195,6 +208,7 @@ onMounted(() => {
     updateLocate()
     updateProject()
     emitter?.on('updateProject', updateProject)
+    emitter?.on('recoverProject', recoverProject)
     emitter?.on('createProject', createProject)
     emitter?.on('updateLocate', updateLocate)
     if(!isElectron) return
@@ -203,6 +217,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     emitter?.off('updateProject', updateProject)
+    emitter?.off('recoverProject', recoverProject)
     emitter?.off('createProject', createProject)
     emitter?.off('updateLocate', updateLocate)
     if(!isElectron) return
@@ -243,7 +258,7 @@ onUnmounted(() => {
                 <template #cell(ID)="data">
                     <b-row>
                         <b-col cols="1">
-                            <b-form-checkbox style="float:left; width:15px" v-model="data.s" @change="(v: boolean) => datachange(data.item.ID, v)"></b-form-checkbox>
+                            <b-form-checkbox style="float:left; width:15px" v-model="data.item.s" @change="(v: boolean) => datachange(data.item.ID, v)"></b-form-checkbox>
                         </b-col>
                         <b-col>
                             <a href="#" @click="datachoose(data.item.ID)">{{ data.item.ID }}</a>

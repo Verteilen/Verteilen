@@ -255,7 +255,7 @@ onUnmounted(() => {
             <template #cell(ID)="data">
                 <b-row>
                     <b-col cols="1">
-                        <b-form-checkbox style="float:left; width:15px" v-model="data.s" @change="(v: boolean) => datachange(data.item.ID, v)"></b-form-checkbox>
+                        <b-form-checkbox style="float:left; width:15px" v-model="data.item.s" @change="(v: boolean) => datachange(data.item.ID, v)"></b-form-checkbox>
                     </b-col>
                     <b-col>
                         <a href="#" @click="datachoose(data.item.ID)">{{ data.item.ID }}</a>

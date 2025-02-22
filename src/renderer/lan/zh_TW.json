@@ -138,5 +138,6 @@
     "close-all": "全部關閉",
     "clean": "清除",
     "cronjob": "群集運算",
-    "multicore": "多核運算"
+    "multicore": "多核運算",
+    "recover": "恢復"
 }

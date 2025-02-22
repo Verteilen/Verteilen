@@ -1,13 +1,79 @@
+import { Project } from "./base"
 import { ExecutionLog, Log, Record } from "./record"
 import { Header, Setter, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
+
+export interface BusProjectStart {
+    uuid: string
+}
+
+export interface BusProjectFinish {
+    uuid: string
+}
+
+export interface BusTaskStart {
+    uuid:string
+    count:number
+}
+
+export interface BusTaskFinish {
+    uuid:string
+}
+
+export interface BusSubTaskStart {
+    index:number
+    node:string
+}
+
+export interface BusSubTaskFinish {
+    index:number
+    node:string
+}
+
+export interface BusJobStart {
+    uuid:string
+    /**
+     * Cron Index\
+     * If single, this value will be 0
+     */
+    index:number
+    node:string
+}
+
+export interface BusJobFinish {
+    /**
+     * Job uuid
+     */
+    uuid:string
+    /**
+     * Cron Index\
+     * If single, this value will be 0
+     */
+    index:number
+    /**
+     * Use node uuid
+     */
+    node:string
+    /**
+     * 0: Success\
+     * 1: Failed
+     */
+    meta:number
+}
+
+export interface BusAnalysis {
+    name:string
+    h:Header
+    c:WebsocketPack | undefined
+}
 
 export type BusType = {
     makeToast: ToastData
     modeSelect: boolean
     createProject: void
     updateProject: void
+    recoverProject: Project
     updateTask: void
     updateJob: void
     updateParameter: void
@@ -19,15 +85,15 @@ export type BusType = {
     updateHandle: void
     feedbackMessage: Setter
 
-    executeProjectStart: string
-    executeProjectFinish: string
-    executeTaskStart: { uuid:string, count:number }
-    executeTaskFinish: string
-    executeSubtaskStart: { index:number, node:string }
-    executeSubtaskFinish: { index:number, node:string }
-    executeJobStart: { uuid:string, index:number, node:string }
-    executeJobFinish: { uuid:string, index:number, node:string, meta:number }
+    executeProjectStart: BusProjectStart
+    executeProjectFinish: BusProjectFinish
+    executeTaskStart: BusTaskStart
+    executeTaskFinish: BusTaskFinish
+    executeSubtaskStart: BusSubTaskStart
+    executeSubtaskFinish: BusSubTaskFinish
+    executeJobStart: BusJobStart
+    executeJobFinish: BusJobFinish
 
-    analysis: { name:string, h:Header, c:WebsocketPack | undefined }
+    analysis: BusAnalysis
     debuglog: string
 }

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
+import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { BusType, ExecuteRecord, ExecuteState, Log } from '../../interface';
+import { BusType, ExecuteRecord, ExecuteState, Log, Project } from '../../interface';
 import { isElectron } from '../../main';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -68,6 +69,20 @@ const clean = () => {
     updateLog(props.logs)
 }
 
+const recover = () => {
+    if(getselect.value == undefined) return
+    const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
+    p.uuid = uuidv6()
+    p.title = p.title + " (恢復)"
+    p.task.forEach(x => {
+        x.uuid = uuidv6()
+        x.jobs.forEach(y => {
+            y.uuid = uuidv6()
+        })
+    })
+    emitter?.emit('recoverProject', p)
+}
+
 onMounted(() => {
     emitter?.on('updateLog', updateLog)
 })
@@ -102,6 +117,11 @@ onUnmounted(() => {
                 </v-list>
             </b-col>
             <b-col :cols="rightSize" v-if="getselect != undefined">
+                <div class="py-3">
+                    <b-button-group>
+                        <b-button variant='primary' :disabled="getselect == undefined" @click="recover">{{ $t('recover') }}</b-button>
+                    </b-button-group>
+                </div>
                 <v-stepper :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
                     <v-stepper-header>
                         <template v-for="i in page(r - 1)" :key="i">

@@ -138,5 +138,6 @@
     "close-all": "Close All",
     "clean": "Clean",
     "cronjob": "Cronjob",
-    "multicore": "Multicore"
+    "multicore": "Multicore",
+    "recover": "Recover"
 }

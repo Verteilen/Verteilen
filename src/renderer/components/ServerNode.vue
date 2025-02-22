@@ -75,6 +75,7 @@ const addProject = (v:Array<Project>) => {
   projects.value.push(...v)
   saveRecord()
   allUpdate()
+  page.value = 0
 }
 
 const editProject = (id:string, v:Project) => {
