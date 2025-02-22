@@ -243,7 +243,8 @@ const execute_job_finish = (d:{uuid:string, index:number, node:string, meta:numb
                     clearInterval(timer)
                     if (cr == ConditionResult.Pause) return
                     const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                    currentLog.logs[data.value!.task_index].task_detail[index].state = state
+                    console.log(data.value!.task_index, index, currentLog.logs[data.value!.task_index].task_detail.length)
+                    currentLog.logs[data.value!.task_index].task_detail[d.index].state = state
                     currentLog.logs[data.value!.task_index].task_state.state = state
                     if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
                         skip(0, state)
