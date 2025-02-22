@@ -6,3 +6,7 @@
 
 需要 conda.exe 路徑加入至環境變數 Path 中\
 需要 plytool 的所有 exe 路徑加入至環境變數 Path 中
+
+## 流程說明
+
+...待更新

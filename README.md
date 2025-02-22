@@ -7,13 +7,18 @@
 
 [Demo](https://elly2018.github.io/Compute-Tool/)
 
+## 應用程式截圖
+
+||||
+|-|-|-|
+|![P](./docs/server.png)|![Flow](./docs/flow.png)|![Para](./docs/parameter.png)|
+|![Lua](./docs/luaJob.png)|![commandJob](./docs/commanJob.png)|![pipeline](./docs/execution.png)|
+
 ## 安裝流程
 
 > 桌上型應用安裝
 
-在 Release 的頁面, 每一次的 Beta 版本釋出將會提供一項連結\
-下載後面雲端空間的 .rar 檔案\
-解除壓縮檔案後找到 compute_tool.exe 打開即可
+在 Release 的頁面, 每一次的 Alpha 更新會提供 .msi 下載
 
 > Docker 節點\
 > 需要 Docker 安裝
@@ -29,8 +34,6 @@
 
 ### 工作排序方案
 
-![P](./docs/server.png)
-
 分為專案, 流程, 工作\
 你還可以定義專案的參數值讓各個工作可以存取
 
@@ -39,8 +42,6 @@
 頂分類, 作為任務系統中的最上層容器存在
 
 #### 流程
-
-![Flow](./docs/flow.png)
 
 - Cron: 多台電腦執行流程
 - Multi: 單一電腦可以多核心處裡工作
@@ -54,35 +55,30 @@
 
 #### 工作
 
-節點要執行的一連串動作
-
-#### 參數
-
-![Para](./docs/parameter.png)
-
-專案的參數值, 支援布林, 字串, 跟數字三種資料型態
-
-### Lua 功能
-
-![Lua](./docs/luaJob.png)
-
-你可以在工作中定義 Lua 腳本運行\
-針對 Lua 可以使用的函式, 可以參考[這裡](./docs/Lua.md)
-
-### 變數表達式
-
-![commandJob](./docs/commanJob.png)
+節點要執行的一連串動作\
+你可以在欄位裡面輸入 %變數名稱% 或是表達式 %{ 變數名稱 - 1 }% \
+你可以建立一個範例樣板的專案查看細節
 
 使用了 [expressionparser](https://www.npmjs.com/package/expressionparser) 當作為表達式使用, 這樣可以克服 eval 的不支援問題
 
-### 監控系統
+#### 參數
 
-![pipeline](./docs/execution.png)
+專案的參數值, 支援布林, 字串, 跟數字三種資料型態\
+這些變數可以在運作時進行動態變化, 也可以當成常數使用
+
+### Lua 功能
+
+你可以在工作中定義 Lua 腳本運行\
+Lua 存取或是輸出都是透過函式進行動作\
+針對 Lua 可以使用的函式, 可以參考[這裡](./docs/Lua.md)
+
+### 監控系統
 
 你可以即時看到目前正在運行的工作, 在控制台進行管理跟監控
 
 ## 專案樣板內容
 
+- [Example](./docs/Example.md)
 - [GS4](./docs/GS4.md)
 
 ## 功能一覽
@@ -95,6 +91,7 @@
 - [x] 專案變數表達式支援
 - [x] Docker 支援
 - [x] 純粹節點 node 支援
+- [x] 紀錄恢復功能
 - [ ] 單一電腦多核心支援
 - [ ] 記錄所有資訊, 並且可以恢復任務
 - [ ] 條件偵測, 支援反饋
