@@ -77,9 +77,10 @@ export class ExecuteManager{
         let ns:Array<WebsocketPack> = []
         let allJobFinish = false
         let hasJob = task.jobs.length > 0
+        const taskCount = this.get_task_count(project, task)
 
         if(!hasJob){
-            emitter.emit('executeTaskStart', { uuid: task.uuid, count: 1 })
+            emitter.emit('executeTaskStart', { uuid: task.uuid, count: taskCount })
             emitter.emit('executeTaskFinish', task.uuid)
             console.log(`[執行跳過] 沒有工作存在 ${task.uuid}`)
             allJobFinish = true
@@ -93,8 +94,7 @@ export class ExecuteManager{
                 }else{
                     // First time
                     ns = this.get_idle()
-                    const count = project.parameter.numbers.find(x => x.name == task.cronjobKey)?.value ?? -1
-                    for(let index = 1; index < count + 1; index++){
+                    for(let index = 1; index < taskCount + 1; index++){
                         const d:CronJobState = {
                             id: index,
                             uuid: "",
@@ -107,7 +107,7 @@ export class ExecuteManager{
                         }
                         this.current_cron.push(d)
                     }
-                    emitter.emit('executeTaskStart', { uuid: task.uuid, count: count })
+                    emitter.emit('executeTaskStart', { uuid: task.uuid, count: taskCount })
                 }
                 
                 const allworks:Array<WorkState> = []
@@ -153,7 +153,7 @@ export class ExecuteManager{
                     // First time
                     ns = this.get_idle()
                     if(ns.length > 0) {
-                        emitter.emit('executeTaskStart', { uuid: task.uuid, count: 1 })
+                        emitter.emit('executeTaskStart', { uuid: task.uuid, count: taskCount })
                         emitter.emit('executeSubtaskStart', { index: 0, node: ns[0].uuid })
                         
                     }
@@ -303,18 +303,22 @@ export class ExecuteManager{
         if (this.current_projects.length == 0) return -1
         if (this.current_p == undefined) {
             this.current_p = this.current_projects[0]
+            emitter.emit('executeProjectStart', this.current_p.uuid)
             this.state = ExecuteState.RUNNING
             return 0
         } else {
             const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
             if (index == this.current_projects.length - 1){
+                emitter.emit('executeProjectFinish', this.current_p.uuid)
                 this.current_p = undefined
                 this.state = ExecuteState.FINISH
                 messager_log(`[執行狀態] 跳過專案 此為最後執行專案`)
                 return -1
             } else {
+                emitter.emit('executeProjectFinish', this.current_p.uuid)
                 this.current_p = this.current_projects[index + 1]
                 messager_log(`[執行狀態] 跳過專案到 ${index}. ${this.current_p.uuid}`)
+                emitter.emit('executeProjectStart', this.current_p.uuid)
                 return index
             }
         }
@@ -325,16 +329,22 @@ export class ExecuteManager{
         if (this.current_t == undefined){
             if(this.current_p.task.length > 0){
                 this.current_t = this.current_p.task[0]
+                emitter.emit('executeTaskStart', {uuid: this.current_t.uuid, count: this.get_task_count(this.current_p, this.current_t)})
+                this.t_state = ExecuteState.RUNNING
             } 
             return 0
         } else {
             const index = this.current_p.task.findIndex(x => x.uuid == this.current_t!.uuid)
             if (index == this.current_p.task.length - 1){
+                emitter.emit('executeTaskFinish', this.current_t.uuid)
                 this.current_t = undefined
                 messager_log(`[執行狀態] 跳過流程 此為最後執行流程`)
             } else {
+                emitter.emit('executeTaskFinish', this.current_t.uuid)
                 this.current_t = this.current_p.task[index + 1]
                 messager_log(`[執行狀態] 跳過流程到 ${index}. ${this.current_t.uuid}`)
+                emitter.emit('executeTaskStart', {uuid: this.current_t.uuid, count: this.get_task_count(this.current_p, this.current_t)})
+                this.t_state = ExecuteState.RUNNING
             }
             return index
         }
@@ -548,6 +558,13 @@ export class ExecuteManager{
     private check_single_end = () => {
         if(this.current_t == undefined) return false
         return this.current_job.length == this.current_t.jobs.length && this.current_job.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length == 0
+    }
+    private get_task_count = (p:Project, t:Task) => {
+        if(t.cronjob){
+            const count = p.parameter.numbers.find(x => x.name == t.cronjobKey)?.value ?? -1
+            return count
+        }
+        return 1
     }
     //#endregion
 }

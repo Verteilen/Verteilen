@@ -118,7 +118,7 @@ const execute_project_start = (uuid:string) => {
     const target = data.value!.projects[data.value!.project_index]
     const newlog:ExecutionLog = {
         project: target,
-        state: ExecuteState.NONE,
+        state: ExecuteState.RUNNING,
         start_timer: Date.now(),
         end_timer: 0,
         logs: target.task.map(x => {
@@ -228,11 +228,13 @@ const execute_job_start = (d:{uuid:string, index:number, node:string}) => {
 
 const execute_job_finish = (d:{uuid:string, index:number, node:string, meta:number}) => {
     if (d.meta == 1){
+        const currentLog = props.logs.logs[0]
         const task = data.value!.projects[data.value!.project_index].task[data.value!.task_index]
         const index = task.jobs.findIndex(x => x.uuid == d.uuid)
         if(index != -1 && task.jobs[index].category == JobCategory.Condition){
             const cr:ConditionResult = task.jobs[index].number_args[0] as ConditionResult
             if(cr == ConditionResult.None) return
+            
             stop()
             let timer:any
             timer = setInterval(() => {
@@ -241,11 +243,11 @@ const execute_job_finish = (d:{uuid:string, index:number, node:string, meta:numb
                     clearInterval(timer)
                     if (cr == ConditionResult.Pause) return
                     const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                    props.logs.logs[data.value!.project_index].logs[data.value!.task_index].task_detail[index].state = state
-                    props.logs.logs[data.value!.project_index].logs[data.value!.task_index].task_state.state = state
+                    currentLog.logs[data.value!.task_index].task_detail[index].state = state
+                    currentLog.logs[data.value!.task_index].task_state.state = state
                     if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
-                        props.logs.logs[data.value!.project_index].state = state
                         skip(0, state)
+                        currentLog.state = state
                         if(data.value!.project.length > 0){
                             if(process_type.value == 0){
                                 execute(process_type.value)
