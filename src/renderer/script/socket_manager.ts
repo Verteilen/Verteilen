@@ -34,8 +34,8 @@ export class WebsocketManager{
         if(this.targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
         const client = new WebSocket(url)
         const index = this.targets.push({ uuid: uuid == undefined ? uuidv6() : uuid, websocket: client })
-        client.onerror = (err) => {
-            messager_log(`[錯誤事件] ${err}`)
+        client.onerror = (err:any) => {
+            messager_log(`[錯誤事件] 連線失敗 ${url}`)
         }
         client.onclose = (ev) => {
             if(this.targets[index - 1].s != undefined){

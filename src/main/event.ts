@@ -123,8 +123,12 @@ export const eventInit = () => {
     ipcMain.on('import_project', (event) => {
         ImportProject()
     })
-    ipcMain.on('export_project', (event, data:string) => {
+    ipcMain.on('export_projects', (event, data:string) => {
         const p:Array<Project> = JSON.parse(data)
+        ExportProjects(p)
+    })
+    ipcMain.on('export_project', (event, data:string) => {
+        const p:Project = JSON.parse(data)
         ExportProject(p)
     })
     ipcMain.on('locate', (event, data:string) => {
@@ -155,7 +159,24 @@ export const ImportProject = () => {
     })
 }
 
-export const ExportProject = (value:Array<Project>) => {
+export const ExportProject = (value:Project) => {
+    if(mainWindow == undefined) return;
+    dialog.showSaveDialog(mainWindow, {
+        filters: [
+            {
+                name: "JSON",
+                extensions: ['json']
+            }
+        ]
+    }).then(v => {
+        if (v.canceled || v.filePath.length == 0) return
+        if(mainWindow == undefined) return;
+        const path = v.filePath[0]
+        fs.writeFileSync(path, JSON.stringify(value, null, 4))
+    })
+}
+
+export const ExportProjects = (value:Array<Project>) => {
     if(mainWindow == undefined) return;
     dialog.showOpenDialog(mainWindow, {
         properties: ['openDirectory']

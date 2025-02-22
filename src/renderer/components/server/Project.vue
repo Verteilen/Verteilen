@@ -78,7 +78,10 @@ const dataedit = (uuid:string) => {
 }
 
 const dataexport = (uuid:string) => {
-
+    if(!isElectron) return
+    const p = props.projects.find(x => x.uuid == uuid)
+    if(p != undefined)
+    window.electronAPI.send('export_project', JSON.stringify(p))
 }
 
 const deleteSelect = () => {
