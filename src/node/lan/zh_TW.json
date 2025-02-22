@@ -1,0 +1,25 @@
+{
+    "menu": {
+        "file": "檔案",
+        "edit": "編輯",
+        "execute": "執行",
+        "help": "幫助"
+    },
+    "enum":{
+        "jobtype": {
+            "copy-file": "複製檔案",
+            "copy-dir": "複製資料夾",
+            "delete-file": "刪除檔案",
+            "delete-dir": "刪除資料夾",
+            "create-file": "建立檔案",
+            "create-dir": "建立資料夾",
+            "rename": "改名",
+            "lua": "LUA 腳本",
+            "command": "指令執行"
+        },
+        "jobtype2": {
+            "check-path": "檢查路徑",
+            "lua": "LUA 腳本"
+        }
+    }
+}

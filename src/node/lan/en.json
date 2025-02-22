@@ -1,0 +1,25 @@
+{
+    "menu": {
+        "file": "File",
+        "edit": "Edit",
+        "execute": "Execute",
+        "help": "Help"
+    },
+    "enum":{
+        "jobtype": {
+            "copy-file": "Copy File",
+            "copy-dir": "Copy Dir",
+            "delete-file": "Delete File",
+            "delete-dir": "Delete Dir",
+            "create-file": "Create File",
+            "create-dir": "Create Dir",
+            "rename": "Rename Path",
+            "lua": "Lua",
+            "command": "Command"
+        },
+        "jobtype2": {
+            "check-path": "Check Path",
+            "lua": "Lua"
+        }
+    }
+}

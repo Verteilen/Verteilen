@@ -8,6 +8,7 @@
         "electron-vue-template": "file:",
         "lua-in-js": "^2.2.5",
         "tcp-port-used": "^1.0.2",
-        "ws": "^8.18.0"
+        "ws": "^8.18.0",
+        "vue-i18n": "^10.0.5"
     }
 }
