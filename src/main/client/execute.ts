@@ -1,5 +1,6 @@
 import { messager_log } from "../debugger";
-import { FeedBack, Header, Job, JobCategory, JobType, JobType2, JobTypeText, OnePath, Parameter, Setter, TwoPath } from "../interface";
+import { FeedBack, Header, Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, OnePath, Parameter, Setter, TwoPath } from "../interface";
+import { i18n } from "../plugins/i18n";
 import { settag, source, tag } from "./client";
 import { LuaExecute } from "./lua";
 import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write, fs_exist, rename } from "./os";
@@ -13,7 +14,7 @@ export const execute_job = (job:Job) => {
         return
     }
     settag(job.uuid)
-    messager_log(`[執行狀態] ${job.uuid}  ${JobTypeText[job.type]}`, tag)
+    messager_log(`[執行狀態] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, tag)
     current_job = job
     const child = current_job.category == JobCategory.Execution ? execute_job_exe(job) : execute_job_con(job)
     child.then(x => {

@@ -63,10 +63,13 @@ const detailOpen = () => {
 const cloneSelect = () => {
     if(props.select == undefined) return
     const selectpt = items.value.filter(x => x.s).map(x => x.ID)
-    const ts = props.select.task.filter(x => selectpt.includes(x.uuid)).map(y => Object.create(y))
+    const ts:Array<Task> = props.select.task.filter(x => selectpt.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
     ts.forEach(x => {
         x.uuid = uuidv6()
         x.title = x.title + " (克隆)"
+        x.jobs.forEach(y => {
+            y.uuid = uuidv6()
+        })
     })
     emits('added', ts)
     nextTick(() => {

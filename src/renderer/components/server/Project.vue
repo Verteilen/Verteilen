@@ -84,10 +84,16 @@ const deleteSelect = () => {
 
 const cloneSelect = () => {
     const selectps = items.value.filter(x => x.s).map(x => x.ID)
-    const ps = props.projects.filter(x => selectps.includes(x.uuid)).map(y => Object.create(y))
+    const ps:Array<Project> = props.projects.filter(x => selectps.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
     ps.forEach(x => {
         x.uuid = uuidv6()
         x.title = x.title + " (克隆)"
+        x.task.forEach(y => {
+            y.uuid = uuidv6()
+            y.jobs.forEach(z => {
+                z.uuid = uuidv6()
+            })
+        })
     })
     emits('added', ps)
     nextTick(() => {

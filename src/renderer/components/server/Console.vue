@@ -147,8 +147,15 @@ const execute_project_finish = (uuid:string) => {
     data.value!.project = ""
     data.value!.project_state[index].state = ExecuteState.FINISH
 
+    props.logs.logs[0].state = ExecuteState.FINISH
     props.logs.logs[0].end_timer = Date.now()
     hasNewLog = true
+
+    if(data.value!.projects.length - 1 == index){
+        clean()
+        data.value!.running = false
+        data.value!.stop = true
+    }
 }
 
 const execute_task_start = (d:{uuid:string, count:number}) => {

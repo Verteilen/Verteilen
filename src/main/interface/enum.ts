@@ -38,13 +38,18 @@ export enum JobType2 {
 }
 
 export const JobTypeText: { [key:number]:string } = {
-    0: '複製檔案',
-    1: '複製資料夾',
-    2: '刪除檔案',
-    3: '刪除資料夾',
-    4: '建立檔案',
-    5: '建立資料夾',
-    6: '改名',
-    7: 'LUA 腳本',
-    8: '指令執行'
+    0: 'enum.jobtype.copy-file',
+    1: 'enum.jobtype.copy-dir',
+    2: 'enum.jobtype.delete-file',
+    3: 'enum.jobtype.delete-dir',
+    4: 'enum.jobtype.create-file',
+    5: 'enum.jobtype.create-dir',
+    6: 'enum.jobtype.rename',
+    7: 'enum.jobtype.lua',
+    8: 'enum.jobtype.command'
+}
+
+export const JobType2Text: { [key:number]:string } = {
+    0: 'enum.jobtype2.check-path',
+    1: 'enum.jobtype.lua'
 }

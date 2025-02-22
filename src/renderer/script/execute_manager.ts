@@ -36,7 +36,7 @@ export class ExecuteManager{
         })
     }
 
-    ExecuteJob = (project:Project, task:Task, job:Job, wss:WebsocketPack, iscron:boolean) => {
+    private ExecuteJob = (project:Project, task:Task, job:Job, wss:WebsocketPack, iscron:boolean) => {
         const n:number = job.index!
         messager_log(`[執行狀態] 開始執行工作 ${n}  ${job.uuid}  ${wss.uuid}`)
         emitter.emit('executeJobStart', { uuid: job.uuid, index: n, node: wss.uuid })
@@ -58,7 +58,7 @@ export class ExecuteManager{
         this.jobstack = this.jobstack + 1
     }
     
-    ExecuteCronTask = (project:Project, task:Task, work:CronJobState, ns:WebsocketPack) => {
+    private ExecuteCronTask = (project:Project, task:Task, work:CronJobState, ns:WebsocketPack) => {
         if(ns.state != ExecuteState.RUNNING && ns.current_job == undefined){
             const index = work.work.findIndex(x => x.state == ExecuteState.NONE)
             if(index == 0){
@@ -72,7 +72,7 @@ export class ExecuteManager{
         }
     }
     
-    ExecuteTask = (project:Project, task:Task) => {
+    private ExecuteTask = (project:Project, task:Task) => {
         this.current_multithread = task.multi ? this.set_multi(task.multiKey) : 1
         let ns:Array<WebsocketPack> = []
         let allJobFinish = false
@@ -197,7 +197,7 @@ export class ExecuteManager{
         }
     }
 
-    ExecuteProject = (project:Project) => {
+    private ExecuteProject = (project:Project) => {
         if(this.current_t == undefined && project.task.length > 0 && this.t_state != ExecuteState.FINISH){
             this.current_t = project.task[0]
             this.t_state = ExecuteState.RUNNING

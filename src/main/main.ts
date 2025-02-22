@@ -22,6 +22,10 @@ function createWindow () {
     }
   });
 
+  mainWindow.on('ready-to-show', (e, top) => {
+    mainWindow!.setTitle(`Compute Tool ${process.env.NODE_ENV === 'development' ? process.env.npm_package_version : app.getVersion()}`)
+  })
+
   if (process.env.NODE_ENV === 'development') {
     const rendererPort = process.argv[2];
     mainWindow.loadURL(`http://localhost:${rendererPort}`);
@@ -56,7 +60,6 @@ app.whenReady().then(() => {
       createWindow();
     }
   });
-
 });
 
 app.on('window-all-closed', function () {
