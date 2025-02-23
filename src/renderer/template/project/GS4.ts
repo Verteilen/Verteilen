@@ -146,7 +146,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start 0 --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %{ IF( start_at_0, 0, 1 ) }% --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -193,7 +193,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.RENAME,
         lua: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000/point_cloud.ply", "%root%/%after%/GOP_20_I/checkpoint/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - IF( start_at_0, 1, 0 ) ) * iframe_gap }%/point_cloud/iteration_7000/point_cloud.ply", "%root%/%after%/GOP_20_I/checkpoint/%{ (ck - IF( start_at_0, 1, 0 ) ) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
     }
@@ -202,7 +202,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply -r %denoise% -g %denoise% -b %denoise%"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - IF( start_at_0, 1, 0 ) ) * iframe_gap }%/point_cloud/iteration_7000", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply -r %denoise% -g %denoise% -b %denoise%"],
         number_args: [],
         boolean_args: []
     }
@@ -211,7 +211,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.DELETE_FILE,
         lua: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - 1) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - IF( start_at_0, 1, 0 ) ) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
     }
@@ -352,7 +352,9 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "videogs", value: "C:/videogs/VideoGS" },
             { name: "conda_env", value: "videogs" },
         ],
-        booleans: [],
+        booleans: [
+            { name: "start_at_0", value: false }
+        ],
     }
     r.parameter = para
     r.task.push(...[
