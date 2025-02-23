@@ -16,7 +16,6 @@ export class ExecuteManager{
     websocket_manager:WebsocketManager
     jobstack = 0
 
-
     constructor(_websocket_manager:WebsocketManager) {
         this.websocket_manager = _websocket_manager
         const typeMap:{ [key:string]:Function } = {
@@ -155,11 +154,10 @@ export class ExecuteManager{
                     if(ns.length > 0) {
                         emitter.emit('executeTaskStart', { uuid: task.uuid, count: taskCount })
                         emitter.emit('executeSubtaskStart', { index: 0, node: ns[0].uuid })
-                        
                     }
                 }
 
-                if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN)
+                if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN && ns[0].state != ExecuteState.RUNNING)
                 {
                     if(this.check_single_end()){
                         allJobFinish = true
@@ -169,7 +167,6 @@ export class ExecuteManager{
                                 uuid: ns[0].uuid,
                                 state: ExecuteState.RUNNING
                             })
-                            console.log(ns[0].uuid)
                             const job:Job = JSON.parse(JSON.stringify(task.jobs[this.current_job.length - 1]))
                             job.index = 1
                             this.ExecuteJob(project, task, job, ns[0], false)

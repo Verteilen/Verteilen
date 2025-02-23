@@ -5,24 +5,17 @@ import { FeedBack, Header, Job, JobCategory, JobType, JobType2, JobType2Text, Jo
 import { LuaExecute } from "./lua";
 import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write, fs_exist, rename } from "./os";
 
-export let current_job:Job | undefined = undefined
 export let parameter:Parameter | undefined = undefined
 
 export const execute_job = (job:Job) => {
-    if(current_job != undefined) {
-        messager_log(`[執行狀態] 錯誤! 已經有正在執行的工作`)
-        return
-    }
     settag(job.uuid)
     messager_log(`[執行狀態] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, tag)
-    current_job = job
-    const child = current_job.category == JobCategory.Execution ? execute_job_exe(job) : execute_job_con(job)
+    const child = job.category == JobCategory.Execution ? execute_job_exe(job) : execute_job_con(job)
     child.then(x => {
         messager_log(`[執行成功] ${x}`, tag)
         const data:FeedBack = { job_uuid: job.uuid, message: x }
         const h:Header = { name: 'feedback_job', data: data }
         source?.send(JSON.stringify(h))
-        current_job = undefined
         settag(undefined)
     })
     .catch(err => {
@@ -30,7 +23,6 @@ export const execute_job = (job:Job) => {
         const data:FeedBack = { job_uuid: job.uuid, message: err }
         const h:Header = { name: 'feedback_job', data: data }
         source?.send(JSON.stringify(h))
-        current_job = undefined
         settag(undefined)
     })
 }

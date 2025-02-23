@@ -1,8 +1,11 @@
-import numpy as np
 import argparse
 import os
 import sys
-from plyfile import PlyData, PlyElement, PlyProperty, PlyListProperty
+
+import numpy as np
+from plyfile import PlyData, PlyElement, PlyListProperty, PlyProperty
+
+threshold = [0, 0, 0]
 
 def calculate_rgb(f_dc_0, f_dc_1, f_dc_2):
     SH_C0 = 0.28209479177387814
@@ -15,6 +18,9 @@ def calculate_rgb(f_dc_0, f_dc_1, f_dc_2):
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--input', help='input ply file')
 parser.add_argument('-o', '--output', help='output ply file')
+parser.add_argument('-r', '--red', help='red threshold')
+parser.add_argument('-g', '--green', help='green threshold')
+parser.add_argument('-b', '--blue', help='blue threshold')
 args = parser.parse_args()
 input_file = args.input
 output_file = args.output
@@ -25,6 +31,14 @@ if input_file is None:
 if output_file is None:
     print ("please specify output ply file")
     sys.exit()
+if args.red is not None:
+    threshold[0] = args.red
+if args.green is not None:
+    threshold[1] = args.green
+if args.blue is not None:
+    threshold[2] = args.blue
+
+print("Threshold: " + str(threshold))
 
 if os.path.isfile('temp.ply'):
     os.remove('temp.ply')
