@@ -2,6 +2,7 @@
 import { Emitter } from 'mitt';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, Parameter, Project } from '../../interface';
+import { i18n } from '../../plugins/i18n';
 
 interface PROPS {
     select: Project | undefined
@@ -45,9 +46,9 @@ const cloneSelect = () => {
     const bs = buffer.value.booleans.filter(x => x.s)
     const ss = buffer.value.strings.filter(x => x.s)
     const ns = buffer.value.numbers.filter(x => x.s)
-    bs.forEach(x => x.name += "_clone")
-    ss.forEach(x => x.name += "_clone")
-    ns.forEach(x => x.name += "_clone")
+    bs.forEach(x => x.name += ` (${i18n.global.t('clone')})`)
+    ss.forEach(x => x.name += ` (${i18n.global.t('clone')})`)
+    ns.forEach(x => x.name += ` (${i18n.global.t('clone')})`)
     buffer.value.booleans.push(...bs)
     buffer.value.strings.push(...ss)
     buffer.value.numbers.push(...ns)

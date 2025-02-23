@@ -97,7 +97,7 @@ const cloneSelect = () => {
     const ps:Array<Project> = props.projects.filter(x => selectps.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
     ps.forEach(x => {
         x.uuid = uuidv6()
-        x.title = x.title + " (克隆)"
+        x.title = x.title + ` (${i18n.global.t('clone')})`
         x.task.forEach(y => {
             y.uuid = uuidv6()
             y.jobs.forEach(z => {

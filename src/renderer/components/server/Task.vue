@@ -3,6 +3,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, Project, Task, TaskTable } from '../../interface';
+import { i18n } from '../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -66,7 +67,7 @@ const cloneSelect = () => {
     const ts:Array<Task> = props.select.task.filter(x => selectpt.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
     ts.forEach(x => {
         x.uuid = uuidv6()
-        x.title = x.title + " (克隆)"
+        x.title = x.title + ` (${i18n.global.t('clone')})`
         x.jobs.forEach(y => {
             y.uuid = uuidv6()
         })
