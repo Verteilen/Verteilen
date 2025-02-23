@@ -1,9 +1,10 @@
 import { messager_log } from "../debugger";
 import { Header } from "../interface";
-import { execute_job, set_boolean, set_number, set_parameter, set_string } from "./execute";
+import { execute_job, set_boolean, set_number, set_parameter, set_string, stop_job } from "./execute";
 
 const typeMap = {
     'execute_job': execute_job,
+    'stop_job': stop_job,
     'set_parameter': set_parameter,
     'set_string': set_string,
     'set_number': set_number,

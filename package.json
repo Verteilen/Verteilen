@@ -1,6 +1,6 @@
 {
   "name": "compute_tool",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "A minimal Electron + Vue application",
   "main": "main/main.js",
   "scripts": {

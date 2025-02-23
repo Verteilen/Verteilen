@@ -302,6 +302,7 @@ const execute = (type:number) => {
     process_type.value = type
     data.value!.running = true
     data.value!.stop = false
+    props.execute!.first = true
 }
 
 const skip = (type:number, state?:ExecuteState) => {
@@ -378,6 +379,7 @@ const clean = () => {
 
 const stop = () => {
     data.value!.stop = true
+    props.execute!.Stop()
 }
 
 onMounted(() => {

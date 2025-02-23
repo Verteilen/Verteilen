@@ -217,7 +217,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "降躁處理 (正)",
+        title: "降躁處理",
         description: "把渣渣刪掉 !",
         cronjob: true,
         cronjobKey: "iframe_size",

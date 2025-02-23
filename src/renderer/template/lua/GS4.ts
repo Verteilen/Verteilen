@@ -64,7 +64,7 @@ local iframeCount = #(iframe_folders)
 
 
 for key,value in pairs(iframe_folders) do
-    local e = root.."/"..value.."/point_cloud"
+    local e = root.."/"..after_folder.."/GOP_20_I/checkpoint/"..value.."/point_cloud"
     local hasFolder = o.exist(e)
     if hasFolder then
         result = result + 1

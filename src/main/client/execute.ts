@@ -3,9 +3,13 @@ import { FeedBack, Header, Job, JobCategory, JobType, JobType2, JobType2Text, Jo
 import { i18n } from "../plugins/i18n";
 import { settag, source, tag } from "./client";
 import { LuaExecute } from "./lua";
-import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write, fs_exist, rename } from "./os";
+import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write, fs_exist, rename, stopall } from "./os";
 
 export let parameter:Parameter | undefined = undefined
+
+export const stop_job = () => {
+    stopall()
+}
 
 export const execute_job = (job:Job) => {
     settag(job.uuid)

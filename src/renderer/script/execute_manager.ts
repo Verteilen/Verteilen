@@ -15,6 +15,7 @@ export class ExecuteManager{
     t_state:ExecuteState = ExecuteState.NONE 
     websocket_manager:WebsocketManager
     jobstack = 0
+    first = false
 
     constructor(_websocket_manager:WebsocketManager) {
         this.websocket_manager = _websocket_manager
@@ -230,18 +231,31 @@ export class ExecuteManager{
             this.current_p = this.current_projects[0]
             messager_log(`[執行狀態] 開始執行專案 ${this.current_p.uuid}`)
             emitter.emit('executeProjectStart', { uuid: this.current_p.uuid })
-            for(const x of this.websocket_manager.targets){
-                const h:Header = {
-                    name: 'set_parameter',
-                    message: '初始化參數列',
-                    data: this.current_p.parameter
-                }
-                x.websocket.send(JSON.stringify(h))
-            }
+            this.SyncParameter(this.current_p)
         }
         if (this.current_p != undefined){
+            if(this.first) {
+                this.SyncParameter(this.current_p)
+                this.first = false
+            }
             this.ExecuteProject(this.current_p)
         }
+    }
+
+    Stop = () => {
+        this.websocket_manager.targets.forEach(x => {
+            const h:Header = {
+                name: 'stop_job',
+                message: '停止所有工作'
+            }
+            x.websocket.send(JSON.stringify(h))
+        })
+    }
+
+    SyncParameter = (p:Project) => {
+        this.websocket_manager.targets.forEach(x => {
+            this.sync_para(p, x)
+        })
     }
 
     Register = (projects:Array<Project>):number => {
@@ -287,12 +301,7 @@ export class ExecuteManager{
 
     NewConnection = (source:WebsocketPack) => {
         if(this.state == ExecuteState.RUNNING && this.current_p != undefined){
-            const h:Header = {
-                name: 'set_parameter',
-                message: '初始化參數列',
-                data: this.current_p.parameter
-            }
-            source.websocket.send(JSON.stringify(h))
+            this.sync_para(this.current_p, source)
         }
     }
 
@@ -316,6 +325,7 @@ export class ExecuteManager{
                 this.current_p = this.current_projects[index + 1]
                 messager_log(`[執行狀態] 跳過專案到 ${index}. ${this.current_p.uuid}`)
                 emitter.emit('executeProjectStart', { uuid: this.current_p.uuid })
+                this.SyncParameter(this.current_p)
                 return index
             }
         }
@@ -545,7 +555,15 @@ export class ExecuteManager{
     }
     //#endregion
 
-    //#region 
+    //#region Helper
+    private sync_para = (project:Project, source:WebsocketPack) => {
+        const h:Header = {
+            name: 'set_parameter',
+            message: '初始化參數列',
+            data: project.parameter
+        }
+        source.websocket.send(JSON.stringify(h))
+    }
     private check_all_cron_end = () => {
         return this.current_cron.filter(x => !this.check_cron_end(x)).length == 0
     }
