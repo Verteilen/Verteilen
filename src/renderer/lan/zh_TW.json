@@ -2,6 +2,9 @@
     "modeselect": {
         "title": "你擔任的角色"
     },
+    "error": {
+        "title-needed": "名稱不能為空"
+    },
     "modal": {
         "new-project": "新增專案",
         "modify-project": "編輯專案",

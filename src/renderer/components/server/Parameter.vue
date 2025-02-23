@@ -23,6 +23,8 @@ const types = ref(['字串', '數字', '布林'])
 const options:Ref<Array<{ text: string, value:number }>> = ref([])
 const dirty = ref(false)
 const buffer:Ref<Parameter> = ref({ numbers: [], strings: [], booleans: [] })
+const errorMessage = ref('')
+const titleError = ref(false)
 
 const updateParameter = () => {
     if( props.select == undefined) return
@@ -40,6 +42,8 @@ const getArray = (n:number):Array<{ s?:boolean, name: string, value: any }> => {
 const createParameter = () => {
     createData.value = { temp: false, name: '', type: 0 }
     createModal.value = true
+    errorMessage.value = ''
+    titleError.value = false
 }
 
 const cloneSelect = () => {
@@ -63,9 +67,16 @@ const saveParameter = () => {
 const rename = (type:number, oldname:string) => {
     renameData.value = { type: type, oldname: oldname, name: oldname }
     renameModal.value = true;
+    errorMessage.value = ''
+    titleError.value = false
 }
 
 const confirmRename = () => {
+    if(createData.value.name.length == 0){
+        errorMessage.value = i18n.global.t('error.title-needed')
+        titleError.value = true
+        return
+    }
     renameModal.value = false;
     const bs = buffer.value.booleans.filter(x => x.name == renameData.value.oldname)
     const ss = buffer.value.strings.filter(x => x.name == renameData.value.oldname)
@@ -88,6 +99,11 @@ const deleteSelect = () => {
 }
 
 const confirmCreate = () => {
+    if(createData.value.name.length == 0){
+        errorMessage.value = i18n.global.t('error.title-needed')
+        titleError.value = true
+        return
+    }
     createModal.value = false
     getArray(createData.value.type).push({ name: createData.value.name, value: 0 })
     dirty.value = true
@@ -168,15 +184,16 @@ onUnmounted(() => {
 
             </div>
             <div v-else>
-                <v-text-field class="mt-3" v-model="createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                <v-text-field class="mt-3" :error="titleError" v-model="createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
                 <v-select class="mt-3" v-model="createData.type" :items="options" item-title="text" :label="$t('modal.parameter-datatype')" hide-details></v-select>
             </div>
-            
             <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
+            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
         </b-modal>
         <b-modal :title="$t('modal.rename-parameter')" v-model="renameModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="renameData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+            <v-text-field :error="titleError" v-model="renameData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
             <b-button class="mt-3" variant="primary" @click="confirmRename">{{ $t('rename') }}</b-button>
+            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
         </b-modal>
     </div>
 </template>

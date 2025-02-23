@@ -2,6 +2,9 @@
     "modeselect": {
         "title": "Your role"
     },
+    "error": {
+        "title-needed": "Title is needed"
+    },
     "modal": {
         "new-project": "New Project",
         "modify-project": "Modify Project",

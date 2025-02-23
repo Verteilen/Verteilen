@@ -31,6 +31,8 @@ const hasSelect = ref(false)
 const temps:Ref<Array<{ text: string, value:number }>> = ref([])
 const editModal = ref(false)
 const editUUID = ref('')
+const errorMessage = ref('')
+const titleError = ref(false)
 
 const updateProject = () => {
     const old:Array<ProjectTable> = Object.create(items.value)
@@ -57,6 +59,8 @@ const recoverProject = (p:Project) => {
 const createProject = () => {
     createData.value = {title: "", description: "", useTemp: false, temp: 0};
     createModal.value = true
+    errorMessage.value = ''
+    titleError.value = false
 }
 
 const datachange = (uuid:any, v:boolean) => {
@@ -75,6 +79,8 @@ const dataedit = (uuid:string) => {
     createData.value = {title: selectp.title, description: selectp.description, useTemp: false, temp: 0};
     editModal.value = true;
     editUUID.value = uuid;
+    errorMessage.value = ''
+    titleError.value = false
 }
 
 const dataexport = (uuid:string) => {
@@ -122,6 +128,11 @@ const execute = (keep:boolean) => {
 }
 
 const confirmCreate = () => {
+    if(createData.value.title.length == 0){
+        errorMessage.value = i18n.global.t('error.title-needed')
+        titleError.value = true
+        return
+    }
     createModal.value = false
     let buffer:Project = { 
         uuid: uuidv6(),
@@ -151,6 +162,11 @@ const confirmCreate = () => {
 }
 
 const confirmEdit = () => {
+    if(createData.value.title.length == 0){
+        errorMessage.value = i18n.global.t('error.title-needed')
+        titleError.value = true
+        return
+    }
     const selectp = props.projects.find(x => x.uuid == editUUID.value)
     if(selectp == undefined) return;
     editModal.value = false
@@ -281,17 +297,19 @@ onUnmounted(() => {
             </b-table>
         </div>
         <b-modal :title="$t('modal.new-project')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
+            <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
             <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
             <br />
             <b-form-checkbox v-model="createData.useTemp">{{ $t('useTemplate') }}</b-form-checkbox>
             <v-select v-if="createData.useTemp" class="mt-3" v-model="createData.temp" :items="temps" item-title="text" hide-details></v-select>
             <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
+            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
         </b-modal>
         <b-modal :title="$t('modal.modify-project')" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
+            <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
             <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
             <b-button class="mt-3" variant="primary" @click="confirmEdit">{{ $t('modify') }}</b-button>
+            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
         </b-modal>
     </div>
 </template>

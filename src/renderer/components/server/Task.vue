@@ -30,6 +30,8 @@ const editUUID = ref('')
 const items:Ref<Array<TaskTable>> = ref([])
 const fields:Ref<Array<string>> = ref([])
 const para_keys:Ref<Array<string>> = ref([])
+const errorMessage = ref('')
+const titleError = ref(false)
 
 const updateTask = () => {
     const old:Array<TaskTable> = Object.create(items.value)
@@ -55,6 +57,8 @@ const updateParameter = () => {
 const createProject = () => {
     createData.value = {cronjob: false, cronjobKey: para_keys.value[0], title: "", description: "", multi: false, multiKey: para_keys.value[0]}
     createModal.value = true
+    errorMessage.value = ''
+    titleError.value = false
 }
 
 const detailOpen = () => {
@@ -110,9 +114,16 @@ const dataedit = (uuid:string) => {
     };
     editModal.value = true;
     editUUID.value = uuid;
+    errorMessage.value = ''
+    titleError.value = false
 }
 
 const confirmCreate = () => {
+    if(createData.value.title.length == 0){
+        errorMessage.value = i18n.global.t('error.title-needed')
+        titleError.value = true
+        return
+    }
     createModal.value = false
     emits('added', 
         [{ 
@@ -133,6 +144,11 @@ const confirmCreate = () => {
 }
 
 const confirmEdit = () => {
+    if(createData.value.title.length == 0){
+        errorMessage.value = i18n.global.t('error.title-needed')
+        titleError.value = true
+        return
+    }
     if(props.select == undefined) return
     const selectp = props.select.task.find(x => x.uuid == editUUID.value)
     if(selectp == undefined) return;
@@ -274,7 +290,7 @@ onUnmounted(() => {
             </template>
         </b-table>
         <b-modal :title="$t('modal.new-task')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
+            <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
             <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
             <hr />
             <b-form-checkbox v-model="createData.cronjob">{{ $t('cronjob') }}</b-form-checkbox>
@@ -282,9 +298,10 @@ onUnmounted(() => {
             <b-form-checkbox v-if="createData.cronjob" v-model="createData.multi">{{ $t('multicore') }}</b-form-checkbox>
             <v-select class="my-3" v-if="createData.cronjob && createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
             <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
+            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
         </b-modal>
         <b-modal :title="$t('modal.modify-task')" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
+            <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
             <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
             <hr />
             <b-form-checkbox v-model="createData.cronjob">{{ $t('cronjob') }}</b-form-checkbox>
@@ -292,6 +309,7 @@ onUnmounted(() => {
             <b-form-checkbox v-if="createData.multi" v-model="createData.multi">{{ $t('multicore') }}</b-form-checkbox>
             <v-select class="my-3" v-if="createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
             <b-button class="mt-3" variant="primary" @click="confirmEdit">{{ $t('modify') }}</b-button>
+            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
         </b-modal>
     </div>
 </template>
