@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { ConditionResult, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
-import { FUNIQUE_GS4_BLEND_PREPARE, FUNIQUE_GS4_IFRAMEFOLDER, FUNIQUE_GS4_PREPARE } from "./../lua/GS4";
+import { FUNIQUE_GS4_BLEND_PREPARE, FUNIQUE_GS4_PLYDone, FUNIQUE_GS4_PREPARE } from "./../lua/GS4";
 
 const GetFUNIQUE_GS4ProjectTemplate_Checker = ():Task => {
     const prepareExist:Job = {
@@ -57,6 +57,15 @@ const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         number_args: [],
         boolean_args: []
     }
+    const createdir:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.CREATE_DIR,
+        lua: "",
+        string_args: ["%root%/%after%/GOP_20_I"],
+        number_args: [],
+        boolean_args: []
+    }
     const t:Task = {
         uuid: uuidv6(),
         title: "整理階段",
@@ -67,7 +76,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         multiKey: "",
         jobs: [
             sortjob,
-            copyjob
+            copyjob,
+            createdir
         ]
     }
     return t
@@ -130,35 +140,35 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
     return t
 }
 
-// 生成完整 Frame
+// 生成完整 I-Frame
 const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
-    const createdir:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.CREATE_DIR,
-        lua: "",
-        string_args: ["%root%/%after%/GOP_20_I"],
-        number_args: [],
-        boolean_args: []
-    }
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %{ IF( start_at_0, 0, 1 ) }% --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %{ (ck - 1) * iframe_gap + IF( start_at_0, 0, 1 ) }% --end %{ (ck - 1) * iframe_gap + IF( start_at_0, 0, 1 ) }% --cuda 0 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
         number_args: [],
         boolean_args: []
     }
-    const count:Job = {
+    
+    const t:Task = {
         uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.LUA,
-        lua: FUNIQUE_GS4_IFRAMEFOLDER,
-        string_args: [],
-        number_args: [],
-        boolean_args: []
+        title: "生成 I Frame",
+        description: "生成完整 Frame",
+        cronjob: true,
+        cronjobKey: "iframe_size",
+        multi: false,
+        multiKey: "",
+        jobs: [
+            command1,
+        ]
     }
+    return t
+}
+
+// 備份 I-Frame
+const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
     const backup:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -170,16 +180,13 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "生成 I Frame",
-        description: "生成完整 Frame",
+        title: "備份 I Frame",
+        description: "將剛完成的 IFrame 進行備份處理",
         cronjob: false,
         cronjobKey: "",
         multi: false,
         multiKey: "",
         jobs: [
-            createdir,
-            command1,
-            count,
             backup
         ]
     }
@@ -193,7 +200,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.RENAME,
         lua: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - IF( start_at_0, 1, 0 ) ) * iframe_gap }%/point_cloud/iteration_7000/point_cloud.ply", "%root%/%after%/GOP_20_I/checkpoint/%{ (ck - IF( start_at_0, 1, 0 ) ) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - 1) * iframe_gap + IF( start_at_0, 0, 1 ) }%/point_cloud/iteration_7000/point_cloud.ply", "%root%/%after%/GOP_20_I/checkpoint/%{ (ck - 1) * iframe_gap + IF( start_at_0, 0, 1 ) }%/point_cloud/iteration_7000/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
     }
@@ -202,7 +209,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - IF( start_at_0, 1, 0 ) ) * iframe_gap }%/point_cloud/iteration_7000", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply -r %denoise% -g %denoise% -b %denoise%"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - 1) * iframe_gap + IF( start_at_0, 0, 1 ) }%/point_cloud/iteration_7000", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply -r %denoise% -g %denoise% -b %denoise%"],
         number_args: [],
         boolean_args: []
     }
@@ -211,7 +218,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.DELETE_FILE,
         lua: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - IF( start_at_0, 1, 0 ) ) * iframe_gap }%/point_cloud/iteration_7000/point_cloud_before.ply"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%{ (ck - 1) * iframe_gap + IF( start_at_0, 0, 1 ) }%/point_cloud/iteration_7000/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
     }
@@ -265,7 +272,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence.py --start %{ (ck - 1) * iframe_gap }% --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/BLEND_P%{ (ck - 1) * iframe_gap }% --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence.py --start %{ (ck - 1) * iframe_gap + IF( start_at_0, 0, 1 ) }% --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/BLEND_%{ ck - 1 }%_I/ --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -286,8 +293,15 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
 
 // 生成 ply 序列!!
 const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
-    //%root%/%after%/GOP_N20_I
-    //%root%/%after%/GOP_P20_I
+    const sequenceJob:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.LUA,
+        lua: FUNIQUE_GS4_PLYDone,
+        string_args: [],
+        number_args: [],
+        boolean_args: []
+    }
     const t:Task = {
         uuid: uuidv6(),
         title: "Blending",
@@ -297,6 +311,7 @@ const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
         multi: false,
         multiKey: "",
         jobs: [
+            sequenceJob
         ]
     }
     return t
@@ -362,6 +377,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
         GetFUNIQUE_GS4ProjectTemplate_Prepare(),
         GetFUNIQUE_GS4ProjectTemplate_Colmap(),
         GetFUNIQUE_GS4ProjectTemplate_IFrame(),
+        GetFUNIQUE_GS4ProjectTemplate_IFrameBackup(),
         GetFUNIQUE_GS4ProjectTemplate_Denoise(),
         GetFUNIQUE_GS4ProjectTemplate_BlendPrepare(),
         GetFUNIQUE_GS4ProjectTemplate_Checkpoint(),

@@ -11,6 +11,7 @@ local after_folder = env.getstring("after")
 local output_folder = env.getstring("output")
 
 local start_at_zero = env.getboolean("start_at_0")
+local iframe_gap = env.getnumber("iframe_gap")
 local CAM = env.getstring("CAM")
 local images = env.getstring("images")
 local sparse = env.getstring("sparse")
@@ -55,31 +56,7 @@ for key=1,frame_size,1 do
 end
 
 env.setnumber("frameCount", frame_size)
-`
-
-// 計算有多少 IFrame
-export const FUNIQUE_GS4_IFRAMEFOLDER:string = `
-local root = env.getstring("root")
-local after_folder = env.getstring("after")
-
-local p = root.."/"..after_folder.."/GOP_20_I/checkpoint"
-local result = 0
-
-m.messager("Get CAM list")
-local iframe_folders = split(o.listdir(p), "\\n")
-local iframeCount = #(iframe_folders)
-
-
-for key,value in pairs(iframe_folders) do
-    local e = root.."/"..after_folder.."/GOP_20_I/checkpoint/"..value.."/point_cloud"
-    local hasFolder = o.exist(e)
-    if hasFolder then
-        result = result + 1
-    end
-end
-
-m.messager("Get IFrame count: "..tostring(result))
-env.setnumber("iframe_size", result)
+env.setnumber("iframe_size", math.ceil(frame_size / iframe_gap))
 `
 
 // 分成 4 個資寮夾
@@ -89,23 +66,31 @@ local after_folder = env.getstring("after")
 local iframe_size = env.getnumber("iframe_size")
 local group_size = env.getnumber("group_size")
 local blend = env.getnumber("blend")
+local iframe_gap = env.getnumber("iframe_gap")
+local start_at_zero = env.getboolean("start_at_0")
 
-local step = math.round(group_size / blend)
 local current = 1
+local minus = 0
 
-for i=1,step,1 do
-    local path = root.."/"..after_folder.."/".."BLEND_"..string.format("%2d", (i - 1) * step).."_I"
+if start_at_zero then
+    minus = 1
+end
+
+for i=1,blend,1 do
+    -- Folder name: BLEND_0_I, BLEND_5_I, BLEND_10_I
+    local path = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_I"
     m.messager("Create folder: "..path)
     o.createdir(path)
 end
 
 for i=1,iframe_size,1 do
-    local from = root.."/"..after_folder.."/GOP_20_I/"..tostring(i-1)
-    local to = root.."/"..after_folder.."/".."BLEND_"..string.format("%2d", (current - 1) * step).."_I"
+    local foldername = tostring((i - 1) * iframe_gap - minus)
+    local from = root.."/"..after_folder.."/GOP_20_I/checkpoint/"..foldername
+    local to = root.."/"..after_folder.."/".."BLEND_"..tostring((current - 1) * iframe_gap).."_I/"..foldername
     o.copydir(from, to)
 
     current = current + 1
-    if current > step then
+    if current > blend then
         current = 1
     end
 end
@@ -179,5 +164,32 @@ env.setnumber("n_size", n - 1)
 
 // 將 Blend 結果弄成結果資料夾
 export const FUNIQUE_GS4_PLYDone:string = `
+local root = env.getstring("root")
+local after_folder = env.getstring("after")
+local output_folder = env.getstring("output")
 
+local start_at_zero = env.getboolean("start_at_0")
+local blend = env.getnumber("blend")
+local iframe_gap = env.getnumber("iframe_gap")
+
+for i=1,blend,i do
+    local output_folder = output_folder.."/Sequence_"..tostring( (i-1) * iframe_gap )
+    local source_folder = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_I/checkpoint"
+    o.createdir(output_folder)
+
+    local allfolder = split(o.listdir(source_folder), "\\n")
+    local count = 0
+
+    for key=1,value in pairs(allfolder) do
+        local plyPath = source_folder.."/"..value.."/point_cloud/iteration_7000/point_cloud.ply"
+        local exist = o.exist(plyPath)
+        if exist then
+            o.copyfile(plyPath, output_folder.."/"..value..".ply")
+            count = count + 1
+        end
+    end
+
+    m.messager_log("Total file copy: "..tostring(count)..", to path: "..output_folder)
+end
 `
+
