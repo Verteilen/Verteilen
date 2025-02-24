@@ -78,7 +78,7 @@ end
 
 for i=1,blend,1 do
     -- Folder name: BLEND_0_I, BLEND_5_I, BLEND_10_I
-    local path = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_I"
+    local path = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_I/checkpoint"
     m.messager("Create folder: "..path)
     o.createdir(path)
 end
@@ -86,7 +86,7 @@ end
 for i=1,iframe_size,1 do
     local foldername = tostring((i - 1) * iframe_gap + xx)
     local from = root.."/"..after_folder.."/GOP_20_I/checkpoint/"..foldername
-    local to = root.."/"..after_folder.."/".."BLEND_"..tostring((current - 1) * iframe_gap).."_I/"..foldername
+    local to = root.."/"..after_folder.."/".."BLEND_"..tostring((current - 1) * iframe_gap).."_I/checkpoint/"..foldername
     o.copydir(from, to)
 
     current = current + 1
