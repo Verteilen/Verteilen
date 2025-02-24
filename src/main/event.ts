@@ -3,7 +3,7 @@ import fs from "fs";
 import { clientinit } from "./client/client";
 import { dir_copy, dir_delete, file_copy, file_delete, fs_exist } from "./client/os";
 import { messager_log } from "./debugger";
-import { Log, Preference, Project, Record } from "./interface";
+import { libraries, Log, Preference, Project, Record } from "./interface";
 import { mainWindow } from "./main";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
@@ -80,6 +80,25 @@ export const eventInit = () => {
             return JSON.stringify(record)
         } else {
             const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+            return file.toString()
+        }
+    })
+
+    ipcMain.on('save_lib', (e, log:string) => {
+        fs.writeFileSync('lib.json', log)
+    })
+
+    ipcMain.handle('load_lib', (e) => {
+        const exist = fs.existsSync('log.json');
+        messager_log(`[事件] 讀取 lib.js, 檔案存在: ${exist}`)
+        if(!exist){
+            const record:libraries = {
+                libs: []
+            }
+            fs.writeFileSync('lib.json', JSON.stringify(record, null, 4))
+            return JSON.stringify(record)
+        } else {
+            const file = fs.readFileSync('lib.json', { encoding: 'utf8', flag: 'r' })
             return file.toString()
         }
     })

@@ -3,7 +3,8 @@
         "title": "你擔任的角色"
     },
     "error": {
-        "title-needed": "名稱不能為空"
+        "title-needed": "名稱不能為空",
+        "title-repeat": "名稱不能重複"
     },
     "modal": {
         "new-project": "新增專案",
@@ -29,7 +30,8 @@
         "parameter": "參數管理",
         "node": "節點管理",
         "console": "控制台",
-        "log": "紀錄"
+        "log": "紀錄",
+        "library": "運行庫"
     },
     "tooltip": {
         "select-server": "作為伺服器下指令的一方",

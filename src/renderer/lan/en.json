@@ -3,7 +3,8 @@
         "title": "Your role"
     },
     "error": {
-        "title-needed": "Title is needed"
+        "title-needed": "Title is needed",
+        "title-repeat": "Cannot use title which already exists"
     },
     "modal": {
         "new-project": "New Project",
@@ -29,7 +30,8 @@
         "parameter": "Parameter",
         "node": "Node",
         "console": "Console",
-        "log": "Log"
+        "log": "Log",
+        "library": "Library"
     },
     "tooltip": {
         "select-server": "The one who send the command to client",

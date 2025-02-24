@@ -4,6 +4,7 @@ build
 log.json
 record.json
 preference.json
+lib.json
 .vscode
 .idea
 ply_tool/build

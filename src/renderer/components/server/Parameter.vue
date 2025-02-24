@@ -66,24 +66,52 @@ const saveParameter = () => {
 
 const rename = (type:number, oldname:string) => {
     renameData.value = { type: type, oldname: oldname, name: oldname }
+    renameData.value.type = type
     renameModal.value = true;
     errorMessage.value = ''
     titleError.value = false
 }
 
 const confirmRename = () => {
-    if(createData.value.name.length == 0){
+    if(renameData.value.name.length == 0){
         errorMessage.value = i18n.global.t('error.title-needed')
         titleError.value = true
         return
     }
+    if (renameData.value.type == 0){
+        const ss = buffer.value.strings.findIndex(x => x.name == renameData.value.oldname)
+        const iss = buffer.value.strings.findIndex(x => x.name == renameData.value.name)
+        if(ss != -1 && iss == -1) {
+            buffer.value.strings[ss].name = renameData.value.name
+        }else{
+            errorMessage.value = i18n.global.t('error.title-repeat')
+            titleError.value = true
+            return
+        }
+    }
+    else if (renameData.value.type == 0){
+        const ns = buffer.value.numbers.findIndex(x => x.name == renameData.value.oldname)
+        const ins = buffer.value.numbers.findIndex(x => x.name == renameData.value.name)
+        if(ns != -1 && ins == -1) {
+            buffer.value.numbers[ns].name = renameData.value.name
+        }else{
+            errorMessage.value = i18n.global.t('error.title-repeat')
+            titleError.value = true
+            return
+        }
+    }
+    else if (renameData.value.type == 0){
+        const bs = buffer.value.booleans.findIndex(x => x.name == renameData.value.oldname)
+        const ibs = buffer.value.booleans.findIndex(x => x.name == renameData.value.name)
+        if(bs != -1 && ibs == -1) {
+            buffer.value.booleans[bs].name = renameData.value.name
+        }else{
+            errorMessage.value = i18n.global.t('error.title-repeat')
+            titleError.value = true
+            return
+        }
+    }
     renameModal.value = false;
-    const bs = buffer.value.booleans.filter(x => x.name == renameData.value.oldname)
-    const ss = buffer.value.strings.filter(x => x.name == renameData.value.oldname)
-    const ns = buffer.value.numbers.filter(x => x.name == renameData.value.oldname)
-    if(bs.length > 0) bs.forEach(x => x.name = renameData.value.name)
-    if(ss.length > 0) ss.forEach(x => x.name = renameData.value.name)
-    if(ns.length > 0) ns.forEach(x => x.name = renameData.value.name)
     dirty.value = true
 }
 

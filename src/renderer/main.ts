@@ -17,7 +17,6 @@ import "bootstrap/dist/css/bootstrap.css";
 import App from './App.vue';
 import { vuetify } from "./plugins/vuetify";
 import './style.scss';
-;
 
 const app = createApp(App)
 

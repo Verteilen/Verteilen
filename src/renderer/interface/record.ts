@@ -52,3 +52,12 @@ export interface ExecuteRecord extends Record {
 export interface Preference {
     lan: string
 }
+
+export interface Library {
+    name: string
+    content: string
+}
+
+export interface libraries {
+    libs: Array<Library>
+}

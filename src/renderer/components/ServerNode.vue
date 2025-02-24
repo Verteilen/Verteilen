@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecuteRecord, Job, Log, Node, NodeTable, Parameter, Preference, Project, Record, Task, WebsocketPack } from '../interface';
+import { BusType, ExecuteRecord, Job, libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Task, WebsocketPack } from '../interface';
 import { isElectron } from '../main';
 import { set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
@@ -11,6 +11,7 @@ import { WebsocketManager } from '../script/socket_manager';
 import { i18n } from './../plugins/i18n';
 import ConsolePage from './server/Console.vue';
 import JobPage from './server/Job.vue';
+import LibraryPage from './server/Library.vue';
 import LogPage from './server/Log.vue';
 import NodePage from './server/Node.vue';
 import ParameterPage from './server/Parameter.vue';
@@ -47,6 +48,7 @@ const projects_exe:Ref<ExecuteRecord>  = ref({
   task_detail: [],
 })
 const log:Ref<Log> = ref({logs: []})
+const libs:Ref<libraries> = ref({libs: []})
 const selectProject:Ref<Project | undefined> = ref(undefined)
 const selectTask:Ref<Task | undefined> = ref(undefined)
 const nodes:Ref<Array<NodeTable>> = ref([])
@@ -342,6 +344,9 @@ onMounted(() => {
   window.electronAPI.eventOn('run_all', run_all)
   window.electronAPI.eventOn('run_all_keep', run_all_keep)
   window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
+  window.electronAPI.invoke('load_lib').then(x => {
+    libs.value = JSON.parse(x)
+  })
   window.electronAPI.invoke('load_record').then(x => {
     const record:Record = JSON.parse(x)
     projects.value = record.projects
@@ -386,6 +391,7 @@ onUnmounted(() => {
     <v-tab>{{ $t('toolbar.node') }}</v-tab>
     <v-tab>{{ $t('toolbar.console') }}</v-tab>
     <v-tab>{{ $t('toolbar.log') }}</v-tab>
+    <v-tab>{{ $t('toolbar.library') }}</v-tab>
     <v-menu v-if="!isElectron">
         <template v-slot:activator="{ props }">
           <v-btn class="mt-1" v-bind="props">
@@ -442,10 +448,14 @@ onUnmounted(() => {
       :socket="websocket_manager"
       :execute="execute_manager"
       :logs="log"
+      :libs="libs"
       v-model="projects_exe"/>
       
     <LogPage v-show="page == 6" :logs="log" 
       v-model="projects_exe"/>
+
+    <LibraryPage v-show="page == 7" 
+      v-model="libs"/>
   </div>
 </template>
 

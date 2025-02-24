@@ -43,3 +43,12 @@ export interface ExecutePack {
 export interface Preference {
     lan: string
 }
+
+export interface Library {
+    name: string
+    content: string
+}
+
+export interface libraries {
+    libs: Array<Library>
+}

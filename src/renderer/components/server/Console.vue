@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, JobCategory, Log, Record, Setter } from '../../interface';
+import { BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, JobCategory, libraries, Log, Record, Setter } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 
@@ -15,6 +15,7 @@ interface PROPS {
     socket: WebsocketManager | undefined
     execute: ExecuteManager | undefined
     logs: Log
+    libs: libraries
 }
 const data = defineModel<ExecuteRecord>()
 const props = defineProps<PROPS>()
