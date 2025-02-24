@@ -39,3 +39,12 @@ export interface ExecutePack {
     projects: Array<Project>
     nodes: Array<WebsocketPack>
 }
+
+export interface Library {
+    name: string
+    content: string
+}
+
+export interface Libraries {
+    libs: Array<Library>
+}

@@ -49,6 +49,6 @@ export interface Library {
     content: string
 }
 
-export interface libraries {
+export interface Libraries {
     libs: Array<Library>
 }

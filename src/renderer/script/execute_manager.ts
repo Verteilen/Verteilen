@@ -1,5 +1,6 @@
 import { formula, init } from "expressionparser";
-import { BusAnalysis, CronJobState, ExecuteState, FeedBack, Header, Job, KeyValue, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
+import { ref, Ref } from "vue";
+import { BusAnalysis, CronJobState, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
 import { emitter } from "../main";
 import { messager_log } from "./debugger";
 import { WebsocketManager } from "./socket_manager";
@@ -16,6 +17,7 @@ export class ExecuteManager{
     websocket_manager:WebsocketManager
     jobstack = 0
     first = false
+    libs:Ref<Libraries | undefined> = ref(undefined)
 
     constructor(_websocket_manager:WebsocketManager) {
         this.websocket_manager = _websocket_manager
@@ -562,7 +564,13 @@ export class ExecuteManager{
             message: '初始化參數列',
             data: project.parameter
         }
+        const h2:Header = {
+            name: 'set_libs',
+            message: '初始化程式庫',
+            data: this.libs.value
+        }
         source.websocket.send(JSON.stringify(h))
+        source.websocket.send(JSON.stringify(h2))
     }
     private check_all_cron_end = () => {
         return this.current_cron.filter(x => !this.check_cron_end(x)).length == 0

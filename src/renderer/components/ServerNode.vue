@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecuteRecord, Job, JobCategory, JobType, JobType2, libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Rename, Task, WebsocketPack } from '../interface';
+import { BusType, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Rename, Task, WebsocketPack } from '../interface';
 import { isElectron } from '../main';
 import { set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
@@ -48,7 +48,7 @@ const projects_exe:Ref<ExecuteRecord>  = ref({
   task_detail: [],
 })
 const log:Ref<Log> = ref({logs: []})
-const libs:Ref<libraries> = ref({libs: []})
+const libs:Ref<Libraries> = ref({libs: []})
 const selectProject:Ref<Project | undefined> = ref(undefined)
 const selectTask:Ref<Task | undefined> = ref(undefined)
 const nodes:Ref<Array<NodeTable>> = ref([])
@@ -349,6 +349,7 @@ onMounted(() => {
   set_feedback(debug_feedback)
   websocket_manager.value = new WebsocketManager()
   execute_manager.value = new ExecuteManager(websocket_manager.value)
+  execute_manager.value.libs = libs
   websocket_manager.value.set_new_connect((x:WebsocketPack) => {
     emitter?.emit('makeToast', {
       title: "連線建立",

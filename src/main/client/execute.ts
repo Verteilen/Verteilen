@@ -1,11 +1,12 @@
 import { messager_log } from "../debugger";
-import { FeedBack, Header, Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, OnePath, Parameter, Setter, TwoPath } from "../interface";
+import { FeedBack, Header, Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, OnePath, Parameter, Setter, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { settag, source, tag } from "./client";
 import { LuaExecute } from "./lua";
 import { command, dir_copy, dir_create, dir_delete, file_copy, file_delete, file_write, fs_exist, rename, stopall } from "./os";
 
 export let parameter:Parameter | undefined = undefined
+export let libraries:Libraries | undefined = undefined
 
 export const stop_job = () => {
     stopall()
@@ -85,7 +86,7 @@ export const execute_job_exe = (job:Job) => {
                 }
             case JobType.LUA:
                 {
-                    LuaExecute(job.lua)
+                    LuaExecute(job.lua, job.string_args)
                     resolve(`執行 Lua 成功`)
                     break
                 }
@@ -115,7 +116,7 @@ export const execute_job_con = (job:Job) => {
                 }
             case JobType2.LUA:
                 {
-                    const r = LuaExecute(job.lua)
+                    const r = LuaExecute(job.lua, job.string_args)
                     if(r != undefined && r == 0){
                         resolve(`執行 Lua 成功`)
                     }else{
@@ -129,6 +130,10 @@ export const execute_job_con = (job:Job) => {
 
 export const set_parameter = (data:Parameter) => {
     parameter = data
+}
+
+export const set_libs = (data:Libraries) => {
+    libraries = data
 }
 
 export const set_string = (data:Setter) => {

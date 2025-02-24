@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, ref } from 'vue';
-import { BusType, libraries } from '../../interface';
+import { BusType, Libraries } from '../../interface';
 import { isElectron } from '../../main';
 import { i18n } from '../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
-const data = defineModel<libraries>()
+const data = defineModel<Libraries>()
 const emits = defineEmits<{
     (e: 'rename', oldname:string, newname:string): void
     (e: 'delete', uuids:string): void

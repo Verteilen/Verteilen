@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, libraries, LUATemplate, LUATemplateText, Project, Rename, Task } from '../../interface';
+import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, LUATemplate, LUATemplateText, Project, Rename, Task } from '../../interface';
 import { DEFAULT, FUNIQUE_GS4_PREPARE } from '../../template/luaTemplate';
 import { i18n } from './../../plugins/i18n';
 
@@ -12,7 +12,7 @@ interface PROPS {
     projects: Array<Project>
     select: Task | undefined
     owner: Project | undefined
-    libs: libraries
+    libs: Libraries
 }
 
 interface JobTable extends Job {
