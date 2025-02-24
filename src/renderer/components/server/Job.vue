@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, LUATemplate, LUATemplateText, Project, Task } from '../../interface';
+import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, libraries, LUATemplate, LUATemplateText, Project, Rename, Task } from '../../interface';
 import { DEFAULT, FUNIQUE_GS4_PREPARE } from '../../template/luaTemplate';
 import { i18n } from './../../plugins/i18n';
 
@@ -12,6 +12,7 @@ interface PROPS {
     projects: Array<Project>
     select: Task | undefined
     owner: Project | undefined
+    libs: libraries
 }
 
 interface JobTable extends Job {
@@ -156,6 +157,28 @@ const confirmCreate = () => {
     })
 }
 
+const scriptExist = (name:string) => {
+    return props.libs.libs!.findIndex(x => x.name == name) != -1
+}
+
+const libRename = (d:Rename) => {
+    items.value.forEach(z => {
+        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
+            const index = z.string_args.findIndex(x => x == d.oldname)
+            if(index != -1) z.string_args[index] = d.newname
+        }
+    })
+}
+
+const libDelete = (name:string) => {
+    items.value.forEach(z => {
+        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
+            const index = z.string_args.findIndex(x => x == name)
+            if(index != -1) z.string_args.splice(index, 1)
+        }
+    })
+}
+
 const moveup = (uuid:string) => {
     dirty.value = true
     const index = items.value.findIndex(x => x.uuid == uuid)
@@ -224,12 +247,16 @@ onMounted(() => {
     emitter?.on('updateJob', updateJob)
     emitter?.on('updateParameter', updateParameter)
     emitter?.on('updateLocate', updateLocate)
+    emitter?.on('renameScript', libRename)
+    emitter?.on('deleteScript', libDelete)
 })
 
 onUnmounted(() => {
     emitter?.off('updateJob', updateJob)
     emitter?.off('updateParameter', updateParameter)
     emitter?.off('updateLocate', updateLocate)
+    emitter?.off('renameScript', libRename)
+    emitter?.off('deleteScript', libDelete)
 })
 
 </script>
@@ -303,6 +330,12 @@ onUnmounted(() => {
                         :tab-size="2" 
                         mode="text/x-lua"
                         @change="setdirty"/>
+                    <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
+                        <template #selection="{ item }">
+                            <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
+                            <v-chip v-else closable color="danger">{{item.title}}</v-chip>
+                        </template>
+                    </v-select>
                 </div>
                 <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
                     <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
@@ -334,6 +367,12 @@ onUnmounted(() => {
                         :tab-size="2" 
                         mode="text/x-lua"
                         @change="setdirty"/>
+                    <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
+                        <template #selection="{ item }">
+                            <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
+                            <v-chip v-else closable color="danger">{{item.title}}</v-chip>
+                        </template>
+                    </v-select>
                 </div>
             </b-card>
         </div>

@@ -68,6 +68,11 @@ export interface BusAnalysis {
     c:WebsocketPack | undefined
 }
 
+export interface Rename {
+    oldname: string
+    newname: string
+}
+
 export type BusType = {
     makeToast: ToastData
     modeSelect: boolean
@@ -84,6 +89,9 @@ export type BusType = {
     updateLog: Log
     updateHandle: void
     feedbackMessage: Setter
+
+    renameScript: Rename
+    deleteScript: string
 
     executeProjectStart: BusProjectStart
     executeProjectFinish: BusProjectFinish

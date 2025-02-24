@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecuteRecord, Job, libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Task, WebsocketPack } from '../interface';
+import { BusType, ExecuteRecord, Job, JobCategory, JobType, JobType2, libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Rename, Task, WebsocketPack } from '../interface';
 import { isElectron } from '../main';
 import { set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
@@ -267,6 +267,36 @@ const editParameter = (e:Parameter) => {
 }
 //#endregion
 
+//#region Lib
+const libRename = (d:Rename) => {
+  projects.value.forEach(x => {
+    x.task.forEach(y => {
+      y.jobs.forEach(z => {
+        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
+          const index = z.string_args.findIndex(x => x == d.oldname)
+          if(index != -1) z.string_args[index] = d.newname
+        }
+      })
+    })
+  })
+  allUpdate()
+}
+
+const libDelete = (name:string) => {
+  projects.value.forEach(x => {
+    x.task.forEach(y => {
+      y.jobs.forEach(z => {
+        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
+          const index = z.string_args.findIndex(x => x == name)
+          if(index != -1) z.string_args.splice(index, 1)
+        }
+      })
+    })
+  })
+  allUpdate()
+}
+//#endregion
+
 const menuCreateProject = (e:IpcRendererEvent) => {
   page.value = 0
 }
@@ -336,6 +366,8 @@ onMounted(() => {
   })
   updateHandle = setInterval(serverUpdate, 1000);
   emitter?.on('updateNode', server_clients_update)
+  emitter?.on('renameScript', libRename)
+  emitter?.on('deleteScript', libDelete)
 
   if(!isElectron) return
   window.electronAPI.send('menu', true)
@@ -371,6 +403,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   emitter?.off('updateNode', server_clients_update)
+  emitter?.off('renameScript', libRename)
+  emitter?.off('deleteScript', libDelete)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(!isElectron) return
   window.electronAPI.eventOff('createProject', menuCreateProject)
@@ -432,6 +466,7 @@ onUnmounted(() => {
       :projects="projects" 
       :select="selectTask"
       :owner="selectProject"
+      :libs="libs"
       @added="e => addJob(e)" 
       @edit="(e) => editJob(e)" 
       @delete="e => deleteJob(e)" />

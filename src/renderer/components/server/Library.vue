@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { libraries } from '../../interface';
+import { Emitter } from 'mitt';
+import { computed, inject, ref } from 'vue';
+import { BusType, libraries } from '../../interface';
 import { isElectron } from '../../main';
 import { i18n } from '../../plugins/i18n';
 
+const emitter:Emitter<BusType> | undefined = inject('emitter');
+
 const data = defineModel<libraries>()
+const emits = defineEmits<{
+    (e: 'rename', oldname:string, newname:string): void
+    (e: 'delete', uuids:string): void
+}>()
 const leftSize = ref(3)
 const rightSize = ref(9)
 const select = ref([])
@@ -31,6 +38,7 @@ const setdirty = () => {
 
 const remove = () => {
     if(selection.value == undefined) return
+    emitter?.emit('deleteScript', selection.value!.name)
     data.value!.libs = data.value!.libs.filter(x => x.name != selection.value!.name)
     dirty.value = true
 }
@@ -54,6 +62,7 @@ const confirmRename = () => {
         data.value!.libs[index].name = renameData.value.name
         dirty.value = true
         renameModal.value = false
+        emitter?.emit('renameScript', { oldname: renameData.value.oldname, newname: renameData.value.name })
     }else{
         errorMessage.value = i18n.global.t('error.title-repeat')
         titleError.value = true
