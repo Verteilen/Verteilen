@@ -70,10 +70,10 @@ local iframe_gap = env.getnumber("iframe_gap")
 local start_at_zero = env.getboolean("start_at_0")
 
 local current = 1
-local minus = 0
+local xx = 1
 
 if start_at_zero then
-    minus = 1
+    xx = 0
 end
 
 for i=1,blend,1 do
@@ -84,7 +84,7 @@ for i=1,blend,1 do
 end
 
 for i=1,iframe_size,1 do
-    local foldername = tostring((i - 1) * iframe_gap - minus)
+    local foldername = tostring((i - 1) * iframe_gap + xx)
     local from = root.."/"..after_folder.."/GOP_20_I/checkpoint/"..foldername
     local to = root.."/"..after_folder.."/".."BLEND_"..tostring((current - 1) * iframe_gap).."_I/"..foldername
     o.copydir(from, to)
