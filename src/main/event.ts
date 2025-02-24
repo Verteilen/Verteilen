@@ -1,9 +1,10 @@
 import { dialog, ipcMain } from "electron";
 import fs from "fs";
 import { clientinit } from "./client/client";
+import { LuaTest } from "./client/lua";
 import { dir_copy, dir_delete, file_copy, file_delete, fs_exist } from "./client/os";
 import { messager_log } from "./debugger";
-import { libraries, Log, Preference, Project, Record } from "./interface";
+import { Libraries, Log, Preference, Project, Record } from "./interface";
 import { mainWindow } from "./main";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
@@ -12,6 +13,9 @@ export let menu_state = false
 
 export const eventInit = () => {
     clientinit()
+    ipcMain.on('lua', (event, content:string) => {
+        LuaTest(content)
+    })
     ipcMain.on('message', (event, message:string, tag?:string) => {
         console.log(`${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`);
     })
@@ -92,7 +96,7 @@ export const eventInit = () => {
         const exist = fs.existsSync('log.json');
         messager_log(`[事件] 讀取 lib.js, 檔案存在: ${exist}`)
         if(!exist){
-            const record:libraries = {
+            const record:Libraries = {
                 libs: []
             }
             fs.writeFileSync('lib.json', JSON.stringify(record, null, 4))

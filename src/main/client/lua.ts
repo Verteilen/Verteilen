@@ -1,5 +1,6 @@
 import * as luainjs from 'lua-in-js';
 import { messager, messager_log } from '../debugger';
+import { mainWindow } from '../main';
 import { libraries, parameter } from './execute';
 import { dir_copy, dir_create, dir_delete, dir_dirs, dir_files, file_copy, file_delete, file_read, file_write, fs_exist, rename as re } from './os';
 import { feedbackboolean, feedbacknumber, feedbackstring } from './parameter';
@@ -135,6 +136,27 @@ export const LuaExecute = (lua:string, libs:Array<string>) => {
         script = lib + lua
         const execc = luaEnv.parse(script)
         return execc.exec()
+    }catch(err){
+        throw err
+    }
+}
+
+const testmessage = new luainjs.Table({
+    messager(m:string) { mainWindow?.webContents.send('lua-feedback', `[Log] ${m}`) },
+    messager_log(m:string) { mainWindow?.webContents.send('lua-feedback', `[Log] ${m}`) }
+})
+const luaEnvTest = luainjs.createEnv()
+luaEnvTest.loadLib('o', os)
+luaEnvTest.loadLib('env', env)
+luaEnvTest.loadLib('m', testmessage)
+
+export const LuaTest = (lua:string) => {
+    if(mainWindow == undefined) return
+    try {
+        let script = lib + lua
+        const execc = luaEnvTest.parse(script)
+        const r = execc.exec()
+        mainWindow?.webContents.send('lua-feedback', `[Result] ${r}`)
     }catch(err){
         throw err
     }

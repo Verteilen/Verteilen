@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { computed, inject, ref } from 'vue';
+import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, Libraries } from '../../interface';
 import { isElectron } from '../../main';
 import { i18n } from '../../plugins/i18n';
@@ -21,6 +22,8 @@ const dirty = ref(false)
 const titleError = ref(false)
 const renameModal = ref(false)
 const errorMessage = ref('')
+const openBottom = ref(false)
+const messages:Ref<Array<string>> = ref([])
 
 const newname = () => {
     let r = "New Script"
@@ -30,6 +33,12 @@ const newname = () => {
         r = `New Script ${count}`
     }
     return r
+}
+
+const execute = () => {
+    if(!isElectron || selection.value == undefined) return
+    window.electronAPI.send('lua', selection.value.content)
+    openBottom.value = true
 }
 
 const setdirty = () => {
@@ -48,6 +57,10 @@ const rename = () => {
     renameModal.value = true
     errorMessage.value = ''
     titleError.value = false
+}
+
+const luaFeedback = (e:IpcRendererEvent, str:string) => {
+    messages.value.push(str)
 }
 
 const confirmRename = () => {
@@ -84,6 +97,16 @@ const save = () => {
     window.electronAPI.send('save_lib', JSON.stringify(data.value!, null, 4))
 }
 
+onMounted(() => {
+    if(!isElectron) return
+    window.electronAPI.eventOn('lua-feedback', luaFeedback)
+})
+
+onUnmounted(() => {
+    if(!isElectron) return
+    window.electronAPI.eventOff('lua-feedback', luaFeedback)
+})
+
 </script>
 
 <template>
@@ -103,6 +126,7 @@ const save = () => {
             <b-col :cols="rightSize" v-if="selection != undefined">
                 <div class="py-3">
                     <b-button-group>
+                        <b-button v-if="isElectron" variant='primary' @click="execute">{{ $t('execute') }}</b-button>
                         <b-button variant='primary' @click="rename">{{ $t('rename') }}</b-button>
                         <b-button variant='danger' @click="remove">{{ $t('delete') }}</b-button>
                     </b-button-group>
@@ -110,7 +134,7 @@ const save = () => {
                 <b-card no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
                     <codemirror v-model="selection.content" 
                         style="text-align:left;"
-                        :style="{ height: 'calc(100vh - 100px)' }"
+                        :style="{ height: openBottom ? 'calc(50vh)' : 'calc(100vh - 100px)' }"
                         :autofocus="true"
                         :indent-with-tab="true"
                         :tab-size="2" 
@@ -118,6 +142,9 @@ const save = () => {
                         mode="text/x-lua"
                         @change="setdirty"/>
                 </b-card>
+                <div class="text-white text-left px-6" v-if="openBottom" style="max-height: calc(40vh - 100px); overflow-y: auto; line-height: 15px;">
+                    <p v-for="(item, i) in messages" :key="i">{{ item }}</p>
+                </div>
             </b-col>
         </b-row>
         <b-modal :title="$t('modal.rename-parameter')" v-model="renameModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
