@@ -22,7 +22,7 @@ const dirty = ref(false)
 const titleError = ref(false)
 const renameModal = ref(false)
 const errorMessage = ref('')
-const openBottom = ref(false)
+const openBottom = computed(() => messages.value.length > 0)
 const messages:Ref<Array<string>> = ref([])
 
 const newname = () => {
@@ -38,7 +38,10 @@ const newname = () => {
 const execute = () => {
     if(!isElectron || selection.value == undefined) return
     window.electronAPI.send('lua', selection.value.content)
-    openBottom.value = true
+}
+
+const clean = () => {
+    messages.value = []
 }
 
 const setdirty = () => {
@@ -116,25 +119,25 @@ onUnmounted(() => {
                 <div class="py-3">
                     <b-button-group class="w-100">
                         <b-button variant='primary' @click="createScript">{{ $t('create') }}</b-button>
-                        <b-button variant='success' @click="save" :disabled="!dirty">{{ $t('save') }}</b-button>
                     </b-button-group>
                 </div>
                 <v-list :items="data.libs" item-title="name" item-value="name" v-model:selected="select">
                     
                 </v-list>
             </b-col>
-            <b-col :cols="rightSize" v-if="selection != undefined">
+            <b-col :cols="rightSize">
                 <div class="py-3">
                     <b-button-group>
                         <b-button v-if="isElectron" variant='primary' @click="execute">{{ $t('execute') }}</b-button>
+                        <b-button variant='success' @click="save" :disabled="!dirty">{{ $t('save') }}</b-button>
                         <b-button variant='primary' @click="rename">{{ $t('rename') }}</b-button>
                         <b-button variant='danger' @click="remove">{{ $t('delete') }}</b-button>
                     </b-button-group>
                 </div>
-                <b-card no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
+                <b-card v-if="selection != undefined" no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
                     <codemirror v-model="selection.content" 
                         style="text-align:left;"
-                        :style="{ height: openBottom ? 'calc(50vh)' : 'calc(100vh - 100px)' }"
+                        :style="{ height: openBottom ? 'calc(50vh)' : 'calc(100vh - 150px)' }"
                         :autofocus="true"
                         :indent-with-tab="true"
                         :tab-size="2" 
@@ -142,7 +145,12 @@ onUnmounted(() => {
                         mode="text/x-lua"
                         @change="setdirty"/>
                 </b-card>
-                <div class="text-white text-left px-6" v-if="openBottom" style="max-height: calc(40vh - 100px); overflow-y: auto; line-height: 15px;">
+                <div class="text-white text-left px-6" v-if="openBottom" style="height: calc(40vh - 100px); overflow-y: scroll; line-height: 15px;">
+                    <div class="float_button text-white" style="z-index: 5;">
+                        <b-button-group>
+                            <b-button variant="primary" @click="clean">{{ $t('clear') }}</b-button>
+                        </b-button-group>
+                    </div>
                     <p v-for="(item, i) in messages" :key="i">{{ item }}</p>
                 </div>
             </b-col>
@@ -156,5 +164,9 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-
+.float_button{
+    position: fixed;
+    top: 70vh;
+    right: 80px;
+}
 </style>
