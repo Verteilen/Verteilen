@@ -10,7 +10,7 @@
     "build": "node scripts/build.js && electron-builder",
     "build:web": "node scripts/build.js",
     "build:node": "node scripts/node_builder.js",
-    "build:server": "node scripts/server_builder.js",
+    "build:server": "node scripts/build.js & node scripts/server_builder.js",
     "build:dir": "node scripts/build.js && electron-builder --dir",
     "build:win": "node scripts/build.js && electron-builder --win",
     "build:mac": "node scripts/build.js && electron-builder --mac",
