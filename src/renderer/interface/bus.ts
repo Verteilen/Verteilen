@@ -105,3 +105,9 @@ export type BusType = {
     analysis: BusAnalysis
     debuglog: string
 }
+
+export type BusWebType = {
+    locate: string
+    load_preference: string
+    load_preference_call: void
+}

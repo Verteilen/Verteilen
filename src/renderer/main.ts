@@ -5,11 +5,12 @@ import { basicSetup } from 'codemirror';
 import mitt, { Emitter } from 'mitt';
 import { createApp } from 'vue';
 import VueCodemirror from 'vue-codemirror';
-import { BusType } from './interface';
+import { BusType, BusWebType } from './interface';
 import { checkifElectron, checkIfExpress } from "./platform";
 import { i18n } from "./plugins/i18n";
 
 export const emitter:Emitter<BusType> = mitt<BusType>()
+export const webEmitter:Emitter<BusWebType> = mitt<BusWebType>()
 export const isElectron:boolean = checkifElectron()
 export let isExpress:boolean = false 
 export let serverConnection:ServerConnection | undefined = undefined
@@ -26,7 +27,7 @@ const w2 = w1.then(x => {
     return new Promise<void>((resolve, reject) => {
         isExpress = x
         if(isExpress){
-            serverConnection = new ServerConnection('ws://127.0.0.1')
+            serverConnection = new ServerConnection('ws://127.0.0.1:/server')
             setTimeout(() => {
                 if(serverConnection?.ws.readyState == WebSocket.OPEN){
                     resolve()
