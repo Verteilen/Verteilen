@@ -7,7 +7,7 @@ import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
 import { BusType, Preference } from './interface';
-import { isElectron, isExpress } from './main';
+import { isElectron, isExpress, serverConnection } from './main';
 import { i18n } from './plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -35,23 +35,36 @@ const locate = (e:IpcRendererEvent, v:string) => {
   window.electronAPI.send('save_preference', JSON.stringify(preference.value, null, 4))
 }
 
+const load_preference = (x:string) => {
+  preference.value = JSON.parse(x)
+      window.electronAPI.send('locate', preference.value.lan)
+      const t = i18n.global
+      // @ts-ignore
+      t.locale = preference.value.lan
+}
+
 onMounted(() => {
   emitter?.on('modeSelect', modeSelect)
-  if(!isElectron) return
-  window.electronAPI.eventOn('locate', locate)
-  window.electronAPI.invoke('load_preference').then(x => {
-    preference.value = JSON.parse(x)
-    window.electronAPI.send('locate', preference.value.lan)
-    const t = i18n.global
-    // @ts-ignore
-    t.locale = preference.value.lan
-  })
+  if(isElectron){
+    window.electronAPI.eventOn('locate', locate)
+    window.electronAPI.invoke('load_preference').then(x => load_preference(x))
+  }
+  if(isExpress){
+    serverConnection?.on('locate', locate)
+    serverConnection?.on('load_preference', load_preference)
+    serverConnection?.emit('load_preference_call')
+  }
 })
 
 onUnmounted(() => {
   emitter?.on('modeSelect', modeSelect)
-  if(!isElectron) return
-  window.electronAPI.eventOff('locate', locate)
+  if(isElectron){
+    window.electronAPI.eventOff('locate', locate)
+  }
+  if(isExpress){
+    serverConnection?.off('locate', locate)
+    serverConnection?.off('load_preference', load_preference)
+  }
 })
 
 </script>

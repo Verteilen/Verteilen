@@ -128,10 +128,10 @@ onUnmounted(() => {
             <b-col :cols="rightSize">
                 <div class="py-3">
                     <b-button-group>
-                        <b-button v-if="isElectron" variant='primary' @click="execute">{{ $t('execute') }}</b-button>
-                        <b-button variant='success' @click="save" :disabled="!dirty">{{ $t('save') }}</b-button>
-                        <b-button variant='primary' @click="rename">{{ $t('rename') }}</b-button>
-                        <b-button variant='danger' @click="remove">{{ $t('delete') }}</b-button>
+                        <b-button v-if="isElectron" :disabled="selection == undefined" variant='primary' @click="execute">{{ $t('execute') }}</b-button>
+                        <b-button variant='success' :disabled="!dirty" @click="save">{{ $t('save') }}</b-button>
+                        <b-button variant='primary' :disabled="selection == undefined" @click="rename">{{ $t('rename') }}</b-button>
+                        <b-button variant='danger' :disabled="selection == undefined" @click="remove">{{ $t('delete') }}</b-button>
                     </b-button-group>
                 </div>
                 <b-card v-if="selection != undefined" no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">

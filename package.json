@@ -45,6 +45,7 @@
   "dependencies": {
     "@codemirror/language-data": "^6.5.1",
     "@codemirror/legacy-modes": "^6.4.2",
+    "@intlify/devtools-types": "^11.1.1",
     "@types/tcp-port-used": "^1.0.4",
     "@types/ws": "^8.5.14",
     "bootstrap": "^5.3.3",
