@@ -1,6 +1,6 @@
 {
   "name": "compute_tool",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "A minimal Electron + Vue application",
   "main": "main/main.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "build": "node scripts/build.js && electron-builder",
     "build:web": "node scripts/build.js",
     "build:node": "node scripts/node_builder.js",
+    "build:server": "node scripts/server_builder.js",
     "build:dir": "node scripts/build.js && electron-builder --dir",
     "build:win": "node scripts/build.js && electron-builder --win",
     "build:mac": "node scripts/build.js && electron-builder --mac",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
     "@iconify-json/mdi": "^1.2.3",
+    "@types/express": "^5.0.0",
     "@types/vue-markdown": "^2.2.4",
     "@vitejs/plugin-vue": "^4.4.1",
     "@vue/compiler-sfc": "^3.5.13",
@@ -49,6 +51,7 @@
     "bootstrap-vue-3": "^0.5.1",
     "codemirror": "^6.0.1",
     "compute_tool": "file:",
+    "express": "^4.21.2",
     "expressionparser": "^1.1.5",
     "lua-in-js": "^2.2.5",
     "mitt": "^3.0.1",

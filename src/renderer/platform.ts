@@ -1,4 +1,4 @@
-export const checkifElectron = () => {
+export const checkifElectron = ():boolean => {
     // Renderer process
     if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
         return true;
@@ -15,4 +15,10 @@ export const checkifElectron = () => {
     }
 
     return false;
+}
+
+export const checkIfExpress = async ():Promise<boolean> => {
+    const p = await fetch('express')
+    const t = await p.text()
+    return t == '1' || t == 'true'
 }

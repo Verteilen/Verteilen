@@ -7,7 +7,7 @@ import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
 import { BusType, Preference } from './interface';
-import { isElectron } from './main';
+import { isElectron, isExpress } from './main';
 import { i18n } from './plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -17,6 +17,7 @@ const preference:Ref<Preference> = ref({
 const mode = ref(isElectron ? -1 : 1)
 
 console.log("isElectron", isElectron)
+console.log("isExpress", isExpress)
 
 if (isElectron) window.electronAPI.send('message', '歡迎啟動自動化工廠');
 

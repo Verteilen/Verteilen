@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, JobCategory, Libraries, Log, Record, Setter } from '../../interface';
+import { BusJobFinish } from '../../../share/interface';
+import { BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, JobCategory, Libraries, Log, Record, Setter } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 
