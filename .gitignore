@@ -7,6 +7,6 @@ preference.json
 lib.json
 .vscode
 .idea
-ply_tool/build
-ply_tool/dist
-ply_tool/exe/*.rar
+util/ply_tool/build
+util/ply_tool/dist
+util/ply_tool/exe/*.rar

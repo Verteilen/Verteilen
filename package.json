@@ -1,12 +1,13 @@
 {
   "name": "compute_tool",
   "version": "0.1.11",
-  "description": "A minimal Electron + Vue application",
+  "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
     "dev": "node scripts/dev-server.js",
     "web": "vite",
     "node": "ts-node src/node/main.ts",
+    "share": "node scripts/share.js",
     "build": "node scripts/build.js && electron-builder",
     "build:web": "node scripts/build.js",
     "build:node": "node scripts/node_builder.js",
@@ -16,13 +17,12 @@
     "build:mac": "node scripts/build.js && electron-builder --mac",
     "build:linux": "node scripts/build.js && electron-builder --linux",
     "docker:node": "docker_node.sh",
-    "docker:server": "docker_server.sh",
-    "publish": "electron-builder --publish always --win"
+    "docker:server": "docker_server.sh"
   },
-  "repository": "https://github.com/deluze/electron-vue-template",
+  "repository": "https://github.com/Elly2018/Compute-Tool",
   "author": {
-    "name": "Deluze",
-    "url": "https://github.com/Deluze"
+    "name": "Elly",
+    "url": "https://github.com/Elly2018"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",

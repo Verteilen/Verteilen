@@ -1,14 +1,15 @@
-import { WebSocket } from 'ws'
 import { ExecuteState } from "./enum"
 
 export interface WebsocketPack {
+    s?:boolean
     uuid: string
     websocket: WebSocket
+    current_job?: string
+    state?: ExecuteState
 }
 
-export interface WebsocketPackState extends WebsocketPack {
-    current_job: string
-    state: ExecuteState
+export interface CronWebsocketPack {
+    websocket: WebsocketPack
 }
 
 export interface Header {
@@ -38,6 +39,7 @@ export interface Setter {
 
 export interface FeedBack {
     job_uuid: string
+    meta: number
     message: string
 }
 

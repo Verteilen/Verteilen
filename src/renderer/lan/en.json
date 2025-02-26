@@ -1,4 +1,10 @@
 {
+    "menu": {
+        "file": "File",
+        "edit": "Edit",
+        "execute": "Execute",
+        "help": "Help"
+    },
     "modeselect": {
         "title": "Your role"
     },

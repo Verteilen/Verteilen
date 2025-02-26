@@ -1,5 +1,5 @@
 import { messager_log } from "../debugger";
-import { Header } from "../interface";
+import * as share from '../interface';
 import { execute_job, set_boolean, set_libs, set_number, set_parameter, set_string, stop_job } from "./execute";
 
 const typeMap = {
@@ -12,7 +12,7 @@ const typeMap = {
     'set_boolean': set_boolean
 }
 
-export const analysis = (h:Header | undefined) => {
+export const analysis = (h:share.Header | undefined) => {
     if (h == undefined){
         messager_log('[來源資料解析] 解析失敗, 得到的值為 undefined')
         return;

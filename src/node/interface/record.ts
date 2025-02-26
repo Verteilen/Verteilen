@@ -1,6 +1,5 @@
 import { Node, Project } from "./base"
 import { ExecuteState } from "./enum"
-import { WebsocketPack } from "./struct"
 
 export interface ExecuteData {
     uuid: string
@@ -8,13 +7,16 @@ export interface ExecuteData {
 }
 
 export interface ExecutionTaskLog {
-    project_state: Array<ExecuteData>
     task_state: ExecuteData
+    start_timer: number,
+    end_timer: number,
     task_detail: Array<ExecuteRecordTask>
 }
 
 export interface ExecutionLog {
-    prject: Project
+    project: Project
+    start_timer: number,
+    end_timer: number,
     state: ExecuteState
     logs: Array<ExecutionTaskLog>
 }
@@ -35,9 +37,20 @@ export interface Record {
     nodes: Array<Node>
 }
 
-export interface ExecutePack {
-    projects: Array<Project>
-    nodes: Array<WebsocketPack>
+export interface ExecuteRecord extends Record {
+    running: boolean
+    stop: boolean
+    project: string
+    task: string
+    project_index: number
+    task_index: number
+    project_state: Array<ExecuteData>
+    task_state: Array<ExecuteData>
+    task_detail: Array<ExecuteRecordTask>
+}
+
+export interface Preference {
+    lan: string
 }
 
 export interface Library {

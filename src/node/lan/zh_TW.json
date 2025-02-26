@@ -5,6 +5,59 @@
         "execute": "執行",
         "help": "幫助"
     },
+    "modeselect": {
+        "title": "你擔任的角色"
+    },
+    "error": {
+        "title-needed": "名稱不能為空",
+        "title-repeat": "名稱不能重複"
+    },
+    "modal": {
+        "new-project": "新增專案",
+        "modify-project": "編輯專案",
+        "enter-project-name": "輸入專案名稱",
+        "enter-project-description": "輸入專案敘述",
+        "new-task": "新增流程",
+        "modify-task": "編輯流程",
+        "enter-task-name": "輸入流程名稱",
+        "enter-task-description": "輸入流程敘述",
+        "new-job": "新增工作",
+        "new-parameter": "新增參數",
+        "rename-parameter": "改名參數",
+        "enter-parameter-name": "輸入參數名稱",
+        "parameter-datatype": "資料型態",
+        "new-node": "新增節點",
+        "enter-node-address": "輸入節點位址"
+    },
+    "toolbar": {
+        "project": "專案管理",
+        "task": "流程管理",
+        "job": "工作管理",
+        "parameter": "參數管理",
+        "node": "節點管理",
+        "console": "控制台",
+        "log": "紀錄",
+        "library": "運行庫"
+    },
+    "tooltip": {
+        "select-server": "作為伺服器下指令的一方",
+        "select-node": "作為節點負責運作的一方",
+        "project-id": "專案的 UUID",
+        "project-taskCount": "專案下的流程總數",
+        "task-id": "流程的 UUID",
+        "task-jobCount": "流程下的工作總數",
+        "task-cronjob": "用多台電腦執行的任務",
+        "task-multi": "單一電腦會使用多核心運算"
+    },
+    "jobpage": {
+        "if-error": "如果出錯",
+        "from": "來源",
+        "to": "目的",
+        "path": "路徑",
+        "content": "內容",
+        "command": "命令",
+        "parameters": "參數值"
+    },
     "enum":{
         "jobtype": {
             "copy-file": "複製檔案",
@@ -20,6 +73,82 @@
         "jobtype2": {
             "check-path": "檢查路徑",
             "lua": "LUA 腳本"
+        },
+        "jobresult": {
+            "none": "無",
+            "skip-project": "跳過專案",
+            "throw-project": "放棄專案",
+            "skip-task": "跳過流程",
+            "throw-task": "放棄流程",
+            "skip-subtask": "跳過子流程",
+            "throw-subtask": "放棄子流程",
+            "pause": "暫停"
+        },
+        "project": {
+            "default": "範例",
+            "gs4": "睿智 GS4"
+        },
+        "state": {
+            "none": "準備中",
+            "running": "執行中",
+            "finish": "完成",
+            "error": "錯誤",
+            "skip": "跳過"
+        },
+        "lua": {
+            "default": "預設",
+            "gs4-sort": "睿智 GS4 資料夾整理 v1"
+        },
+        "connection": {
+            "connecting": "連線中...",
+            "connected": "連線",
+            "closing": "關閉中...",
+            "closed": "關閉"
+        },
+        "category": {
+            "condition": "偵測",
+            "execution": "執行"
         }
-    }
+    },
+    "console": {
+        "list": "專案列表",
+        "dashboard": "儀錶板"
+    },
+    "project": "專案",
+    "task": "流程",
+    "job": "工作",
+    "parameter": "參數",
+    "create": "新增",
+    "clone": "克隆",
+    "delete": "刪除",
+    "save": "存檔",
+    "server": "伺服器",
+    "node": "節點",
+    "action": "動作",
+    "check": "查看",
+    "edit": "編輯",
+    "modify": "修改",
+    "moveup": "往上移動",
+    "movedown": "往下移動",
+    "rename": "改名",
+    "execute": "執行",
+    "execute-0": "全部",
+    "execute-1": "專案",
+    "execute-2": "流程",
+    "skip-0": "跳過專案",
+    "skip-1": "跳過流程",
+    "stop": "停下",
+    "export": "匯出",
+    "useTemplate": "使用樣板",
+    "execute-keep": "執行 (保留)",
+    "parameter-setting": "參數設定",
+    "is-running": "是否執行中",
+    "is-stop": "是否停止",
+    "clear": "清除",
+    "auto-scroll": "自動滑動",
+    "close-all": "全部關閉",
+    "clean": "清除",
+    "cronjob": "群集運算",
+    "multicore": "多核運算",
+    "recover": "恢復"
 }

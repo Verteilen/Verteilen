@@ -1,3 +1,5 @@
+export const PORT = 12080
+
 export * from './interface/base'
 export * from './interface/bus'
 export * from './interface/enum'

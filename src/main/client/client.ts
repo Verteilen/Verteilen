@@ -2,7 +2,7 @@ import { ipcMain } from 'electron';
 import tcpPortUsed from 'tcp-port-used';
 import ws, { WebSocketServer } from 'ws';
 import { messager_log } from '../debugger';
-import { Header, PORT } from '../interface';
+import * as share from '../interface';
 import { analysis } from './analysis';
 
 let client:ws.WebSocketServer | undefined = undefined
@@ -11,7 +11,7 @@ export const settag = (v:string | undefined) => { tag = v }
 export let source:ws.WebSocket | undefined = undefined
 
 export const _clientinit = async () => {
-    let port_result = PORT
+    let port_result = share.PORT
     let canbeuse = false
     while(!canbeuse){
         await tcpPortUsed.check(port_result).then(x => {
@@ -51,7 +51,7 @@ export const _clientinit = async () => {
             messager_log(`[新來源事件] 新的來源也建立連結, URL: ${source?.url}`)
         })
         source.on('message', (data, isBinery) => {
-            const h:Header | undefined = JSON.parse(data.toString());
+            const h:share.Header | undefined = JSON.parse(data.toString());
             analysis(h);
         })
         source.on('pong', (data) => {

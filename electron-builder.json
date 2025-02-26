@@ -31,12 +31,17 @@
             "to": "static",
             "filter": ["**/*"]
         },
+        "!src",
         "!.git",
         "!.github",
         "!build",
         "!dist",
         "!docs",
-        "!ply_tool",
-        "!scripts"
+        "!util",
+        "!scripts",
+        "!record.json",
+        "!preference.json",
+        "!log.json",
+        "!node_modules/express"
     ]
 }

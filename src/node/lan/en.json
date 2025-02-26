@@ -5,6 +5,59 @@
         "execute": "Execute",
         "help": "Help"
     },
+    "modeselect": {
+        "title": "Your role"
+    },
+    "error": {
+        "title-needed": "Title is needed",
+        "title-repeat": "Cannot use title which already exists"
+    },
+    "modal": {
+        "new-project": "New Project",
+        "modify-project": "Modify Project",
+        "enter-project-name": "Enter Project Name",
+        "enter-project-description": "Enter Project Description",
+        "new-task": "New Task",
+        "modify-task": "Modify Task",
+        "enter-task-name": "Enter Task Name",
+        "enter-task-description": "Enter Task Description",
+        "new-job": "New Job",
+        "new-parameter": "New Parameter",
+        "rename-parameter": "Rename Parameter",
+        "enter-parameter-name": "Enter Parameter Name",
+        "parameter-datatype": "Datatype",
+        "new-node": "New Node",
+        "enter-node-address": "Enter Node Address"
+    },
+    "toolbar": {
+        "project": "Project",
+        "task": "Task",
+        "job": "Job",
+        "parameter": "Parameter",
+        "node": "Node",
+        "console": "Console",
+        "log": "Log",
+        "library": "Library"
+    },
+    "tooltip": {
+        "select-server": "The one who send the command to client",
+        "select-node": "The one who received job request from server",
+        "project-id": "Project UUID",
+        "project-taskCount": "Total task count for this project",
+        "task-id": "Task UUID",
+        "task-jobCount": "Total job count for this task",
+        "task-cronjob": "Use multiple node to compute",
+        "task-multi": "Use multi-core to compute"
+    },
+    "jobpage": {
+        "if-error": "If Error",
+        "from": "From",
+        "to": "To",
+        "path": "Path",
+        "content": "Content",
+        "command": "Command",
+        "parameters": "Parameters"
+    },
     "enum":{
         "jobtype": {
             "copy-file": "Copy File",
@@ -20,6 +73,82 @@
         "jobtype2": {
             "check-path": "Check Path",
             "lua": "Lua"
+        },
+        "jobresult": {
+            "none": "None",
+            "skip-project": "Skip Project",
+            "throw-project": "Throw Project",
+            "skip-task": "Skip Task",
+            "throw-task": "Throw Task",
+            "skip-subtask": "Skip SubTask",
+            "throw-subtask": "Throw SubTask",
+            "pause": "Pause"
+        },
+        "project": {
+            "default": "Example",
+            "gs4": "Funique GS4"
+        },
+        "state": {
+            "none": "Prepare",
+            "running": "Running",
+            "finish": "Finish",
+            "error": "Error",
+            "skip": "Skip"
+        },
+        "lua": {
+            "default": "Default",
+            "gs4-sort": "GS4 Sorting Prepare Folder"
+        },
+        "connection": {
+            "connecting": "Connecting...",
+            "connected": "Connected",
+            "closing": "Closing...",
+            "closed": "Closed"
+        },
+        "category": {
+            "condition": "Condition",
+            "execution": "Execution"
         }
-    }
+    },
+    "console": {
+        "list": "Project List",
+        "dashboard": "Dashboard"
+    },
+    "project": "Project",
+    "task": "Task",
+    "job": "JOB",
+    "parameter": "Parameter",
+    "create": "Create",
+    "clone": "Clone",
+    "delete": "Delete",
+    "save": "Save",
+    "server": "Server",
+    "node": "Node",
+    "action": "Action",
+    "check": "Check",
+    "edit": "Edit",
+    "modify": "Modify",
+    "moveup": "Move-Up",
+    "movedown": "Move-Down",
+    "rename": "Rename",
+    "execute": "Execute",
+    "execute-0": "All",
+    "execute-1": "Project",
+    "execute-2": "Task",
+    "skip-0": "Skip Project",
+    "skip-1": "Skip Task",
+    "stop": "Stop",
+    "export": "Export",
+    "useTemplate": "Use Template",
+    "execute-keep": "Execute (Keep)",
+    "parameter-setting": "Parameter Setting",
+    "is-running": "Is Running",
+    "is-stop": "Is Stop",
+    "clear": "Clear",
+    "auto-scroll": "Auto Scroll",
+    "close-all": "Close All",
+    "clean": "Clean",
+    "cronjob": "Cronjob",
+    "multicore": "Multicore",
+    "recover": "Recover"
 }
