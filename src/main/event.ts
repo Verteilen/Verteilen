@@ -116,10 +116,10 @@ export const eventInit = () => {
         messager_log(`[事件] 讀取 preference.js, 檔案存在: ${exist}`)
         if(!exist){
             const record:Preference = {
-                lan: 'zh_TW'
+                lan: 'en'
             }
             fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
-            i18n.global.locale = 'zh_TW'
+            i18n.global.locale = 'en'
             setupMenu()
             return JSON.stringify(record)
         } else {
