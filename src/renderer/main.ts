@@ -27,7 +27,7 @@ const w2 = w1.then(x => {
     return new Promise<void>((resolve, reject) => {
         isExpress = x
         if(isExpress){
-            serverConnection = new ServerConnection('ws://127.0.0.1:/server')
+            serverConnection = new ServerConnection(`ws://${window.location.host}/server`)
             setTimeout(() => {
                 if(serverConnection?.ws.readyState == WebSocket.OPEN){
                     resolve()

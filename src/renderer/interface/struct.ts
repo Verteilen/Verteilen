@@ -14,6 +14,7 @@ export interface CronWebsocketPack {
 
 export interface Header {
     name: string
+    token?: string
     meta?: string
     message?: string
     data?: any
