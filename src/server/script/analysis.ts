@@ -1,9 +1,8 @@
-import ws from 'ws';
-import { consoleEvent } from '.';
-import { messager_log } from "./debugger";
-import { Header } from "./interface";
+import { consoleEvent } from "..";
+import { Header, WebsocketPack } from "../interface";
+import { messager_log } from "./../debugger";
 
-export const analysis = (h:Header | undefined, c:ws.WebSocket) => {
+export const analysis = (h:Header | undefined, c:WebsocketPack | undefined) => {
     if (h == undefined){
         messager_log('[來源資料解析] 解析失敗, 得到的值為 undefined')
         return;
