@@ -2,7 +2,6 @@ import { dialog, ipcMain } from "electron";
 import fs from "fs";
 import { clientinit } from "./client/client";
 import { LuaTest } from "./client/lua";
-import { dir_copy, dir_delete, file_copy, file_delete, fs_exist } from "./client/os";
 import { messager_log } from "./debugger";
 import { Libraries, Log, Preference, Project, Record } from "./interface";
 import { mainWindow } from "./main";
@@ -121,32 +120,6 @@ export const eventInit = () => {
     })
     ipcMain.handle('eval', (event, str:string):string => {
         return Function(`return ${str}`)()
-    })
-
-
-    ipcMain.on('file_copy', (event, from:string, to:string):void => {
-        file_copy({ from: from, to: to })
-    })
-    ipcMain.on('dir_copy', (event, from:string, to:string):void => {
-        dir_copy({ from: from, to: to })
-    })
-    ipcMain.on('file_delete', (event, path:string):void => {
-        file_delete({ path: path })
-    })
-    ipcMain.on('dir_delete', (event, path:string):void => {
-        dir_delete({ path: path })
-    })
-    ipcMain.handle('fs_exist', (event, path:string):boolean => {
-        return fs_exist({ path: path })
-    })
-    ipcMain.handle('dir_create', (event, path:string):string | undefined => {
-        return fs.mkdirSync(path, {recursive: true})
-    })
-    ipcMain.handle('dir_list', (event, path:string):Array<string> => {
-        return fs.readdirSync(path, {withFileTypes: false}).map(x => x)
-    })
-    ipcMain.handle('file_list', (event, path:string):Array<string> => {
-        return fs.readdirSync(path, {withFileTypes: true}).map(x => x.name)
     })
 }
 

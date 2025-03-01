@@ -13,8 +13,10 @@ npm run build:win
 
 ## node
 
-The pure node program without the user-interface\
+The pure computing node program without the user-interface\
 Basically a lightweight computing node
+
+Use command below to build the result to build/node
 
 ```shell
 npm run build:node
@@ -31,6 +33,8 @@ This codebase can be use in
 
 Express server source code
 
+Use command below to build the result to build/server
+
 ```shell
 npm run build:server
 ```
@@ -39,6 +43,8 @@ npm run build:server
 
 This are the files that share by other\
 You can use command below to copy the files to other folder
+
+Basically a share resource to everyone
 
 ```shell
 npm run share

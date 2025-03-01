@@ -2,7 +2,15 @@
 
 This is a tool which can manage tasks on multiple computer
 
-[Demo](https://elly2018.github.io/Compute-Tool/)
+For User
+
+[Demo](https://elly2018.github.io/Compute-Tool/)\
+[Utility Tool](./util/README.md)
+
+For Dev
+
+[Dev](./src/README.md)\
+[Build](./scripts/build.js)
 
 ## Screenshot
 
@@ -34,9 +42,10 @@ Scripts folder run docker_server.sh
 
 ## Features
 
-||||||
-|-|-|-|-|-|
+The checklist features for each type of build
+
 |Features|Desktop|Node|Server|Web|
+|-|-|-|-|-|
 |Language|✓|✓|✓|✓|
 |Task Management|✓||✓|✓|
 |Preference|✓||✓|✓|
@@ -69,22 +78,22 @@ If Cron is checked, Server will select multiple nodes to distributed to task
 
 #### Job
 
-節點要執行的一連串動作\
-你可以在欄位裡面輸入 %變數名稱% 或是表達式 %{ 變數名稱 - 1 }% \
-你可以建立一個範例樣板的專案查看細節
+Job is a single action\
+You can use variable by typing %[Varaible Name]% or expression %{ [Varaible Name] - 1 }% \
+Create a example project template to check the implementation
 
-使用了 [expressionparser](https://www.npmjs.com/package/expressionparser) 當作為表達式使用, 這樣可以克服 eval 的不支援問題
+Use [expressionparser](https://www.npmjs.com/package/expressionparser) as expression lib\
+Click the link for more detail
 
 #### Parameter
 
-專案的參數值, 支援布林, 字串, 跟數字三種資料型態\
-這些變數可以在運作時進行動態變化, 也可以當成常數使用
+Project's parameter, Support boolean, string, number data type\
+This varaible can be change in runtime, you can use it as constant as well
 
 ### Lua
 
-你可以在工作中定義 Lua 腳本運行\
-Lua 存取或是輸出都是透過函式進行動作\
-針對 Lua 可以使用的函式, 可以參考[這裡](./docs/Lua.md)
+You can write a Lua script in the job section\
+Lua has its function lib, more detail in [Here](./docs/Lua.md)
 
 ### Monitor
 
