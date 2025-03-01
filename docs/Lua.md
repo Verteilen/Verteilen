@@ -1,108 +1,134 @@
-# Lua 支援函示
+# Lua Functions
 
-## Lua 
+<details>
+<summary>Build-in function</summary>
+<div style="padding-left:20px">
 
-### split(a1:string, a2:string)
+## split(a1:string, a2:string)
 
-把 a1 字串, 切開根據 a2 的字元, 形成陣列回傳\
-你可以這樣用, 得到資料夾所有檔案
+Split the a1 string by char a2, return array\
+Easier way to use in a for loop
+
 ```lua
+--[[
+folder1
+folder2
+folder3
+file.json
+--]]
+local file = o.listfile("myfolder")
+--[[
+["folder1", "folder2", "folder3", "file.json"]
+--]]
 local allfiles = split(o.listfile("myfolder"), "\\n")
+-- Print out each value
+for key=1,value in pairs(allfiles) do
+    m.messager(value)
+end
 ```
 
-## OS 相關
+</div>
+</details>
 
-### o.copyfile(a1:string, a2:string)
 
-複製檔案, 從 a1 到 a2
+<details>
+<summary>OS function</summary>
+<div style="padding-left:20px">
 
-### o.copydir(a1:string, a2:string)
+## o.copyfile(a1:string, a2:string)
 
-複製資料夾, 從 a1 到 a2
+Copy the file from a1 path to a2 path
 
-### o.deletefile(a1:string)
+## o.copydir(a1:string, a2:string)
 
-刪除檔案, a1 路徑
+Copy the folder from a1 path to a2 path
 
-### o.deletedir(a1:string)
+## o.deletefile(a1:string)
 
-刪除資料夾, a1 路徑
+It's pretty straightforward i think
 
-### o.exist(a1:string)
+## o.deletedir(a1:string)
 
-檢查檔案或資料夾路徑存在\
-回傳布林
+It's pretty straightforward i think
 
-### o.listfile(a1:string)
+## o.exist(a1:string)
 
-掃描資料夾, 把所有檔案名稱蒐集起來, 並且回傳字串並且以 \n 分隔開來
+Check file or folder exist, It return back boolean value
 
-### o.listdir(a1:string)
+## o.listfile(a1:string)
 
-掃描資料夾, 把所有資料夾名稱蒐集起來, 並且回傳字串並且以 \n 分隔開來
+scan a1 path folder and get all the files\
+Return a string result of all files name splited by line-break character
 
-### o.createdir(a1:string)
+## o.listdir(a1:string)
 
-建立資料夾
+scan a1 path folder and get all the folders\
+Return a string result of all folders name splited by line-break character
 
-### o.writefile(a1:string, a2:string)
+## o.createdir(a1:string)
 
-寫入檔案 a1 為路徑, a2 為內容
+It's pretty straightforward i think
 
-### o.readfile(a1:string)
+## o.writefile(a1:string, a2:string)
 
-讀取檔案 a1 路徑
-回傳字串, 為檔案內容
+Write a2 context to a file in the a1 path
 
-### o.rename(a1:string, a2:string)
+## o.readfile(a1:string)
 
-改名, 從路徑 a1 到路徑 a2
+Read path a1 file, open the file and return back the string context
 
-## 環境相關
+## o.rename(a1:string, a2:string)
 
-### env.hasboolean(a1:string)
+Rename the folder ot file, from a1 to a2
 
-檢查專案布林參數是否存在
+</div>
+</details>
 
-### env.getboolean(a1:string)
 
-得到專案布林參數
+<details>
+<summary>Variable function</summary>
+<div style="padding-left:20px">
 
-### env.setboolean(a1:string)
+You can three datatype support here
 
-設置專案布林參數
+* boolean
+* string
+* number
 
-### env.hasnumber(a1:string)
+## env.has\[data-type\](a1:string)
 
-檢查專案數字參數是否存在
+Check variable exist
 
-### env.getnumber (a1:string)
+## env.set\[data-type\](a1:string, a2:any)
 
-得到專案數字參數
+Set the variable value
 
-### env.setnumber(a1:string)
+## env.get\[data-type\](a1:string)
 
-設置專案數字參數
+Get the variable value
 
-### env.hasstring(a1:string)
+## Example
 
-檢查專案字串參數是否存在
+```lua
+local path = env.getstring('root')
+local ison = env.getboolean('ison')
+```
 
-### env.getstring(a1:string)
+</div>
+</details>
 
-得到專案字串參數
+<details>
+<summary>Debug function</summary>
+<div style="padding-left:20px">
 
-### env.setstring(a1:string)
-
-設置專案字串參數
-
-## 訊息相關
-
-### m.messager(a1:string)
+## m.messager(a1:string)
 
 輸出訊息, 在節點的畫面上
 
-### m.messager_log(a1:string)
+## m.messager_log(a1:string)
 
 輸出訊息, 除了在節點的畫面上\
 也將訊息回傳給伺服器
+
+</div>
+</details>
