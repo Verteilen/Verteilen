@@ -1,4 +1,4 @@
-import { BusWebType, Header } from "../interface"
+import { BusWebType, Header, RawSend } from "../interface"
 import { webEmitter } from "../main"
 import { messager_log } from "./debugger"
 
@@ -6,7 +6,7 @@ export class ServerConnection {
     ws:WebSocket
 
     constructor(url:string){
-        webEmitter.on('load_preference_call', this.load_preference_call)
+        webEmitter.on('raw_send', this.send)
 
         this.ws = new WebSocket(url)
         this.ws.onerror = (err:any) => {
@@ -29,9 +29,11 @@ export class ServerConnection {
         webEmitter.emit(d.name as keyof BusWebType, ...data)
     }
 
-    load_preference_call = () => {
+    send = (data:RawSend) => {
         const d:Header = {
-            name: "load_preference_call"
+            name: data.name,
+            token: data.token,
+            data: data.data
         }
         this.ws.send(JSON.stringify(d))
     }

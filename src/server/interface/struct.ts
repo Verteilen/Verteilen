@@ -49,3 +49,9 @@ export interface KeyValue {
     key: any
     value: any
 }
+
+export interface JWT {
+    user: string
+    create: number
+    expire: number
+}

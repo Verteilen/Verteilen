@@ -73,6 +73,17 @@ export interface Rename {
     newname: string
 }
 
+export interface Login {
+    username: string
+    password: string
+}
+
+export interface RawSend {
+    name: string
+    token?: string
+    data: any
+}
+
 export type BusType = {
     makeToast: ToastData
     modeSelect: boolean
@@ -107,7 +118,10 @@ export type BusType = {
 }
 
 export type BusWebType = {
+    raw_send: RawSend
+
     locate: string
     load_preference: string
-    load_preference_call: void
+    load_cookie: void
+    get_token: string
 }

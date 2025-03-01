@@ -3,8 +3,8 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Rename, Task, WebsocketPack } from '../interface';
-import { isElectron } from '../main';
+import { BusType, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, RawSend, Record, Rename, Task, WebsocketPack } from '../interface';
+import { isElectron, isExpress, webEmitter } from '../main';
 import { set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -297,6 +297,12 @@ const libDelete = (name:string) => {
 }
 //#endregion
 
+//#region Web
+const Cookie = () => {
+  
+}
+//#endregion
+
 const menuCreateProject = (e:IpcRendererEvent) => {
   page.value = 0
 }
@@ -370,36 +376,45 @@ onMounted(() => {
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
 
-  if(!isElectron) return
-  window.electronAPI.send('menu', true)
-  window.electronAPI.eventOn('createProject', menuCreateProject)
-  window.electronAPI.eventOn('menu_export_project', menu_export_project)
-  window.electronAPI.eventOn('run_all', run_all)
-  window.electronAPI.eventOn('run_all_keep', run_all_keep)
-  window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
-  window.electronAPI.invoke('load_lib').then(x => {
-    libs.value = JSON.parse(x)
-  })
-  window.electronAPI.invoke('load_record').then(x => {
-    const record:Record = JSON.parse(x)
-    projects.value = record.projects
-    nodes.value = record.nodes.map(x => {
-      return Object.assign(x, {
-        s: false,
-        state: 0,
-        connection_rate: 0
+  if(isElectron){
+    window.electronAPI.send('menu', true)
+    window.electronAPI.eventOn('createProject', menuCreateProject)
+    window.electronAPI.eventOn('menu_export_project', menu_export_project)
+    window.electronAPI.eventOn('run_all', run_all)
+    window.electronAPI.eventOn('run_all_keep', run_all_keep)
+    window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
+    window.electronAPI.invoke('load_lib').then(x => {
+      libs.value = JSON.parse(x)
+    })
+    window.electronAPI.invoke('load_record').then(x => {
+      const record:Record = JSON.parse(x)
+      projects.value = record.projects
+      nodes.value = record.nodes.map(x => {
+        return Object.assign(x, {
+          s: false,
+          state: 0,
+          connection_rate: 0
+        })
+      })
+      nodes.value.forEach(x => {
+        websocket_manager.value?.server_start(x.url)
+      })
+      nextTick(() => {
+        allUpdate()
       })
     })
-    nodes.value.forEach(x => {
-      websocket_manager.value?.server_start(x.url)
+    window.electronAPI.invoke('load_log').then(x => {
+      log.value = JSON.parse(x)
     })
-    nextTick(() => {
-      allUpdate()
-    })
-  })
-  window.electronAPI.invoke('load_log').then(x => {
-    log.value = JSON.parse(x)
-  })
+  }
+  
+  if(isExpress){
+    const d:RawSend = {
+      name: "",
+      data: undefined
+    }
+    webEmitter.emit('raw_send', d)
+  }
 })
 
 onUnmounted(() => {
@@ -407,12 +422,13 @@ onUnmounted(() => {
   emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
   if(updateHandle != undefined) clearInterval(updateHandle)
-  if(!isElectron) return
-  window.electronAPI.eventOff('createProject', menuCreateProject)
-  window.electronAPI.eventOff('menu_export_project', menu_export_project)
-  window.electronAPI.eventOff('run_all', run_all)
-  window.electronAPI.eventOff('run_all_keep', run_all_keep)
-  window.electronAPI.eventOff('import_project_feedback', import_project_feedback)
+  if(isElectron) {
+    window.electronAPI.eventOff('createProject', menuCreateProject)
+    window.electronAPI.eventOff('menu_export_project', menu_export_project)
+    window.electronAPI.eventOff('run_all', run_all)
+    window.electronAPI.eventOff('run_all_keep', run_all_keep)
+    window.electronAPI.eventOff('import_project_feedback', import_project_feedback)
+  }
 })
 
 </script>
@@ -428,19 +444,20 @@ onUnmounted(() => {
     <v-tab>{{ $t('toolbar.log') }}</v-tab>
     <v-tab>{{ $t('toolbar.library') }}</v-tab>
     <v-menu v-if="!isElectron">
-        <template v-slot:activator="{ props }">
-          <v-btn class="mt-1" v-bind="props">
-            <v-icon class="pr-2" icon="mdi-web"></v-icon>
-            {{ lanSelect }}
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item v-for="(locate, i) in lan" :key="i" :value="locate" @click="onChangeLan(locate)">
-            {{ locate }}
-          </v-list-item>
-        </v-list>
-      </v-menu>
+      <template v-slot:activator="{ props }">
+        <v-btn class="mt-1" v-bind="props">
+          <v-icon class="pr-2" icon="mdi-web"></v-icon>
+          {{ lanSelect }}
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item v-for="(locate, i) in lan" :key="i" :value="locate" @click="onChangeLan(locate)">
+          {{ locate }}
+        </v-list-item>
+      </v-list>
+    </v-menu>
   </v-tabs>
+  
   <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
     <ProjectPage v-show="page == 0" 
       :projects="projects" 

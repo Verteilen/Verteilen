@@ -34,7 +34,7 @@ const _locate = (v:string) => {
   if(!isElectron) return
   window.electronAPI.send('save_preference', JSON.stringify(preference.value, null, 4))
 }
-const locate = (e:IpcRendererEvent, v:string) => {
+const locate = (e:IpcRendererEvent | null, v:string) => {
   _locate(v)
 }
 
@@ -55,7 +55,7 @@ onMounted(() => {
   if(isExpress){
     webEmitter?.on('locate', _locate)
     webEmitter?.on('load_preference', load_preference)
-    webEmitter?.emit('load_preference_call')
+    webEmitter?.emit('raw_send', { name: 'load_preference_call', data: undefined })
   }
 })
 

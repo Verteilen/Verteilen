@@ -29,17 +29,10 @@ const w2 = w1.then(x => {
         if(isExpress){
             serverConnection = new ServerConnection(`ws://${window.location.host}/server`)
             setTimeout(() => {
-                if(serverConnection?.ws.readyState == WebSocket.OPEN){
-                    resolve()
-                }else{
-                    reject()
-                }
-                return
+                if(serverConnection?.ws.readyState == WebSocket.OPEN) resolve()
+                else reject()
             }, 1000);
-        }else{
-            resolve()
-            return
-        }
+        }else resolve()
     })
     
 })
