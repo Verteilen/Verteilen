@@ -1,9 +1,9 @@
 import { dialog, ipcMain } from "electron";
 import fs from "fs";
-import { Libraries, Log, Preference, Project, Record } from "interface";
 import { clientinit } from "./client/client";
 import { LuaTest } from "./client/lua";
 import { messager_log } from "./debugger";
+import { Libraries, Log, Preference, Project, Record } from "./interface";
 import { mainWindow } from "./main";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";

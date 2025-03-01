@@ -1,5 +1,5 @@
-import { Header, Single, WebsocketPack } from "interface";
 import { source } from "./client/client";
+import { Header, Single, WebsocketPack } from "./interface";
 import { mainWindow } from "./main";
 
 /** 
