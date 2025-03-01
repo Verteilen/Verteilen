@@ -1,6 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Header, Node, NodeTable, WebsocketPack } from "../interface";
-import { analysis } from "./analysis";
 import { messager_log } from "./debugger";
 
 export class WebsocketManager{
@@ -8,14 +7,7 @@ export class WebsocketManager{
     targets:Array<WebsocketPack> = []
     newConnect:Function | undefined
     disconnect:Function | undefined
-
-    set_new_connect = (_newConnect:Function) => {
-        this.newConnect = _newConnect
-    }
-
-    set_dc_connect = (_disconnect:Function) => {
-        this.disconnect = _disconnect
-    }
+    onAnalysis:Function | undefined
 
     server_start = (url:string) => this.serverconnect(url)
     
@@ -56,9 +48,21 @@ export class WebsocketManager{
         client.onmessage = (ev) => {
             const h:Header | undefined = JSON.parse(ev.data.toString());
             const c = this.targets.find(x => x.websocket == client)
-            analysis(h, c)
+            this.analysis(h, c)
         }
         return client
+    }
+
+    private analysis = (h:Header | undefined, c:WebsocketPack | undefined) => {
+        if (h == undefined){
+            messager_log('[來源資料解析] 解析失敗, 得到的值為 undefined')
+            return;
+        }
+        if (h.message != undefined && h.message.length > 0){
+            messager_log(`[來源資料解析] ${h.message}`)
+        }
+        if (h.data == undefined) return
+        if(this.onAnalysis != undefined) this.onAnalysis({name: h.name, h: h, c: c})
     }
 
     private sendUpdate = (): Array<NodeTable> => {

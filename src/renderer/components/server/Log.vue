@@ -3,13 +3,13 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { BusType, ExecuteRecord, ExecuteState, Log, Project } from '../../interface';
-import { isElectron } from '../../main';
+import { AppConfig, BusType, ExecuteRecord, ExecuteState, Log, Project } from '../../interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     logs: Log
+    config: AppConfig
 }
 
 const data = defineModel<ExecuteRecord>()
@@ -37,7 +37,7 @@ const setEnable = (index:number) => {
 }
 
 const updateLog = (log:Log) => {
-    if(!isElectron) return
+    if(!props.config.isElectron) return
     window.electronAPI.send('save_log', JSON.stringify(log, null, 4))
 }
 

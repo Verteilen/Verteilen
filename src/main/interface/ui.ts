@@ -1,3 +1,8 @@
+export interface AppConfig {
+    isExpress: boolean | undefined
+    isElectron: boolean
+}
+
 export interface IMessage {
     ison: boolean
     timer: number

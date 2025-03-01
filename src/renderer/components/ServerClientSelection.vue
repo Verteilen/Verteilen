@@ -1,30 +1,35 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject } from 'vue';
-import { BusType, ToastData } from '../interface';
-import { isElectron } from '../main';
+import { AppConfig, BusType, ToastData } from '../interface';
+import { i18n } from './../plugins/i18n';
+
+interface PROPS {
+    config: AppConfig
+}
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
+const props = defineProps<PROPS>()
 const data = defineModel<number>()
 
 const serverClick = () => {
     const d:ToastData = {
-        title: "伺服器模式",
+        title: i18n.global.t("toast.server"),
         type: "primary",
-        message: "用戶選擇了伺服器模式, 主控台出現後, 控制其他節點進行工作"
+        message: i18n.global.t("toast.server_d")
     }
     emitter?.emit('makeToast', d)
     data.value = 1
-    if (isElectron){
+    if (props.config.isElectron){
         window.electronAPI.send('modeSelect', false)
     } 
 }
 
 const clientClick = () => {
     const d:ToastData = {
-        title: "節點模式",
+        title: i18n.global.t("toast.node"),
         type: "primary",
-        message: "用戶選擇了節點模式, 被動架構的情況下無法做任意事件, 將會等待伺服器連線..."
+        message: i18n.global.t("toast.node_d")
     }
     emitter?.emit('makeToast', d)
     emitter?.emit('modeSelect', true);
@@ -41,7 +46,7 @@ const clientClick = () => {
             <div class="col">
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <b-button v-bind="props" id="tooltip-server-1" class="w-100 h-100 mx-1" @click="serverClick">{{ $t('server') }}</b-button>
+                        <b-button v-bind="props" id="tooltip-server-1" class="w-100 h-100 mx-1" @click="serverClick()">{{ $t('server') }}</b-button>
                     </template>
                     <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-server') }}</p>
                 </v-tooltip>
@@ -49,7 +54,7 @@ const clientClick = () => {
             <div class="col">
                 <v-tooltip location="bottom" text="Tooltip">
                     <template v-slot:activator="{ props }">
-                        <b-button v-bind="props" class="w-100 h-100 mx-1" @click="clientClick">{{ $t('node') }}</b-button>    
+                        <b-button v-bind="props" class="w-100 h-100 mx-1" @click="clientClick()">{{ $t('node') }}</b-button>    
                     </template>
                     <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-node') }}</p>
                 </v-tooltip>

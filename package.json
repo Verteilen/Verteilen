@@ -1,7 +1,8 @@
 {
   "name": "compute_tool",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Compute tool for multi computer",
+  "main": "main/main.js",
   "scripts": {
     "dev": "node scripts/dev-server.js",
     "web": "vite",

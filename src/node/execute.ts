@@ -18,14 +18,14 @@ export const execute_job = (job:Job) => {
     const child = job.category == JobCategory.Execution ? execute_job_exe(job) : execute_job_con(job)
     child.then(x => {
         messager_log(`[執行成功] ${x}`, tag)
-        const data:FeedBack = { job_uuid: job.uuid, message: x }
+        const data:FeedBack = { job_uuid: job.uuid, message: x, meta: 0 }
         const h:Header = { name: 'feedback_job', data: data }
         source?.send(JSON.stringify(h))
         settag(undefined)
     })
     .catch(err => {
         messager_log(`[執行狀態] 錯誤: ${err}`, tag)
-        const data:FeedBack = { job_uuid: job.uuid, message: err }
+        const data:FeedBack = { job_uuid: job.uuid, message: err, meta: 1 }
         const h:Header = { name: 'feedback_job', data: data }
         source?.send(JSON.stringify(h))
         settag(undefined)

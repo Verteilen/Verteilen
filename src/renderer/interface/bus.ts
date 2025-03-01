@@ -84,6 +84,17 @@ export interface RawSend {
     data: any
 }
 
+export interface ExecuteProxy {
+    executeProjectStart: (data:BusProjectStart) => void
+    executeProjectFinish: (data:BusProjectFinish) => void
+    executeTaskStart: (data:BusTaskStart) => void
+    executeTaskFinish: (data:BusTaskFinish) => void
+    executeSubtaskStart: (data:BusSubTaskStart) => void
+    executeSubtaskFinish: (data:BusSubTaskFinish) => void
+    executeJobStart: (data:BusJobStart) => void
+    executeJobFinish: (data:BusJobFinish) => void
+}
+
 export type BusType = {
     makeToast: ToastData
     modeSelect: boolean

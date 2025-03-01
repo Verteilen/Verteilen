@@ -3,8 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Rename, Task, WebsocketPack } from '../interface';
-import { isElectron } from '../main';
+import { AppConfig, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Rename, Task, WebsocketPack } from '../interface';
 import { set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -26,6 +25,18 @@ let updateHandle:any = undefined
 
 interface PROPS {
     preference: Preference
+    config: AppConfig
+}
+
+const proxy:ExecuteProxy = {
+  executeProjectStart: (data:BusProjectStart):void => { emitter?.emit('executeProjectStart', data) },
+  executeProjectFinish: (data:BusProjectFinish):void => { emitter?.emit('executeProjectFinish', data) },
+  executeTaskStart: (data:BusTaskStart):void => { emitter?.emit('executeTaskStart', data) },
+  executeTaskFinish: (data:BusTaskFinish):void => { emitter?.emit('executeTaskFinish', data) },
+  executeSubtaskStart: (data:BusSubTaskStart):void => { emitter?.emit('executeSubtaskStart', data) },
+  executeSubtaskFinish: (data:BusSubTaskFinish):void => { emitter?.emit('executeSubtaskFinish', data) },
+  executeJobStart: (data:BusJobStart):void => { emitter?.emit('executeJobStart', data) },
+  executeJobFinish: (data:BusJobFinish):void => { emitter?.emit('executeJobFinish', data) },
 }
 
 const props = defineProps<PROPS>()
@@ -68,7 +79,7 @@ const saveRecord = ():Record => {
     nodes: nodes.value as Array<Node>
   }
   const k = JSON.stringify(record, null, 4)
-  if(isElectron) window.electronAPI.send('save_record', k)
+  if(props.config.isElectron) window.electronAPI.send('save_record', k)
   return record
 }
 
@@ -308,7 +319,7 @@ const menuCreateProject = (e:IpcRendererEvent) => {
 }
 
 const menu_export_project = (e:IpcRendererEvent) => {
-  if(isElectron) window.electronAPI.send("export_project", JSON.stringify(projects.value))
+  if(props.config.isElectron) window.electronAPI.send("export_project", JSON.stringify(projects.value))
 }
 
 const import_project_feedback = (e:IpcRendererEvent, text:string) => {
@@ -343,8 +354,25 @@ const onChangeLan = (e:string) => {
   lanSelect.value = e
   // @ts-ignore
   i18n.global.locale = e
-  if(!isElectron) return
+  if(!props.config.isElectron) return
   window.electronAPI.send('save_preference', JSON.stringify(props.preference, null, 4))
+}
+
+const newConnect = (x:WebsocketPack) => {
+  emitter?.emit('makeToast', {
+    title: "連線建立",
+    type: 'success',
+    message: `建立新的連線: ${x.websocket.url} \n${x.uuid}`
+  })
+  execute_manager.value!.NewConnection(x)
+}
+
+const disconnect = (x:WebsocketPack) => {
+  emitter?.emit('makeToast', {
+    title: "連線中斷",
+    type: 'danger',
+    message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
+  })
 }
 
 onMounted(() => {
@@ -352,28 +380,17 @@ onMounted(() => {
   websocket_manager.value = new WebsocketManager()
   execute_manager.value = new ExecuteManager(websocket_manager.value)
   execute_manager.value.libs = libs
-  websocket_manager.value.set_new_connect((x:WebsocketPack) => {
-    emitter?.emit('makeToast', {
-      title: "連線建立",
-      type: 'success',
-      message: `建立新的連線: ${x.websocket.url} \n${x.uuid}`
-    })
-    execute_manager.value!.NewConnection(x)
-  })
-  websocket_manager.value.set_dc_connect((x:WebsocketPack) => {
-    emitter?.emit('makeToast', {
-      title: "連線中斷",
-      type: 'danger',
-      message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
-    })
-  })
+  execute_manager.value.proxy = proxy
+  websocket_manager.value.newConnect = newConnect
+  websocket_manager.value.disconnect = disconnect
+  websocket_manager.value.onAnalysis = execute_manager.value.Analysis
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
   console.log("updateHandle", updateHandle)
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
 
-  if(isElectron){
+  if(props.config.isElectron){
     window.electronAPI.send('menu', true)
     window.electronAPI.eventOn('createProject', menuCreateProject)
     window.electronAPI.eventOn('menu_export_project', menu_export_project)
@@ -410,11 +427,15 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  execute_manager.value!.proxy = undefined
+  websocket_manager.value!.newConnect = undefined
+  websocket_manager.value!.disconnect = undefined
+  websocket_manager.value!.onAnalysis = undefined
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
   if(updateHandle != undefined) clearInterval(updateHandle)
-  if(isElectron) {
+  if(props.config.isElectron) {
     window.electronAPI.eventOff('createProject', menuCreateProject)
     window.electronAPI.eventOff('menu_export_project', menu_export_project)
     window.electronAPI.eventOff('run_all', run_all)
@@ -436,7 +457,7 @@ onUnmounted(() => {
       <v-tab>{{ $t('toolbar.console') }}</v-tab>
       <v-tab>{{ $t('toolbar.log') }}</v-tab>
       <v-tab>{{ $t('toolbar.library') }}</v-tab>
-      <v-menu v-if="!isElectron">
+      <v-menu v-if="!props.config.isElectron">
         <template v-slot:activator="{ props }">
           <v-btn class="mt-1" v-bind="props">
             <v-icon class="pr-2" icon="mdi-web"></v-icon>
@@ -454,6 +475,7 @@ onUnmounted(() => {
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="page == 0" 
         :projects="projects" 
+        :config="props.config"
         @added="e => addProject(e)" 
         @edit="(id, e) => editProject(id, e)" 
         @select="e => chooseProject(e)" 
@@ -488,6 +510,7 @@ onUnmounted(() => {
 
       <NodePage v-show="page == 4" 
         :manager="websocket_manager"
+        :config="props.config"
         :nodes="nodes" />
 
       <ConsolePage v-show="page == 5" 
@@ -498,9 +521,11 @@ onUnmounted(() => {
         v-model="projects_exe"/>
         
       <LogPage v-show="page == 6" :logs="log" 
+        :config="props.config"
         v-model="projects_exe"/>
 
       <LibraryPage v-show="page == 7" 
+        :config="props.config"
         v-model="libs"/>
     </div>
   </v-container>

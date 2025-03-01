@@ -2,13 +2,13 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
-import { isElectron } from '../../main';
+import { AppConfig, BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { GetDefaultProjectTemplate, GetFUNIQUE_GS4ProjectTemplate } from '../../template/projectTemplate';
 
 interface PROPS {
     projects: Array<Project>
+    config: AppConfig
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -84,7 +84,7 @@ const dataedit = (uuid:string) => {
 }
 
 const dataexport = (uuid:string) => {
-    if(!isElectron) return
+    if(!props.config.isElectron) return
     const p = props.projects.find(x => x.uuid == uuid)
     if(p != undefined)
     window.electronAPI.send('export_project', JSON.stringify(p))
@@ -230,7 +230,7 @@ onMounted(() => {
     emitter?.on('recoverProject', recoverProject)
     emitter?.on('createProject', createProject)
     emitter?.on('updateLocate', updateLocate)
-    if(isElectron) {
+    if(props.config.isElectron) {
         window.electronAPI.eventOn('createProject', createProject)
     }
 })
@@ -240,7 +240,7 @@ onUnmounted(() => {
     emitter?.off('recoverProject', recoverProject)
     emitter?.off('createProject', createProject)
     emitter?.off('updateLocate', updateLocate)
-    if(!isElectron) {
+    if(props.config.isElectron) {
         window.electronAPI.eventOff('createProject', createProject)
     }
 })

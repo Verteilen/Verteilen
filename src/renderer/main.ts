@@ -7,7 +7,6 @@ import { createApp } from 'vue';
 import VueCodemirror from 'vue-codemirror';
 import App from './App.vue';
 import { BusType } from './interface';
-import { checkifElectron } from "./platform";
 import { i18n } from "./plugins/i18n";
 import { vuetify } from "./plugins/vuetify";
 
@@ -16,7 +15,6 @@ import "bootstrap/dist/css/bootstrap.css";
 import './style.scss';
 
 export const emitter:Emitter<BusType> = mitt<BusType>()
-export const isElectron:boolean = checkifElectron()
 
 const app = createApp(App)
 app.provide('emitter', emitter)

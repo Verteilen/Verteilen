@@ -6,19 +6,27 @@ import ClientNode from './components/ClientNode.vue';
 import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
-import { BusType, Preference } from './interface';
-import { isElectron } from './main';
+import { AppConfig, BusType, Preference } from './interface';
+import { checkifElectron, checkIfExpress } from './platform';
 import { i18n } from './plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const preference:Ref<Preference> = ref({
   lan: 'en'
 })
-const mode = ref(isElectron ? -1 : 1)
+const config:Ref<AppConfig> = ref({
+  isElectron: checkifElectron(),
+  isExpress: undefined
+})
+const isExpress:Ref<boolean | undefined> = ref(undefined)
+const mode = ref(config.value.isElectron ? -1 : 1)
 
-console.log("isElectron", isElectron)
-
-if (isElectron) window.electronAPI.send('message', '歡迎啟動自動化工廠');
+checkIfExpress((e) => {
+  isExpress.value = e
+  console.log("isElectron", config.value.isElectron)
+  console.log("isExpress", isExpress.value)
+  if (config.value.isElectron) window.electronAPI.send('message', '歡迎啟動自動化工廠');
+})
 
 const modeSelect = (isclient:boolean) => {
   mode.value = isclient ? 0 : 1
@@ -30,7 +38,7 @@ const locate = (e:IpcRendererEvent, v:string) => {
   t.locale = v
   preference.value.lan = v
   emitter?.emit('updateLocate')
-  if(isElectron){
+  if(config.value.isElectron){
     window.electronAPI.send('save_preference', JSON.stringify(preference.value, null, 4))
   }
 }
@@ -46,7 +54,7 @@ const load_preference = (x:string) => {
 
 onMounted(() => {
   emitter?.on('modeSelect', modeSelect)
-  if(isElectron){
+  if(config.value.isElectron){
     window.electronAPI.eventOn('locate', locate)
     window.electronAPI.invoke('load_preference').then(x => load_preference(x))
   }
@@ -54,7 +62,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   emitter?.on('modeSelect', modeSelect)
-  if(isElectron){
+  if(config.value.isElectron){
     window.electronAPI.eventOff('locate', locate)
   }
 })
@@ -63,9 +71,9 @@ onUnmounted(() => {
 
 <template>
   <v-container fluid class="m-0 p-0">
-    <ServerClientSelection v-model.number="mode" v-if="mode == -1" />
-    <ClientNode v-else-if="mode == 0"/>
-    <ServerNode v-else-if="mode == 1" :preference="preference"/>
+    <ServerClientSelection v-model.number="mode" v-if="mode == -1" :config="config"/>
+    <ClientNode v-else-if="mode == 0" :config="config"/>
+    <ServerNode v-else-if="mode == 1" :preference="preference" :config="config"/>
     <Messager />
   </v-container>
 </template>

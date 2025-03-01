@@ -1,5 +1,6 @@
-import { isElectron } from "../main"
+import { checkifElectron } from "../platform"
 
+const isElectron = checkifElectron()
 let feedback:Function | undefined = undefined
 
 export const set_feedback = (_feedback:Function) => {

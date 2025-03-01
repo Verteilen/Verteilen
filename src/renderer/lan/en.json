@@ -5,6 +5,12 @@
         "execute": "Execute",
         "help": "Help"
     },
+    "toast": {
+        "server": "Server Mode",
+        "node": "Node Mode",
+        "server_d": "Select server mode, You can control node by using monitor",
+        "node_d": "Select node mode, You are waiting server to connect..."
+    },
     "modeselect": {
         "title": "Your role"
     },

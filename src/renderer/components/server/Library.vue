@@ -2,12 +2,15 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Libraries } from '../../interface';
-import { isElectron } from '../../main';
+import { AppConfig, BusType, Libraries } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
+interface PROPS {
+    config: AppConfig
+}
 
+const emitter:Emitter<BusType> | undefined = inject('emitter');
+const props = defineProps<PROPS>()
 const data = defineModel<Libraries>()
 const emits = defineEmits<{
     (e: 'rename', oldname:string, newname:string): void
@@ -36,7 +39,7 @@ const newname = () => {
 }
 
 const execute = () => {
-    if(!isElectron || selection.value == undefined) return
+    if(!props.config.isElectron || selection.value == undefined) return
     window.electronAPI.send('lua', selection.value.content)
 }
 
@@ -96,17 +99,17 @@ const createScript = () => {
 
 const save = () => {
     dirty.value = false
-    if(!isElectron) return
+    if(!props.config.isElectron) return
     window.electronAPI.send('save_lib', JSON.stringify(data.value!, null, 4))
 }
 
 onMounted(() => {
-    if(!isElectron) return
+    if(!props.config.isElectron) return
     window.electronAPI.eventOn('lua-feedback', luaFeedback)
 })
 
 onUnmounted(() => {
-    if(!isElectron) return
+    if(!props.config.isElectron) return
     window.electronAPI.eventOff('lua-feedback', luaFeedback)
 })
 
@@ -128,7 +131,7 @@ onUnmounted(() => {
             <b-col :cols="rightSize">
                 <div class="py-3">
                     <b-button-group>
-                        <b-button v-if="isElectron" :disabled="selection == undefined" variant='primary' @click="execute">{{ $t('execute') }}</b-button>
+                        <b-button v-if="props.config.isElectron" :disabled="selection == undefined" variant='primary' @click="execute">{{ $t('execute') }}</b-button>
                         <b-button variant='success' :disabled="!dirty" @click="save">{{ $t('save') }}</b-button>
                         <b-button variant='primary' :disabled="selection == undefined" @click="rename">{{ $t('rename') }}</b-button>
                         <b-button variant='danger' :disabled="selection == undefined" @click="remove">{{ $t('delete') }}</b-button>

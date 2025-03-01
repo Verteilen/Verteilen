@@ -1,6 +1,6 @@
 import { formula, init } from "expressionparser";
 import { ref, Ref } from "vue";
-import { BusAnalysis, CronJobState, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
+import { BusAnalysis, CronJobState, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
 import { emitter } from "../main";
 import { messager_log } from "./debugger";
 import { WebsocketManager } from "./socket_manager";
@@ -18,9 +18,13 @@ export class ExecuteManager{
     jobstack = 0
     first = false
     libs:Ref<Libraries | undefined> = ref(undefined)
+    proxy:ExecuteProxy | undefined = undefined
 
     constructor(_websocket_manager:WebsocketManager) {
         this.websocket_manager = _websocket_manager
+    }
+
+    Analysis = (d:BusAnalysis) => {
         const typeMap:{ [key:string]:Function } = {
             'feedback_message': this.feedback_message,
             'feedback_job': this.feedback_job,
@@ -28,20 +32,18 @@ export class ExecuteManager{
             'feedback_boolean': this.feedback_boolean,
             'feedback_number': this.feedback_number
         }
-        emitter.on('analysis', (d:BusAnalysis) => {
-            if(typeMap.hasOwnProperty(d.name)){
-                const castingFunc = typeMap[d.h.name]
-                castingFunc(d.h.data, d.c)
-            }else{
-                messager_log(`[來源資料解析] 解析失敗, 不明的來源標頭, name: ${d.name}, meta: ${d.h.meta}`)
-            }
-        })
+        if(typeMap.hasOwnProperty(d.name)){
+            const castingFunc = typeMap[d.h.name]
+            castingFunc(d.h.data, d.c)
+        }else{
+            messager_log(`[來源資料解析] 解析失敗, 不明的來源標頭, name: ${d.name}, meta: ${d.h.meta}`)
+        }
     }
 
     private ExecuteJob = (project:Project, task:Task, job:Job, wss:WebsocketPack, iscron:boolean) => {
         const n:number = job.index!
         messager_log(`[執行狀態] 開始執行工作 ${n}  ${job.uuid}  ${wss.uuid}`)
-        emitter.emit('executeJobStart', { uuid: job.uuid, index: n - 1, node: wss.uuid })
+        this.proxy?.executeJobStart({ uuid: job.uuid, index: n - 1, node: wss.uuid })
 
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
