@@ -19,19 +19,22 @@ const makeToast = (e:ToastData) => {
 }
 
 const updateToast = () => {
-    messages.value.forEach(x => {
-        x.timer -1
-    })
-    messages.value = messages.value.filter(x => x.timer > 0 && x.ison);
+    const data:Array<IMessage> = []
+    for (let index = 0; index < messages.value.length; index++) {
+        const element = messages.value[index];
+        element.timer -= 1
+        if(element.timer > 0 && element.ison) data.push(element)
+    }
+    messages.value = data
 }
 
-emitter?.on('makeToast', (e) => makeToast(e))
-
 onMounted(() => {
+	emitter?.on('makeToast', makeToast)
     emitter?.on('updateHandle', updateToast)
 })
 
 onUnmounted(() => {
+	emitter?.off('makeToast', makeToast)
     emitter?.off('updateHandle', updateToast)
 })
 

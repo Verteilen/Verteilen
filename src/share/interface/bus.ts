@@ -115,6 +115,7 @@ export type BusType = {
 
     analysis: BusAnalysis
     debuglog: string
+    isExpress: boolean
 }
 
 export type BusWebType = {

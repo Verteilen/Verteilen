@@ -1,13 +1,10 @@
 import { BusWebType, Header, RawSend } from "../interface"
-import { webEmitter } from "../main"
 import { messager_log } from "./debugger"
 
 export class ServerConnection {
     ws:WebSocket
 
     constructor(url:string){
-        webEmitter.on('raw_send', this.send)
-
         this.ws = new WebSocket(url)
         this.ws.onerror = (err:any) => {
             messager_log(`[錯誤事件] Express 連線失敗 ${url}`)

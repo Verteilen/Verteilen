@@ -1,8 +1,8 @@
 export interface IMessage {
-    ison: boolean,
-    timer: number,
-    variant: any,
-    title: string,
+    ison: boolean
+    timer: number
+    variant: any
+    title: string
     content: string
 }
 

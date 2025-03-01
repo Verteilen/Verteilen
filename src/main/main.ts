@@ -22,7 +22,7 @@ function createWindow () {
     }
   });
 
-  mainWindow.on('ready-to-show', (e, top) => {
+  mainWindow.on('focus', () => {
     mainWindow!.setTitle(`Compute Tool ${process.env.NODE_ENV === 'development' ? process.env.npm_package_version : app.getVersion()}`)
   })
 

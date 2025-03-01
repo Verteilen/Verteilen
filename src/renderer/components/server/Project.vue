@@ -35,7 +35,7 @@ const errorMessage = ref('')
 const titleError = ref(false)
 
 const updateProject = () => {
-    const old:Array<ProjectTable> = Object.create(items.value)
+    const old:Array<ProjectTable> = JSON.parse(JSON.stringify(items.value))
     items.value = props.projects.map(x => {
         return {
             s: false,
@@ -230,8 +230,9 @@ onMounted(() => {
     emitter?.on('recoverProject', recoverProject)
     emitter?.on('createProject', createProject)
     emitter?.on('updateLocate', updateLocate)
-    if(!isElectron) return
-    window.electronAPI.eventOn('createProject', createProject)
+    if(isElectron) {
+        window.electronAPI.eventOn('createProject', createProject)
+    }
 })
 
 onUnmounted(() => {
@@ -239,8 +240,9 @@ onUnmounted(() => {
     emitter?.off('recoverProject', recoverProject)
     emitter?.off('createProject', createProject)
     emitter?.off('updateLocate', updateLocate)
-    if(!isElectron) return
-    window.electronAPI.eventOff('createProject', createProject)
+    if(!isElectron) {
+        window.electronAPI.eventOff('createProject', createProject)
+    }
 })
 
 </script>

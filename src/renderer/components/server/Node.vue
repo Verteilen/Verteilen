@@ -20,7 +20,8 @@ const fields:Ref<Array<string>> = ref([])
 const hasSelect = ref(false)
 
 const serverUpdate = () => {
-    props.manager?.server_update()
+    const p = props.manager?.server_update()
+    if(p != undefined) emitter?.emit('updateNode', p)
 }
 
 const createNode = () => {

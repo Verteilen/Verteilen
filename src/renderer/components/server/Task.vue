@@ -34,7 +34,7 @@ const errorMessage = ref('')
 const titleError = ref(false)
 
 const updateTask = () => {
-    const old:Array<TaskTable> = Object.create(items.value)
+    const old:Array<TaskTable> = JSON.parse(JSON.stringify(items.value))
     items.value = props.select?.task.map(x => {
         return {
             s: false,

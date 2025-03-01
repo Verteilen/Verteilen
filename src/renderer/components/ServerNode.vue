@@ -3,8 +3,8 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, RawSend, Record, Rename, Task, WebsocketPack } from '../interface';
-import { isElectron, isExpress, webEmitter } from '../main';
+import { BusType, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Rename, Task, WebsocketPack } from '../interface';
+import { isElectron } from '../main';
 import { set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -20,7 +20,7 @@ import TaskPage from './server/Task.vue';
 
 const websocket_manager:Ref<WebsocketManager | undefined> = ref(undefined)
 const execute_manager:Ref<ExecuteManager | undefined> = ref(undefined)
-  
+
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
 
@@ -246,7 +246,7 @@ const deleteJob = (uuids:Array<string>) => {
 
 //#region Node
 const server_clients_update = (v:Array<NodeTable>) => {
-    const old:Array<NodeTable> = Object.create(nodes.value)
+    const old:Array<NodeTable> = JSON.parse(JSON.stringify(nodes.value))
     nodes.value = v
     old.filter(x => x.s).forEach(x => {
         const index = nodes.value.findIndex(y => y.ID == x.ID)
@@ -335,10 +335,6 @@ const run_all_keep = (e:IpcRendererEvent) => {
   executeProjects(projects.value.map(x => x.uuid), true)
 }
 
-const serverUpdate = () => {
-    emitter?.emit('updateHandle')
-}
-
 const debug_feedback = (e:string) => {
   emitter?.emit('debuglog', e)
 }
@@ -371,7 +367,8 @@ onMounted(() => {
       message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
     })
   })
-  updateHandle = setInterval(serverUpdate, 1000);
+  updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
+  console.log("updateHandle", updateHandle)
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
@@ -385,9 +382,11 @@ onMounted(() => {
     window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
     window.electronAPI.invoke('load_lib').then(x => {
       libs.value = JSON.parse(x)
+      console.log("Libs", libs.value)
     })
     window.electronAPI.invoke('load_record').then(x => {
       const record:Record = JSON.parse(x)
+      console.log("Records", record)
       projects.value = record.projects
       nodes.value = record.nodes.map(x => {
         return Object.assign(x, {
@@ -405,15 +404,8 @@ onMounted(() => {
     })
     window.electronAPI.invoke('load_log').then(x => {
       log.value = JSON.parse(x)
+      console.log("Logs", log.value)
     })
-  }
-  
-  if(isExpress){
-    const d:RawSend = {
-      name: "",
-      data: undefined
-    }
-    webEmitter.emit('raw_send', d)
   }
 })
 
@@ -434,82 +426,84 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
-    <v-tab>{{ $t('toolbar.project') }}</v-tab>
-    <v-tab>{{ $t('toolbar.task') }}</v-tab>
-    <v-tab>{{ $t('toolbar.job') }}</v-tab>
-    <v-tab>{{ $t('toolbar.parameter') }}</v-tab>
-    <v-tab>{{ $t('toolbar.node') }}</v-tab>
-    <v-tab>{{ $t('toolbar.console') }}</v-tab>
-    <v-tab>{{ $t('toolbar.log') }}</v-tab>
-    <v-tab>{{ $t('toolbar.library') }}</v-tab>
-    <v-menu v-if="!isElectron">
-      <template v-slot:activator="{ props }">
-        <v-btn class="mt-1" v-bind="props">
-          <v-icon class="pr-2" icon="mdi-web"></v-icon>
-          {{ lanSelect }}
-        </v-btn>
-      </template>
-      <v-list>
-        <v-list-item v-for="(locate, i) in lan" :key="i" :value="locate" @click="onChangeLan(locate)">
-          {{ locate }}
-        </v-list-item>
-      </v-list>
-    </v-menu>
-  </v-tabs>
-  
-  <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
-    <ProjectPage v-show="page == 0" 
-      :projects="projects" 
-      @added="e => addProject(e)" 
-      @edit="(id, e) => editProject(id, e)" 
-      @select="e => chooseProject(e)" 
-      @delete="e => deleteProject(e)"
-      @moveup="e => moveupProject(e)"
-      @movedown="e => movedownProject(e)" 
-      @execute="(e, keep) => executeProjects(e, keep)"/>
+  <v-container fluid class="p-0 m-0">
+    <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
+      <v-tab>{{ $t('toolbar.project') }}</v-tab>
+      <v-tab>{{ $t('toolbar.task') }}</v-tab>
+      <v-tab>{{ $t('toolbar.job') }}</v-tab>
+      <v-tab>{{ $t('toolbar.parameter') }}</v-tab>
+      <v-tab>{{ $t('toolbar.node') }}</v-tab>
+      <v-tab>{{ $t('toolbar.console') }}</v-tab>
+      <v-tab>{{ $t('toolbar.log') }}</v-tab>
+      <v-tab>{{ $t('toolbar.library') }}</v-tab>
+      <v-menu v-if="!isElectron">
+        <template v-slot:activator="{ props }">
+          <v-btn class="mt-1" v-bind="props">
+            <v-icon class="pr-2" icon="mdi-web"></v-icon>
+            {{ lanSelect }}
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item v-for="(locate, i) in lan" :key="i" :value="locate" @click="onChangeLan(locate)">
+            {{ locate }}
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </v-tabs>
+    
+    <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
+      <ProjectPage v-show="page == 0" 
+        :projects="projects" 
+        @added="e => addProject(e)" 
+        @edit="(id, e) => editProject(id, e)" 
+        @select="e => chooseProject(e)" 
+        @delete="e => deleteProject(e)"
+        @moveup="e => moveupProject(e)"
+        @movedown="e => movedownProject(e)" 
+        @execute="(e, keep) => executeProjects(e, keep)"/>
 
-    <TaskPage v-show="page == 1" 
-      :projects="projects" 
-      :select="selectProject" 
-      @added="e => addTask(e)" 
-      @edit="(id, e) => editTask(id, e)" 
-      @select="e => chooseTask(e)"
-      @delete="e => deleteTask(e)"
-      @moveup="e => moveupTask(e)"
-      @movedown="e => movedownTask(e)"
-      @parameter="page = 3" />
+      <TaskPage v-show="page == 1" 
+        :projects="projects" 
+        :select="selectProject" 
+        @added="e => addTask(e)" 
+        @edit="(id, e) => editTask(id, e)" 
+        @select="e => chooseTask(e)"
+        @delete="e => deleteTask(e)"
+        @moveup="e => moveupTask(e)"
+        @movedown="e => movedownTask(e)"
+        @parameter="page = 3" />
 
-    <JobPage v-show="page == 2" 
-      :projects="projects" 
-      :select="selectTask"
-      :owner="selectProject"
-      :libs="libs"
-      @added="e => addJob(e)" 
-      @edit="(e) => editJob(e)" 
-      @delete="e => deleteJob(e)" />
+      <JobPage v-show="page == 2" 
+        :projects="projects" 
+        :select="selectTask"
+        :owner="selectProject"
+        :libs="libs"
+        @added="e => addJob(e)" 
+        @edit="(e) => editJob(e)" 
+        @delete="e => deleteJob(e)" />
 
-    <ParameterPage v-show="page == 3" 
-      :select="selectProject"
-      @edit="e => editParameter(e)" />
+      <ParameterPage v-show="page == 3" 
+        :select="selectProject"
+        @edit="e => editParameter(e)" />
 
-    <NodePage v-show="page == 4" 
-      :manager="websocket_manager"
-      :nodes="nodes" />
+      <NodePage v-show="page == 4" 
+        :manager="websocket_manager"
+        :nodes="nodes" />
 
-    <ConsolePage v-show="page == 5" 
-      :socket="websocket_manager"
-      :execute="execute_manager"
-      :logs="log"
-      :libs="libs"
-      v-model="projects_exe"/>
-      
-    <LogPage v-show="page == 6" :logs="log" 
-      v-model="projects_exe"/>
+      <ConsolePage v-show="page == 5" 
+        :socket="websocket_manager"
+        :execute="execute_manager"
+        :logs="log"
+        :libs="libs"
+        v-model="projects_exe"/>
+        
+      <LogPage v-show="page == 6" :logs="log" 
+        v-model="projects_exe"/>
 
-    <LibraryPage v-show="page == 7" 
-      v-model="libs"/>
-  </div>
+      <LibraryPage v-show="page == 7" 
+        v-model="libs"/>
+    </div>
+  </v-container>
 </template>
 
 <style scoped>

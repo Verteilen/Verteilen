@@ -37,7 +37,10 @@ const config = defineConfig({
             compiler: 'vue3',
             autoInstall: true,
         }),
-    ]
+    ],
+    define: {
+        __INTLIFY_JIT_COMPILATION__: true
+    },
 });
 
 module.exports = config;

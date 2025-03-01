@@ -1,6 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Header, Node, NodeTable, WebsocketPack } from "../interface";
-import { emitter } from '../main';
 import { analysis } from "./analysis";
 import { messager_log } from "./debugger";
 
@@ -22,7 +21,7 @@ export class WebsocketManager{
     
     server_stop = (uuid:string, reason?:string) => this.removeByUUID(uuid, reason)
 
-    server_update = () => this.sendUpdate()
+    server_update = ():Array<NodeTable> => this.sendUpdate()
 
     server_record = (ns:Array<Node>) => {
         ns.forEach(x => {
@@ -62,7 +61,8 @@ export class WebsocketManager{
         return client
     }
 
-    private sendUpdate = () => {
+    private sendUpdate = (): Array<NodeTable> => {
+        let result:Array<NodeTable> = []
         const data:Array<Node> = []
         this.targets.forEach(x => {
             if(x.websocket.readyState == WebSocket.CLOSED){
@@ -74,7 +74,7 @@ export class WebsocketManager{
             this.serverconnect(d.url, d.ID)
         })
 
-        const result:Array<NodeTable> = this.targets.map(x => {
+        result = this.targets.map(x => {
             return {
                 ID: x.uuid,
                 state: x.websocket.readyState,
@@ -83,7 +83,7 @@ export class WebsocketManager{
             }
         })
 
-        emitter.emit('updateNode', result)
+        return result
     }
 
     private removeByUUID = (uuid:string, reason?:string) => {

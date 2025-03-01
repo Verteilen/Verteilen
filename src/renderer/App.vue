@@ -7,7 +7,7 @@ import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
 import { BusType, Preference } from './interface';
-import { isElectron, isExpress, webEmitter } from './main';
+import { isElectron } from './main';
 import { i18n } from './plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -17,7 +17,6 @@ const preference:Ref<Preference> = ref({
 const mode = ref(isElectron ? -1 : 1)
 
 console.log("isElectron", isElectron)
-console.log("isExpress", isExpress)
 
 if (isElectron) window.electronAPI.send('message', '歡迎啟動自動化工廠');
 
@@ -25,25 +24,24 @@ const modeSelect = (isclient:boolean) => {
   mode.value = isclient ? 0 : 1
 }
 
-const _locate = (v:string) => {
+const locate = (e:IpcRendererEvent, v:string) => {
   const t = i18n.global
   // @ts-ignore
   t.locale = v
   preference.value.lan = v
   emitter?.emit('updateLocate')
-  if(!isElectron) return
-  window.electronAPI.send('save_preference', JSON.stringify(preference.value, null, 4))
-}
-const locate = (e:IpcRendererEvent | null, v:string) => {
-  _locate(v)
+  if(isElectron){
+    window.electronAPI.send('save_preference', JSON.stringify(preference.value, null, 4))
+  }
 }
 
 const load_preference = (x:string) => {
   preference.value = JSON.parse(x)
-      window.electronAPI.send('locate', preference.value.lan)
-      const t = i18n.global
-      // @ts-ignore
-      t.locale = preference.value.lan
+  console.log("lan: ", preference.value)
+  window.electronAPI.send('locate', preference.value.lan)
+  const t = i18n.global
+  // @ts-ignore
+  t.locale = preference.value.lan
 }
 
 onMounted(() => {
@@ -52,11 +50,6 @@ onMounted(() => {
     window.electronAPI.eventOn('locate', locate)
     window.electronAPI.invoke('load_preference').then(x => load_preference(x))
   }
-  if(isExpress){
-    webEmitter?.on('locate', _locate)
-    webEmitter?.on('load_preference', load_preference)
-    webEmitter?.emit('raw_send', { name: 'load_preference_call', data: undefined })
-  }
 })
 
 onUnmounted(() => {
@@ -64,17 +57,15 @@ onUnmounted(() => {
   if(isElectron){
     window.electronAPI.eventOff('locate', locate)
   }
-  if(isExpress){
-    webEmitter?.off('locate', _locate)
-    webEmitter?.off('load_preference', load_preference)
-  }
 })
 
 </script>
 
 <template>
-  <ServerClientSelection v-if="mode == -1" />
-  <ClientNode v-else-if="mode == 0"/>
-  <ServerNode v-else-if="mode == 1" :preference="preference"/>
-  <Messager />
+  <v-container fluid class="m-0 p-0">
+    <ServerClientSelection v-model.number="mode" v-if="mode == -1" />
+    <ClientNode v-else-if="mode == 0"/>
+    <ServerNode v-else-if="mode == 1" :preference="preference"/>
+    <Messager />
+  </v-container>
 </template>
