@@ -2,7 +2,6 @@
   "name": "compute_tool",
   "version": "0.1.11",
   "description": "Compute tool for multi computer",
-  "main": "main/main.js",
   "scripts": {
     "dev": "node scripts/dev-server.js",
     "web": "vite",
@@ -18,11 +17,6 @@
     "build:linux": "node scripts/build.js && electron-builder --linux",
     "docker:node": "docker_node.sh",
     "docker:server": "docker_server.sh"
-  },
-  "repository": "https://github.com/Elly2018/Compute-Tool",
-  "author": {
-    "name": "Elly",
-    "url": "https://github.com/Elly2018"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
@@ -54,6 +48,7 @@
     "bootstrap": "^5.3.3",
     "bootstrap-vue-3": "^0.5.1",
     "codemirror": "^6.0.1",
+    "compute_tool": "file:",
     "express": "^4.21.2",
     "expressionparser": "^1.1.5",
     "jsonwebtoken": "^9.0.2",
