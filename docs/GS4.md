@@ -13,6 +13,108 @@
 需要 plytool 的所有 exe 路徑加入至環境變數 Path 中\
 安裝 Colmap 並且把 colmap.exe 路徑加入環境變數中
 
+## 參數說明
+
+<details>
+<summary>字串變數</summary>
+<div style="padding-left:20px">
+
+### root
+
+根目錄
+
+### output
+
+輸出資料夾位置
+
+### prepare
+
+原生的資料夾名稱
+
+### before
+
+準備的資料夾名稱
+
+### after
+
+運算結果的資料夾名稱
+
+### CAM
+
+複製參考攝影機資料夾前墜
+
+### images
+
+複製參考影像資料夾名稱
+
+### sparse
+
+Colmap 運算結果資料庫的資料夾名稱
+
+### videogs
+
+演算 python 運行的位置
+
+### conda_env
+
+Conda 用的環境變數名稱
+
+</div>
+</details>
+
+
+<details>
+<summary>數字變數</summary>
+<div style="padding-left:20px">
+
+### frameCount 
+
+總共的偵數
+
+### iframe_gap
+
+I Frame 在被 blend 計算後的間隔\
+假設 GOP 是 20 但是要 Blend 4 次\
+這個值就會是 5
+
+### lut_thread
+
+Lut 階段時單一電腦最大使用核心數上限
+
+### group_size
+
+影像 GOP 範圍
+
+### blend
+
+Blend 次數
+
+### contribute
+
+貢獻度, 這在 Blend 的階段會影響透明度
+
+### iframe_size
+
+I Frame 生成後的總數目
+
+### denoise
+
+設定去躁 r g b 的最小值
+
+</div>
+</details>
+
+<details>
+<summary>布林參數</summary>
+<div style="padding-left:20px">
+
+### start_at_0
+
+這邊會影響生成數字要以 0 還是 1 為起始點
+
+</div>
+</details>
+
 </div>
 </details>
 
