@@ -39,8 +39,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: web-server
+          clean: false
       - run: rm -r assets
       - run: rm index.html
+      - run: ls -al
       - run: cp ./build/renderer/index.html ./index.html
       - run: cp -R ./build/renderer/assets ./assets
       - uses: stefanzweifel/git-auto-commit-action@v5
