@@ -40,9 +40,17 @@ jobs:
         with:
           ref: web-server
           clean: false
-      - run: rm -r assets
-      - run: rm index.html
-      - run: ls -al
-      - run: cp ./build/renderer/index.html ./index.html
-      - run: cp -R ./build/renderer/assets ./assets
-      - uses: stefanzweifel/git-auto-commit-action@v5
+          token: ${{ secrets.pat }}
+      - name: Replace files
+        run: |
+          rm -r assets
+          rm index.html
+          ls -al
+          cp ./build/renderer/index.html ./index.html
+          cp -R ./build/renderer/assets ./assets
+      - name: Push the change
+        run: |
+          git config --global user.name 'Elly2018'
+          git config --global user.email 'Elly2018@users.noreply.github.com'
+          git commit -am "Automated update static website"
+          git push
