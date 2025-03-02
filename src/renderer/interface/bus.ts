@@ -93,6 +93,7 @@ export interface ExecuteProxy {
     executeSubtaskFinish: (data:BusSubTaskFinish) => void
     executeJobStart: (data:BusJobStart) => void
     executeJobFinish: (data:BusJobFinish) => void
+    feedbackMessage: (data:Setter) => void
 }
 
 export type BusType = {
