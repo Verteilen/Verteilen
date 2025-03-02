@@ -52,5 +52,6 @@ jobs:
         run: |
           git config --global user.name 'Elly2018'
           git config --global user.email 'Elly2018@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.pat }}@github.com/${{ github.repository }}
           git commit -am "Automated update static website"
           git push
