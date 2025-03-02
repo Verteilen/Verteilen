@@ -39,6 +39,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: web-server
+          clean: false
       - run: rm -r assets
       - run: rm index.html
       - run: ls -al
