@@ -34,11 +34,9 @@ jobs:
           clean: false
       - name: Replace files
         run: |
-          rm -r assets
-          rm index.html
           ls -al
-          cp ./build/renderer/index.html ./index.html
-          cp -R ./build/renderer/assets ./assets
+          cp -f ./build/renderer/index.html ./index.html
+          cp -f -R ./build/renderer/assets ./assets
       - name: Commit changes
         run: |
           git config --global user.name 'Elly2018'
