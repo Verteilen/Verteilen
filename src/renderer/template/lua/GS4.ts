@@ -172,24 +172,36 @@ local start_at_zero = env.getboolean("start_at_0")
 local blend = env.getnumber("blend")
 local iframe_gap = env.getnumber("iframe_gap")
 
-for i=1,blend,i do
-    local output_folder = output_folder.."/Sequence_"..tostring( (i-1) * iframe_gap )
+for i=1,blend,1 do
+    local output_folder_seq = output_folder.."/Sequence_"..tostring( (i-1) * iframe_gap )
     local source_folder = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_I/checkpoint"
-    o.createdir(output_folder)
+    o.createdir(output_folder_seq)
 
     local allfolder = split(o.listdir(source_folder), "\\n")
     local count = 0
 
-    for key=1,value in pairs(allfolder) do
-        local plyPath = source_folder.."/"..value.."/point_cloud/iteration_7000/point_cloud.ply"
-        local exist = o.exist(plyPath)
-        if exist then
-            o.copyfile(plyPath, output_folder.."/"..value..".ply")
-            count = count + 1
+    for key,value in pairs(allfolder) do
+        local prefix = source_folder.."/"..value.."/point_cloud/"
+        local suffix = "/point_cloud.ply"
+        local plyPaths = { 
+            prefix.."iteration_7000"..suffix, 
+            prefix.."iteration_500"..suffix 
+        }
+        local exists = { 
+            o.exist(plyPaths[1]), 
+            o.exist(plyPaths[2]) 
+        }
+        for key2,value2 in pairs(exists) do
+            if value2 then
+                o.copyfile(plyPaths[key2], output_folder_seq.."/"..value..".ply")
+                count = count + 1
+                goto finish
+            end
         end
+        ::finish::
     end
 
-    m.messager_log("Total file copy: "..tostring(count)..", to path: "..output_folder)
+    m.messager_log("Total file copy: "..tostring(count)..", to path: "..output_folder_seq)
 end
 `
 
