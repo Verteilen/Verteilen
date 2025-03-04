@@ -120,6 +120,18 @@
         "list": "Project List",
         "dashboard": "Dashboard"
     },
+    "types": {
+        "number": "Number",
+        "string": "String",
+        "boolean": "Boolean"
+    },
+    "expression": {
+        "title": "Title",
+        "value": "Expression"
+    },
+    "search": "Search",
+    "selectall": "Select All",
+    "unselectall": "Unselect All",
     "project": "Project",
     "task": "Task",
     "job": "JOB",
@@ -131,6 +143,9 @@
     "server": "Server",
     "node": "Node",
     "action": "Action",
+    "skip": "Skip",
+    "property": "Property",
+    "create-property": "Create Property",
     "check": "Check",
     "edit": "Edit",
     "modify": "Modify",

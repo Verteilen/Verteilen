@@ -3,8 +3,8 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Rename, Task, WebsocketPack } from '../interface';
-import { set_feedback } from '../script/debugger';
+import { AppConfig, BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
+import { messager_log, set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
 import { i18n } from './../plugins/i18n';
@@ -37,10 +37,11 @@ const proxy:ExecuteProxy = {
   executeSubtaskFinish: (data:BusSubTaskFinish):void => { emitter?.emit('executeSubtaskFinish', data) },
   executeJobStart: (data:BusJobStart):void => { emitter?.emit('executeJobStart', data) },
   executeJobFinish: (data:BusJobFinish):void => { emitter?.emit('executeJobFinish', data) },
+  feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
 }
 
 const props = defineProps<PROPS>()
-const page = ref(0)
+const page:Ref<number> = ref(0)
 const lan = ref(['en', 'zh_tw'])
 const lanSelect = ref(i18n.global.locale as string)
 
@@ -234,9 +235,10 @@ const addJob = (v:Array<Job>) => {
   allUpdate()
 }
 
-const editJob = (v:Array<Job>) => {
+const editJob = (v:Array<Job>, v2:Array<Property>) => {
   if(selectTask.value == undefined) return
   selectTask.value.jobs = v
+  selectTask.value.properties = v2
   saveRecord()
   allUpdate()
 }
@@ -375,11 +377,15 @@ const disconnect = (x:WebsocketPack) => {
   })
 }
 
+const analysis = (b:BusAnalysis) => {
+  execute_manager.value?.Analysis(b)
+}
+
 onMounted(() => {
   set_feedback(debug_feedback)
-  websocket_manager.value = new WebsocketManager()
-  execute_manager.value = new ExecuteManager(websocket_manager.value)
-  execute_manager.value.libs = libs
+  websocket_manager.value = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
+  execute_manager.value = new ExecuteManager(websocket_manager.value, messager_log)
+  execute_manager.value.libs = libs.value
   execute_manager.value.proxy = proxy
   websocket_manager.value.newConnect = newConnect
   websocket_manager.value.disconnect = disconnect
@@ -428,9 +434,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   execute_manager.value!.proxy = undefined
-  websocket_manager.value!.newConnect = undefined
-  websocket_manager.value!.disconnect = undefined
-  websocket_manager.value!.onAnalysis = undefined
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
@@ -471,7 +474,6 @@ onUnmounted(() => {
         </v-list>
       </v-menu>
     </v-tabs>
-    
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="page == 0" 
         :projects="projects" 
@@ -501,7 +503,7 @@ onUnmounted(() => {
         :owner="selectProject"
         :libs="libs"
         @added="e => addJob(e)" 
-        @edit="(e) => editJob(e)" 
+        @edit="(e, e2) => editJob(e, e2)" 
         @delete="e => deleteJob(e)" />
 
       <ParameterPage v-show="page == 3" 

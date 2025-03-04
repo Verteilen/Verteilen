@@ -3,13 +3,17 @@ import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType } from '../../../interface';
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
+const emitter:Emitter<BusType> | undefined = inject('emitter');    
 
 const alllog:Ref<Array<string>> = ref([])
+const limit = ref(1000)
 
 const debuglog = (message:string) => {
     if(message == undefined) return
     alllog.value.push(message)
+    if(alllog.value.length > limit.value){
+        alllog.value.splice(0, 1)
+    }
 }
 
 const clearMessage = () => {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, Project, Task, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
@@ -22,19 +22,33 @@ const emits = defineEmits<{
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
-const hasSelect = ref(false)
+const fields:Ref<Array<any>> = ref([
+    { title: 'ID', align: 'center', key: 'ID' },
+    { title: 'Title', align: 'center', key: 'title' },
+    { title: 'Description', align: 'center', key: 'description' },
+    { title: 'Cronjob', align: 'center', key: 'cronjob' },
+    { title: 'Multi', align: 'center', key: 'multi' },
+    { title: 'JobCount', align: 'center', key: 'jobCount' },
+    { title: 'Detail', align: 'center', key: 'detail' },
+])
 const createModal = ref(false)
 const createData = ref({cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""})
 const editModal = ref(false)
 const editUUID = ref('')
 const items:Ref<Array<TaskTable>> = ref([])
-const fields:Ref<Array<string>> = ref([])
 const para_keys:Ref<Array<string>> = ref([])
 const errorMessage = ref('')
 const titleError = ref(false)
+const search = ref('')
+const selection:Ref<Array<string>> = ref([])
+
+const items_final = computed(() => {
+    return search.value == null || search.value.length == 0 ? items.value : items.value.filter(x => x.title.includes(search.value) || x.ID.includes(search.value))
+})
+const hasSelect = computed(() => selection.value.length > 0)
+const selected_task_ids = computed(() => items.value.filter(x => selection.value.includes(x.ID)).map(x => x.ID))
 
 const updateTask = () => {
-    const old:Array<TaskTable> = JSON.parse(JSON.stringify(items.value))
     items.value = props.select?.task.map(x => {
         return {
             s: false,
@@ -46,8 +60,8 @@ const updateTask = () => {
             jobCount: x.jobs.length
         }
     }) ?? []
-    const ids = old.filter(x => x.s).map(x => x.ID)
-    items.value.filter(x => ids.includes(x.ID)).forEach(x => x.s = true)
+    const allid = items.value.map(x => x.ID)
+    selection.value = selection.value.filter(x => allid.includes(x))
 }
 
 const updateParameter = () => {
@@ -67,8 +81,7 @@ const detailOpen = () => {
 
 const cloneSelect = () => {
     if(props.select == undefined) return
-    const selectpt = items.value.filter(x => x.s).map(x => x.ID)
-    const ts:Array<Task> = props.select.task.filter(x => selectpt.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
+    const ts:Array<Task> = props.select.task.filter(x => selected_task_ids.value.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
     ts.forEach(x => {
         x.uuid = uuidv6()
         x.title = x.title + ` (${i18n.global.t('clone')})`
@@ -82,18 +95,15 @@ const cloneSelect = () => {
     })
 }
 
-const deleteSelect = () => {
-    emits('delete', items.value.filter(x => x.s).map(x => x.ID))
-    nextTick(() => {
-        updateTask()
-        hasSelect.value = items.value.filter(x => x.s).length > 0;
-    })
+const selectall = () => {
+    selection.value = items.value.map(x => x.ID)
 }
 
-const datachange = (uuid:any, v:boolean) => {
-    const index = items.value.findIndex(x => x.ID == uuid)
-    if(index != -1) items.value[index].s = v
-    hasSelect.value = items.value.filter(x => x.s).length > 0;
+const deleteSelect = () => {
+    emits('delete', selected_task_ids.value)
+    nextTick(() => {
+        updateTask()
+    })
 }
 
 const datachoose = (uuid:string) => {
@@ -134,6 +144,7 @@ const confirmCreate = () => {
             cronjobKey: createData.value.cronjobKey,
             multi: createData.value.multi, 
             multiKey: createData.value.multiKey,
+            properties: [],
             jobs: []
         }]
     )
@@ -161,8 +172,9 @@ const confirmEdit = () => {
             description: createData.value.description,
             cronjob: createData.value.cronjob,
             cronjobKey: createData.value.cronjobKey,
-            multi: selectp.multi, 
-            multiKey: selectp.multiKey,
+            multi: createData.value.multi, 
+            multiKey: createData.value.multiKey,
+            properties: selectp.properties,
             jobs: selectp.jobs
         }
     )
@@ -199,7 +211,6 @@ const isLast = (uuid:string) => {
 }
 
 onMounted(() => {
-    fields.value = ['ID', 'cronjob', 'multi', 'title', 'description', 'jobCount', 'detail']
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateParameter', updateParameter)
     para_keys.value = props.select?.parameter.numbers.map(x => x.name) ?? []
@@ -215,102 +226,114 @@ onUnmounted(() => {
 <template>
     <div>
         <div class="py-3">
-            <b-button-group>
-                <b-button variant='primary' @click="createProject" :disabled="select == undefined">{{ $t('create') }}</b-button>
-                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">{{ $t('clone') }}</b-button>
-                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">{{ $t('delete') }}</b-button>
-            </b-button-group>
+            <v-toolbar density="compact" class="pr-3">
+                <v-text-field max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
+                <p v-if="props.select != undefined" class="pt-3 mr-4">
+                    {{ $t('project') }}: {{ props.select.title }}
+                </p>
+                <v-chip v-if="props.select != undefined" prepend-icon="mdi-pen" @click="detailOpen" color="success">
+                    {{ $t('parameter-setting') }}
+                </v-chip>
+                <v-spacer></v-spacer>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="createProject" :disabled="select == undefined">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('create') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="selectall">
+                            <v-icon>mdi-check-all</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('selectall') }}
+                </v-tooltip>    
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="cloneSelect" :disabled="!hasSelect || select == undefined">
+                            <v-icon>mdi-content-paste</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('clone') }}
+                </v-tooltip>         
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon color='danger' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('delete') }}
+                </v-tooltip> 
+            </v-toolbar>
         </div>
-        <b-card dark no-body ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
-            <b-card-title>
-                {{ props.select.title }}
-            </b-card-title>
-            <b-card-text>
-                {{ props.select.description }}
-            </b-card-text>
-            <b-button variant="primary" @click="detailOpen">{{ $t('parameter-setting') }}</b-button>
-        </b-card>
-        <b-table dark striped hover :items="items" :fields="fields">
-            <template #head(ID)="data">
-                <v-tooltip location="top">
-                    <template v-slot:activator="{ props }">
-                        <span v-bind="props">ID</span>
-                    </template>
-                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.task-id') }}</p>
-                </v-tooltip>
-            </template>
-            <template #head(jobCount)="data">
-                <v-tooltip location="top">
-                    <template v-slot:activator="{ props }">
-                        <span v-bind="props">JobCount</span>
-                    </template>
-                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.task-jobCount') }}</p>
-                </v-tooltip>
-            </template>
-            <template #head(cronjob)="data">
-                <v-tooltip location="top">
-                    <template v-slot:activator="{ props }">
-                        <span v-bind="props">Cronjob</span>
-                    </template>
-                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.task-cronjob') }}</p>
-                </v-tooltip>
-            </template>
-            <template #head(multi)="data">
-                <v-tooltip location="top">
-                    <template v-slot:activator="{ props }">
-                        <span v-bind="props">Multi</span>
-                    </template>
-                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.task-multi') }}</p>
-                </v-tooltip>
-            </template>
-            <template #cell(cronjob)="data">
-                <v-icon>{{ data.item.cronjob ? 'mdi-checkbox-marked-circle' : 'mdi-cancel' }}</v-icon>
-            </template>
-            <template #cell(multi)="data">
-                <v-icon>{{ data.item.multi ? 'mdi-checkbox-marked-circle' : 'mdi-cancel' }}</v-icon>
-            </template>
-            <template #cell(ID)="data">
-                <b-row>
-                    <b-col cols="1">
-                        <b-form-checkbox style="float:left; width:15px" v-model="data.item.s" @change="(v: boolean) => datachange(data.item.ID, v)"></b-form-checkbox>
-                    </b-col>
-                    <b-col>
-                        <a href="#" @click="datachoose(data.item.ID)">{{ data.item.ID }}</a>
-                    </b-col>
-                </b-row>
-            </template>
-            <template #cell(detail)="data">
-                <b-dropdown :text="$t('action')" class="text-white m-md-2">
-                    <b-dropdown-item @click="datachoose(data.item.ID)">{{ $t('check') }}</b-dropdown-item>
-                    <b-dropdown-item @click="dataedit(data.item.ID)">{{ $t('edit') }}</b-dropdown-item>
-                    <b-dropdown-divider></b-dropdown-divider>
-                    <b-dropdown-item :disabled="isFirst(data.item.ID)" @click="moveup(data.item.ID)">{{ $t('moveup') }}</b-dropdown-item>
-                    <b-dropdown-item :disabled="isLast(data.item.ID)" @click="movedown(data.item.ID)">{{ $t('movedown') }}</b-dropdown-item>
-                </b-dropdown>
-            </template>
-        </b-table>
-        <b-modal :title="$t('modal.new-task')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
-            <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
-            <hr />
-            <b-form-checkbox v-model="createData.cronjob">{{ $t('cronjob') }}</b-form-checkbox>
-            <v-select class="my-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :items="para_keys" hide-details></v-select>
-            <b-form-checkbox v-if="createData.cronjob" v-model="createData.multi">{{ $t('multicore') }}</b-form-checkbox>
-            <v-select class="my-3" v-if="createData.cronjob && createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
-            <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
-            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
-        </b-modal>
-        <b-modal :title="$t('modal.modify-task')" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
-            <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
-            <hr />
-            <b-form-checkbox v-model="createData.cronjob">{{ $t('cronjob') }}</b-form-checkbox>
-            <v-select class="my-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :items="para_keys" hide-details></v-select>
-            <b-form-checkbox v-if="createData.multi" v-model="createData.multi">{{ $t('multicore') }}</b-form-checkbox>
-            <v-select class="my-3" v-if="createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
-            <b-button class="mt-3" variant="primary" @click="confirmEdit">{{ $t('modify') }}</b-button>
-            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
-        </b-modal>
+        <div class="py-3">
+            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
+                <template v-slot:item.ID="{ item }">
+                    <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
+                </template>
+                <template v-slot:item.detail="{ item }">
+                    <v-btn flat icon @click="datachoose(item.ID)">
+                        <v-icon>mdi-location-enter</v-icon>
+                    </v-btn>
+                    <v-btn flat icon @click="dataedit(item.ID)">
+                        <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)">
+                        <v-icon>mdi-arrow-up</v-icon>
+                    </v-btn>
+                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)">
+                        <v-icon>mdi-arrow-down</v-icon>
+                    </v-btn>
+                </template>
+            </v-data-table>
+        </div>
+        <v-dialog width="500" v-model="createModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-hammer</v-icon>
+                    {{ $t('modal.new-task') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
+                    <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
+                    <br />
+                    <v-checkbox v-model="createData.cronjob" :label="$t('cronjob')" hide_details></v-checkbox>
+                    <v-select v-if="createData.cronjob" v-model="createData.cronjobKey" :items="para_keys" hide-details></v-select>
+                    <br />
+                    <v-checkbox v-if="createData.cronjob" v-model="createData.multi" :label="$t('multicore')" hide_details></v-checkbox>
+                    <v-select v-if="createData.cronjob && createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
+                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="editModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.modify-task') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
+                    <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
+                    <br />
+                    <v-checkbox v-model="createData.cronjob" :label="$t('cronjob')" hide_details></v-checkbox>
+                    <v-select class="my-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :items="para_keys" hide-details></v-select>
+                    <br />
+                    <v-checkbox v-if="createData.multi" v-model="createData.multi" :label="$t('multicore')" hide_details></v-checkbox>
+                    <v-select class="my-3" v-if="createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
+                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="confirmEdit">{{ $t('modify') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 

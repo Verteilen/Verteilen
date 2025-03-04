@@ -45,6 +45,11 @@ export interface Node {
     url: string
 }
 
+export interface Property {
+    name: string
+    expression: string
+}
+
 export interface Job {
     uuid: string
     category: number
@@ -64,6 +69,7 @@ export interface Task {
     cronjobKey: string
     multi: boolean
     multiKey: string
+    properties: Array<Property>
     jobs: Array<Job>
 }
 

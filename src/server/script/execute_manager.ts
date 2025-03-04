@@ -1,8 +1,5 @@
 import { formula, init } from "expressionparser";
-import { ref, Ref } from "vue";
-import { BusAnalysis, CronJobState, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
-import { emitter } from "../main";
-import { messager_log } from "./debugger";
+import { BusAnalysis, CronJobState, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Parameter, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
 import { WebsocketManager } from "./socket_manager";
 
 export class ExecuteManager{
@@ -17,10 +14,17 @@ export class ExecuteManager{
     websocket_manager:WebsocketManager
     jobstack = 0
     first = false
-    libs:Ref<Libraries | undefined> = ref(undefined)
+    libs:Libraries | undefined = undefined
+    proxy:ExecuteProxy | undefined = undefined
+    messager_log:Function
+    localPara: Parameter | undefined = undefined
 
-    constructor(_websocket_manager:WebsocketManager) {
+    constructor(_websocket_manager:WebsocketManager, _messager_log:Function) {
         this.websocket_manager = _websocket_manager
+        this.messager_log = _messager_log
+    }
+
+    Analysis = (d:BusAnalysis) => {
         const typeMap:{ [key:string]:Function } = {
             'feedback_message': this.feedback_message,
             'feedback_job': this.feedback_job,
@@ -28,25 +32,26 @@ export class ExecuteManager{
             'feedback_boolean': this.feedback_boolean,
             'feedback_number': this.feedback_number
         }
-        emitter.on('analysis', (d:BusAnalysis) => {
-            if(typeMap.hasOwnProperty(d.name)){
-                const castingFunc = typeMap[d.h.name]
-                castingFunc(d.h.data, d.c)
-            }else{
-                messager_log(`[來源資料解析] 解析失敗, 不明的來源標頭, name: ${d.name}, meta: ${d.h.meta}`)
-            }
-        })
+        if(typeMap.hasOwnProperty(d.name)){
+            const castingFunc = typeMap[d.h.name]
+            castingFunc(d.h.data, d.c)
+        }else{
+            this.messager_log(`[Source Data Analysis] Decode failed, Unknowed header, name: ${d.name}, meta: ${d.h.meta}`)
+        }
     }
 
     private ExecuteJob = (project:Project, task:Task, job:Job, wss:WebsocketPack, iscron:boolean) => {
         const n:number = job.index!
-        messager_log(`[執行狀態] 開始執行工作 ${n}  ${job.uuid}  ${wss.uuid}`)
-        emitter.emit('executeJobStart', { uuid: job.uuid, index: n - 1, node: wss.uuid })
+        this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
+        this.proxy?.executeJobStart({ uuid: job.uuid, index: n - 1, node: wss.uuid })
 
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
             if(b == null || b == undefined || b.length == 0) continue
-            job.string_args[i] = this.replacePara(job.string_args[i], [{ key: 'ck', value: n.toString() }])
+            for(let j = 0; j < task.properties.length; j++){
+                job.string_args[i] = job.string_args[i].replace(`%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
+            }
+            job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
             console.log("String replace: ", b, job.string_args[i])
         }
         const h:Header = {
@@ -64,7 +69,7 @@ export class ExecuteManager{
         if(ns.state != ExecuteState.RUNNING && ns.current_job == undefined){
             const index = work.work.findIndex(x => x.state == ExecuteState.NONE)
             if(index == 0){
-                emitter.emit('executeSubtaskStart', { index:work.id - 1, node: ns.uuid })
+                this.proxy?.executeSubtaskStart({ index:work.id - 1, node: ns.uuid })
             }
             if(index == -1) return
             work.work[index].state = ExecuteState.RUNNING
@@ -82,9 +87,9 @@ export class ExecuteManager{
         const taskCount = this.get_task_count(project, task)
 
         if(!hasJob){
-            emitter.emit('executeTaskStart', { uuid: task.uuid, count: taskCount })
-            emitter.emit('executeTaskFinish', { uuid: task.uuid })
-            console.log(`[執行跳過] 沒有工作存在 ${task.uuid}`)
+            this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
+            this.proxy?.executeTaskFinish({ uuid: task.uuid })
+            console.log(`[Execute] Skip ! No job exists ${task.uuid}`)
             allJobFinish = true
         }else{
             if(task.cronjob){
@@ -95,6 +100,7 @@ export class ExecuteManager{
                     ns = ns.filter(x => !worker.includes(x.uuid))
                 }else{
                     // First time
+                    this.SyncParameter(project)
                     ns = this.get_idle()
                     for(let index = 1; index < taskCount + 1; index++){
                         const d:CronJobState = {
@@ -109,7 +115,7 @@ export class ExecuteManager{
                         }
                         this.current_cron.push(d)
                     }
-                    emitter.emit('executeTaskStart', { uuid: task.uuid, count: taskCount })
+                    this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
                 }
                 
                 const allworks:Array<WorkState> = []
@@ -153,10 +159,11 @@ export class ExecuteManager{
                     }
                 }else{
                     // First time
+                    this.SyncParameter(project)
                     ns = this.get_idle()
                     if(ns.length > 0) {
-                        emitter.emit('executeTaskStart', { uuid: task.uuid, count: taskCount })
-                        emitter.emit('executeSubtaskStart', { index: 0, node: ns[0].uuid })
+                        this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
+                        this.proxy?.executeSubtaskFinish({ index: 0, node: ns[0].uuid })
                     }
                 }
 
@@ -181,8 +188,8 @@ export class ExecuteManager{
         }
 
         if (allJobFinish){
-            emitter.emit('executeTaskFinish', { uuid: task.uuid })
-            messager_log(`[執行狀態] 結束執行流程 ${task.uuid}`)
+            this.proxy?.executeTaskFinish({ uuid: task.uuid })
+            this.messager_log(`[Execute] Task Finish ${task.uuid}`)
             const index = project.task.findIndex(x => x.uuid == task.uuid)
             if(index == project.task.length - 1){
                 // Finish
@@ -201,8 +208,8 @@ export class ExecuteManager{
         if(this.current_t == undefined && project.task.length > 0 && this.t_state != ExecuteState.FINISH){
             this.current_t = project.task[0]
             this.t_state = ExecuteState.RUNNING
-            messager_log(`[執行狀態] 開始執行流程 ${this.current_t.uuid}`)
-            messager_log(`[執行狀態] 偵測當前流程 cron 狀態: ${this.current_t.cronjob}`)
+            this.messager_log(`[Execute] Task Start ${this.current_t.uuid}`)
+            this.messager_log(`[Execute] Task cron state: ${this.current_t.cronjob}`)
             this.current_job = []
             this.current_cron = []
         } else if (project.task.length == 0){
@@ -215,8 +222,8 @@ export class ExecuteManager{
             const index = this.current_projects.findIndex(x => x.uuid == project.uuid)
             if(index == this.current_projects.length - 1){
                 // Finish
-                messager_log(`[執行狀態] 結束執行專案 ${this.current_p?.uuid}`)
-                emitter.emit('executeProjectFinish', { uuid: this.current_p?.uuid ?? '' } )
+                this.messager_log(`[Execute] Project Finish ${this.current_p?.uuid}`)
+                this.proxy?.executeProjectFinish({ uuid: this.current_p?.uuid ?? '' } )
                 this.current_p = undefined
                 this.state = ExecuteState.FINISH
                 this.t_state = ExecuteState.NONE
@@ -231,13 +238,11 @@ export class ExecuteManager{
         if(this.state != ExecuteState.RUNNING) return
         if(this.current_p == undefined && this.current_projects.length > 0){
             this.current_p = this.current_projects[0]
-            messager_log(`[執行狀態] 開始執行專案 ${this.current_p.uuid}`)
-            emitter.emit('executeProjectStart', { uuid: this.current_p.uuid })
-            this.SyncParameter(this.current_p)
+            this.messager_log(`[Execute] Project Start ${this.current_p.uuid}`)
+            this.proxy?.executeProjectStart({ uuid: this.current_p.uuid })
         }
         if (this.current_p != undefined){
             if(this.first) {
-                this.SyncParameter(this.current_p)
                 this.first = false
             }
             this.ExecuteProject(this.current_p)
@@ -248,34 +253,35 @@ export class ExecuteManager{
         this.websocket_manager.targets.forEach(x => {
             const h:Header = {
                 name: 'stop_job',
-                message: '停止所有工作'
+                message: 'Stop All Jobs'
             }
             x.websocket.send(JSON.stringify(h))
         })
     }
 
     SyncParameter = (p:Project) => {
+        this.localPara = JSON.parse(JSON.stringify(p.parameter))
         this.websocket_manager.targets.forEach(x => {
-            this.sync_para(p, x)
+            this.sync_para(this.localPara!, x)
         })
     }
 
     Register = (projects:Array<Project>):number => {
-        messager_log(`[執行狀態] 開始執行, 專案數: ${projects.length}, 電腦數: ${this.websocket_manager.targets.length}`)
+        this.messager_log(`[執行狀態] 開始執行, 專案數: ${projects.length}, 電腦數: ${this.websocket_manager.targets.length}`)
         if(this.state == ExecuteState.RUNNING){
-            messager_log(`[執行狀態] 初始化錯誤, 目前已經有專案群集在列表中執行了`)
+            this.messager_log(`[執行狀態] 初始化錯誤, 目前已經有專案群集在列表中執行了`)
             return -1
         }
         if(projects.map(x => x.task.length).reduce((acc, cur) => acc + cur, 0) == 0){
-            messager_log(`[執行狀態] 沒有流程可以被執行`)
+            this.messager_log(`[執行狀態] 沒有流程可以被執行`)
             return -1
         }
         if(!this.validation(projects)){
-            messager_log(`[執行狀態] 初始化錯誤, 檢查格式出現問題`)
+            this.messager_log(`[執行狀態] 初始化錯誤, 檢查格式出現問題`)
             return -1
         }
         this.state = ExecuteState.RUNNING
-        messager_log(`[執行狀態] 初始化成功, 進入執行階段`)
+        this.messager_log(`[執行狀態] 初始化成功, 進入執行階段`)
 
         this.current_projects = projects
         let i = 0
@@ -302,8 +308,8 @@ export class ExecuteManager{
     }
 
     NewConnection = (source:WebsocketPack) => {
-        if(this.state == ExecuteState.RUNNING && this.current_p != undefined){
-            this.sync_para(this.current_p, source)
+        if(this.state == ExecuteState.RUNNING && this.localPara != undefined){
+            this.sync_para(this.localPara, source)
         }
     }
 
@@ -311,23 +317,22 @@ export class ExecuteManager{
         if (this.current_projects.length == 0) return -1
         if (this.current_p == undefined) {
             this.current_p = this.current_projects[0]
-            emitter.emit('executeProjectStart', { uuid: this.current_p.uuid })
+            this.proxy?.executeProjectStart({ uuid: this.current_p.uuid })
             this.state = ExecuteState.RUNNING
             return 0
         } else {
             const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
             if (index == this.current_projects.length - 1){
-                emitter.emit('executeProjectFinish', { uuid: this.current_p.uuid })
+                this.proxy?.executeProjectFinish({ uuid: this.current_p.uuid })
                 this.current_p = undefined
                 this.state = ExecuteState.FINISH
-                messager_log(`[執行狀態] 跳過專案 此為最後執行專案`)
+                this.messager_log(`[Execute] Skip project Finish !`)
                 return -1
             } else {
-                emitter.emit('executeProjectFinish', { uuid: this.current_p.uuid })
+                this.proxy?.executeProjectFinish({ uuid: this.current_p.uuid })
                 this.current_p = this.current_projects[index + 1]
-                messager_log(`[執行狀態] 跳過專案到 ${index}. ${this.current_p.uuid}`)
-                emitter.emit('executeProjectStart', { uuid: this.current_p.uuid })
-                this.SyncParameter(this.current_p)
+                this.messager_log(`[Execute] Skip project ${index}. ${this.current_p.uuid}`)
+                this.proxy?.executeProjectStart({ uuid: this.current_p.uuid })
                 return index
             }
         }
@@ -338,21 +343,21 @@ export class ExecuteManager{
         if (this.current_t == undefined){
             if(this.current_p.task.length > 0){
                 this.current_t = this.current_p.task[0]
-                emitter.emit('executeTaskStart', {uuid: this.current_t.uuid, count: this.get_task_count(this.current_p, this.current_t)})
+                this.proxy?.executeTaskStart({uuid: this.current_t.uuid, count: this.get_task_count(this.current_p, this.current_t)})
                 this.t_state = ExecuteState.RUNNING
             } 
             return 0
         } else {
             const index = this.current_p.task.findIndex(x => x.uuid == this.current_t!.uuid)
             if (index == this.current_p.task.length - 1){
-                emitter.emit('executeTaskFinish', { uuid: this.current_t.uuid })
+                this.proxy?.executeTaskFinish({ uuid: this.current_t.uuid })
                 this.current_t = undefined
-                messager_log(`[執行狀態] 跳過流程 此為最後執行流程`)
+                this.messager_log(`[Execute] Skip task Finish !`)
             } else {
-                emitter.emit('executeTaskFinish', { uuid: this.current_t.uuid })
+                this.proxy?.executeTaskFinish({ uuid: this.current_t.uuid })
                 this.current_t = this.current_p.task[index + 1]
-                messager_log(`[執行狀態] 跳過流程到 ${index}. ${this.current_t.uuid}`)
-                emitter.emit('executeTaskStart', {uuid: this.current_t.uuid, count: this.get_task_count(this.current_p, this.current_t)})
+                this.messager_log(`[Execute] Skip task ${index}. ${this.current_t.uuid}`)
+                this.proxy?.executeTaskStart({uuid: this.current_t.uuid, count: this.get_task_count(this.current_p, this.current_t)})
                 this.t_state = ExecuteState.RUNNING
             }
             return index
@@ -363,9 +368,9 @@ export class ExecuteManager{
     feedback_message = (data:Single, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
-        messager_log(`[執行狀態] 單一回傳資訊接收 ${data.data}`)
+        this.messager_log(`[Execute] Single Received data: ${data.data}`)
         const d:Setter = { key: source.uuid, value: data.data}
-        emitter.emit('feedbackMessage', d)
+        this.proxy?.feedbackMessage(d)
     }
     
     feedback_job = (data:FeedBack, source:WebsocketPack | undefined) => {
@@ -373,35 +378,35 @@ export class ExecuteManager{
         if(this.state == ExecuteState.NONE) return
         
         this.jobstack = this.jobstack - 1
-        messager_log(`[執行狀態] 工作回傳 ${data.job_uuid} ${data.message}`)
+        this.messager_log(`[Execute] Job Feedback: ${data.job_uuid} ${data.message}`)
         if(this.current_job.length > 0){
-            emitter.emit('executeJobFinish', {uuid: data.job_uuid, index: 0, node: source.uuid, meta: data.meta})
+            this.proxy?.executeJobFinish({uuid: data.job_uuid, index: 0, node: source.uuid, meta: data.meta})
             this.current_job[this.current_job.length - 1].state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
             if(this.check_single_end()){
-                emitter.emit('executeSubtaskFinish', {index: 0, node: source.uuid})
+                this.proxy?.executeSubtaskFinish({index: 0, node: source.uuid})
             }
         }
         else if(this.current_cron.length > 0){
             const index = this.current_cron.findIndex(x => x.uuid == source.uuid)
             const jindex = this.current_cron[index].work.findIndex(x => x.uuid == data.job_uuid)
-            emitter.emit('executeJobFinish', {uuid: data.job_uuid, index: this.current_cron[index].id - 1, node: source.uuid, meta: data.meta})
+            this.proxy?.executeJobFinish({uuid: data.job_uuid, index: this.current_cron[index].id - 1, node: source.uuid, meta: data.meta})
             this.current_cron[index].work[jindex].state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
             if(this.check_cron_end(this.current_cron[index])){
-                emitter.emit('executeSubtaskFinish', { index: this.current_cron[index].id - 1, node: this.current_cron[index].uuid })
+                this.proxy?.executeSubtaskFinish({ index: this.current_cron[index].id - 1, node: this.current_cron[index].uuid })
                 this.current_cron[index].uuid = ''
             }
         }
         source.state = ExecuteState.NONE
         source.current_job = undefined
         const d:Setter = { key: data.job_uuid, value: data.message}
-        emitter.emit('feedbackMessage', d)
+        this.proxy?.feedbackMessage(d)
     }
     
     feedback_string = (data:Setter) => {
         if(this.current_p == undefined) return
         const index = this.current_p.parameter.strings.findIndex(x => x.name == data.key)
         if(index != -1) this.current_p.parameter.strings[index].value = data.value
-        messager_log(`[字串參數回饋] ${data.key} = ${data.value}`)
+        this.messager_log(`[String Feedback] ${data.key} = ${data.value}`)
         // Sync
         const d:Header = { name: 'set_string', data: data}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
@@ -411,7 +416,7 @@ export class ExecuteManager{
         if(this.current_p == undefined) return
         const index = this.current_p.parameter.numbers.findIndex(x => x.name == data.key)
         if(index != -1) this.current_p.parameter.numbers[index].value = data.value
-        messager_log(`[數字參數回饋] ${data.key} = ${data.value}`)
+        this.messager_log(`[Number Feedback] ${data.key} = ${data.value}`)
         // Sync
         const d:Header = { name: 'set_number', data: data}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
@@ -421,7 +426,7 @@ export class ExecuteManager{
         if(this.current_p == undefined) return
         const index = this.current_p.parameter.booleans.findIndex(x => x.name == data.key)
         if(index != -1) this.current_p.parameter.booleans[index].value = data.value
-        messager_log(`[布林參數回饋] ${data.key} = ${data.value}`)
+        this.messager_log(`[Boolean Feedback] ${data.key} = ${data.value}`)
         // Sync
         const d:Header = { name: 'set_boolean', data: data}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
@@ -474,7 +479,7 @@ export class ExecuteManager{
     
     private validation = (projects:Array<Project>):boolean => {
         if (this.websocket_manager.targets.length == 0) {
-            messager_log(`[檢測執行狀態] 目前沒有任何電腦可以進行運算`)
+            this.messager_log(`[Execute State] The execute node does not exists`)
             return false
         }
         projects.forEach(x => {
@@ -482,26 +487,26 @@ export class ExecuteManager{
                 if(t.cronjob){
                     const index = x.parameter.numbers.findIndex(x => x.name == t.cronjobKey)
                     if(index == -1){
-                        messager_log(`[檢測執行狀態:CronJob] 專案 ${x.title} (${x.uuid}), 中的流程 ${t.title} (${t.uuid}), 中有未知的註冊參數: \"${t.cronjobKey}\"`)
-                        messager_log(`[檢測執行狀態:CronJob] 群集流程 註冊的參數必須在專案的數字參數清單內找的到`)
+                        this.messager_log(`[Execute:CronJob] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.cronjobKey}\"`)
+                        this.messager_log(`[Execute:CronJob] Cron task registerd key not found`)
                         return false
                     }
                     else if (x.parameter.numbers[index].value == 0){
-                        messager_log(`[檢測執行狀態:CronJob] 專案 ${x.title} (${x.uuid}), 中的流程 ${t.title} (${t.uuid}), 中有未知的註冊參數: \"${t.cronjobKey}\"`)
-                        messager_log(`[檢測執行狀態:CronJob] 群集流程 註冊的參數必須 大於 0`)
+                        this.messager_log(`[Execute:CronJob] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.cronjobKey}\"`)
+                        this.messager_log(`[Execute:CronJob] Cron task value must bigger than 0`)
                         return false
                     }
                 }
                 if(t.cronjob && t.multi){
                     const index = x.parameter.numbers.findIndex(x => x.name == t.multiKey)
                     if(index == -1){
-                        messager_log(`[檢測執行狀態:Multi] 專案 ${x.title} (${x.uuid}), 中的流程 ${t.title} (${t.uuid}), 中有未知的註冊參數: \"${t.multiKey}\"`)
-                        messager_log(`[檢測執行狀態:Multi] 群集流程 註冊的參數必須在專案的數字參數清單內找的到`)
+                        this.messager_log(`[Execute:Multi] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.multiKey}\"`)
+                        this.messager_log(`[Execute:Multi] Cron task registerd key not found`)
                         return false
                     }
                     else if (x.parameter.numbers[index].value == 0){
-                        messager_log(`[檢測執行狀態:Multi] 專案 ${x.title} (${x.uuid}), 中的流程 ${t.title} (${t.uuid}), 中有未知的註冊參數: \"${t.multiKey}\"`)
-                        messager_log(`[檢測執行狀態:Multi] 群集流程 註冊的參數必須 大於 0`)
+                        this.messager_log(`[Execute:Multi] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.multiKey}\"`)
+                        this.messager_log(`[Execute:Multi] Cron task value must bigger than 0`)
                         return false
                     }
                 }
@@ -524,18 +529,12 @@ export class ExecuteManager{
         return d
     }
     
-    private replacePara = (text:string, v:Array<KeyValue>):string => {
+    private replacePara = (text:string, paras:Array<KeyValue>):string => {
         if (this.current_p == undefined) return text
         let buffer = ''
         let store = ''
         let state:boolean = false
         let useExp = false
-        const paras = [
-            ...this.current_p.parameter.booleans.map(x => { return { key: x.name, value: x.value.toString() } }),
-            ...this.current_p.parameter.numbers.map(x => { return { key: x.name, value: x.value.toString() } }),
-            ...this.current_p.parameter.strings.map(x => { return { key: x.name, value: x.value.toString() } }),
-            ...v
-        ]
         for(const v of text){
             if(v == '%'){
                 state = !state
@@ -555,19 +554,28 @@ export class ExecuteManager{
         }
         return buffer
     }
+
+    private to_keyvalue = (p:Parameter):Array<KeyValue> => {
+        const paras = [
+            ...p.booleans.map(x => { return { key: x.name, value: x.value.toString() } }),
+            ...p.numbers.map(x => { return { key: x.name, value: x.value.toString() } }),
+            ...p.strings.map(x => { return { key: x.name, value: x.value.toString() } }),
+        ]
+        return paras
+    }
     //#endregion
 
     //#region Helper
-    private sync_para = (project:Project, source:WebsocketPack) => {
+    private sync_para = (target:Parameter, source:WebsocketPack) => {
         const h:Header = {
             name: 'set_parameter',
-            message: '初始化參數列',
-            data: project.parameter
+            message: 'Initialization Parameter',
+            data: target
         }
         const h2:Header = {
             name: 'set_libs',
-            message: '初始化程式庫',
-            data: this.libs.value
+            message: 'Initialization Libs',
+            data: this.libs
         }
         source.websocket.send(JSON.stringify(h))
         source.websocket.send(JSON.stringify(h2))

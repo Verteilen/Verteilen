@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, LUATemplate, LUATemplateText, Project, Rename, Task } from '../../interface';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, LUATemplate, LUATemplateText, Project, Property, Rename, Task } from '../../interface';
 import { DEFAULT, FUNIQUE_GS4_PREPARE } from '../../template/luaTemplate';
 import { i18n } from './../../plugins/i18n';
 
@@ -22,17 +22,17 @@ interface JobTable extends Job {
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', job:Job[]): void
-    (e: 'edit', task:Array<Job>): void
+    (e: 'edit', task:Array<Job>, properties: Array<Property>): void
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
     (e: 'keychange', key:string): void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
-const hasSelect = ref(false)
 const createModal = ref(false)
 const createData = ref({category: 0, type: 0, spe_template: 0})
 const items:Ref<Array<JobTable>> = ref([])
+const items2:Ref<Array<Property>> = ref([])
 const types:Ref<Array<{  }>> = ref([])
 const types2:Ref<Array<{  }>> = ref([])
 const result:Ref<Array<{ }>> = ref([])
@@ -40,6 +40,8 @@ const categorise:Ref<Array<{ }>> = ref([])
 const lua_types:Ref<Array<{  }>> = ref([])
 const para_keys:Ref<Array<{ value: string, text: string }>> = ref([])
 const dirty = ref(false)
+
+const hasSelect = computed(() => items.value.filter(x => x.s).length > 0)
 
 const updateParameter = () => {
     para_keys.value = props.owner?.parameter.numbers.map(x => { return { value: x.name, text: x.name }}) ?? []
@@ -51,10 +53,12 @@ const setdirty = () => {
 
 const updateJob = () => {
     const old:Array<Job> = JSON.parse(JSON.stringify(items.value))
-    items.value = props.select?.jobs ?? []
+    items.value = JSON.parse(JSON.stringify(props.select?.jobs ?? []))
     const ids = old.filter(x => x.s).map(x => x.uuid)
     items.value.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)
     items.value.forEach(x => x.s = false)
+    items2.value = JSON.parse(JSON.stringify(props.select?.properties ?? []))
+
     updateParameter()
     dirty.value = false
 }
@@ -74,15 +78,13 @@ const checkPatterm = (category:number, type:number, checker:string):boolean => {
     return e || e2
 }
 
-const datachange = (id:string, e:boolean) => {
-    const d = items.value.find(x => x.uuid == id)
-    if(d == undefined) return
-    d.s = e
-    hasSelect.value = items.value.filter(x => x.s).length > 0
+const expressionNameCheck = (x:string) => {
+    return x.length == 0 || x == null || items2.value.filter(y => x == y.name).length >= 2
 }
 
-const taskchange = () => {
+const deleteProperty = (name:string) => {
     dirty.value = true
+    items2.value = items2.value.filter(x => x.name != name)
 }
 
 const JobCategoryTranslate = (t:number):string => {
@@ -101,17 +103,18 @@ const LUATemplateTranslate = (t:number):string => {
     return i18n.global.t(LUATemplateText[t])
 }
 
-const changeCronKey = (key:string) => {
-    emits('keychange', key)
-}
-
 const createJob = () => {
     createData.value = {category: 0, type: 0, spe_template: 0};
     createModal.value = true
 }
 
+const createProperty = () => {
+    items2.value.push({name: "default", expression: "1 + 1"})
+    setdirty()
+}
+
 const saveJobs = () => {
-    emits('edit', items.value)
+    emits('edit', items.value, items2.value)
     dirty.value = false
 }
 
@@ -123,7 +126,6 @@ const cloneSelect = () => {
 
 const deleteSelect = () => {
     items.value = items.value.filter(x => x.s == undefined || x.s === false)
-    hasSelect.value = false
     dirty.value = true
 }
 
@@ -177,6 +179,10 @@ const libDelete = (name:string) => {
             if(index != -1) z.string_args.splice(index, 1)
         }
     })
+}
+
+const selectall = (s:boolean) => {
+    items.value.forEach(x => x.s = s)
 }
 
 const moveup = (uuid:string) => {
@@ -264,125 +270,192 @@ onUnmounted(() => {
 <template>
     <div>
         <div class="py-3">
-            <b-button-group>
-                <b-button variant='primary' @click="createJob" :disabled="select == undefined">{{ $t('create') }}</b-button>
-                <b-button variant='primary' @click="saveJobs" :disabled="select == undefined || !dirty">{{ $t('save') }}</b-button>
-                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">{{ $t('clone') }}</b-button>
-                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">{{ $t('delete') }}</b-button>
-            </b-button-group>
+            <v-toolbar density="compact" class="px-3">
+                <p v-if="props.select != undefined" class="pt-3 mr-4">
+                    {{ $t('task') }}: {{ props.select.title }}
+                </p>
+                <v-spacer></v-spacer>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="createJob" :disabled="select == undefined">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('create') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="createProperty" :disabled="select == undefined">
+                            <v-icon>mdi-book-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('create-property') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" color="success" @click="saveJobs" :disabled="select == undefined || !dirty">
+                            <v-icon>mdi-content-save</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('create') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="selectall(true)">
+                            <v-icon>mdi-check-bold</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('selectall') }}
+                </v-tooltip>    
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="selectall(false)">
+                            <v-icon>mdi-check-outline</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('unselectall') }}
+                </v-tooltip>    
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="cloneSelect" :disabled="!hasSelect || select == undefined">
+                            <v-icon>mdi-content-paste</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('clone') }}
+                </v-tooltip>         
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon color='danger' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('delete') }}
+                </v-tooltip> 
+            </v-toolbar>
         </div>
-        <!-- Task Card -->
-        <b-card ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
-            <b-card-title>
-                {{ props.select.title }}
-            </b-card-title>
-            <b-card-text>
-                <p>{{ props.select.description }}</p>
-                <v-row>
-                    <v-col cols="4" class="pt-6">
-                        <b-form-checkbox type="checkbox" @change="taskchange" v-model="props.select.cronjob">{{ $t('cronjob') }}</b-form-checkbox>
-                    </v-col>
-                    <v-col>
-                        <v-select v-if="props.select.cronjob" v-model="props.select.cronjobKey" @change="(e: string) => changeCronKey(e)" item-title="text" item-value="text" :items="para_keys" hide-details></v-select>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col cols="4" class="pt-6">
-                        <b-form-checkbox type="checkbox" @change="taskchange" v-model="props.select.multi">{{ $t('multicore') }}</b-form-checkbox>
-                    </v-col>
-                    <v-col>
-                        <v-select v-if="props.select.multi" v-model="props.select.multiKey" @change="(e: string) => changeCronKey(e)" item-title="text" item-value="text" :items="para_keys" hide-details></v-select>
-                    </v-col>
-                </v-row>
-            </b-card-text>
-        </b-card>
-        <hr />
-        <!-- Job List Cards -->
-        <div v-if="select != undefined" class="pb-7">
-            <b-card v-for="(c, i) in items" no-body :key="i" bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
-                <b-card-header>
-                    <v-row>
-                        <v-col cols="2" style="padding-top: 25px;">
-                            <b-form-checkbox type="checkbox" v-model="c.s" @change="(e: boolean) => datachange(c.uuid, e)"></b-form-checkbox>
-                        </v-col>
-                        <v-col>
-                            {{ i }}. {{ c.category == 0 ? JobType2Translate(c.type) : JobTypeTranslate(c.type) }}
-                            <span>
-                                <b-dropdown :text="$t('action')" class="text-white m-md-2">
-                                    <b-dropdown-item :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">{{ $t('moveup') }}</b-dropdown-item>
-                                    <b-dropdown-item :disabled="isLast(c.uuid)" @click="movedown(c.uuid)">{{ $t('movedown') }}</b-dropdown-item>
-                                </b-dropdown>
-                            </span>
-                        </v-col>
-                        <v-col cols="2" style="padding-top: 25px;">
-                            <span style="float:right; font-size: small; height:100%;">{{ c.uuid }}</span>
-                        </v-col>
-                    </v-row>
-                </b-card-header>
-                <!-- Condition -->
-                <div v-if="checkPatterm(c.category, c.type, 'Script_n')">
-                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
-                    <codemirror  v-model="c.lua" 
-                        style="text-align:left;"
-                        :style="{ height: '40vh' }"
-                        :autofocus="true"
-                        :indent-with-tab="true"
-                        :tab-size="2" 
-                        mode="text/x-lua"
-                        @change="setdirty"/>
-                    <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
-                        <template #selection="{ item }">
-                            <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
-                            <v-chip v-else closable color="danger">{{item.title}}</v-chip>
-                        </template>
-                    </v-select>
-                </div>
-                <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
-                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
-                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                </div>
-                <!-- Execution -->
-                <div v-else-if="checkPatterm(c.category, c.type, 'TwoPath')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.from')" hide-details></v-text-field>
-                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.to')" hide-details></v-text-field>
-                </div>
-                <div v-else-if="checkPatterm(c.category, c.type, 'OnePath')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                </div>
-                <div v-else-if="checkPatterm(c.category, c.type, 'Writer')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                    <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.content')" hide-details></v-textarea>
-                </div>
-                <div v-else-if="checkPatterm(c.category, c.type, 'Command')">
-                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
-                    <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
-                </div>
-                <div v-else-if="checkPatterm(c.category, c.type, 'Script')">
-                    <codemirror  v-model="c.lua" 
-                        style="text-align:left;"
-                        :style="{ height: '40vh' }"
-                        :autofocus="true"
-                        :indent-with-tab="true"
-                        :tab-size="2" 
-                        mode="text/x-lua"
-                        @change="setdirty"/>
-                    <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
-                        <template #selection="{ item }">
-                            <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
-                            <v-chip v-else closable color="danger">{{item.title}}</v-chip>
-                        </template>
-                    </v-select>
-                </div>
-            </b-card>
+        <!-- Property -->
+        <div v-if="select != undefined" class="py-3 pb-5 mx-5">
+            <h3> {{ $t('property') }} </h3>
+            <v-row v-for="(c, i) in items2" :key="i">
+                <v-col cols="3">
+                    <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
+                </v-col>
+                <v-col cols="8">
+                    <v-text-field hide-detail v-model="c.expression" :label="$t('expression.value')" @input="setdirty"></v-text-field>
+                </v-col>
+                <v-col cols="1" class="mt-1">
+                    <v-btn flat icon @click="deleteProperty(c.name)">
+                        <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                </v-col>
+            </v-row>
         </div>
-        <b-modal :title="$t('modal.new-job')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <b-form-select class="mt-3" v-model="createData.category" :options="categorise" item-title="text"></b-form-select>
-            <b-form-select class="mt-3" v-if="createData.category == 0" v-model="createData.type" :options="types2" item-title="text"></b-form-select>
-            <b-form-select class="mt-3" v-if="createData.category == 1" v-model="createData.type" :options="types" item-title="text"></b-form-select>
-            <b-form-select class="mt-3" v-if="createData.category == 1 && checkPatterm(createData.category, createData.type, 'Script')" v-model="createData.spe_template" :options="lua_types" item-title="text"></b-form-select>
-            <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
-        </b-modal>
+        <!-- Job List -->
+        
+        <div v-if="select != undefined" class="py-3 pb-7">
+            <hr class="mx-5 py-2" />
+            <h3> {{ $t('job') }} </h3>
+            <v-expansion-panels color="dark" class="px-6 text-white">
+                <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2">
+                    <v-expansion-panel-title>
+                        <v-row>
+                            <v-col cols="auto" class="mt-1">
+                                <v-checkbox type="checkbox" v-model="c.s" hide-details width="50" density="compact"></v-checkbox>
+                            </v-col>
+                            <v-col cols="auto" class="mt-2">
+                                <v-chip class="mr-1">{{ i }}. {{ c.category == 0 ? JobType2Translate(c.type) : JobTypeTranslate(c.type) }}</v-chip>
+                                <v-chip>{{ c.uuid }}</v-chip>
+                            </v-col>
+                            <v-col cols="auto">
+                                <v-btn icon flat :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">
+                                    <v-icon>mdi-arrow-up</v-icon>
+                                </v-btn>
+                                <v-btn icon flat :disabled="isLast(c.uuid)" @click="movedown(c.uuid)">
+                                    <v-icon>mdi-arrow-down</v-icon>
+                                </v-btn>
+                            </v-col>
+                        </v-row>
+                    </v-expansion-panel-title>
+                    <v-expansion-panel-text>
+                        <v-card flat>
+                            <v-card-text>
+                                <div v-if="checkPatterm(c.category, c.type, 'Script_n')">
+                                <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                <codemirror  v-model="c.lua" 
+                                    style="text-align:left; filter:brightness(2)"
+                                    :style="{ height: '40vh' }"
+                                    :autofocus="true"
+                                    :indent-with-tab="true"
+                                    :tab-size="2" 
+                                    mode="text/x-lua"
+                                    @change="setdirty"/>
+                                <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
+                                    <template #selection="{ item }">
+                                        <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
+                                        <v-chip v-else closable color="danger">{{item.title}}</v-chip>
+                                    </template>
+                                </v-select>
+                            </div>
+                            <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
+                                <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                            </div>
+                            <!-- Execution -->
+                            <div v-else-if="checkPatterm(c.category, c.type, 'TwoPath')">
+                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.from')" hide-details></v-text-field>
+                                <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.to')" hide-details></v-text-field>
+                            </div>
+                            <div v-else-if="checkPatterm(c.category, c.type, 'OnePath')">
+                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                            </div>
+                            <div v-else-if="checkPatterm(c.category, c.type, 'Writer')">
+                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.content')" hide-details></v-textarea>
+                            </div>
+                            <div v-else-if="checkPatterm(c.category, c.type, 'Command')">
+                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
+                                <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
+                            </div>
+                            <div v-else-if="checkPatterm(c.category, c.type, 'Script')">
+                                <codemirror v-model="c.lua"
+                                    style="text-align:left; filter:brightness(2)"
+                                    :style="{ height: '40vh' }"
+                                    :autofocus="true"
+                                    :indent-with-tab="true"
+                                    :tab-size="2" 
+                                    mode="text/x-lua"
+                                    @change="setdirty"/>
+                                <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
+                                    <template #selection="{ item }">
+                                        <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
+                                        <v-chip v-else closable color="danger">{{item.title}}</v-chip>
+                                    </template>
+                                </v-select>
+                            </div>
+                            </v-card-text>
+                        </v-card>
+                    </v-expansion-panel-text>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </div>
+        <v-dialog width="500" v-model="createModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-hammer</v-icon>
+                    {{ $t('modal.new-job') }}
+                </v-card-title>
+                <v-card-title>
+                    <v-select class="mb-1" hide-details v-model="createData.category" :items="categorise" item-title="text" item-value="value"></v-select>
+                    <v-select class="mb-1" hide-details v-if="createData.category == 0" v-model="createData.type" :items="types2" item-title="text" item-value="value"></v-select>
+                    <v-select class="mb-1" hide-details v-if="createData.category == 1" v-model="createData.type" :items="types" item-title="text" item-value="value"></v-select>
+                    <v-select class="mb-1" hide-details v-if="createData.category == 1 && checkPatterm(createData.category, createData.type, 'Script')" v-model="createData.spe_template" :items="lua_types" item-title="text" item-value="value"></v-select>
+                </v-card-title>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
