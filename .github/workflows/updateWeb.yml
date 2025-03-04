@@ -36,7 +36,8 @@ jobs:
         run: |
           ls -al
           cp -f ./build/renderer/index.html ./index.html
-          cp -f -R ./build/renderer/assets ./assets
+          cp -rf ./build/renderer/assets ./assets
+          ls -al
       - name: Commit changes
         run: |
           git config --global user.name 'Elly2018'
