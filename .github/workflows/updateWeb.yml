@@ -36,7 +36,7 @@ jobs:
         run: |
           ls -al
           cp -f ./build/renderer/index.html ./index.html
-          cp -rf ./build/renderer/assets .
+          cp -rf ./build/renderer/assets ./assets
           ls -al
       - name: Commit changes
         run: |
