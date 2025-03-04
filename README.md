@@ -90,6 +90,11 @@ Click the link for more detail
 Project's parameter, Support boolean, string, number data type\
 This varaible can be change in runtime, you can use it as constant as well
 
+#### Property
+
+The property is like macro, in the process, it will replace text value\
+You can enter expression value here, so the text field value will not be that messy
+
 ### Lua
 
 You can write a Lua script in the job section\
