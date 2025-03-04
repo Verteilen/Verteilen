@@ -144,6 +144,7 @@ const confirmCreate = () => {
             cronjobKey: createData.value.cronjobKey,
             multi: createData.value.multi, 
             multiKey: createData.value.multiKey,
+            properties: [],
             jobs: []
         }]
     )
@@ -171,8 +172,9 @@ const confirmEdit = () => {
             description: createData.value.description,
             cronjob: createData.value.cronjob,
             cronjobKey: createData.value.cronjobKey,
-            multi: selectp.multi, 
-            multiKey: selectp.multiKey,
+            multi: createData.value.multi, 
+            multiKey: createData.value.multiKey,
+            properties: selectp.properties,
             jobs: selectp.jobs
         }
     )

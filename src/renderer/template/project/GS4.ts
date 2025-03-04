@@ -29,6 +29,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checker = ():Task => {
         cronjobKey: "",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             prepareExist,
             videogsExist
@@ -74,6 +75,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         cronjobKey: "",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             sortjob,
             copyjob,
@@ -130,6 +132,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         cronjobKey: "frameCount",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             createsp,
             command1,
@@ -160,6 +163,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         cronjobKey: "iframe_size",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             command1,
         ]
@@ -186,6 +190,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
         cronjobKey: "",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             backup
         ]
@@ -230,6 +235,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         cronjobKey: "iframe_size",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             renamee,
             command1,
@@ -258,6 +264,7 @@ const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
         cronjobKey: "",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             copyhelper
         ]
@@ -284,6 +291,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         cronjobKey: "blend",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             command1
         ]
@@ -310,6 +318,7 @@ const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
         cronjobKey: "",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             sequenceJob
         ]
@@ -336,6 +345,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
         cronjobKey: "frameCount",
         multi: true,
         multiKey: "lut_thread",
+        properties: [],
         jobs: [
             command1
         ]

@@ -29,6 +29,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_P = ():Task => {
         cronjobKey: "blend",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             createdir,
             command1
@@ -65,6 +66,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_N = ():Task => {
         cronjobKey: "blend",
         multi: false,
         multiKey: "",
+        properties: [],
         jobs: [
             createdir,
             command1

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, LUATemplate, LUATemplateText, Project, Rename, Task } from '../../interface';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, LUATemplate, LUATemplateText, Project, Property, Rename, Task } from '../../interface';
 import { DEFAULT, FUNIQUE_GS4_PREPARE } from '../../template/luaTemplate';
 import { i18n } from './../../plugins/i18n';
 
@@ -22,17 +22,17 @@ interface JobTable extends Job {
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', job:Job[]): void
-    (e: 'edit', task:Array<Job>): void
+    (e: 'edit', task:Array<Job>, properties: Array<Property>): void
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
     (e: 'keychange', key:string): void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
-const hasSelect = ref(false)
 const createModal = ref(false)
 const createData = ref({category: 0, type: 0, spe_template: 0})
 const items:Ref<Array<JobTable>> = ref([])
+const items2:Ref<Array<Property>> = ref([])
 const types:Ref<Array<{  }>> = ref([])
 const types2:Ref<Array<{  }>> = ref([])
 const result:Ref<Array<{ }>> = ref([])
@@ -40,6 +40,8 @@ const categorise:Ref<Array<{ }>> = ref([])
 const lua_types:Ref<Array<{  }>> = ref([])
 const para_keys:Ref<Array<{ value: string, text: string }>> = ref([])
 const dirty = ref(false)
+
+const hasSelect = computed(() => items.value.filter(x => x.s).length > 0)
 
 const updateParameter = () => {
     para_keys.value = props.owner?.parameter.numbers.map(x => { return { value: x.name, text: x.name }}) ?? []
@@ -74,8 +76,8 @@ const checkPatterm = (category:number, type:number, checker:string):boolean => {
     return e || e2
 }
 
-const datachange = () => {
-    hasSelect.value = items.value.filter(x => x.s).length > 0
+const expressionNameCheck = (x:string) => {
+    return x.length == 0 || x == null || items2.value.filter(y => x == y.name).length >= 2
 }
 
 const taskchange = () => {
@@ -98,17 +100,18 @@ const LUATemplateTranslate = (t:number):string => {
     return i18n.global.t(LUATemplateText[t])
 }
 
-const changeCronKey = (key:string) => {
-    emits('keychange', key)
-}
-
 const createJob = () => {
     createData.value = {category: 0, type: 0, spe_template: 0};
     createModal.value = true
 }
 
+const createProperty = () => {
+    items2.value.push({name: "default", expression: "1 + 1"})
+    setdirty()
+}
+
 const saveJobs = () => {
-    emits('edit', items.value)
+    emits('edit', items.value, items2.value)
     dirty.value = false
 }
 
@@ -120,7 +123,6 @@ const cloneSelect = () => {
 
 const deleteSelect = () => {
     items.value = items.value.filter(x => x.s == undefined || x.s === false)
-    hasSelect.value = false
     dirty.value = true
 }
 
@@ -178,7 +180,6 @@ const libDelete = (name:string) => {
 
 const selectall = (s:boolean) => {
     items.value.forEach(x => x.s = s)
-    datachange()   
 }
 
 const moveup = (uuid:string) => {
@@ -281,6 +282,14 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="createProperty" :disabled="select == undefined">
+                            <v-icon>mdi-book-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('create-property') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" color="success" @click="saveJobs" :disabled="select == undefined || !dirty">
                             <v-icon>mdi-content-save</v-icon>
                         </v-btn>
@@ -321,16 +330,36 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
-        <!-- Job List Cards -->
+        <!-- Property -->
+        <div v-if="select != undefined" class="py-3 pb-5 mx-5">
+            <h3> {{ $t('property') }} </h3>
+            <v-row v-for="(c, i) in items2" :key="i">
+                <v-col cols="3">
+                    <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
+                </v-col>
+                <v-col cols="8">
+                    <v-text-field hide-detail v-model="c.expression" :label="$t('expression.value')" @input="setdirty"></v-text-field>
+                </v-col>
+                <v-col cols="1" class="mt-1">
+                    <v-btn flat icon>
+                        <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                </v-col>
+            </v-row>
+        </div>
+        <!-- Job List -->
+        
         <div v-if="select != undefined" class="py-3 pb-7">
+            <hr class="mx-5 py-2" />
+            <h3> {{ $t('job') }} </h3>
             <v-expansion-panels color="dark" class="px-6 text-white">
                 <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2">
                     <v-expansion-panel-title>
                         <v-row>
-                            <v-col cols="auto">
-                                <v-checkbox type="checkbox" v-model="c.s" @change="datachange" hide-details width="50" density="compact"></v-checkbox>
+                            <v-col cols="auto" class="mt-1">
+                                <v-checkbox type="checkbox" v-model="c.s" hide-details width="50" density="compact"></v-checkbox>
                             </v-col>
-                            <v-col cols="10">
+                            <v-col cols="10" class="mt-2">
                                 <v-chip class="mr-1">{{ i }}. {{ c.category == 0 ? JobType2Translate(c.type) : JobTypeTranslate(c.type) }}</v-chip>
                                 <v-chip>{{ c.uuid }}</v-chip>
                             </v-col>

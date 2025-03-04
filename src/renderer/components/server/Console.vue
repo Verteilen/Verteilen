@@ -416,43 +416,37 @@ onUnmounted(() => {
 <template>
     <v-container fluid v-if="data != undefined">
         <v-row style="height: calc(100vh - 55px)" class="w-100">
-            <v-col :cols="leftSize" style="border-right: brown 1px solid;">
+            <v-col :cols="leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
                 <v-row>
                     <v-col cols="3" class="mt-2">
-                        <h5>{{ $t('execute') }}</h5>
+                        <h6>{{ $t('execute') }}</h6>
                     </v-col>
                     <v-col cols="9">
-                        <v-btn-group class="w-100">
-                            <v-btn class="w-33" @click="execute(0)" :disabled="data.projects.length == 0 || data.running" color="success">{{ $t('execute-0') }}</v-btn>
-                            <v-btn class="w-33" @click="execute(1)" :disabled="data.projects.length == 0 || data.running" color="success">{{ $t('execute-1') }}</v-btn>
-                            <v-btn class="w-33" @click="execute(2)" :disabled="data.projects.length == 0 || data.running" color="success">{{ $t('execute-2') }}</v-btn>
-                        </v-btn-group>
+                        <v-btn variant="outlined" class="w-33" @click="execute(0)" :disabled="data.projects.length == 0 || data.running" color="success">{{ $t('execute-0') }}</v-btn>
+                        <v-btn variant="outlined" class="w-33" @click="execute(1)" :disabled="data.projects.length == 0 || data.running" color="success">{{ $t('execute-1') }}</v-btn>
+                        <v-btn variant="outlined" class="w-33" @click="execute(2)" :disabled="data.projects.length == 0 || data.running" color="success">{{ $t('execute-2') }}</v-btn>
                     </v-col>
                 </v-row>
                 <v-row>
                     <v-col cols="3" class="mt-2">
-                        <h5>{{ $t('skip') }}</h5>
+                        <h6>{{ $t('skip') }}</h6>
                     </v-col>
                     <v-col cols="9">
-                        <v-btn-group class="w-100">
-                            <v-btn class="w-50" @click="skip(0)" :disabled="data.projects.length == 0 || data.running" color="info">{{ $t('project') }}</v-btn>
-                            <v-btn class="w-50" @click="skip(1)" :disabled="data.projects.length == 0 || data.running" color="info">{{ $t('task') }}</v-btn>
-                        </v-btn-group>
+                        <v-btn variant="outlined" class="w-50" @click="skip(0)" :disabled="data.projects.length == 0 || data.running" color="info">{{ $t('project') }}</v-btn>
+                        <v-btn variant="outlined" class="w-50" @click="skip(1)" :disabled="data.projects.length == 0 || data.running" color="info">{{ $t('task') }}</v-btn>
                     </v-col>
                 </v-row>
                 <v-row>
                     <v-col cols="3" class="mt-2">
-                        <h5>{{ $t('action') }}</h5>
+                        <h6>{{ $t('action') }}</h6>
                     </v-col>
                     <v-col cols="9">
-                        <v-btn-group class="w-100">
-                            <v-btn class="w-50" @click="clean" :disabled="data.projects.length == 0 || data.running" color="danger">{{ $t('clean') }}</v-btn>
-                            <v-btn class="w-50" @click="stop" :disabled="data.projects.length == 0 || data.stop" color="danger">{{ $t('stop') }}</v-btn>
-                        </v-btn-group>
+                        <v-btn variant="outlined" class="w-50" @click="clean" :disabled="data.projects.length == 0 || data.running" color="danger">{{ $t('clean') }}</v-btn>
+                        <v-btn variant="outlined" class="w-50" @click="stop" :disabled="data.projects.length == 0 || data.stop" color="danger">{{ $t('stop') }}</v-btn>
                     </v-col>
                 </v-row>
                 <br />
-                <v-list v-model="tag">
+                <v-list v-model="tag" color="success">
                     <v-list-item @click="tag = 0" :value="0">
                         {{ $t('console.list') }}
                     </v-list-item>

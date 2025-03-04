@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
 import { messager_log, set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -235,9 +235,10 @@ const addJob = (v:Array<Job>) => {
   allUpdate()
 }
 
-const editJob = (v:Array<Job>) => {
+const editJob = (v:Array<Job>, v2:Array<Property>) => {
   if(selectTask.value == undefined) return
   selectTask.value.jobs = v
+  selectTask.value.properties = v2
   saveRecord()
   allUpdate()
 }
@@ -502,7 +503,7 @@ onUnmounted(() => {
         :owner="selectProject"
         :libs="libs"
         @added="e => addJob(e)" 
-        @edit="(e) => editJob(e)" 
+        @edit="(e, e2) => editJob(e, e2)" 
         @delete="e => deleteJob(e)" />
 
       <ParameterPage v-show="page == 3" 

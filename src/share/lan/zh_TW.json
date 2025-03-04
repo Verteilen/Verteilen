@@ -125,6 +125,11 @@
         "string": "字串",
         "boolean": "布林"
     },
+    "expression": {
+        "title": "標題",
+        "value": "表達式"
+    },
+    "search": "搜尋",
     "selectall": "全選",
     "unselectall": "取消全選",
     "project": "專案",
@@ -139,6 +144,8 @@
     "node": "節點",
     "action": "動作",
     "skip": "跳過",
+    "property": "屬性",
+    "create-property": "新增屬性",
     "check": "查看",
     "edit": "編輯",
     "modify": "修改",
