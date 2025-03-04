@@ -1,5 +1,5 @@
 import { formula, init } from "expressionparser";
-import { BusAnalysis, CronJobState, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
+import { BusAnalysis, CronJobState, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Parameter, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
 import { WebsocketManager } from "./socket_manager";
 
 export class ExecuteManager{
@@ -17,6 +17,7 @@ export class ExecuteManager{
     libs:Libraries | undefined = undefined
     proxy:ExecuteProxy | undefined = undefined
     messager_log:Function
+    localPara: Parameter | undefined = undefined
 
     constructor(_websocket_manager:WebsocketManager, _messager_log:Function) {
         this.websocket_manager = _websocket_manager
@@ -47,7 +48,10 @@ export class ExecuteManager{
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
             if(b == null || b == undefined || b.length == 0) continue
-            job.string_args[i] = this.replacePara(job.string_args[i], [{ key: 'ck', value: n.toString() }])
+            for(let j = 0; j < task.properties.length; j++){
+                job.string_args[i] = job.string_args[i].replace(`%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
+            }
+            job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
             console.log("String replace: ", b, job.string_args[i])
         }
         const h:Header = {
@@ -96,6 +100,7 @@ export class ExecuteManager{
                     ns = ns.filter(x => !worker.includes(x.uuid))
                 }else{
                     // First time
+                    this.SyncParameter(project)
                     ns = this.get_idle()
                     for(let index = 1; index < taskCount + 1; index++){
                         const d:CronJobState = {
@@ -154,6 +159,7 @@ export class ExecuteManager{
                     }
                 }else{
                     // First time
+                    this.SyncParameter(project)
                     ns = this.get_idle()
                     if(ns.length > 0) {
                         this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
@@ -234,11 +240,9 @@ export class ExecuteManager{
             this.current_p = this.current_projects[0]
             this.messager_log(`[Execute] Project Start ${this.current_p.uuid}`)
             this.proxy?.executeProjectStart({ uuid: this.current_p.uuid })
-            this.SyncParameter(this.current_p)
         }
         if (this.current_p != undefined){
             if(this.first) {
-                this.SyncParameter(this.current_p)
                 this.first = false
             }
             this.ExecuteProject(this.current_p)
@@ -256,8 +260,9 @@ export class ExecuteManager{
     }
 
     SyncParameter = (p:Project) => {
+        this.localPara = JSON.parse(JSON.stringify(p.parameter))
         this.websocket_manager.targets.forEach(x => {
-            this.sync_para(p, x)
+            this.sync_para(this.localPara!, x)
         })
     }
 
@@ -303,8 +308,8 @@ export class ExecuteManager{
     }
 
     NewConnection = (source:WebsocketPack) => {
-        if(this.state == ExecuteState.RUNNING && this.current_p != undefined){
-            this.sync_para(this.current_p, source)
+        if(this.state == ExecuteState.RUNNING && this.localPara != undefined){
+            this.sync_para(this.localPara, source)
         }
     }
 
@@ -328,7 +333,6 @@ export class ExecuteManager{
                 this.current_p = this.current_projects[index + 1]
                 this.messager_log(`[Execute] Skip project ${index}. ${this.current_p.uuid}`)
                 this.proxy?.executeProjectStart({ uuid: this.current_p.uuid })
-                this.SyncParameter(this.current_p)
                 return index
             }
         }
@@ -525,18 +529,12 @@ export class ExecuteManager{
         return d
     }
     
-    private replacePara = (text:string, v:Array<KeyValue>):string => {
+    private replacePara = (text:string, paras:Array<KeyValue>):string => {
         if (this.current_p == undefined) return text
         let buffer = ''
         let store = ''
         let state:boolean = false
         let useExp = false
-        const paras = [
-            ...this.current_p.parameter.booleans.map(x => { return { key: x.name, value: x.value.toString() } }),
-            ...this.current_p.parameter.numbers.map(x => { return { key: x.name, value: x.value.toString() } }),
-            ...this.current_p.parameter.strings.map(x => { return { key: x.name, value: x.value.toString() } }),
-            ...v
-        ]
         for(const v of text){
             if(v == '%'){
                 state = !state
@@ -556,14 +554,23 @@ export class ExecuteManager{
         }
         return buffer
     }
+
+    private to_keyvalue = (p:Parameter):Array<KeyValue> => {
+        const paras = [
+            ...p.booleans.map(x => { return { key: x.name, value: x.value.toString() } }),
+            ...p.numbers.map(x => { return { key: x.name, value: x.value.toString() } }),
+            ...p.strings.map(x => { return { key: x.name, value: x.value.toString() } }),
+        ]
+        return paras
+    }
     //#endregion
 
     //#region Helper
-    private sync_para = (project:Project, source:WebsocketPack) => {
+    private sync_para = (target:Parameter, source:WebsocketPack) => {
         const h:Header = {
             name: 'set_parameter',
             message: 'Initialization Parameter',
-            data: project.parameter
+            data: target
         }
         const h2:Header = {
             name: 'set_libs',

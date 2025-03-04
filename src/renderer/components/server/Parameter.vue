@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, Parameter, Project } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
@@ -14,7 +14,6 @@ const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'edit', data:Parameter): void
 }>()
-const hasSelect = ref(false)
 const createModal = ref(false)
 const renameModal = ref(false)
 const renameData = ref({ type: 0, oldname: '', name: '' })
@@ -26,6 +25,12 @@ const buffer:Ref<Parameter> = ref({ numbers: [], strings: [], booleans: [] })
 const errorMessage = ref('')
 const titleError = ref(false)
 const search = ref('')
+
+const hasSelect = computed(() => {
+    return buffer.value.booleans.filter(x => x.s).length > 0 || 
+        buffer.value.strings.filter(x => x.s).length > 0 || 
+        buffer.value.numbers.filter(x => x.s).length > 0
+}) 
 
 const updateParameter = () => {
     if( props.select == undefined) return
@@ -58,7 +63,6 @@ const cloneSelect = () => {
     buffer.value.strings.push(...ss)
     buffer.value.numbers.push(...ns)
     dirty.value = true
-    datachange()
 }
 
 const saveParameter = () => {
@@ -77,7 +81,6 @@ const selectall = (s:boolean) => {
     buffer.value.booleans.forEach(x => x.s = s)
     buffer.value.strings.forEach(x => x.s = s)
     buffer.value.numbers.forEach(x => x.s = s)
-    datachange()
 }
 
 const confirmRename = () => {
@@ -131,8 +134,9 @@ const deleteSelect = () => {
     buffer.value.strings = ss
     buffer.value.numbers = ns
     dirty.value = true
-    datachange()
 }
+
+const setdirty = () => dirty.value = true
 
 const confirmCreate = () => {
     if(createData.value.name.length == 0){
@@ -143,12 +147,6 @@ const confirmCreate = () => {
     createModal.value = false
     getArray(createData.value.type).push({ name: createData.value.name, value: 0 })
     dirty.value = true
-}
-
-const datachange = () => {
-    hasSelect.value = buffer.value.booleans.filter(x => x.s).length > 0 || 
-        buffer.value.strings.filter(x => x.s).length > 0 || 
-        buffer.value.numbers.filter(x => x.s).length > 0;
 }
 
 onMounted(() => {
@@ -240,13 +238,15 @@ onUnmounted(() => {
                     <v-expansion-panel-text>
                         <v-row v-for="(c, i) in getArray(n - 1)" :key="i">
                             <v-col cols="auto">
-                                <v-checkbox v-model="c.s" width="30" hide-details @change="datachange"></v-checkbox>
+                                <v-checkbox v-model="c.s" width="30" hide-details @input="setdirty"></v-checkbox>
                             </v-col>
                             <v-col cols="10">
-                                <v-text-field :label="c.name" v-model="c.value" hide-details></v-text-field>
+                                <v-text-field v-if="n == 1" :label="c.name" v-model="c.value" hide-details @input="setdirty"></v-text-field>
+                                <v-text-field v-else-if="n == 2" :label="c.name" v-model.number="c.value" type="number" hide-details @input="setdirty"></v-text-field>
+                                <v-checkbox v-else-if="n == 3" :label="c.name" v-model="c.value" hide-details @input="setdirty"></v-checkbox>
                             </v-col>
                             <v-col cols="1" class="mt-3">
-                                <v-btn class="w-100" color="primary" @click="rename(n - 1, c.name)">{{ $t('rename') }}</v-btn>
+                                <v-btn class="w-100" color="primary" @click="rename(n - 1, c.name)" @input="setdirty">{{ $t('rename') }}</v-btn>
                             </v-col>
                         </v-row>
                     </v-expansion-panel-text>

@@ -53,10 +53,12 @@ const setdirty = () => {
 
 const updateJob = () => {
     const old:Array<Job> = JSON.parse(JSON.stringify(items.value))
-    items.value = props.select?.jobs ?? []
+    items.value = JSON.parse(JSON.stringify(props.select?.jobs ?? []))
     const ids = old.filter(x => x.s).map(x => x.uuid)
     items.value.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)
     items.value.forEach(x => x.s = false)
+    items2.value = JSON.parse(JSON.stringify(props.select?.properties ?? []))
+
     updateParameter()
     dirty.value = false
 }
@@ -359,7 +361,7 @@ onUnmounted(() => {
                             <v-col cols="auto" class="mt-1">
                                 <v-checkbox type="checkbox" v-model="c.s" hide-details width="50" density="compact"></v-checkbox>
                             </v-col>
-                            <v-col cols="10" class="mt-2">
+                            <v-col cols="auto" class="mt-2">
                                 <v-chip class="mr-1">{{ i }}. {{ c.category == 0 ? JobType2Translate(c.type) : JobTypeTranslate(c.type) }}</v-chip>
                                 <v-chip>{{ c.uuid }}</v-chip>
                             </v-col>

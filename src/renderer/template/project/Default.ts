@@ -1,4 +1,88 @@
-import { Parameter, Project } from "../../interface"
+import { v6 as uuidv6 } from 'uuid';
+import { ConditionResult, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
+
+const GetDefaultProjectTemplate_Pnumber2 = ():Task => {
+    const checker:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COMMAND,
+        lua: "",
+        string_args: ["", "echo", "%prop%"],
+        number_args: [ConditionResult.ThrowProject],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "輸出數字 運算式",
+        description: "",
+        cronjob: true,
+        cronjobKey: "n1",
+        multi: false,
+        multiKey: "",
+        properties: [
+            {
+                name: "prop",
+                expression: "ck * 5"
+            }
+        ],
+        jobs: [
+            checker
+        ]
+    }
+    return t
+}
+
+const GetDefaultProjectTemplate_Pnumber = ():Task => {
+    const checker:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COMMAND,
+        lua: "",
+        string_args: ["", "echo", "%ck%"],
+        number_args: [ConditionResult.ThrowProject],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "輸出數字",
+        description: "",
+        cronjob: true,
+        cronjobKey: "n1",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            checker
+        ]
+    }
+    return t
+}
+
+const GetDefaultProjectTemplate_Checker = ():Task => {
+    const checker:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Condition,
+        type: JobType2.CHECK_PATH,
+        lua: "",
+        string_args: ["%path%"],
+        number_args: [ConditionResult.ThrowProject],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "檢測路徑",
+        description: "",
+        cronjob: false,
+        cronjobKey: "",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            checker
+        ]
+    }
+    return t
+}
 
 export const GetDefaultProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
@@ -6,6 +90,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
             { name: "n1", value: 120 }
         ],
         strings: [
+            { name: "path", value: "C:\\Tool" },
             { name: "s1", value: "Hello World" }
         ],
         booleans: [
@@ -13,5 +98,10 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
         ],
     }
     r.parameter = para
+    r.task = [
+        GetDefaultProjectTemplate_Checker(),
+        GetDefaultProjectTemplate_Pnumber(),
+        GetDefaultProjectTemplate_Pnumber2(),
+    ]
     return r
 }
