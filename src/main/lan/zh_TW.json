@@ -120,6 +120,13 @@
         "list": "專案列表",
         "dashboard": "儀錶板"
     },
+    "types": {
+        "number": "數字",
+        "string": "字串",
+        "boolean": "布林"
+    },
+    "selectall": "全選",
+    "unselectall": "取消全選",
     "project": "專案",
     "task": "流程",
     "job": "工作",
@@ -131,6 +138,7 @@
     "server": "伺服器",
     "node": "節點",
     "action": "動作",
+    "skip": "跳過",
     "check": "查看",
     "edit": "編輯",
     "modify": "修改",

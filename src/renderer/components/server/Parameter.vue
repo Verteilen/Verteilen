@@ -25,6 +25,7 @@ const dirty = ref(false)
 const buffer:Ref<Parameter> = ref({ numbers: [], strings: [], booleans: [] })
 const errorMessage = ref('')
 const titleError = ref(false)
+const search = ref('')
 
 const updateParameter = () => {
     if( props.select == undefined) return
@@ -34,9 +35,9 @@ const updateParameter = () => {
 
 const getArray = (n:number):Array<{ s?:boolean, name: string, value: any }> => {
     if( props.select == undefined) return []
-    if (n == 0) return buffer.value.strings
-    else if (n == 1) return buffer.value.numbers
-    else return buffer.value.booleans
+    if (n == 0) return search.value == null || search.value.length == 0 ? buffer.value.strings : buffer.value.strings.filter(x => x.name.includes(search.value))
+    else if (n == 1) return search.value == null || search.value.length == 0 ? buffer.value.numbers : buffer.value.numbers.filter(x => x.name.includes(search.value))
+    else return search.value == null || search.value.length == 0 ? buffer.value.booleans : buffer.value.booleans.filter(x => x.name.includes(search.value))
 }
 
 const createParameter = () => {
@@ -70,6 +71,13 @@ const rename = (type:number, oldname:string) => {
     renameModal.value = true;
     errorMessage.value = ''
     titleError.value = false
+}
+
+const selectall = (s:boolean) => {
+    buffer.value.booleans.forEach(x => x.s = s)
+    buffer.value.strings.forEach(x => x.s = s)
+    buffer.value.numbers.forEach(x => x.s = s)
+    datachange()
 }
 
 const confirmRename = () => {
@@ -165,64 +173,117 @@ onUnmounted(() => {
 <template>
     <div>
         <div class="py-3">
-            <b-button-group>
-                <b-button variant='primary' @click="createParameter" :disabled="select == undefined">{{ $t('create') }}</b-button>
-                <b-button variant='primary' @click="saveParameter" :disabled="select == undefined || !dirty">{{ $t('save') }}</b-button>
-                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect || select == undefined">{{ $t('clone') }}</b-button>
-                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect || select == undefined">{{ $t('delete') }}</b-button>
-            </b-button-group>
+            <v-toolbar density="compact" class="pr-3">
+                <v-text-field max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
+                <p v-if="props.select != undefined" class="pt-3 mr-4">
+                    {{ $t('project') }}: {{ props.select.title }}
+                </p>
+                <v-spacer></v-spacer>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="createParameter" :disabled="select == undefined">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('create') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" color="success" @click="saveParameter" :disabled="select == undefined || !dirty">
+                            <v-icon>mdi-content-save</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('create') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="selectall(true)">
+                            <v-icon>mdi-check-bold</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('selectall') }}
+                </v-tooltip>    
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="selectall(false)">
+                            <v-icon>mdi-check-outline</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('unselectall') }}
+                </v-tooltip>    
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="cloneSelect" :disabled="!hasSelect || select == undefined">
+                            <v-icon>mdi-content-paste</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('clone') }}
+                </v-tooltip>         
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon color='danger' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('delete') }}
+                </v-tooltip> 
+            </v-toolbar>
         </div>
-        <b-card no-body ag="article" bg-variant="dark" border-variant="primary" class="text-white my-3 w-50" style="margin-left: 25%;" v-if="props.select != undefined">
-            <b-card-title>
-                {{ props.select.title }}
-            </b-card-title>
-            <b-card-text>
-                {{ props.select.description }}
-            </b-card-text>
-        </b-card>
-        <hr />
-        <b-container fluid>
-            <b-row v-if="select != undefined">
-                <b-col cols="4" v-for="n in 3" :key="n">
-                    <h3>{{ types[n - 1] }}參數</h3>
-                    <b-card v-for="(c, i) in getArray(n - 1)" :key="i" no-body bg-variant="dark" border-variant="primary" class="text-white mb-3 px-4">
-                        <b-card-text>
-                            <b-row>
-                                <b-col cols="4" class="pt-1">
-                                    <b-form-checkbox v-model="c.s" @change="datachange"> {{ c.name }} </b-form-checkbox>
-                                </b-col>
-                                <b-col cols="5">
-                                    <v-text-field v-if="n == 1" v-model="c.value" @input="dirty = true" density="compact" hide-details></v-text-field>
-                                    <v-text-field v-else-if="n == 2" v-model.number="c.value" @input="dirty = true" type="number" density="compact" hide-details></v-text-field>
-                                    <b-form-checkbox v-else v-model="c.value" @input="dirty = true"></b-form-checkbox>
-                                </b-col>
-                                <b-col cols="3">
-                                    <b-button @click="rename(n - 1, c.name)">{{ $t('rename') }}</b-button>
-                                </b-col>
-                            </b-row>
-                            <span></span>
-                        </b-card-text>
-                    </b-card>
-                </b-col>
-            </b-row>
-        </b-container>
-        <b-modal :title="$t('modal.new-parameter')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <b-form-checkbox v-model="createData.temp">{{ $t('useTemplate') }}</b-form-checkbox>
-            <div v-if="createData.temp">
-
-            </div>
-            <div v-else>
-                <v-text-field class="mt-3" :error="titleError" v-model="createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-                <v-select class="mt-3" v-model="createData.type" :items="options" item-title="text" :label="$t('modal.parameter-datatype')" hide-details></v-select>
-            </div>
-            <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
-            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
-        </b-modal>
-        <b-modal :title="$t('modal.rename-parameter')" v-model="renameModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field :error="titleError" v-model="renameData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-            <b-button class="mt-3" variant="primary" @click="confirmRename">{{ $t('rename') }}</b-button>
-            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
-        </b-modal>
+        <div class="py-3 px-5 text-left">
+            <v-expansion-panels color="dark" class="px-6 text-white" multiple>
+                <v-expansion-panel v-for="n in 3" :key="n" class="my-2">
+                    <v-expansion-panel-title>
+                        <h4 v-if="n == 1">{{ $t('types.string') }}</h4>
+                        <h4 v-else-if="n == 2">{{ $t('types.number') }}</h4>
+                        <h4 v-else-if="n == 3">{{ $t('types.boolean') }}</h4>
+                    </v-expansion-panel-title>
+                    <v-expansion-panel-text>
+                        <v-row v-for="(c, i) in getArray(n - 1)" :key="i">
+                            <v-col cols="auto">
+                                <v-checkbox v-model="c.s" width="30" hide-details @change="datachange"></v-checkbox>
+                            </v-col>
+                            <v-col cols="10">
+                                <v-text-field :label="c.name" v-model="c.value" hide-details></v-text-field>
+                            </v-col>
+                            <v-col cols="1" class="mt-3">
+                                <v-btn class="w-100" color="primary" @click="rename(n - 1, c.name)">{{ $t('rename') }}</v-btn>
+                            </v-col>
+                        </v-row>
+                    </v-expansion-panel-text>
+                </v-expansion-panel>
+            </v-expansion-panels>
+        </div>
+        <v-dialog width="500" v-model="createModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-hammer</v-icon>
+                    {{ $t('modal.new-parameter') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :error="titleError" v-model="createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                    <v-select class="mt-3" v-model="createData.type" :items="options" item-title="text" :label="$t('modal.parameter-datatype')" hide-details></v-select>
+                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="renameModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.rename-parameter') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :error="titleError" v-model="renameData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="confirmRename">{{ $t('rename') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 

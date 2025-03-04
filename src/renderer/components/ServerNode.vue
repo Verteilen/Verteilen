@@ -473,7 +473,6 @@ onUnmounted(() => {
         </v-list>
       </v-menu>
     </v-tabs>
-    
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="page == 0" 
         :projects="projects" 

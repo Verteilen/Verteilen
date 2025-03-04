@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { GetDefaultProjectTemplate, GetFUNIQUE_GS4ProjectTemplate } from '../../template/projectTemplate';
@@ -24,18 +24,30 @@ const emits = defineEmits<{
     (e: 'movedown', uuids:string): void
 }>()
 const items:Ref<Array<ProjectTable>> = ref([])
-const fields:Ref<Array<string>> = ref(['ID', 'title', 'description', 'taskCount', 'detail'])
+const fields:Ref<Array<any>> = ref([
+    { title: 'ID', align: 'center', key: 'ID' },
+    { title: 'Title', align: 'center', key: 'title' },
+    { title: 'Description', align: 'center', key: 'description' },
+    { title: 'TaskCount', align: 'center', key: 'taskCount' },
+    { title: 'Detail', align: 'center', key: 'detail' },
+])
 const createModal = ref(false)
 const createData = ref({title: "", description: "", useTemp: false, temp: 0})
-const hasSelect = ref(false)
 const temps:Ref<Array<{ text: string, value:number }>> = ref([])
 const editModal = ref(false)
 const editUUID = ref('')
 const errorMessage = ref('')
 const titleError = ref(false)
+const search = ref('')
+const selection:Ref<Array<string>> = ref([])
+
+const items_final = computed(() => {
+    return search.value == null || search.value.length == 0 ? items.value : items.value.filter(x => x.title.includes(search.value) || x.ID.includes(search.value))
+})
+const hasSelect = computed(() => selection.value.length > 0)
+const selected_project_ids = computed(() => items.value.filter(x => selection.value.includes(x.ID)).map(x => x.ID))
 
 const updateProject = () => {
-    const old:Array<ProjectTable> = JSON.parse(JSON.stringify(items.value))
     items.value = props.projects.map(x => {
         return {
             s: false,
@@ -45,15 +57,12 @@ const updateProject = () => {
             taskCount: x.task.length
         }
     })
-    const ids = old.filter(x => x.s).map(x => x.ID)
-    items.value.filter(x => ids.includes(x.ID)).forEach(x => x.s = true)
+    const allid = items.value.map(x => x.ID)
+    selection.value = selection.value.filter(x => allid.includes(x))
 }
 
 const recoverProject = (p:Project) => {
     emits('added', [p])
-    items.value.forEach(x => {
-        datachange(x.ID, false)
-    })
 }
 
 const createProject = () => {
@@ -61,12 +70,6 @@ const createProject = () => {
     createModal.value = true
     errorMessage.value = ''
     titleError.value = false
-}
-
-const datachange = (uuid:any, v:boolean) => {
-    const index = items.value.findIndex(x => x.ID == uuid)
-    if(index != -1) items.value[index].s = v
-    hasSelect.value = items.value.filter(x => x.s).length > 0;
 }
 
 const datachoose = (uuid:string) => {
@@ -91,16 +94,14 @@ const dataexport = (uuid:string) => {
 }
 
 const deleteSelect = () => {
-    emits('delete', items.value.filter(x => x.s).map(x => x.ID))
+    emits('delete', selected_project_ids.value)
     nextTick(() => {
         updateProject()
-        hasSelect.value = items.value.filter(x => x.s).length > 0;
     })
 }
 
 const cloneSelect = () => {
-    const selectps = items.value.filter(x => x.s).map(x => x.ID)
-    const ps:Array<Project> = props.projects.filter(x => selectps.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
+    const ps:Array<Project> = props.projects.filter(x => selected_project_ids.value.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
     ps.forEach(x => {
         x.uuid = uuidv6()
         x.title = x.title + ` (${i18n.global.t('clone')})`
@@ -115,16 +116,14 @@ const cloneSelect = () => {
     nextTick(() => {
         updateProject();
     })
-    items.value.forEach(x => {
-        datachange(x.ID, false)
-    })
+}
+
+const selectall = () => {
+    selection.value = items.value.map(x => x.ID)
 }
 
 const execute = (keep:boolean) => {
-    emits('execute', items.value.filter(x => x.s).map(x => x.ID), keep)
-    items.value.forEach(x => {
-        datachange(x.ID, false)
-    })
+    emits('execute', selected_project_ids.value, keep)
 }
 
 const confirmCreate = () => {
@@ -250,69 +249,118 @@ onUnmounted(() => {
 <template>
     <div>
         <div class="py-3">
-            <b-button-group>
-                <b-button variant='primary' @click="createProject">{{ $t('create') }}</b-button>
-                <b-button variant='primary' @click="cloneSelect" :disabled="!hasSelect">{{ $t('clone') }}</b-button>
-                <b-button variant='danger' @click="deleteSelect" :disabled="!hasSelect">{{ $t('delete') }}</b-button>
-                <b-button @click="execute(false)" :disabled="!hasSelect">{{ $t('execute') }}</b-button>
-                <b-button @click="execute(true)" :disabled="!hasSelect">{{ $t('execute-keep') }}</b-button>
-            </b-button-group>
+            <v-toolbar density="compact" class="pr-3">
+                <v-text-field max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
+                <v-spacer></v-spacer>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="execute(true)" :disabled="!hasSelect">
+                            <v-icon>mdi-play-outline</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('execute-keep') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="execute(false)" :disabled="!hasSelect">
+                            <v-icon>mdi-play</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('execute') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="createProject">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('create') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="selectall">
+                            <v-icon>mdi-check-all</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('selectall') }}
+                </v-tooltip>    
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="cloneSelect" :disabled="!hasSelect">
+                            <v-icon>mdi-content-paste</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('clone') }}
+                </v-tooltip>         
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon color='danger' v-bind="props" @click="deleteSelect" :disabled="!hasSelect">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('delete') }}
+                </v-tooltip> 
+            </v-toolbar>
         </div>
-        <div>
-            <b-table dark striped hover :items="items" :fields="fields">
-                <template #head(ID)="data">
-                    <v-tooltip location="top">
-                        <template v-slot:activator="{ props }">
-                            <span v-bind="props">ID</span>
-                        </template>
-                        <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.project-id') }}</p>
-                    </v-tooltip>
+        <div class="pt-3">
+            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
+                <template v-slot:item.ID="{ item }">
+                    <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
-                <template #head(taskCount)="data">
-                    <v-tooltip location="top">
-                        <template v-slot:activator="{ props }">
-                            <span v-bind="props">TaskCount</span>
-                        </template>
-                        <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.project-taskCount') }}</p>
-                    </v-tooltip>
+                <template v-slot:item.detail="{ item }">
+                    <v-btn flat icon @click="datachoose(item.ID)">
+                        <v-icon>mdi-location-enter</v-icon>
+                    </v-btn>
+                    <v-btn flat icon @click="dataedit(item.ID)">
+                        <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn flat icon @click="dataexport(item.ID)">
+                        <v-icon>mdi-export</v-icon>
+                    </v-btn>
+                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)">
+                        <v-icon>mdi-arrow-up</v-icon>
+                    </v-btn>
+                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)">
+                        <v-icon>mdi-arrow-down</v-icon>
+                    </v-btn>
                 </template>
-                <template #cell(ID)="data">
-                    <b-row>
-                        <b-col cols="1">
-                            <b-form-checkbox style="float:left; width:15px" v-model="data.item.s" @change="(v: boolean) => datachange(data.item.ID, v)"></b-form-checkbox>
-                        </b-col>
-                        <b-col>
-                            <a href="#" @click="datachoose(data.item.ID)">{{ data.item.ID }}</a>
-                        </b-col>
-                    </b-row>
-                </template>
-                <template #cell(detail)="data">
-                    <b-dropdown :text="$t('action')" class="text-white m-md-2">
-                        <b-dropdown-item @click="datachoose(data.item.ID)">{{ $t('check') }}</b-dropdown-item>
-                        <b-dropdown-item @click="dataedit(data.item.ID)">{{ $t('edit') }}</b-dropdown-item>
-                        <b-dropdown-item @click="dataexport(data.item.ID)">{{ $t('export') }}</b-dropdown-item>
-                        <b-dropdown-divider></b-dropdown-divider>
-                        <b-dropdown-item :disabled="isFirst(data.item.ID)" @click="moveup(data.item.ID)">{{ $t('moveup') }}</b-dropdown-item>
-                        <b-dropdown-item :disabled="isLast(data.item.ID)" @click="movedown(data.item.ID)">{{ $t('movedown') }}</b-dropdown-item>
-                    </b-dropdown>
-                </template>
-            </b-table>
+            </v-data-table>
         </div>
-        <b-modal :title="$t('modal.new-project')" v-model="createModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-            <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
-            <br />
-            <b-form-checkbox v-model="createData.useTemp">{{ $t('useTemplate') }}</b-form-checkbox>
-            <v-select v-if="createData.useTemp" class="mt-3" v-model="createData.temp" :items="temps" item-title="text" hide-details></v-select>
-            <b-button class="mt-3" variant="primary" @click="confirmCreate">{{ $t('create') }}</b-button>
-            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
-        </b-modal>
-        <b-modal :title="$t('modal.modify-project')" v-model="editModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-            <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
-            <b-button class="mt-3" variant="primary" @click="confirmEdit">{{ $t('modify') }}</b-button>
-            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
-        </b-modal>
+        <v-dialog width="500" v-model="createModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-hammer</v-icon>
+                    {{ $t('modal.new-project') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
+                    <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
+                    <br />
+                    <v-checkbox v-model="createData.useTemp" hide-details :label="$t('useTemplate')"></v-checkbox>
+                    <v-select v-if="createData.useTemp" v-model="createData.temp" :items="temps" item-title="text" hide-details></v-select>
+                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="editModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.modify-project') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
+                    <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
+                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="confirmEdit">{{ $t('modify') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 

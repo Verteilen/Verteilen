@@ -120,6 +120,13 @@
         "list": "Project List",
         "dashboard": "Dashboard"
     },
+    "types": {
+        "number": "Number",
+        "string": "String",
+        "boolean": "Boolean"
+    },
+    "selectall": "Select All",
+    "unselectall": "Unselect All",
     "project": "Project",
     "task": "Task",
     "job": "JOB",
@@ -131,6 +138,7 @@
     "server": "Server",
     "node": "Node",
     "action": "Action",
+    "skip": "Skip",
     "check": "Check",
     "edit": "Edit",
     "modify": "Modify",
