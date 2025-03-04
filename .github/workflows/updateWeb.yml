@@ -42,6 +42,7 @@ jobs:
         run: |
           git config --global user.name 'Elly2018'
           git config --global user.email 'Elly2018@users.noreply.github.com'
+          git add --all
           git commit -am "Automated update static website"
       - name: Push
         uses: ad-m/github-push-action@master
