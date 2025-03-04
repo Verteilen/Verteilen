@@ -82,8 +82,9 @@ const expressionNameCheck = (x:string) => {
     return x.length == 0 || x == null || items2.value.filter(y => x == y.name).length >= 2
 }
 
-const taskchange = () => {
+const deleteProperty = (name:string) => {
     dirty.value = true
+    items2.value = items2.value.filter(x => x.name != name)
 }
 
 const JobCategoryTranslate = (t:number):string => {
@@ -343,7 +344,7 @@ onUnmounted(() => {
                     <v-text-field hide-detail v-model="c.expression" :label="$t('expression.value')" @input="setdirty"></v-text-field>
                 </v-col>
                 <v-col cols="1" class="mt-1">
-                    <v-btn flat icon>
+                    <v-btn flat icon @click="deleteProperty(c.name)">
                         <v-icon>mdi-delete</v-icon>
                     </v-btn>
                 </v-col>

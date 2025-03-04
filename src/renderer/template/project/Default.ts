@@ -1,5 +1,32 @@
 import { v6 as uuidv6 } from 'uuid';
 import { ConditionResult, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
+import { Default_LuaExample } from '../lua/Default';
+
+const GetDefaultProjectTemplate_Lua = ():Task => {
+    const lua:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.LUA,
+        lua: Default_LuaExample,
+        string_args: [],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "運行 Lua",
+        description: "",
+        cronjob: false,
+        cronjobKey: "",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            lua
+        ]
+    }
+    return t
+}
 
 const GetDefaultProjectTemplate_Pnumber2 = ():Task => {
     const checker:Job = {
@@ -102,6 +129,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
         GetDefaultProjectTemplate_Checker(),
         GetDefaultProjectTemplate_Pnumber(),
         GetDefaultProjectTemplate_Pnumber2(),
+        GetDefaultProjectTemplate_Lua(),
     ]
     return r
 }
