@@ -297,7 +297,7 @@ onUnmounted(() => {
                             <v-icon>mdi-content-save</v-icon>
                         </v-btn>
                     </template>
-                    {{ $t('create') }}
+                    {{ $t('save') }}
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
