@@ -175,9 +175,10 @@ local blend = env.getnumber("blend")
 local iframe_gap = env.getnumber("iframe_gap")
 
 o.createdir(output_folder.."/final")
+o.createdir(output_folder.."/trans")
 
 for i=1,blend,1 do
-    local output_folder_seq = output_folder.."/Sequence_"..tostring( (i-1) * iframe_gap )
+    local output_folder_seq = output_folder.."/raw/Sequence_"..tostring( (i-1) * iframe_gap )
     local source_folder = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_I/checkpoint"
     o.createdir(output_folder_seq)
 

@@ -1,14 +1,56 @@
 import argparse
+import math
+import os
+import pathlib
 import subprocess
 import sys
 
 
 def transparent_setting(root, output, frame, blend, gap, contribution):
-    subprocess.run(["ply_set_opacity", "-i", "-o", "-a"])
-    pass
+    inputFiles = []
+    max = 0
+    for i in range(blend):
+        path = pathlib.Path.joinpath(root, "Sequence_" + str((i * gap)), str(frame) + ".ply")
+        outFolder = pathlib.Path.joinpath(output, "Sequence_" + str((i * gap)))
+        out = pathlib.Path.joinpath(outFolder, str(frame) + ".ply")
+        os.makedirs(outFolder, exist_ok=True)
+        if pathlib.Path.exists(path):
+            gop = blend * gap
+            reminder = (frame + (i * gap)) % gop
+            degree = (float(reminder) / float(gop)) * 360.0
+            sinv = math.sin(math.radians(degree)) * 0.5 + 0.5
+            max = max + sinv
+            inputFiles.append((path, out, sinv))
+    
+    count = len(inputFiles)
+    if count == 0:
+        return
 
-def merge_setting(root, output, blend, gap, contribution):
-    subprocess.run(["ply_merge", "-i", "-o", "-a"])
+    for i in inputFiles:
+        mul = contribution / max
+        weight = i[2] * mul
+        subprocess.run(["ply_set_opacity", "-i", i[0], "-o", i[1], "-a", str(weight)])
+        print("Set file: " + i[0] + ", transparent to ", str(sinv), "  and output to " + i[1])
+
+def merge_setting(root, output, frame, blend, gap, contribution):
+    inputFiles = []
+    os.makedirs(output, exist_ok=True)
+    for i in range(blend):
+        path = pathlib.Path.joinpath(root, "Sequence_" + str((i * gap)), str(frame) + ".ply")
+        if pathlib.Path.exists(path):
+            inputFiles.append(path)
+
+    count = len(inputFiles)
+    if count == 0:
+        return
+    
+    path = pathlib.Path.joinpath(root, "temp", "conbine" + str(frame) + ".txt")
+    f = open(path, "a")
+    for i in inputFiles:
+        f.write(i + "\\n")
+    f.close()
+
+    subprocess.run(["ply_merge", "-i", path, "-o", str(frame) + ".ply"])
     pass
 
 parser = argparse.ArgumentParser()

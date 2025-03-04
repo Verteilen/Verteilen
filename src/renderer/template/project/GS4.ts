@@ -345,41 +345,63 @@ const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
     return t
 }
 
-const GetFUNIQUE_GS4ProjectTemplate_Blend = ():Task => {
+const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
     const transparentJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%/final", "ply_set_opacity", "-i -o -s"],
-        number_args: [],
-        boolean_args: []
-    }
-    const mergeJob:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COMMAND,
-        lua: "",
-        string_args: ["%output%/final", "ply_merge", "-i -o -a"],
+        string_args: ["%output%/final", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans"],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Blending 程序",
-        description: "Ply 多序算成單序",
+        title: "Blending 程序 透明度調整",
+        description: "Ply 透明度調整",
         cronjob: true,
         cronjobKey: "frameCount",
         multi: false,
         multiKey: "",
         properties: [
             {
-                name: 'blend_value',
-                expression: '(ck - 1) * iframe_gap'
+                name: 'index',
+                expression: '(ck - 1) + IF( start_at_0, 0, 1 )'
             }
         ],
         jobs: [
-            sequenceJob
+            transparentJob
+        ]
+    }
+    return t
+}
+
+const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
+    const mergeJob:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COMMAND,
+        lua: "",
+        string_args: ["%output%/final", "ply_blend", "-t 1 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/trans -o %output%/final"],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Blending 程序 合成",
+        description: "Ply 多序包裝成單序",
+        cronjob: true,
+        cronjobKey: "frameCount",
+        multi: false,
+        multiKey: "",
+        properties: [
+            {
+                name: 'index',
+                expression: '(ck - 1) + IF( start_at_0, 0, 1 )'
+            }
+        ],
+        jobs: [
+            mergeJob
         ]
     }
     return t
@@ -451,7 +473,8 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
         GetFUNIQUE_GS4ProjectTemplate_BlendPrepare(),
         GetFUNIQUE_GS4ProjectTemplate_Checkpoint(),
         GetFUNIQUE_GS4ProjectTemplate_PlyList(),
-        GetFUNIQUE_GS4ProjectTemplate_Blend(),
+        GetFUNIQUE_GS4ProjectTemplate_Blend1(),
+        GetFUNIQUE_GS4ProjectTemplate_Blend2(),
         GetFUNIQUE_GS4ProjectTemplate_Lut()
     ])
     return r
