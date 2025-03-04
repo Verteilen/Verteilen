@@ -45,7 +45,5 @@ jobs:
           git add --all
           git commit -am "Automated update static website"
       - name: Push
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.pat }}
-          branch: web-server
+        run: |
+          git push
