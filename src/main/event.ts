@@ -1,19 +1,31 @@
 import { dialog, ipcMain } from "electron";
 import fs from "fs";
-import { clientinit } from "./client/client";
-import { LuaTest } from "./client/lua";
-import { messager_log } from "./debugger";
+import { Client } from "./client/client";
+import { messager, messager_log } from "./debugger";
 import { Libraries, Log, Preference, Project, Record } from "./interface";
 import { mainWindow } from "./main";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
 export let menu_state = false
+export let client:Client | undefined = undefined
 
 export const eventInit = () => {
-    clientinit()
+    client = new Client(messager, messager_log)
+
+    ipcMain.on('client_start', (event, content:string) => {
+        if(client == undefined) return
+        client.Init()
+    })
+    ipcMain.on('client_stop', (event, content:string) => {
+        if(client == undefined) return
+        if (client?.client != undefined) client.client.close()
+            client.client = undefined
+            client.source = undefined;
+    })
+
     ipcMain.on('lua', (event, content:string) => {
-        LuaTest(content)
+        client?.lua.LuaExecute(content)
     })
     ipcMain.on('message', (event, message:string, tag?:string) => {
         console.log(`${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`);

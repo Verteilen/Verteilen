@@ -29,14 +29,10 @@ export enum JobType2 {
     LUA
 }
 
-export enum LUATemplate {
-    DEFAULT,
-    FUNIQUE_GS4_V1
-}
-
 export enum ProjectTemplate {
     DEFAULT,
-    FUNIQUE_GS4
+    FUNIQUE_GS4,
+    FFmpeg_Concat
 }
 
 export enum ExecuteState {
@@ -89,12 +85,8 @@ export const JobType2Text: { [key:number]:string } = {
     1: 'enum.jobtype.lua'
 }
 
-export const LUATemplateText: { [key:number]:string } = {
-    0: 'enum.lua.default',
-    1: 'enum.lua.gs4-sort'
-}
-
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
-    1: 'enum.project.gs4'
+    1: 'enum.project.gs4',
+    2: 'enum.project.concat'
 }
