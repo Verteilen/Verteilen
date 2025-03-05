@@ -25,7 +25,8 @@ export const eventInit = () => {
     })
 
     ipcMain.on('lua', (event, content:string) => {
-        client?.lua.LuaExecute(content)
+        const r = client?.lua.LuaExecute(content)
+        event.sender.send('lua-feedback', r?.toString() ?? '')
     })
     ipcMain.on('message', (event, message:string, tag?:string) => {
         console.log(`${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`);
