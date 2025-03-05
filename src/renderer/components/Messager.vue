@@ -18,27 +18,59 @@ const makeToast = (e:ToastData) => {
     )
 }
 
+const update = () => {
+    messages.value.forEach(x => {
+        x.timer -= 1000
+        x.ison = x.timer > 0
+    })
+    messages.value = messages.value.filter(x => x.ison)
+}
+
 onMounted(() => {
+    emitter?.on('updateHandle', update)
 	emitter?.on('makeToast', makeToast)
 })
 
 onUnmounted(() => {
+    emitter?.on('updateHandle', update)
 	emitter?.off('makeToast', makeToast)
 })
 
 </script>
 
 <template>
-    <div class="position-fixed fixed-bottom">
-        <b-toast v-for="(m, i) in messages" :key="i" no-auto-hide class="m-3 rounded-0" v-model="m.ison" :title="m.title" :variant="m.variant" :auto-hide-delay="m.timer" :no-close-button="true">
-            {{ m.content }}
-        </b-toast>
+    <div class="notificationContainer">
+        <v-slide-y-transition group>
+            <v-alert vertical class="pa-2 ma-0" disabled
+                v-for="(m, i) in messages"  :key="i" 
+                location="start bottom"
+                absolute
+                offset="500"
+                v-model="m.ison" 
+                :timeout="m.timer" 
+                variant="flat" 
+                :color="m.variant" >
+                <v-card class="pa-2 ma-0">
+                    <v-card-title>
+                        {{ m.title }}
+                    </v-card-title>
+                    <v-card-text>
+                        {{ m.content }}
+                    </v-card-text>
+                </v-card>
+            </v-alert>
+        </v-slide-y-transition>
     </div>
     
 </template>
 
 <style scoped>
-.btn-close{
-    filter: grayscale(1) invert(0);
+.notificationContainer {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    display: grid;
+    grid-gap: 0.5em;
+    z-index: 99;
 }
 </style>

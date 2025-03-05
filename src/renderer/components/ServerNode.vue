@@ -450,7 +450,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <v-container fluid class="p-0 m-0">
+  <v-container fluid class="pa-0 ma-0">
     <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
       <v-tab>{{ $t('toolbar.project') }}</v-tab>
       <v-tab>{{ $t('toolbar.task') }}</v-tab>

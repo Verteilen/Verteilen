@@ -294,7 +294,7 @@ onUnmounted(() => {
                 </v-tooltip>         
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon color='danger' v-bind="props" @click="deleteSelect" :disabled="!hasSelect">
+                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>

@@ -31,20 +31,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <b-container fluid class="pt-4 text-white bg-black text-left" style="height: 90vh; overflow-y: auto; line-height: 15px;">
+    <v-container fluid class="pt-4 text-white bg-black text-left" style="height: calc(100vh - 150px); overflow-y: auto; line-height: 18px;">
         <div class="float_button text-white" style="z-index: 5;">
-            <b-button-group>
-                <b-button variant="primary" @click="clearMessage">{{ $t('clear') }}</b-button>
-            </b-button-group>
+            <v-btn-group>
+                <v-btn color="primary" @click="clearMessage">{{ $t('clear') }}</v-btn>
+            </v-btn-group>
         </div>
         <p v-for="(msg, i) in alllog" :key="i">{{ msg }}</p>
-    </b-container>
+    </v-container>
 </template>
 
 <style scoped>
 .float_button{
     position: fixed;
-    top: 70px;
+    top: 150px;
     right: 60px;
 }
 </style>

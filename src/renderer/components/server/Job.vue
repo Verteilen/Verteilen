@@ -271,7 +271,7 @@ onUnmounted(() => {
     <div>
         <div class="py-3">
             <v-toolbar density="compact" class="px-3">
-                <p v-if="props.select != undefined" class="pt-3 mr-4">
+                <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('task') }}: {{ props.select.title }}
                 </p>
                 <v-spacer></v-spacer>
@@ -325,7 +325,7 @@ onUnmounted(() => {
                 </v-tooltip>         
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon color='danger' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
+                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>
@@ -336,6 +336,7 @@ onUnmounted(() => {
         <!-- Property -->
         <div v-if="select != undefined" class="py-3 pb-5 mx-5">
             <h3> {{ $t('property') }} </h3>
+            <br />
             <v-row v-for="(c, i) in items2" :key="i">
                 <v-col cols="3">
                     <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
@@ -351,12 +352,12 @@ onUnmounted(() => {
             </v-row>
         </div>
         <!-- Job List -->
-        
+        <hr class="mx-5 my-2" />
         <div v-if="select != undefined" class="py-3 pb-7">
-            <hr class="mx-5 py-2" />
             <h3> {{ $t('job') }} </h3>
+            <br />
             <v-expansion-panels color="dark" class="px-6 text-white">
-                <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2">
+                <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2" color="blue-darken-4">
                     <v-expansion-panel-title>
                         <v-row>
                             <v-col cols="auto" class="mt-1">
