@@ -12,13 +12,13 @@ export class ConsoleManager {
         this.emitter = _emitter
         this.ws = new WebSocket(this.url)
         this.ws.onerror = (err:any) => {
-            this.messager_log(`[錯誤事件] Express 連線失敗 ${this.url}`)
+            this.messager_log(`[Error] Express Connection failed ${this.url}`)
         }
         this.ws.onclose = (ev) => {
-            this.messager_log(`[關閉事件] Express  客戶端關閉連線, ${ev.code}, ${ev.reason}`)
+            this.messager_log(`[Close] Express Client close, ${ev.code}, ${ev.reason}`)
         }
         this.ws.onopen = () => {
-            this.messager_log('[連線事件] Express  新連線狀態建立 !')
+            this.messager_log('[Connection] Express New Connection !')
         }
         this.ws.onmessage = (ev) => {
             this.received(JSON.parse(ev.data.toString()))
@@ -38,18 +38,18 @@ export class ConsoleManager {
         const typeMap:{ [key:string]:Function } = {
         }
         if (h == undefined){
-            this.messager_log('[來源資料解析] 解析失敗, 得到的值為 undefined')
+            this.messager_log('[Source Analysis] Analysis Failed, Value is undefined')
             return;
         }
         if (h.message != undefined && h.message.length > 0){
-            this.messager_log(`[來源資料解析] ${h.message}`)
+            this.messager_log(`[Source Analysis] ${h.message}`)
         }
         if (h.data == undefined) return
         if(typeMap.hasOwnProperty(h.name)){
             const castingFunc = typeMap[h.name]
             castingFunc(h.data)
         }else{
-            this.messager_log(`[來源資料解析] 解析失敗, 不明的來源標頭, name: ${h.name}, meta: ${h.meta}`)
+            this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
         }
     }
 

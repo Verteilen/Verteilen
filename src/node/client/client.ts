@@ -44,7 +44,7 @@ export class Client {
             })
             if(!canbeuse) port_result += 1
         }
-        this.messager_log('[伺服器] 選定 Port: ' + port_result.toString())
+        this.messager_log('[Server] Select Port: ' + port_result.toString())
         this.client = new WebSocketServer({port: port_result})
         this.client.on('listening', () => {
             this.messager_log('[聆聽事件] 伺服器啟動於 PORT: ' + port_result.toString())

@@ -22,18 +22,18 @@ export class ClientAnalysis {
         }
 
         if (h == undefined){
-            this.messager_log('[來源資料解析] 解析失敗, 得到的值為 undefined')
+            this.messager_log('[Source Analysis] Analysis Failed, Value is undefined')
             return;
         }
         if (h.message != undefined && h.message.length > 0){
-            this.messager_log(`[來源資料解析] ${h.message}`)
+            this.messager_log(`[Source Analysis] ${h.message}`)
         }
         if (h.data == undefined) return
         if(typeMap.hasOwnProperty(h.name)){
             const castingFunc = typeMap[h.name]
             castingFunc(h.data)
         }else{
-            this.messager_log(`[來源資料解析] 解析失敗, 不明的來源標頭, name: ${h.name}, meta: ${h.meta}`)
+            this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
         }
     }
 }
