@@ -68,7 +68,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <b-container v-if="data != undefined" class="pt-4" style="max-height: 90vh; overflow-y: auto;">
+    <v-container v-if="data != undefined" class="pt-4" style="max-height: 90vh; overflow-y: auto;">
         <v-card v-if="data.project_index >= 0">
             <v-card-title>
                 {{ $t('project') }}: {{ data.projects[data.project_index]?.title }}
@@ -113,7 +113,7 @@ onUnmounted(() => {
             </v-expansion-panel>
         </v-expansion-panels>
         <br /> <br />
-    </b-container>
+    </v-container>
 </template>
 
 <style scoped>
