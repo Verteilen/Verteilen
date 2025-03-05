@@ -4,6 +4,8 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
+import { waitSetup } from '../platform';
+import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -19,6 +21,7 @@ import TaskPage from './server/Task.vue';
 
 const websocket_manager:Ref<WebsocketManager | undefined> = ref(undefined)
 const execute_manager:Ref<ExecuteManager | undefined> = ref(undefined)
+const console_manager:Ref<ConsoleManager | undefined> = ref(undefined)
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
@@ -383,13 +386,6 @@ const analysis = (b:BusAnalysis) => {
 
 onMounted(() => {
   set_feedback(debug_feedback)
-  websocket_manager.value = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
-  execute_manager.value = new ExecuteManager(websocket_manager.value, messager_log)
-  execute_manager.value.libs = libs.value
-  execute_manager.value.proxy = proxy
-  websocket_manager.value.newConnect = newConnect
-  websocket_manager.value.disconnect = disconnect
-  websocket_manager.value.onAnalysis = execute_manager.value.Analysis
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
   console.log("updateHandle", updateHandle)
   emitter?.on('updateNode', server_clients_update)
@@ -397,6 +393,14 @@ onMounted(() => {
   emitter?.on('deleteScript', libDelete)
 
   if(props.config.isElectron){
+    websocket_manager.value = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
+    execute_manager.value = new ExecuteManager(websocket_manager.value, messager_log)
+    execute_manager.value.libs = libs.value
+    execute_manager.value.proxy = proxy
+    websocket_manager.value.newConnect = newConnect
+    websocket_manager.value.disconnect = disconnect
+    websocket_manager.value.onAnalysis = execute_manager.value.Analysis
+
     window.electronAPI.send('menu', true)
     window.electronAPI.eventOn('createProject', menuCreateProject)
     window.electronAPI.eventOn('menu_export_project', menu_export_project)
@@ -430,6 +434,14 @@ onMounted(() => {
       console.log("Logs", log.value)
     })
   }
+
+  waitSetup(props.config).then(x => {
+    console_manager.value = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
+      on: emitter!.on,
+      off: emitter!.off,
+      emit: emitter!.emit
+    })
+  })
 })
 
 onUnmounted(() => {
