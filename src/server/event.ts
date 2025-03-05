@@ -1,5 +1,6 @@
-import { dialog, ipcMain } from "electron";
+import { dialog } from "electron";
 import fs from "fs";
+import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
 import { Client } from "./client/client";
 import { messager, messager_log } from "./debugger";
@@ -65,123 +66,10 @@ export class BackendEvent {
         if (h.data == undefined) return
         if(typeMap.hasOwnProperty(h.name)){
             const castingFunc = typeMap[h.name]
-            castingFunc(h.data)
+            castingFunc(socket, h.data)
         }else{
             messager_log(`[來源資料解析] 解析失敗, 不明的來源標頭, name: ${h.name}, meta: ${h.meta}`)
         }
-
-
-    
-        ipcMain.on('lua', (event, content:string) => {
-            const r = client?.lua.LuaExecute(content)
-            event.sender.send('lua-feedback', r?.toString() ?? '')
-        })
-        ipcMain.on('message', (event, message:string, tag?:string) => {
-            console.log(`${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`);
-        })
-        
-        ipcMain.on('modeSelect', (event, isclient:boolean) => {
-            console.log("[後台訊息] 選擇模式: " + (isclient ? "節點" : "伺服器"))
-            if(isclient) event.sender.send('msgAppend', "客戶端模式啟動")
-        })
-        
-        ipcMain.on('menu', (event, on:boolean):void => {
-            if(mainWindow == undefined) return;
-            console.log(`[後台訊息] 工具列顯示設定為: ${on}`)
-            menu_state = on
-            if(on) mainWindow.setMenu(menu_server)
-            else mainWindow.setMenu(menu_client)
-        })
-        ipcMain.on('save_record', (e, record:string) => {
-            fs.writeFileSync('record.json', record)
-        })
-        ipcMain.handle('load_record', (e) => {
-            const exist = fs.existsSync('record.json');
-            messager_log(`[事件] 讀取 record.js, 檔案存在: ${exist}`)
-            if(!exist){
-                const record:Record = {
-                    projects: [],
-                    nodes: []
-                }
-                fs.writeFileSync('record.json', JSON.stringify(record, null, 4))
-                return JSON.stringify(record)
-            } else {
-                const file = fs.readFileSync('record.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }
-        })
-        ipcMain.on('save_log', (e, log:string) => {
-            fs.writeFileSync('log.json', log)
-        })
-        ipcMain.handle('load_log', (e) => {
-            const exist = fs.existsSync('log.json');
-            messager_log(`[事件] 讀取 log.js, 檔案存在: ${exist}`)
-            if(!exist){
-                const record:Log = {
-                    logs: []
-                }
-                fs.writeFileSync('log.json', JSON.stringify(record, null, 4))
-                return JSON.stringify(record)
-            } else {
-                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }
-        })
-        ipcMain.on('save_lib', (e, log:string) => {
-            fs.writeFileSync('lib.json', log)
-        })
-        ipcMain.handle('load_lib', (e) => {
-            const exist = fs.existsSync('log.json');
-            messager_log(`[事件] 讀取 lib.js, 檔案存在: ${exist}`)
-            if(!exist){
-                const record:Libraries = {
-                    libs: []
-                }
-                fs.writeFileSync('lib.json', JSON.stringify(record, null, 4))
-                return JSON.stringify(record)
-            } else {
-                const file = fs.readFileSync('lib.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }
-        })
-        ipcMain.on('save_preference', (e, preference:string) => {
-            fs.writeFileSync('preference.json', preference)
-        })
-        ipcMain.handle('load_preference', (e) => {
-            const exist = fs.existsSync('preference.json');
-            messager_log(`[事件] 讀取 preference.js, 檔案存在: ${exist}`)
-            if(!exist){
-                const record:Preference = {
-                    lan: 'en'
-                }
-                fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
-                i18n.global.locale = 'en'
-                setupMenu()
-                return JSON.stringify(record)
-            } else {
-                const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }
-        })
-        ipcMain.on('import_project', (event) => {
-            ImportProject()
-        })
-        ipcMain.on('export_projects', (event, data:string) => {
-            const p:Array<Project> = JSON.parse(data)
-            ExportProjects(p)
-        })
-        ipcMain.on('export_project', (event, data:string) => {
-            const p:Project = JSON.parse(data)
-            ExportProject(p)
-        })
-        ipcMain.on('locate', (event, data:string) => {
-            // @ts-ignore
-            i18n.global.locale = data
-            setupMenu()
-        })
-        ipcMain.handle('eval', (event, str:string):string => {
-            return Function(`return ${str}`)()
-        })
     }
 
     //#region Server Side
@@ -228,6 +116,114 @@ export class BackendEvent {
         socket.send(JSON.stringify(d))
     }
 
+    private message = (socket:ws.WebSocket, d:{message:string, tag?:string}) => {
+        console.log(`${ d.tag == undefined ? '[後台訊息]' : '[' + d.tag + ']' } ${d.message}`);
+    }
+
+    private save_record = (socket:ws.WebSocket, record:string) => {
+        fs.writeFileSync('record.json', record)
+    }
+    private load_record =  (socket:ws.WebSocket) => {
+        const exist = fs.existsSync('record.json');
+        messager_log(`[事件] 讀取 record.js, 檔案存在: ${exist}`)
+        if(!exist){
+            const record:Record = {
+                projects: [],
+                nodes: []
+            }
+            fs.writeFileSync('record.json', JSON.stringify(record, null, 4))
+            return JSON.stringify(record)
+        } else {
+            const file = fs.readFileSync('record.json', { encoding: 'utf8', flag: 'r' })
+            return file.toString()
+        }
+    }
+    private save_log = (socket:ws.WebSocket, log:string) => {
+        fs.writeFileSync('log.json', log)
+    }
+    private load_log = (socket:ws.WebSocket) => {
+        const exist = fs.existsSync('log.json');
+        messager_log(`[事件] 讀取 log.js, 檔案存在: ${exist}`)
+        if(!exist){
+            const record:Log = {
+                logs: []
+            }
+            fs.writeFileSync('log.json', JSON.stringify(record, null, 4))
+            return JSON.stringify(record)
+        } else {
+            const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+            return file.toString()
+        }
+    }
+    private save_lib = (socket:ws.WebSocket, log:string) => {
+        fs.writeFileSync('lib.json', log)
+    }
+    private load_lib = (socket:ws.WebSocket) => {
+        const exist = fs.existsSync('log.json');
+        messager_log(`[事件] 讀取 lib.js, 檔案存在: ${exist}`)
+        if(!exist){
+            const record:Libraries = {
+                libs: []
+            }
+            fs.writeFileSync('lib.json', JSON.stringify(record, null, 4))
+            return JSON.stringify(record)
+        } else {
+            const file = fs.readFileSync('lib.json', { encoding: 'utf8', flag: 'r' })
+            return file.toString()
+        }
+    }
+    private save_preference = (socket:ws.WebSocket, preference:string) => {
+        fs.writeFileSync('preference.json', preference)
+    }
+    private load_preference = (socket:ws.WebSocket) => {
+        const exist = fs.existsSync('preference.json');
+        messager_log(`[事件] 讀取 preference.js, 檔案存在: ${exist}`)
+        if(!exist){
+            const record:Preference = {
+                lan: 'en'
+            }
+            fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
+            i18n.global.locale = 'en'
+            //setupMenu()
+            return JSON.stringify(record)
+        } else {
+            const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
+            return file.toString()
+        }
+    }
+    private import_project = (socket:ws.WebSocket) => {
+        ImportProject()
+    }
+    private export_projects = (socket:ws.WebSocket, data:string) => {
+        const p:Array<Project> = JSON.parse(data)
+        ExportProjects(p)
+    }
+    private export_project = (socket:ws.WebSocket, data:string) => {
+        const p:Project = JSON.parse(data)
+        ExportProject(p)
+    }
+    private locate = (socket:ws.WebSocket, data:string) => {
+        // @ts-ignore
+        i18n.global.locale = data
+        setupMenu()
+    }
+
+    PortAvailable = async (start:number) => {
+        let port_result = start
+        let canbeuse = false
+
+        while(!canbeuse){
+            await tcpPortUsed.check(port_result).then(x => {
+                canbeuse = !x
+            }).catch(err => {
+                canbeuse = true
+            })
+            if(!canbeuse) port_result += 1
+        }
+
+        return port_result
+    }
+    
     ImportProject = () => {
         dialog.showOpenDialog(mainWindow, {
             properties: ['openFile', 'multiSelections'],

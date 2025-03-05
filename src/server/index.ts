@@ -1,33 +1,50 @@
+import Chalk from 'chalk'
 import express from 'express'
 import ws from 'ws'
 import { backendEvent } from './event'
 import { Header, WebPORT } from './interface'
 
-const app = express()
-const wsServer: ws.Server = new ws.Server({path: '/server', port: WebPORT})
+let wsServer: ws.Server | undefined = undefined
+let app:express.Express | undefined = undefined
+
 backendEvent.Init()
+const webport = backendEvent.PortAvailable(80)
+const socketport = backendEvent.PortAvailable(WebPORT)
 
-console.log("current dir: ", process.cwd())
-app.use(express.static('public'))
-
-app.get('/express', (req, res) => {
-    res.send('1')
-})
-
-app.listen(80, () => {
-    console.log('server run at 80')
-})
-
-wsServer.on('connection', (ws, request) => {
-    //const p = new eventInit(ws)
-    ws.on('message', (data, isBinary) => {
-        const d:Header = JSON.parse(data.toString())
-        backendEvent.Analysis(ws, d)
+webport.then(p => {
+    app = express()
+    console.log("current dir: ", process.cwd())
+    app.use(express.static('public'))
+    // The simple web response to let frontend know that backend exists
+    app.get('/express', (req, res) => {
+        res.send('1')
     })
-    ws.on('open', () => {
-        backendEvent.NewConsole(ws)
+    // Import project
+    app.post('/project_import', (req, res) => {
+
     })
-    ws.on('close', () => {
-        backendEvent.DropConsole(ws)
+    app.post('/lua_import', (req, res) => {
+
+    })
+    app.listen(p, () => {
+        console.log(Chalk.greenBright('server run at 80'))
     })
 })
+socketport.then(p => {
+    wsServer = new ws.Server({path: '/server', port: p})
+    wsServer.on('connection', (ws, request) => {
+        //const p = new eventInit(ws)
+        ws.on('message', (data, isBinary) => {
+            const d:Header = JSON.parse(data.toString())
+            backendEvent.Analysis(ws, d)
+        })
+        ws.on('open', () => {
+            backendEvent.NewConsole(ws)
+        })
+        ws.on('close', () => {
+            backendEvent.DropConsole(ws)
+        })
+    })
+})
+
+Promise.allSettled([webport, socketport])

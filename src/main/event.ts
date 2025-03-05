@@ -131,9 +131,6 @@ export class BackendEvent {
             i18n.global.locale = data
             setupMenu()
         })
-        ipcMain.handle('eval', (event, str:string):string => {
-            return Function(`return ${str}`)()
-        })
     }
 
     ImportProject = () => {
