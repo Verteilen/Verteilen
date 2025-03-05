@@ -1,7 +1,7 @@
 import { app, BrowserWindow, session } from 'electron';
 import { join } from 'path';
 import './client/client';
-import { eventInit } from './event';
+import { backendEvent } from './event';
 import { menu_client } from './menu';
 import './plugins/i18n';
 
@@ -34,7 +34,7 @@ function createWindow () {
     mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'));
   }
   mainWindow.setMenu(menu_client)
-  eventInit()
+  backendEvent.Init()
 
   if(process.env.NODE_ENV === 'development'){
     mainWindow?.webContents.openDevTools()

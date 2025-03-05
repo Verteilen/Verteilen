@@ -92,7 +92,8 @@
         },
         "project": {
             "default": "範例",
-            "gs4": "睿智 GS4"
+            "gs4": "睿智 GS4",
+            "concat": "FFmpeg 合成影片"
         },
         "state": {
             "none": "準備中",

@@ -92,7 +92,8 @@
         },
         "project": {
             "default": "Example",
-            "gs4": "Funique GS4"
+            "gs4": "Funique GS4",
+            "concat": "FFmpeg concat"
         },
         "state": {
             "none": "Prepare",

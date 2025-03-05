@@ -1,5 +1,5 @@
 import { Menu } from 'electron';
-import { ImportProject, menu_state } from './event';
+import { backendEvent } from './event';
 import { mainWindow } from './main';
 import { i18n } from './plugins/i18n';
 
@@ -18,7 +18,7 @@ const template_file = ():Array<(Electron.MenuItemConstructorOptions) | (Electron
             { 
                 label: "Import",
                 click: async () => {
-                    ImportProject()
+                    backendEvent.ImportProject()
                 }
             },
             { 
@@ -125,5 +125,5 @@ export let menu_client = Menu.buildFromTemplate(template_client())
 export const setupMenu = () => {
     menu_server = Menu.buildFromTemplate(template_server())
     menu_client = Menu.buildFromTemplate(template_client())
-    mainWindow?.setMenu(menu_state ? menu_server : menu_client)
+    mainWindow?.setMenu(backendEvent.menu_state ? menu_server : menu_client)
 }

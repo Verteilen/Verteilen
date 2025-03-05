@@ -1,31 +1,79 @@
 import { dialog, ipcMain } from "electron";
 import fs from "fs";
+import ws from 'ws';
 import { Client } from "./client/client";
 import { messager, messager_log } from "./debugger";
-import { Libraries, Log, Preference, Project, Record } from "./interface";
-import { mainWindow } from "./main";
-import { menu_client, menu_server, setupMenu } from "./menu";
+import { BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, ExecuteProxy, Header, Libraries, Log, Preference, Project, Record, Setter, WebsocketPack } from "./interface";
 import { i18n } from "./plugins/i18n";
+import { ExecuteManager } from "./script/execute_manager";
+import { WebsocketManager } from "./script/socket_manager";
 
 export class BackendEvent {
-    menu_state = false
     client:Client | undefined = undefined
+    websocket_manager:WebsocketManager | undefined = undefined
+    execute_manager:ExecuteManager | undefined = undefined
+    manager:Array<ws.WebSocket> = []
+    libs:Libraries = {libs: []}
+    
+    constructor(){
+        this.client = new Client(messager, messager_log)
+    }
 
     Init = () => {
-        this.client = new Client(messager, messager_log)
-        ipcMain.on('client_start', (event, content:string) => {
-            if(this.client == undefined) return
-            this.client.Init()
-        })
-        ipcMain.on('client_stop', (event, content:string) => {
-            if(this.client == undefined) return
-            if (this.client?.client != undefined) this.client.client.close()
-                this.client.client = undefined
-                this.client.source = undefined;
-        })
+        const proxy:ExecuteProxy = {
+            executeProjectStart: (data:BusProjectStart):void => { emitter?.emit('executeProjectStart', data) },
+            executeProjectFinish: (data:BusProjectFinish):void => { emitter?.emit('executeProjectFinish', data) },
+            executeTaskStart: (data:BusTaskStart):void => { emitter?.emit('executeTaskStart', data) },
+            executeTaskFinish: (data:BusTaskFinish):void => { emitter?.emit('executeTaskFinish', data) },
+            executeSubtaskStart: (data:BusSubTaskStart):void => { emitter?.emit('executeSubtaskStart', data) },
+            executeSubtaskFinish: (data:BusSubTaskFinish):void => { emitter?.emit('executeSubtaskFinish', data) },
+            executeJobStart: (data:BusJobStart):void => { emitter?.emit('executeJobStart', data) },
+            executeJobFinish: (data:BusJobFinish):void => { emitter?.emit('executeJobFinish', data) },
+            feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
+        }
+
+        this.websocket_manager = new WebsocketManager(this.newConnect, this.disconnect, this.analysis, messager_log)
+        this.execute_manager = new ExecuteManager(this.websocket_manager, messager_log)
+        this.execute_manager.libs = this.libs
+        this.execute_manager.proxy = proxy
+        this.websocket_manager.newConnect = this.newConnect
+        this.websocket_manager.disconnect = this.disconnect
+        this.websocket_manager.onAnalysis = this.execute_manager.Analysis
+    }
+
+    NewConsole = (socket:ws.WebSocket) => {
+        this.manager.push(socket)
+    }
+
+    DropConsole = (socket:ws.WebSocket) => {
+        const index = this.manager.findIndex(x => x == socket)
+        if(index != -1) this.manager.splice(index, 1)
+    }
+
+    Analysis = (socket:ws.WebSocket, h:Header) => {
+        const typeMap:{ [key:string]:Function } = {
+            'lua': this.lua
+        }
+
+        if (h == undefined){
+            messager_log('[來源資料解析] 解析失敗, 得到的值為 undefined')
+            return;
+        }
+        if (h.message != undefined && h.message.length > 0){
+            messager_log(`[來源資料解析] ${h.message}`)
+        }
+        if (h.data == undefined) return
+        if(typeMap.hasOwnProperty(h.name)){
+            const castingFunc = typeMap[h.name]
+            castingFunc(h.data)
+        }else{
+            messager_log(`[來源資料解析] 解析失敗, 不明的來源標頭, name: ${h.name}, meta: ${h.meta}`)
+        }
+
+
     
         ipcMain.on('lua', (event, content:string) => {
-            const r = this.client?.lua.LuaExecute(content)
+            const r = client?.lua.LuaExecute(content)
             event.sender.send('lua-feedback', r?.toString() ?? '')
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {
@@ -40,7 +88,7 @@ export class BackendEvent {
         ipcMain.on('menu', (event, on:boolean):void => {
             if(mainWindow == undefined) return;
             console.log(`[後台訊息] 工具列顯示設定為: ${on}`)
-            this.menu_state = on
+            menu_state = on
             if(on) mainWindow.setMenu(menu_server)
             else mainWindow.setMenu(menu_client)
         })
@@ -116,15 +164,15 @@ export class BackendEvent {
             }
         })
         ipcMain.on('import_project', (event) => {
-            this.ImportProject()
+            ImportProject()
         })
         ipcMain.on('export_projects', (event, data:string) => {
             const p:Array<Project> = JSON.parse(data)
-            this.ExportProjects(p)
+            ExportProjects(p)
         })
         ipcMain.on('export_project', (event, data:string) => {
             const p:Project = JSON.parse(data)
-            this.ExportProject(p)
+            ExportProject(p)
         })
         ipcMain.on('locate', (event, data:string) => {
             // @ts-ignore
@@ -136,8 +184,51 @@ export class BackendEvent {
         })
     }
 
+    //#region Server Side
+    
+    private newConnect = (x:WebsocketPack) => {
+        const d:Header = {
+            name: 'makeToast',
+            data: {
+                title: "連線建立",
+                type: 'success',
+                message: `建立新的連線: ${x.websocket.url} \n${x.uuid}`
+            }
+        }
+        this.manager.forEach(x => {
+            x.send(JSON.stringify(d))
+        })
+        this.execute_manager?.NewConnection(x)
+    }
+
+    private disconnect = (x:WebsocketPack) => {
+        const d:Header = {
+            name: 'makeToast',
+            data: {
+                title: "連線中斷",
+                type: 'danger',
+                message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
+            }
+        }
+        this.manager.forEach(x => {
+            x.send(JSON.stringify(d))
+        })
+    }
+
+    private analysis = (b:BusAnalysis) => {
+        this.execute_manager?.Analysis(b)
+    }
+    
+    private lua = (socket:ws.WebSocket, content:string) => {
+        const r = this.client?.lua.LuaExecute(content)
+        const d:Header = {
+            name: 'lua-feedback',
+            data: r?.toString() ?? ''
+        }
+        socket.send(JSON.stringify(d))
+    }
+
     ImportProject = () => {
-        if(mainWindow == undefined) return;
         dialog.showOpenDialog(mainWindow, {
             properties: ['openFile', 'multiSelections'],
             filters: [
@@ -145,7 +236,6 @@ export class BackendEvent {
             ]
         }).then(v => {
             if (v.canceled) return
-            if(mainWindow == undefined) return;
             const p:Array<any> = []
             for(const x of v.filePaths){
                 p.push(JSON.parse(fs.readFileSync(x).toString()))
@@ -184,6 +274,8 @@ export class BackendEvent {
             }
         })
     }
+    //#endregion
 }
+
 
 export const backendEvent = new BackendEvent()
