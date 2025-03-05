@@ -72,7 +72,7 @@ onUnmounted(() => {
 <template>
   <v-container fluid class="ma-0 pa-0">
     <ServerClientSelection v-model.number="mode" v-if="mode == -1" :config="config"/>
-    <ClientNode v-else-if="mode == 0" :config="config"/>
+    <ClientNode v-else-if="mode == 0" :preference="preference" :config="config"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :config="config"/>
     <Messager />
   </v-container>

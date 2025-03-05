@@ -2,20 +2,21 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ClientLog } from '../interface';
+import { AppConfig, BusType, ClientLog, Preference } from '../interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
 
 interface PROPS {
     config: AppConfig
+    preference: Preference
 }
 
 const messages:Ref<Array<ClientLog>> = ref([
   {
       s: true,
       tag: "client",
-      title: "客戶端訊息",
+      title: "Main Information",
       text: []
   }
 ])
