@@ -3,7 +3,19 @@
         "file": "檔案",
         "edit": "編輯",
         "execute": "執行",
-        "help": "幫助"
+        "help": "幫助",
+        "new-project": "新專案",
+        "import": "匯入",
+        "export": "匯出",
+        "quit": "退出",
+        "undo": "回復",
+        "redo": "復原",
+        "cut": "剪下",
+        "copy": "複製",
+        "paste": "複製",
+        "delete": "刪除",
+        "selectAll": "全選",
+        "language": "語言"
     },
     "toast": {
         "server": "伺服器模式",
@@ -92,7 +104,8 @@
         },
         "project": {
             "default": "範例",
-            "gs4": "睿智 GS4"
+            "gs4": "睿智 GS4",
+            "concat": "FFmpeg 合成影片"
         },
         "state": {
             "none": "準備中",

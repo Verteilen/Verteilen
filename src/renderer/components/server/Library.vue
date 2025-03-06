@@ -27,6 +27,7 @@ const renameModal = ref(false)
 const errorMessage = ref('')
 const openBottom = computed(() => messages.value.length > 0)
 const messages:Ref<Array<string>> = ref([])
+const search = ref('')
 
 const newname = () => {
     let r = "New Script"
@@ -116,60 +117,100 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <b-container fluid v-if="data != undefined">
-        <b-row style="height: calc(100vh - 55px)" class="w-100">
-            <b-col :cols="leftSize" style="border-right: brown 1px solid;">
-                <div class="py-3">
-                    <b-button-group class="w-100">
-                        <b-button variant='primary' @click="createScript">{{ $t('create') }}</b-button>
-                    </b-button-group>
-                </div>
-                <v-list :items="data.libs" item-title="name" item-value="name" v-model:selected="select">
-                    
-                </v-list>
-            </b-col>
-            <b-col :cols="rightSize">
-                <div class="py-3">
-                    <b-button-group>
-                        <b-button v-if="props.config.isElectron" :disabled="selection == undefined" variant='primary' @click="execute">{{ $t('execute') }}</b-button>
-                        <b-button variant='success' :disabled="!dirty" @click="save">{{ $t('save') }}</b-button>
-                        <b-button variant='primary' :disabled="selection == undefined" @click="rename">{{ $t('rename') }}</b-button>
-                        <b-button variant='danger' :disabled="selection == undefined" @click="remove">{{ $t('delete') }}</b-button>
-                    </b-button-group>
-                </div>
-                <b-card v-if="selection != undefined" no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
+    <v-container fluid class="ma-0 pa-0" v-if="data != undefined">
+        <div class="py-3">
+            <v-toolbar density="compact" class="pr-3">
+                <v-text-field max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
+                <v-spacer></v-spacer>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="createScript" :disabled="select == undefined">
+                            <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('create') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
+                        <v-btn icon v-bind="pro.props" color="success" @click="execute" v-if="props.config.isElectron" :disabled="selection == undefined">
+                            <v-icon>mdi-play</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('execute') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
+                        <v-btn icon v-bind="pro.props" color="success" :disabled="!dirty" @click="save">
+                            <v-icon>mdi-content-save</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('save') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
+                        <v-btn icon v-bind="pro.props" :disabled="selection == undefined" @click="rename">
+                            <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('rename') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
+                        <v-btn icon v-bind="pro.props" color="error" :disabled="selection == undefined" @click="remove">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('delete') }}
+                </v-tooltip>
+            </v-toolbar>
+        </div>
+        <v-row style="height: calc(100vh - 120px)" class="w-100">
+            <v-col :cols="leftSize" style="border-right: brown 1px solid;">
+                <v-list :items="data.libs" item-title="name" item-value="name" v-model:selected="select"></v-list>
+            </v-col>
+            <v-col :cols="rightSize">
+                <v-card v-if="selection != undefined" no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
                     <codemirror v-model="selection.content" 
                         style="text-align:left;"
-                        :style="{ height: openBottom ? 'calc(50vh)' : 'calc(100vh - 150px)' }"
+                        :style="{ height: openBottom ? 'calc(50vh - 10px)' : 'calc(100vh - 160px)' }"
                         :autofocus="true"
                         :indent-with-tab="true"
                         :tab-size="2" 
                         :hintOptions="{ completeSingle: false }"
                         mode="text/x-lua"
                         @change="setdirty"/>
-                </b-card>
+                </v-card>
                 <div class="text-white text-left px-6" v-if="openBottom" style="height: calc(40vh - 100px); overflow-y: scroll; line-height: 15px;">
                     <div class="float_button text-white" style="z-index: 5;">
-                        <b-button-group>
-                            <b-button variant="primary" @click="clean">{{ $t('clear') }}</b-button>
-                        </b-button-group>
+                        <v-btn-group>
+                            <v-btn color="primary" @click="clean">{{ $t('clear') }}</v-btn>
+                        </v-btn-group>
                     </div>
                     <p v-for="(item, i) in messages" :key="i">{{ item }}</p>
                 </div>
-            </b-col>
-        </b-row>
-        <b-modal :title="$t('modal.rename-parameter')" v-model="renameModal" hide-footer class="text-white" header-bg-variant="dark" header-text-variant="light" body-bg-variant="dark" body-text-variant="light" footer-text-variant="dark" footer-body-variant="light">
-            <v-text-field :error="titleError" v-model="renameData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-            <b-button class="mt-3" variant="primary" @click="confirmRename">{{ $t('rename') }}</b-button>
-            <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
-        </b-modal>
-    </b-container>
+            </v-col>
+        </v-row>
+        <v-dialog v-model="renameModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    {{ $t('modal.rename-parameter') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :error="titleError" v-model="renameData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn color="primary" @click="confirmRename">{{ $t('rename') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+    </v-container>
 </template>
 
 <style scoped>
 .float_button{
     position: fixed;
-    top: 70vh;
+    top: 68vh;
     right: 80px;
 }
 </style>

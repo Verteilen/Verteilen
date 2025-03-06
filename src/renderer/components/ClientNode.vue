@@ -1,16 +1,26 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
-import { onMounted, onUnmounted, Ref, ref } from 'vue';
-import { ClientLog } from '../interface';
+import { Emitter } from 'mitt';
+import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { AppConfig, BusType, ClientLog, Preference } from '../interface';
+
+const emitter:Emitter<BusType> | undefined = inject('emitter');
+let updateHandle:any = undefined
+
+interface PROPS {
+    config: AppConfig
+    preference: Preference
+}
 
 const messages:Ref<Array<ClientLog>> = ref([
   {
       s: true,
       tag: "client",
-      title: "客戶端訊息",
+      title: "Main Information",
       text: []
   }
 ])
+const props = defineProps<PROPS>()
 const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const panel:Ref<Array<number>> = ref([0])
 const autoScroll = ref(true)
@@ -52,31 +62,36 @@ const clearMessage = () => {
 }
 
 onMounted(() => {
-  window.electronAPI.eventOn('msgAppend', msgAppend);
-  window.electronAPI.send('menu', false)
-  window.electronAPI.send('client_start');
+  updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
+  if(props.config.isElectron){
+    window.electronAPI.eventOn('msgAppend', msgAppend);
+    window.electronAPI.send('menu', false)
+    window.electronAPI.send('client_start');
+  }
 })
 
 onUnmounted(() => {
-  window.electronAPI.eventOff('msgAppend', msgAppend);
-  window.electronAPI.send('client_stop');
+  if(props.config.isElectron){
+    window.electronAPI.eventOff('msgAppend', msgAppend);
+    window.electronAPI.send('client_stop');
+  }
 })
 
 </script>
 
 <template>
   <div class="float_button text-white" style="z-index: 5;">
-    <b-button-group>
-      <b-button variant="primary" @click="panel = []">{{ $t('close-all') }}</b-button>
-      <b-button :variant="autoScroll ? 'success' : 'danger'" @click="autoScroll = !autoScroll">{{ $t('auto-scroll') }}</b-button>
-      <b-button variant="primary" @click="clearMessage">{{ $t('clear') }}</b-button>
-    </b-button-group>
+    <v-btn-group>
+      <v-btn color="primary" @click="panel = []">{{ $t('close-all') }}</v-btn>
+      <v-btn :color="autoScroll ? 'success' : 'danger'" @click="autoScroll = !autoScroll">{{ $t('auto-scroll') }}</v-btn>
+      <v-btn color="primary" @click="clearMessage">{{ $t('clear') }}</v-btn>
+    </v-btn-group>
   </div>
   <div class="flow text-white bg-grey-darken-4" ref="myDiv">
     <v-expansion-panels multiple v-model="panel">
       <v-expansion-panel v-for="(block, i) in messages" :key="i">
         <v-expansion-panel-title color="grey-darken-3">
-          <h5>{{ block.title }}</h5>
+          <h3>{{ block.title }}</h3>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <br />
@@ -105,6 +120,6 @@ onUnmounted(() => {
   text-align: left;
 }
 .messages {
-  line-height: 15px;
+  line-height: 18px;
 }
 </style>

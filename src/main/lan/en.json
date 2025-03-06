@@ -3,7 +3,19 @@
         "file": "File",
         "edit": "Edit",
         "execute": "Execute",
-        "help": "Help"
+        "help": "Help",
+        "new-project": "New Project",
+        "import": "Import",
+        "export": "Export",
+        "quit": "Quit",
+        "undo": "Undo",
+        "redo": "Redo",
+        "cut": "Cut",
+        "copy": "Copy",
+        "paste": "Paste",
+        "delete": "Delete",
+        "selectAll": "Select All",
+        "language": "Language"
     },
     "toast": {
         "server": "Server Mode",
@@ -92,7 +104,8 @@
         },
         "project": {
             "default": "Example",
-            "gs4": "Funique GS4"
+            "gs4": "Funique GS4",
+            "concat": "FFmpeg concat"
         },
         "state": {
             "none": "Prepare",

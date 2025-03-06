@@ -40,26 +40,26 @@ const clientClick = () => {
 
 <template>
     <div class="text-white bg-grey-darken-4" style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;">
-        <h5>{{ $t('modeselect.title') }}</h5>
+        <h3>{{ $t('modeselect.title') }}</h3>
         <br />
-        <div class="row">
-            <div class="col">
+        <v-row>
+            <v-col>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <b-button v-bind="props" id="tooltip-server-1" class="w-100 h-100 mx-1" @click="serverClick()">{{ $t('server') }}</b-button>
+                        <v-btn color="primary" v-bind="props" id="tooltip-server-1" class="w-100 mx-1" @click="serverClick()">{{ $t('server') }}</v-btn>
                     </template>
                     <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-server') }}</p>
                 </v-tooltip>
-            </div>
-            <div class="col">
+            </v-col>
+            <v-col>
                 <v-tooltip location="bottom" text="Tooltip">
                     <template v-slot:activator="{ props }">
-                        <b-button v-bind="props" class="w-100 h-100 mx-1" @click="clientClick()">{{ $t('node') }}</b-button>    
+                        <v-btn color="primary" v-bind="props" class="w-100 mx-1" @click="clientClick()">{{ $t('node') }}</v-btn>    
                     </template>
                     <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-node') }}</p>
                 </v-tooltip>
-            </div>
-        </div>
+            </v-col>
+        </v-row>
     </div>
 </template>
 

@@ -1,11 +1,11 @@
 {
   "name": "compute_tool",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
     "dev": "node scripts/dev-server.js",
-    "web": "vite",
+    "express": "node scripts/express.js && cd ./src/server && ts-node .",
     "node": "ts-node src/node/main.ts",
     "share": "node scripts/share.js",
     "build": "node scripts/build.js && electron-builder",
@@ -46,8 +46,6 @@
     "@codemirror/legacy-modes": "^6.4.2",
     "@intlify/devtools-types": "^11.1.1",
     "bcrypt": "^5.1.1",
-    "bootstrap": "^5.3.3",
-    "bootstrap-vue-3": "^0.5.1",
     "codemirror": "^6.0.1",
     "express": "^4.21.2",
     "expressionparser": "^1.1.5",

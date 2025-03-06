@@ -2,8 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, LUATemplate, LUATemplateText, Project, Property, Rename, Task } from '../../interface';
-import { DEFAULT, FUNIQUE_GS4_PREPARE } from '../../template/luaTemplate';
+import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Project, Property, Rename, Task } from '../../interface';
 import { i18n } from './../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -33,11 +32,10 @@ const createModal = ref(false)
 const createData = ref({category: 0, type: 0, spe_template: 0})
 const items:Ref<Array<JobTable>> = ref([])
 const items2:Ref<Array<Property>> = ref([])
-const types:Ref<Array<{  }>> = ref([])
-const types2:Ref<Array<{  }>> = ref([])
-const result:Ref<Array<{ }>> = ref([])
-const categorise:Ref<Array<{ }>> = ref([])
-const lua_types:Ref<Array<{  }>> = ref([])
+const types:Ref<Array<any>> = ref([])
+const types2:Ref<Array<any>> = ref([])
+const result:Ref<Array<any>> = ref([])
+const categorise:Ref<Array<any>> = ref([])
 const para_keys:Ref<Array<{ value: string, text: string }>> = ref([])
 const dirty = ref(false)
 
@@ -99,9 +97,6 @@ const JobType2Translate = (t:number):string => {
 const JobResultTranslate = (t:number):string => {
     return i18n.global.t(JobResultText[t])
 }
-const LUATemplateTranslate = (t:number):string => {
-    return i18n.global.t(LUATemplateText[t])
-}
 
 const createJob = () => {
     createData.value = {category: 0, type: 0, spe_template: 0};
@@ -131,23 +126,12 @@ const deleteSelect = () => {
 
 const confirmCreate = () => {
     createModal.value = false
-    let code = ""
-    if(createData.value.type == JobType.LUA){
-        switch(createData.value.spe_template){
-            case LUATemplate.DEFAULT:
-                code = DEFAULT
-                break
-            case LUATemplate.FUNIQUE_GS4_V1:
-                code = FUNIQUE_GS4_PREPARE
-                break
-        }
-    }
     emits('added', 
         [{ 
             uuid: uuidv6(),
             category: createData.value.category,
             type: createData.value.type,
-            lua: code,
+            lua: "",
             string_args: [],
             number_args: [0],
             boolean_args: []
@@ -239,12 +223,6 @@ const updateLocate = () => {
             value: index
         }
     })
-    lua_types.value = Object.keys(LUATemplate).filter(key => isNaN(Number(key))).map((x, index) => {
-        return {
-            text: LUATemplateTranslate(index as LUATemplate),
-            value: index
-        }
-    })
 }
 
 onMounted(() => {
@@ -271,7 +249,7 @@ onUnmounted(() => {
     <div>
         <div class="py-3">
             <v-toolbar density="compact" class="px-3">
-                <p v-if="props.select != undefined" class="pt-3 mr-4">
+                <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('task') }}: {{ props.select.title }}
                 </p>
                 <v-spacer></v-spacer>
@@ -325,7 +303,7 @@ onUnmounted(() => {
                 </v-tooltip>         
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon color='danger' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
+                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>
@@ -336,6 +314,7 @@ onUnmounted(() => {
         <!-- Property -->
         <div v-if="select != undefined" class="py-3 pb-5 mx-5">
             <h3> {{ $t('property') }} </h3>
+            <br />
             <v-row v-for="(c, i) in items2" :key="i">
                 <v-col cols="3">
                     <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
@@ -351,12 +330,12 @@ onUnmounted(() => {
             </v-row>
         </div>
         <!-- Job List -->
-        
+        <hr class="mx-5 my-2" />
         <div v-if="select != undefined" class="py-3 pb-7">
-            <hr class="mx-5 py-2" />
             <h3> {{ $t('job') }} </h3>
+            <br />
             <v-expansion-panels color="dark" class="px-6 text-white">
-                <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2">
+                <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2" color="blue-darken-4">
                     <v-expansion-panel-title>
                         <v-row>
                             <v-col cols="auto" class="mt-1">
@@ -449,7 +428,6 @@ onUnmounted(() => {
                     <v-select class="mb-1" hide-details v-model="createData.category" :items="categorise" item-title="text" item-value="value"></v-select>
                     <v-select class="mb-1" hide-details v-if="createData.category == 0" v-model="createData.type" :items="types2" item-title="text" item-value="value"></v-select>
                     <v-select class="mb-1" hide-details v-if="createData.category == 1" v-model="createData.type" :items="types" item-title="text" item-value="value"></v-select>
-                    <v-select class="mb-1" hide-details v-if="createData.category == 1 && checkPatterm(createData.category, createData.type, 'Script')" v-model="createData.spe_template" :items="lua_types" item-title="text" item-value="value"></v-select>
                 </v-card-title>
                 <template v-slot:actions>
                     <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>

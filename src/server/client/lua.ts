@@ -1,8 +1,7 @@
 import * as luainjs from 'lua-in-js';
-import { messager, messager_log } from '../debugger';
-import { parameter } from './execute';
-import { dir_copy, dir_create, dir_delete, dir_dirs, dir_files, file_copy, file_delete, file_read, file_write, fs_exist, rename as re } from './os';
-import { feedbackboolean, feedbacknumber, feedbackstring } from './parameter';
+import { ClientExecute } from './execute';
+import { ClientOS } from './os';
+import { ClientParameter } from './parameter';
 
 const lib = `function split(s, sep)
     local fields = {}
@@ -13,130 +12,174 @@ const lib = `function split(s, sep)
 end
 `
 
-function copyfile(from:string, to:string){
-    file_copy({from:from,to:to})
-}
-function copydir(from:string, to:string){
-    dir_copy({from:from,to:to})
-}
-function deletefile(path:string){
-    file_delete({path:path})
-}
-function deletedir(path:string){
-    dir_delete({path:path})
-}
-function rename(from:string, to:string){
-    return re({from:from, to:to})
-}
-function exist(path:string){
-    return fs_exist({path:path})
-}
-function listfile(path:string){
-    return dir_files({path:path}).join('\n')
-}
-function listdir(path:string){
-    return dir_dirs({path:path}).join('\n')
-}
-function createdir(path:string){
-    dir_create({path:path})
-}
-function writefile(path:string, data:string){
-    file_write({ from: path, to: data })
-}
-function readfile(path:string){
-    return file_read({path:path})
-}
-function hasboolean(key:string){
-    if(parameter == undefined) return false
-    return parameter.booleans.findIndex(x => x.name == key) != -1
-}
-function hasnumber(key:string){
-    if(parameter == undefined) return false
-    return parameter.numbers.findIndex(x => x.name == key) != -1
-}
-function hasstring(key:string){
-    if(parameter == undefined) return false
-    return parameter.strings.findIndex(x => x.name == key) != -1
-}
-function getboolean(key:string){
-    if(parameter == undefined) return false
-    return parameter.booleans.find(x => x.name == key)?.value ?? false
-}
-function getnumber(key:string){
-    if(parameter == undefined) return 0
-    return parameter.numbers.find(x => x.name == key)?.value ?? 0
-}
-function getstring(key:string){
-    if(parameter == undefined) return ""
-    return parameter.strings.find(x => x.name == key)?.value ?? ""
-}
-function setboolean(key:string, value:boolean){
-    if(parameter == undefined) return
-    const target = parameter.booleans.find(x => x.name == key)
-    if(target == undefined) return
-    target.value = value
-    messager_log(`[布林參數回饋] ${key} = ${value}`)
-    feedbackboolean({key:key,value:value})
-}
-function setnumber(key:string, value:number){
-    if(parameter == undefined) return
-    const target = parameter.numbers.find(x => x.name == key)
-    if(target == undefined) return
-    target.value = value
-    messager_log(`[數字參數回饋] ${key} = ${value}`)
-    feedbacknumber({key:key,value:value})
-}
-function setstring(key:string, value:string){
-    if(parameter == undefined) return
-    const target = parameter.strings.find(x => x.name == key)
-    if(target == undefined) return
-    target.value = value
-    messager_log(`[字串參數回饋] ${key} = ${value}`)
-    feedbackstring({key:key,value:value})
-}
+export class ClientLua {
+    clientos:ClientOS
+    para:ClientParameter
+    os:luainjs.Table
+    env:luainjs.Table
+    message:luainjs.Table
+    messager: Function
+    messager_log: Function
 
-const os = new luainjs.Table({
-    copyfile,
-    copydir,
-    deletefile,
-    deletedir,
-    exist,
-    listfile,
-    listdir,
-    createdir,
-    writefile,
-    readfile,
-    rename,
-})
+    execute:ClientExecute | undefined
 
-const env = new luainjs.Table({
-    hasboolean, getboolean, setboolean,
-    hasnumber, getnumber, setnumber,
-    hasstring, getstring, setstring,
-})
+    constructor(_messager: Function, _messager_log: Function, _clientos:ClientOS, _para:ClientParameter){
+        this.clientos = _clientos
+        this.para = _para
+        this.messager = _messager
+        this.messager_log = _messager_log
 
-const message = new luainjs.Table({
-    messager, messager_log
-})
+        this.os = new luainjs.Table({
+            "copyfile": this.copyfile,
+            "copydir": this.copydir,
+            "deletefile": this.deletefile,
+            "deletedir": this.deletedir,
+            "exist": this.exist,
+            "listfile": this.listfile,
+            "listdir": this.listdir,
+            "createdir": this.createdir,
+            "writefile": this.writefile,
+            "readfile": this.readfile,
+            "rename": this.rename,
+        })
+        
+        this.env = new luainjs.Table({
+            "hasboolean": this.hasboolean, 
+            "getboolean": this.getboolean, 
+            "setboolean": this.setboolean,
 
-const testmessage = new luainjs.Table({
-    messager(m:string) { mainWindow?.webContents.send('lua-feedback', `[Log] ${m}`) },
-    messager_log(m:string) { mainWindow?.webContents.send('lua-feedback', `[Log] ${m}`) }
-})
+            "hasnumber": this.hasnumber, 
+            "getnumber": this.getnumber, 
+            "setnumber": this.setnumber,
 
-const luaEnvTest = luainjs.createEnv()
-luaEnvTest.loadLib('o', os)
-luaEnvTest.loadLib('env', env)
-luaEnvTest.loadLib('m', testmessage)
+            "hasstring": this.hasstring, 
+            "getstring": this.getstring, 
+            "setstring": this.setstring,
+        })
+        
+        this.message = new luainjs.Table({
+            "messager": this.messager, 
+            "messager_log": this.messager_log
+        })
+    }
 
-export const LuaTest = (lua:string) => {
-    if(mainWindow == undefined) return
-    try {
-        let script = lib + lua
-        const execc = luaEnvTest.parse(script)
-        const r = execc.exec()
-        mainWindow?.webContents.send('lua-feedback', `[Result] ${r}`)
-    }catch(err){
-        throw err
+    LuaExecuteWithLib = (lua:string, libs:Array<string>) => {
+        const luaEnv = this.getLuaEnv()
+        try {
+            let script = ""
+            libs.forEach(x => {
+                if(this.execute?.libraries == undefined) return
+                const p = this.execute.libraries!.libs.find(y => y.name == x)
+                if(p != undefined) script += ("\n" + p.content + "\n")
+            })
+            script = lib + lua
+            const execc = luaEnv.parse(script)
+            const r = execc.exec()
+            return r
+        }catch(err){
+            throw err
+        }
+    }
+
+    LuaExecute = (lua:string) => {
+        const luaEnv = this.getLuaEnv()
+        try {
+            let script = lib + lua
+            const execc = luaEnv.parse(script)
+            const r = execc.exec()
+            return r
+        }catch(err){
+            throw err
+        }
+    }
+
+    private getLuaEnv(){
+        const luaEnv = luainjs.createEnv()
+        luaEnv.loadLib('o', this.os)
+        luaEnv.loadLib('env', this.env)
+        luaEnv.loadLib('m', this.message)
+        return luaEnv
+    }
+
+    private copyfile(from:string, to:string){
+        this.clientos.file_copy({from:from,to:to})
+    }
+    private copydir(from:string, to:string){
+        this.clientos.dir_copy({from:from,to:to})
+    }
+    private deletefile(path:string){
+        this.clientos.file_delete({path:path})
+    }
+    private deletedir(path:string){
+        this.clientos.dir_delete({path:path})
+    }
+    private rename(from:string, to:string){
+        return this.clientos.rename({from:from, to:to})
+    }
+    private exist(path:string){
+        return this.clientos.fs_exist({path:path})
+    }
+    private listfile(path:string){
+        return this.clientos.dir_files({path:path}).join('\n')
+    }
+    private listdir(path:string){
+        return this.clientos.dir_dirs({path:path}).join('\n')
+    }
+    private createdir(path:string){
+        this.clientos.dir_create({path:path})
+    }
+    private writefile(path:string, data:string){
+        this.clientos.file_write({ from: path, to: data })
+    }
+    private readfile(path:string){
+        return this.clientos.file_read({path:path})
+    }
+    private hasboolean(key:string){
+        if(this.execute?.parameter == undefined) return false
+        return this.execute.parameter.booleans.findIndex(x => x.name == key) != -1
+    }
+    private hasnumber(key:string){
+        if(this.execute?.parameter == undefined) return false
+        return this.execute.parameter.numbers.findIndex(x => x.name == key) != -1
+    }
+    private hasstring(key:string){
+        if(this.execute?.parameter == undefined) return false
+        return this.execute.parameter.strings.findIndex(x => x.name == key) != -1
+    }
+    private getboolean(key:string){
+        if(this.execute?.parameter == undefined) return false
+        return this.execute.parameter.booleans.find(x => x.name == key)?.value ?? false
+    }
+    private getnumber(key:string){
+        if(this.execute?.parameter == undefined) return 0
+        return this.execute.parameter.numbers.find(x => x.name == key)?.value ?? 0
+    }
+    private getstring(key:string){
+        if(this.execute?.parameter == undefined) return ""
+        return this.execute.parameter.strings.find(x => x.name == key)?.value ?? ""
+    }
+    private setboolean(key:string, value:boolean){
+        if(this.execute?.parameter == undefined) return
+        const target = this.execute.parameter.booleans.find(x => x.name == key)
+        if(target == undefined) return
+        target.value = value
+        this.messager_log(`[布林參數回饋] ${key} = ${value}`)
+        this.para.feedbackboolean({key:key,value:value})
+    }
+    private setnumber(key:string, value:number){
+        if(this.execute?.parameter == undefined) return
+        const target = this.execute.parameter.numbers.find(x => x.name == key)
+        if(target == undefined) return
+        target.value = value
+        this.messager_log(`[數字參數回饋] ${key} = ${value}`)
+        this.para.feedbacknumber({key:key,value:value})
+    }
+    private setstring(key:string, value:string){
+        if(this.execute?.parameter == undefined) return
+        const target = this.execute.parameter.strings.find(x => x.name == key)
+        if(target == undefined) return
+        target.value = value
+        this.messager_log(`[字串參數回饋] ${key} = ${value}`)
+        this.para.feedbackstring({key:key,value:value})
     }
 }

@@ -173,7 +173,7 @@ onUnmounted(() => {
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
-                <p v-if="props.select != undefined" class="pt-3 mr-4">
+                <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
                 <v-spacer></v-spacer>
@@ -219,7 +219,7 @@ onUnmounted(() => {
                 </v-tooltip>         
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon color='danger' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
+                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>
@@ -228,8 +228,8 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="py-3 px-5 text-left">
-            <v-expansion-panels color="dark" class="px-6 text-white" multiple>
-                <v-expansion-panel v-for="n in 3" :key="n" class="my-2">
+            <v-expansion-panels class="px-6 text-white" multiple>
+                <v-expansion-panel v-for="n in 3" :key="n" class="my-2" color="blue-darken-4">
                     <v-expansion-panel-title>
                         <h4 v-if="n == 1">{{ $t('types.string') }}</h4>
                         <h4 v-else-if="n == 2">{{ $t('types.number') }}</h4>

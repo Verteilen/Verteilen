@@ -107,7 +107,7 @@ onUnmounted(() => {
                 </v-tooltip>             
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon color='danger' v-bind="props" @click="deleteNode" :disabled="!hasSelect">
+                        <v-btn icon color='error' v-bind="props" @click="deleteNode" :disabled="!hasSelect">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>
@@ -127,7 +127,7 @@ onUnmounted(() => {
                     {{ $t('modal.new-node') }}
                 </v-card-title>
                 <v-card-text>
-                    <b-form-input v-model="connectionData.url" required :placeholder="$t('modal.enter-node-address')"></b-form-input>
+                    <v-text-field v-model="connectionData.url" required :label="$t('modal.enter-node-address')"></v-text-field>
                 </v-card-text>
                 <template v-slot:actions>
                     <v-btn class="mt-3" color="primary" @click="confirmConnection">{{ $t('create') }}</v-btn>

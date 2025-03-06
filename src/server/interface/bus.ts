@@ -4,6 +4,8 @@ import { Header, Setter, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
 
+type Handler<T = unknown> = (event: T) => void
+
 export interface BusProjectStart {
     uuid: string
 }
@@ -82,6 +84,12 @@ export interface RawSend {
     name: string
     token?: string
     data: any
+}
+
+export interface EmitterProxy<T> {
+    on<Key extends keyof T> (type: T, handler: Handler<T[Key]>): void
+    off<Key extends keyof T> (type: T, handler: Handler<T[Key]>): void
+    emit<Key extends keyof T> (type: T, handler: T[Key]): void
 }
 
 export interface ExecuteProxy {

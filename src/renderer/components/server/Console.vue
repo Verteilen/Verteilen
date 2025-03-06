@@ -414,38 +414,72 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <v-container fluid v-if="data != undefined">
-        <v-row style="height: calc(100vh - 55px)" class="w-100">
+    <div fluid class="ma-0 pa-0" v-if="data != undefined">
+        <div class="py-3">
+            <v-toolbar density="compact" class="px-3">
+                <p>{{ $t('execute') }}</p>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="execute(0)" :disabled="data.projects.length == 0 || data.running" color="success">
+                            <v-icon>mdi-step-forward-2</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('execute-0') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="execute(1)" :disabled="data.projects.length == 0 || data.running" color="success">
+                            <v-icon>mdi-step-forward</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('execute-1') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="execute(2)" :disabled="data.projects.length == 0 || data.running" color="success">
+                            <v-icon>mdi-play</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('execute-2') }}
+                </v-tooltip>
+                <p>{{ $t('skip') }}</p>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="skip(0)" :disabled="data.projects.length == 0 || data.running" color="info">
+                            <v-icon>mdi-skip-forward</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('project') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="skip(1)" :disabled="data.projects.length == 0 || data.running" color="info">
+                            <v-icon>mdi-skip-next</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('task') }}
+                </v-tooltip>
+                <p>{{ $t('action') }}</p>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="clean" :disabled="data.projects.length == 0 || data.running" color="error">
+                            <v-icon>mdi-stop</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('clean') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="stop" :disabled="data.projects.length == 0 || data.stop" color="error">
+                            <v-icon>mdi-pause</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('stop') }}
+                </v-tooltip>
+            </v-toolbar>
+        </div>
+        <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
-                <v-row>
-                    <v-col cols="3" class="mt-2">
-                        <h6>{{ $t('execute') }}</h6>
-                    </v-col>
-                    <v-col cols="9">
-                        <v-btn variant="outlined" class="w-33" @click="execute(0)" :disabled="data.projects.length == 0 || data.running" color="success">{{ $t('execute-0') }}</v-btn>
-                        <v-btn variant="outlined" class="w-33" @click="execute(1)" :disabled="data.projects.length == 0 || data.running" color="success">{{ $t('execute-1') }}</v-btn>
-                        <v-btn variant="outlined" class="w-33" @click="execute(2)" :disabled="data.projects.length == 0 || data.running" color="success">{{ $t('execute-2') }}</v-btn>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col cols="3" class="mt-2">
-                        <h6>{{ $t('skip') }}</h6>
-                    </v-col>
-                    <v-col cols="9">
-                        <v-btn variant="outlined" class="w-50" @click="skip(0)" :disabled="data.projects.length == 0 || data.running" color="info">{{ $t('project') }}</v-btn>
-                        <v-btn variant="outlined" class="w-50" @click="skip(1)" :disabled="data.projects.length == 0 || data.running" color="info">{{ $t('task') }}</v-btn>
-                    </v-col>
-                </v-row>
-                <v-row>
-                    <v-col cols="3" class="mt-2">
-                        <h6>{{ $t('action') }}</h6>
-                    </v-col>
-                    <v-col cols="9">
-                        <v-btn variant="outlined" class="w-50" @click="clean" :disabled="data.projects.length == 0 || data.running" color="danger">{{ $t('clean') }}</v-btn>
-                        <v-btn variant="outlined" class="w-50" @click="stop" :disabled="data.projects.length == 0 || data.stop" color="danger">{{ $t('stop') }}</v-btn>
-                    </v-col>
-                </v-row>
-                <br />
                 <v-list v-model="tag" color="success">
                     <v-list-item @click="tag = 0" :value="0">
                         {{ $t('console.list') }}
@@ -458,17 +492,17 @@ onUnmounted(() => {
                     </v-list-item>
                 </v-list>
             </v-col>
-            <b-col :cols="rightSize" v-show="tag == 0">
+            <v-col :cols="rightSize" v-show="tag == 0">
                 <List v-model="data" />
-            </b-col>
-            <b-col :cols="rightSize" v-show="tag == 1">
+            </v-col>
+            <v-col :cols="rightSize" v-show="tag == 1">
                 <Process v-model="data" />
-            </b-col>
-            <b-col :cols="rightSize" v-show="tag == 2">
+            </v-col>
+            <v-col :cols="rightSize" v-show="tag == 2">
                 <DebugLog />
-            </b-col>
+            </v-col>
         </v-row>
-    </v-container>
+    </div>
 </template>
 
 <style scoped>

@@ -94,12 +94,22 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <b-container fluid>
-        <b-row style="height: calc(100vh - 55px)" class="w-100">
-            <b-col :cols="leftSize" style="border-right: brown 1px solid;">
-                <b-button-group class="my-3 w-100">
-                    <b-button @click="clean" variant="success">{{ $t('clear') }}</b-button>
-                </b-button-group>
+    <v-container fluid class="ma-0 pa-0">
+        <div class="py-3">
+            <v-toolbar density="compact" class="px-3">
+                <v-spacer></v-spacer>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
+                        <v-btn icon v-bind="pro.props" @click="clean">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('clean') }}
+                </v-tooltip>
+            </v-toolbar>
+        </div>
+        <v-row style="height: calc(100vh - 120px)" class="w-100">
+            <v-col :cols="leftSize" style="border-right: brown 1px solid;">
                 <v-list v-model:selected="selection" @update:selected="current = -1">
                     <v-list-item v-for="(item, i) in props.logs.logs" :key="i" :value="i">
                         <template v-slot:prepend>
@@ -115,12 +125,12 @@ onUnmounted(() => {
                         </v-list-item-subtitle>
                     </v-list-item>
                 </v-list>
-            </b-col>
-            <b-col :cols="rightSize" v-if="getselect != undefined">
+            </v-col>
+            <v-col :cols="rightSize" v-if="getselect != undefined">
                 <div class="py-3">
-                    <b-button-group>
-                        <b-button variant='primary' :disabled="getselect == undefined" @click="recover">{{ $t('recover') }}</b-button>
-                    </b-button-group>
+                    <v-btn-group>
+                        <v-btn color='primary' :disabled="getselect == undefined" @click="recover">{{ $t('recover') }}</v-btn>
+                    </v-btn-group>
                 </div>
                 <v-stepper :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
                     <v-stepper-header>
@@ -151,9 +161,9 @@ onUnmounted(() => {
                     </v-expansion-panel>
                 </v-expansion-panels>
                 <br /> <br />
-            </b-col>
-        </b-row>
-    </b-container>
+            </v-col>
+        </v-row>
+    </v-container>
 </template>
 
 <style scoped>

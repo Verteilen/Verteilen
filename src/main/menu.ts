@@ -1,5 +1,5 @@
 import { Menu } from 'electron';
-import { ImportProject, menu_state } from './event';
+import { backendEvent } from './event';
 import { mainWindow } from './main';
 import { i18n } from './plugins/i18n';
 
@@ -8,7 +8,7 @@ const template_file = ():Array<(Electron.MenuItemConstructorOptions) | (Electron
         label: i18n.global.t('menu.file'),
         submenu: [
             { 
-                label: "New Project",
+                label: i18n.global.t('menu.new-project'),
                 click: async () => {
                     if(mainWindow == undefined) return;
                     mainWindow.webContents.send('createProject')
@@ -16,20 +16,20 @@ const template_file = ():Array<(Electron.MenuItemConstructorOptions) | (Electron
             },
             { type : 'separator' },
             { 
-                label: "Import",
+                label: i18n.global.t('menu.import'),
                 click: async () => {
-                    ImportProject()
+                    backendEvent.ImportProject()
                 }
             },
             { 
-                label: "Export (All)",
+                label: i18n.global.t('menu.export'),
                 click: async () => {
                     if(mainWindow == undefined) return;
                     mainWindow.webContents.send('menu_export_project')
                 }
             },
             { type : 'separator' },
-            { label: 'Quit', role: 'quit' }
+            { label: i18n.global.t('menu.quit'), role: 'quit' }
         ]
     }
 ]
@@ -38,18 +38,18 @@ const template_edit = ():Array<(Electron.MenuItemConstructorOptions) | (Electron
     {
         label: i18n.global.t('menu.edit'),
         submenu: [
-            { role: 'undo' },
-            { role: 'redo' },
+            { label: i18n.global.t('menu.undo'), role: 'undo' },
+            { label: i18n.global.t('menu.redo'), role: 'redo' },
             { type: 'separator' },
-            { role: 'cut' },
-            { role: 'copy' },
-            { role: 'paste' },
-            { role: 'delete' },
+            { label: i18n.global.t('menu.cut'), role: 'cut' },
+            { label: i18n.global.t('menu.copy'), role: 'copy' },
+            { label: i18n.global.t('menu.paste'), role: 'paste' },
+            { label: i18n.global.t('menu.delete'), role: 'delete' },
             { type: 'separator' },
-            { role: 'selectAll' },
+            { label: i18n.global.t('menu.selectAll'), role: 'selectAll' },
             { type: 'separator' },
             { 
-                label: "Language",
+                label: i18n.global.t('menu.language'),
                 submenu: [
                     {
                         label: 'en',
@@ -125,5 +125,5 @@ export let menu_client = Menu.buildFromTemplate(template_client())
 export const setupMenu = () => {
     menu_server = Menu.buildFromTemplate(template_server())
     menu_client = Menu.buildFromTemplate(template_client())
-    mainWindow?.setMenu(menu_state ? menu_server : menu_client)
+    mainWindow?.setMenu(backendEvent.menu_state ? menu_server : menu_client)
 }

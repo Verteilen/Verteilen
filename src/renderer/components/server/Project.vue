@@ -4,6 +4,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
+import { GetFFmpeg_Image2VideoProjectTemplate } from '../../template/project/FFmpeg_2Video';
 import { GetDefaultProjectTemplate, GetFUNIQUE_GS4ProjectTemplate } from '../../template/projectTemplate';
 
 interface PROPS {
@@ -148,9 +149,10 @@ const confirmCreate = () => {
     }
     if (createData.value.useTemp && createData.value.temp == ProjectTemplate.DEFAULT){
         buffer = GetDefaultProjectTemplate(buffer)
-    }
-    else if (createData.value.useTemp && createData.value.temp == ProjectTemplate.FUNIQUE_GS4){
+    } else if (createData.value.useTemp && createData.value.temp == ProjectTemplate.FUNIQUE_GS4){
         buffer = GetFUNIQUE_GS4ProjectTemplate(buffer)
+    } else if (createData.value.useTemp && createData.value.temp == ProjectTemplate.FFmpeg_Concat){
+        buffer = GetFFmpeg_Image2VideoProjectTemplate(buffer)
     }
     emits('added', 
         [buffer]
@@ -294,7 +296,7 @@ onUnmounted(() => {
                 </v-tooltip>         
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon color='danger' v-bind="props" @click="deleteSelect" :disabled="!hasSelect">
+                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>

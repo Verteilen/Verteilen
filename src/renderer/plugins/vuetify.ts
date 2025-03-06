@@ -14,5 +14,7 @@ export const vuetify = createVuetify({
             mdi,
         },
     },
-    theme: { defaultTheme: 'dark' }
+    theme: { 
+        defaultTheme: 'dark'
+    }
 })

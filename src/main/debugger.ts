@@ -1,4 +1,4 @@
-import { source } from "./client/client";
+import { backendEvent } from "./event";
 import { Header, Single, WebsocketPack } from "./interface";
 import { mainWindow } from "./main";
 
@@ -15,11 +15,11 @@ export const messager = (...args:Array<string | undefined>) => mainWindow?.webCo
 export const messager_log = (msg:string, tag?:string) => {
     messager(msg, tag);
     console.log(msg);
-    if(source != undefined) {
+    if(backendEvent.client?.source != undefined) {
         // 不用 message 是因為伺服器會需要知道 此訊息是從哪一個客戶端送出的
         const h:Single = { data: msg }
         const d:Header = { name: 'feedback_message', data: h}
-        source.send(JSON.stringify(d))
+        backendEvent.client.source.send(JSON.stringify(d))
     }
 }
 
