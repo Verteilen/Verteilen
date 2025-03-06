@@ -94,12 +94,22 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <v-container fluid>
-        <v-row style="height: calc(100vh - 55px)" class="w-100">
+    <v-container fluid class="ma-0 pa-0">
+        <div class="py-3">
+            <v-toolbar density="compact" class="px-3">
+                <v-spacer></v-spacer>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
+                        <v-btn icon v-bind="pro.props" @click="clean">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('clean') }}
+                </v-tooltip>
+            </v-toolbar>
+        </div>
+        <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="leftSize" style="border-right: brown 1px solid;">
-                <v-btn-group class="w-100">
-                    <v-btn class="w-100" @click="clean" color="success">{{ $t('clear') }}</v-btn>
-                </v-btn-group>
                 <v-list v-model:selected="selection" @update:selected="current = -1">
                     <v-list-item v-for="(item, i) in props.logs.logs" :key="i" :value="i">
                         <template v-slot:prepend>

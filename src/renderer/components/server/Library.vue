@@ -119,7 +119,7 @@ onUnmounted(() => {
 <template>
     <v-container fluid class="ma-0 pa-0" v-if="data != undefined">
         <div class="py-3">
-            <v-toolbar density="compact" class="px-3">
+            <v-toolbar density="compact" class="pr-3">
                 <v-text-field max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
