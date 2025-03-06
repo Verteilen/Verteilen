@@ -1,4 +1,3 @@
-import { dialog } from "electron";
 import fs from "fs";
 import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
@@ -22,15 +21,15 @@ export class BackendEvent {
 
     Init = () => {
         const proxy:ExecuteProxy = {
-            executeProjectStart: (data:BusProjectStart):void => { emitter?.emit('executeProjectStart', data) },
-            executeProjectFinish: (data:BusProjectFinish):void => { emitter?.emit('executeProjectFinish', data) },
-            executeTaskStart: (data:BusTaskStart):void => { emitter?.emit('executeTaskStart', data) },
-            executeTaskFinish: (data:BusTaskFinish):void => { emitter?.emit('executeTaskFinish', data) },
-            executeSubtaskStart: (data:BusSubTaskStart):void => { emitter?.emit('executeSubtaskStart', data) },
-            executeSubtaskFinish: (data:BusSubTaskFinish):void => { emitter?.emit('executeSubtaskFinish', data) },
-            executeJobStart: (data:BusJobStart):void => { emitter?.emit('executeJobStart', data) },
-            executeJobFinish: (data:BusJobFinish):void => { emitter?.emit('executeJobFinish', data) },
-            feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
+            executeProjectStart: (data:BusProjectStart):void => { this.Boradcasting('executeProjectStart', data) },
+            executeProjectFinish: (data:BusProjectFinish):void => { this.Boradcasting('executeProjectFinish', data) },
+            executeTaskStart: (data:BusTaskStart):void => { this.Boradcasting('executeTaskStart', data) },
+            executeTaskFinish: (data:BusTaskFinish):void => { this.Boradcasting('executeTaskFinish', data) },
+            executeSubtaskStart: (data:BusSubTaskStart):void => { this.Boradcasting('executeSubtaskStart', data) },
+            executeSubtaskFinish: (data:BusSubTaskFinish):void => { this.Boradcasting('executeSubtaskFinish', data) },
+            executeJobStart: (data:BusJobStart):void => { this.Boradcasting('executeJobStart', data) },
+            executeJobFinish: (data:BusJobFinish):void => { this.Boradcasting('executeJobFinish', data) },
+            feedbackMessage: (data:Setter):void => { this.Boradcasting('feedbackMessage', data) },
         }
 
         this.websocket_manager = new WebsocketManager(this.newConnect, this.disconnect, this.analysis, messager_log)
@@ -73,7 +72,6 @@ export class BackendEvent {
     }
 
     //#region Server Side
-    
     private newConnect = (x:WebsocketPack) => {
         const d:Header = {
             name: 'makeToast',
@@ -192,20 +190,19 @@ export class BackendEvent {
         }
     }
     private import_project = (socket:ws.WebSocket) => {
-        ImportProject()
+        this.ImportProject()
     }
     private export_projects = (socket:ws.WebSocket, data:string) => {
         const p:Array<Project> = JSON.parse(data)
-        ExportProjects(p)
+        this.ExportProjects(p)
     }
     private export_project = (socket:ws.WebSocket, data:string) => {
         const p:Project = JSON.parse(data)
-        ExportProject(p)
+        this.ExportProject(p)
     }
     private locate = (socket:ws.WebSocket, data:string) => {
         // @ts-ignore
         i18n.global.locale = data
-        setupMenu()
     }
 
     PortAvailable = async (start:number) => {
@@ -225,49 +222,24 @@ export class BackendEvent {
     }
     
     ImportProject = () => {
-        dialog.showOpenDialog(mainWindow, {
-            properties: ['openFile', 'multiSelections'],
-            filters: [
-                { name: 'JSON', extensions: ['json'] },
-            ]
-        }).then(v => {
-            if (v.canceled) return
-            const p:Array<any> = []
-            for(const x of v.filePaths){
-                p.push(JSON.parse(fs.readFileSync(x).toString()))
-            }
-            mainWindow.webContents.send('import_project_feedback', JSON.stringify(p))
-        })
+        
     }
     
     ExportProject = (value:Project) => {
-        if(mainWindow == undefined) return;
-        dialog.showSaveDialog(mainWindow, {
-            filters: [
-                {
-                    name: "JSON",
-                    extensions: ['json']
-                }
-            ]
-        }).then(v => {
-            if (v.canceled || v.filePath.length == 0) return
-            if(mainWindow == undefined) return;
-            const path = v.filePath[0]
-            fs.writeFileSync(path, JSON.stringify(value, null, 4))
-        })
+        
     }
     
     ExportProjects = (value:Array<Project>) => {
-        if(mainWindow == undefined) return;
-        dialog.showOpenDialog(mainWindow, {
-            properties: ['openDirectory']
-        }).then(v => {
-            if (v.canceled || v.filePaths.length == 0) return
-            if(mainWindow == undefined) return;
-            const path = v.filePaths[0]
-            for(var x of value){
-                fs.writeFileSync(`${path}/${x.title}.json`, JSON.stringify(x, null, 4))
-            }
+        
+    }
+
+    Boradcasting = (name:string, data:any) => {
+        const d:Header = {
+            name: name,
+            data: data
+        }
+        this.manager.forEach(x => {
+            x.send(JSON.stringify(d))
         })
     }
     //#endregion
