@@ -48,7 +48,7 @@ export class ExecuteManager{
         // Property replace
         for(let i = 0; i < job.string_args.length; i++){
             for(let j = 0; j < task.properties.length; j++){
-                job.string_args[i] = job.string_args[i].replace(`%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
+                job.string_args[i] = job.string_args[i].replaceAll(`%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
             }
         }
         
