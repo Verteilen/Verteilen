@@ -1,9 +1,10 @@
-import os
 import argparse
+import os
 import shutil
-import pymeshlab
-import open3d as o3d
+
 import numpy as np
+import open3d as o3d
+import pymeshlab
 
 # group_size = 10
 
@@ -18,6 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('--interval', type=str, default='')
     parser.add_argument('--group_size', type=str, default='')
     parser.add_argument('--resolution', type=int, default=2)
+    parser.add_argument('--iframe', type=int, default=1)
     args = parser.parse_args()
 
     print(args.start, args.end)
@@ -53,15 +55,15 @@ if __name__ == '__main__':
         frame_neus2_ckpt_output_path = os.path.join(frame_neus2_output_path, "frame.msgpack")
         frame_neus2_mesh_output_path = os.path.join(frame_neus2_output_path, "points3d.obj")
         
-        """ Gaussian """
-        # generate output
-        frame_model_path = os.path.join(gaussian_output_path, str(i))
-        first_frame_iteration = 7000
-        first_frame_save_iterations = first_frame_iteration
-        first_gaussian_command = f"python train.py -s {frame_path} -m {frame_model_path} --densify_until_iter 2000 --iterations {first_frame_iteration} --save_iterations {first_frame_save_iterations} --sh_degree {sh} -r {resolution_scale} --port 600{card_id}"
-        os.system(first_gaussian_command)
+        if args.iframe > 0:
+            """ Gaussian """
+            # generate output
+            frame_model_path = os.path.join(gaussian_output_path, str(i))
+            first_frame_iteration = 7000
+            first_frame_save_iterations = first_frame_iteration
+            first_gaussian_command = f"python train.py -s {frame_path} -m {frame_model_path} --densify_until_iter 2000 --iterations {first_frame_iteration} --save_iterations {first_frame_save_iterations} --sh_degree {sh} -r {resolution_scale} --port 600{card_id}"
+            os.system(first_gaussian_command)
 
-  
         # rest frame
         dynamic_command = f"python train_dynamic.py -s {data_root_path} -m {gaussian_output_path} --sh_degree {sh} -r {resolution_scale} --st {group_start} --ed {group_end} --interval {interval}"
         os.system(dynamic_command)

@@ -289,7 +289,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
