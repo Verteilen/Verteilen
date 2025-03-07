@@ -170,4 +170,8 @@ export class ClientExecute {
         if(index != -1) this.parameter.booleans[index].value = data.value
         this.messager_log(`[布林參數同步] ${data.key} = ${data.value}`, this.client.tag)
     }
+
+    console = (input:string) => {
+        
+    }
 }

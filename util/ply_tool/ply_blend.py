@@ -1,20 +1,21 @@
 import argparse
 import math
 import os
-import pathlib
 import subprocess
 import sys
 
 
 def transparent_setting(root, output, frame, blend, gap, contribution):
+    print('transparent_setting mode')
     inputFiles = []
     max = 0
     for i in range(blend):
-        path = pathlib.Path.joinpath(root, "Sequence_" + str((i * gap)), str(frame) + ".ply")
-        outFolder = pathlib.Path.joinpath(output, "Sequence_" + str((i * gap)))
-        out = pathlib.Path.joinpath(outFolder, str(frame) + ".ply")
+        foldername = "Sequence_" + str((i * gap))
+        path = root +"/"+ foldername +"/"+ str(frame) + ".ply"
+        outFolder = output +"/"+ foldername
+        out = outFolder +"/"+ str(frame) + ".ply"
         os.makedirs(outFolder, exist_ok=True)
-        if pathlib.Path.exists(path):
+        if os.path.exists(path):
             gop = blend * gap
             reminder = (frame + (i * gap)) % gop
             degree = (float(reminder) / float(gop)) * 360.0
@@ -23,44 +24,50 @@ def transparent_setting(root, output, frame, blend, gap, contribution):
             inputFiles.append((path, out, sinv))
     
     count = len(inputFiles)
+    print('input file count: ' + str(count))
     if count == 0:
         return
 
     for i in inputFiles:
         mul = contribution / max
         weight = i[2] * mul
-        subprocess.run(["ply_set_opacity", "-i", i[0], "-o", i[1], "-a", str(weight)])
         print("Set file: " + i[0] + ", transparent to ", str(sinv), "  and output to " + i[1])
+        subprocess.run(["ply_set_opacity", "-i", i[0], "-o", i[1], "-s", str(weight)])
 
 def merge_setting(root, output, frame, blend, gap, contribution):
+    print('merge_setting mode')
     inputFiles = []
     os.makedirs(output, exist_ok=True)
     for i in range(blend):
-        path = pathlib.Path.joinpath(root, "Sequence_" + str((i * gap)), str(frame) + ".ply")
-        if pathlib.Path.exists(path):
+        path = root +"/"+ "Sequence_" + str((i * gap)) +"/"+ str(frame) + ".ply"
+        if os.path.exists(path):
             inputFiles.append(path)
 
     count = len(inputFiles)
+    print('input file count: ' + str(count))
     if count == 0:
         return
     
-    path = pathlib.Path.joinpath(root, "temp", "conbine" + str(frame) + ".txt")
-    f = open(path, "a")
+    foldername = root +"/"+ "temp"
+    path = foldername +"/"+ "conbine" + str(frame) + ".txt"
+    os.makedirs(foldername, exist_ok=True)
+    os.makedirs(output, exist_ok=True)
+    f = open(path, "w+")
     for i in inputFiles:
-        f.write(i + "\\n")
+        f.write(i + "\n")
     f.close()
 
-    subprocess.run(["ply_merge", "-i", path, "-o", str(frame) + ".ply"])
+    subprocess.run(["ply_merge", "-i", path, "-o", output +'/'+ str(frame) + ".ply"])
     pass
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-t', '--type', help='type of operation')
-parser.add_argument('-f', '--frame', help='frame count')
-parser.add_argument('-b', '--blend', help='blend times')
-parser.add_argument('-g', '--gaps', help='gop divide by blend')
-parser.add_argument('-c', '--contribution', help='contribution')
-parser.add_argument('-r', '--root', help='root folder')
-parser.add_argument('-o', '--output', help='output folder')
+parser.add_argument('-t', '--type', help='type of operation', type=int)
+parser.add_argument('-f', '--frame', help='frame count', type=int)
+parser.add_argument('-b', '--blend', help='blend times', type=int)
+parser.add_argument('-g', '--gaps', help='gop divide by blend', type=int)
+parser.add_argument('-c', '--contribution', help='contribution', type=int)
+parser.add_argument('-r', '--root', help='root folder', type=str)
+parser.add_argument('-o', '--output', help='output folder', type=str)
 args = parser.parse_args()
 ops = args.type
 frame_count = 1
@@ -92,9 +99,9 @@ if output is None:
     print ("please specify output")
     sys.exit()
 
-if ops is 0:
+if ops == 0:
     transparent_setting(root, output, frame_count, blend_times, gaps, contribution_value)
 
-if ops is 1:
-    merge_setting(root, output, blend_times, gaps, contribution_value)
+if ops == 1:
+    merge_setting(root, output, frame_count, blend_times, gaps, contribution_value)
 
