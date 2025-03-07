@@ -167,6 +167,10 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
             {
                 name: 'gap_value',
                 expression: '(ck - 1) * iframe_gap + IF( start_at_0, 0, 1 )'
+            },
+            {
+                name: 'gap_value_end',
+                expression: '(ck - 1) * iframe_gap + IF( start_at_0, 0, 1 ) + 1'
             }
         ],
         jobs: [
