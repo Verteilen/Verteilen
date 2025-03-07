@@ -351,7 +351,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%/final", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans"],
+        string_args: ["%output%", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans"],
         number_args: [],
         boolean_args: []
     }
@@ -382,7 +382,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%/final", "ply_blend", "-t 1 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/trans -o %output%/final"],
+        string_args: ["%output%", "ply_blend", "-t 1 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/trans -o %output%/final"],
         number_args: [],
         boolean_args: []
     }
