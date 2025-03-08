@@ -8,6 +8,9 @@ import { ClientOS } from './os';
 import { ClientParameter } from './parameter';
 import { ClientResource } from './resource';
 
+/**
+ * The calculation node worker
+ */
 export class Client {
     client:WebSocketServer | undefined = undefined
     tag:string = ""
@@ -39,6 +42,9 @@ export class Client {
         setInterval(this.update, 1000);
     }
 
+    /**
+     * Start a websocket server, and waiting for cluster server to connect
+     */
     Init = async () => {
         let port_result = PORT
         let canbeuse = false
@@ -87,6 +93,10 @@ export class Client {
         })
     }
 
+    /**
+     * The node update function, It will do things below
+     * * Send system info to cluster server
+     */
     private update = () => {
         if(this.source == undefined) return
         this.resource.Query().then(x => {

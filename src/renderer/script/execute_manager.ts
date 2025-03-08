@@ -2,6 +2,10 @@ import { formula, init } from "expressionparser";
 import { BusAnalysis, CronJobState, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Parameter, Project, Setter, Single, SystemLoad, Task, WebsocketPack, WorkState } from "../interface";
 import { WebsocketManager } from "./socket_manager";
 
+/**
+ * Cluster server calculation worker\
+ * The most important worker in the entire application
+ */
 export class ExecuteManager{
     current_t:Task | undefined = undefined
     current_p:Project | undefined = undefined

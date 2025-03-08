@@ -1,6 +1,9 @@
 import si from "systeminformation"
 import { SystemLoad } from "../interface/struct"
 
+/**
+ * The resource query helper
+ */
 export class ClientResource {
     Query = async ():Promise<SystemLoad> => {
         const system = await si.system()

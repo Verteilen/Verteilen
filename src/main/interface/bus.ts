@@ -102,10 +102,11 @@ export interface ExecuteProxy {
     executeJobStart: (data:BusJobStart) => void
     executeJobFinish: (data:BusJobFinish) => void
     feedbackMessage: (data:Setter) => void
-    delay: (data:Setter) => void
-    system: (data:Setter) => void
 }
 
+/**
+ * Emitter events container for Primary use
+ */
 export type BusType = {
     makeToast: ToastData
     modeSelect: boolean
@@ -143,6 +144,9 @@ export type BusType = {
     system: Setter
 }
 
+/**
+ * Emitter events container for Web client
+ */
 export type BusWebType = {
     raw_send: RawSend
 

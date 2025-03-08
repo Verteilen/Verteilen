@@ -40,9 +40,7 @@ const proxy:ExecuteProxy = {
   executeSubtaskFinish: (data:BusSubTaskFinish):void => { emitter?.emit('executeSubtaskFinish', data) },
   executeJobStart: (data:BusJobStart):void => { emitter?.emit('executeJobStart', data) },
   executeJobFinish: (data:BusJobFinish):void => { emitter?.emit('executeJobFinish', data) },
-  feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
-  delay: (data:Setter) => { emitter?.emit('delay', data) },
-  system: (data:Setter) => { emitter?.emit('system', data) },
+  feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) }
 }
 
 const props = defineProps<PROPS>()

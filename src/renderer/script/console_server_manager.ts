@@ -3,6 +3,9 @@ import { Header } from "../interface";
 
 type calltype = { [key:string]:Function }
 
+/**
+ * Console server helper, cluster server side handle web client connection instances
+ */
 export class ConsoleServerManager {
     ws:ws.WebSocket
     typeMap: calltype

@@ -6,9 +6,9 @@ import { Header, Node, NodeTable, WebsocketPack } from "../interface";
  */
 export class WebsocketManager {
     targets:Array<WebsocketPack> = []
-    private newConnect:Function
-    private disconnect:Function
-    private onAnalysis:Function
+    newConnect:Function
+    disconnect:Function
+    onAnalysis:Function
     private messager_log:Function
 
     constructor(
