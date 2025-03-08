@@ -19,7 +19,9 @@ const connectionData = ref({url: ''})
 const fields:Ref<Array<any>> = ref([
     { title: 'ID', align: 'center', key: 'ID' },
     { title: 'URL', align: 'center', key: 'url' },
-    { title: 'State', align: 'center', key: 'state' }
+    { title: 'State', align: 'center', key: 'state' },
+    { title: 'Delay', align: 'center', key: 'delay' },
+    { title: 'Detail', align: 'center', key: 'detail' }
 ])
 const search = ref('')
 const selection:Ref<Array<string>> = ref([])
@@ -74,6 +76,10 @@ const translate_state_color = (state:number):string => {
     return 'white'
 }
 
+const showinfo = (uuid:string) => {
+    
+}
+
 onMounted(() => {
     emitter?.on('updateHandle', serverUpdate)
 })
@@ -119,6 +125,11 @@ onUnmounted(() => {
         <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
             <template v-slot:item.state="{ item }">
                 <v-chip :color="translate_state_color(item.state)">{{ translate_state(item.state) }}</v-chip>
+            </template>
+            <template v-slot:item.detail="{ item }">
+                <v-btn flat icon @click="showinfo(item.ID)">
+                    <v-icon>mdi-information</v-icon>
+                </v-btn>
             </template>
         </v-data-table>
         <v-dialog width="500" v-model="connectionModal" class="text-white">
