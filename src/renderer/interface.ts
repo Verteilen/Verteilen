@@ -1,6 +1,8 @@
 export const PORT = 12080
 export const WebPORT = 11080
 
+export const MESSAGE_LIMIT = 1000
+
 export * from './interface/base'
 export * from './interface/bus'
 export * from './interface/enum'

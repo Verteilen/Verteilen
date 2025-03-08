@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType } from '../../../interface';
+import { BusType, MESSAGE_LIMIT } from '../../../interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');    
 
@@ -10,7 +10,7 @@ const alllog:Ref<Array<string>> = ref([])
 const debuglog = (message:string) => {
     if(message == undefined) return
     alllog.value.push(message)
-    if(alllog.value.length > 1000){
+    if(alllog.value.length > MESSAGE_LIMIT){
         alllog.value.shift()
     }
 }
