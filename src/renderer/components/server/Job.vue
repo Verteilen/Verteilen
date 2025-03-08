@@ -346,10 +346,10 @@ onUnmounted(() => {
                                 <v-chip>{{ c.uuid }}</v-chip>
                             </v-col>
                             <v-col cols="auto">
-                                <v-btn icon flat :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">
+                                <v-btn size="small" icon flat :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">
                                     <v-icon>mdi-arrow-up</v-icon>
                                 </v-btn>
-                                <v-btn icon flat :disabled="isLast(c.uuid)" @click="movedown(c.uuid)">
+                                <v-btn class="ml-2" size="small" icon flat :disabled="isLast(c.uuid)" @click="movedown(c.uuid)">
                                     <v-icon>mdi-arrow-down</v-icon>
                                 </v-btn>
                             </v-col>
