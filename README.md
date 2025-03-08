@@ -124,3 +124,6 @@ You can monitor currently working tasks, Change the state in real-time
 - [x] Condition Support
 - [ ] Express Support
 - [ ] Express Auth Support
+- [ ] Group Support
+- [ ] Node information Query
+- [ ] Console control node support
