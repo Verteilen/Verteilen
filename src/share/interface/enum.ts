@@ -39,6 +39,13 @@ export enum ExecuteState {
     NONE, RUNNING, FINISH, ERROR, SKIP
 }
 
+export enum LuaLib {
+    ALL = ~(~0 << 4),
+    OS = 1 << 0, 
+    ENV = 1 << 1, 
+    MESSAGE = 1 << 2
+}
+
 export const ExecuteStateText: { [key:number]:string } = {
     0: 'enum.state.none',
     1: 'enum.state.running',

@@ -53,6 +53,7 @@
     "lua-in-js": "^2.2.5",
     "mitt": "^3.0.1",
     "redis": "^4.7.0",
+    "systeminformation": "^5.25.11",
     "tcp-port-used": "^1.0.2",
     "uuid": "^11.0.5",
     "vue": "^3.3.8",

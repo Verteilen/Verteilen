@@ -1,5 +1,5 @@
 import * as luainjs from 'lua-in-js';
-import { Libraries, Parameter } from '../interface';
+import { Libraries, LuaLib, Parameter } from '../interface';
 import { ClientOS } from './os';
 import { ClientParameter } from './parameter';
 
@@ -154,7 +154,7 @@ export class ClientLua {
     }
 
     LuaExecute = (lua:string) => {
-        const luaEnv = this.getLuaEnv()
+        const luaEnv = this.getLuaEnv(LuaLib.OS | LuaLib.MESSAGE)
         try {
             let script = lib + '\n' + lua
             const execc = luaEnv.parse(script)
@@ -165,11 +165,11 @@ export class ClientLua {
         }
     }
 
-    private getLuaEnv(){
+    private getLuaEnv(flags:LuaLib = LuaLib.ALL){
         const luaEnv = luainjs.createEnv()
-        luaEnv.loadLib('o', this.os)
-        luaEnv.loadLib('env', this.env)
-        luaEnv.loadLib('m', this.message)
+        if((flags & LuaLib.OS) == LuaLib.OS) luaEnv.loadLib('o', this.os)
+        if((flags & LuaLib.ENV) == LuaLib.ENV) luaEnv.loadLib('env', this.env)
+        if((flags & LuaLib.MESSAGE) == LuaLib.MESSAGE) luaEnv.loadLib('m', this.message)
         return luaEnv
     }
 
