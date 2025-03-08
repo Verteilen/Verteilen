@@ -1,5 +1,5 @@
 import { formula, init } from "expressionparser";
-import { BusAnalysis, CronJobState, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Parameter, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
+import { BusAnalysis, CronJobState, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Parameter, Project, Setter, Single, SystemLoad, Task, WebsocketPack, WorkState } from "../interface";
 import { WebsocketManager } from "./socket_manager";
 
 export class ExecuteManager{
@@ -30,7 +30,9 @@ export class ExecuteManager{
             'feedback_job': this.feedback_job,
             'feedback_string': this.feedback_string,
             'feedback_boolean': this.feedback_boolean,
-            'feedback_number': this.feedback_number
+            'feedback_number': this.feedback_number,
+            'system_info': this.system_info,
+            'pong': this.pong,
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
@@ -365,7 +367,7 @@ export class ExecuteManager{
     }
 
     //#region Feedback
-    feedback_message = (data:Single, source:WebsocketPack | undefined) => {
+    private feedback_message = (data:Single, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
         this.messager_log(`[Execute] Single Received data: ${data.data}`)
@@ -373,7 +375,7 @@ export class ExecuteManager{
         this.proxy?.feedbackMessage(d)
     }
     
-    feedback_job = (data:FeedBack, source:WebsocketPack | undefined) => {
+    private feedback_job = (data:FeedBack, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
         
@@ -402,7 +404,7 @@ export class ExecuteManager{
         this.proxy?.feedbackMessage(d)
     }
     
-    feedback_string = (data:Setter) => {
+    private feedback_string = (data:Setter) => {
         if(this.current_p == undefined) return
         const index = this.current_p.parameter.strings.findIndex(x => x.name == data.key)
         if(index != -1) this.current_p.parameter.strings[index].value = data.value
@@ -412,7 +414,7 @@ export class ExecuteManager{
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
     }
     
-    feedback_number = (data:Setter) => {
+    private feedback_number = (data:Setter) => {
         if(this.current_p == undefined) return
         const index = this.current_p.parameter.numbers.findIndex(x => x.name == data.key)
         if(index != -1) this.current_p.parameter.numbers[index].value = data.value
@@ -422,7 +424,7 @@ export class ExecuteManager{
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
     }
     
-    feedback_boolean = (data:Setter) => {
+    private feedback_boolean = (data:Setter) => {
         if(this.current_p == undefined) return
         const index = this.current_p.parameter.booleans.findIndex(x => x.name == data.key)
         if(index != -1) this.current_p.parameter.booleans[index].value = data.value
@@ -430,6 +432,18 @@ export class ExecuteManager{
         // Sync
         const d:Header = { name: 'set_boolean', data: data}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+    }
+
+    private system_info = (info:SystemLoad, source:WebsocketPack | undefined) => {
+        if(source == undefined) return
+        source.information = info
+        this.proxy?.delay({ key: source.uuid, value: source.information })
+    }
+
+    private pong = (info:number, source:WebsocketPack | undefined) => {
+        if(source == undefined || source.last == undefined) return
+        source.ms = Date.now() - source.last
+        this.proxy?.delay({ key: source.uuid, value: source.ms })
     }
     //#endregion
 

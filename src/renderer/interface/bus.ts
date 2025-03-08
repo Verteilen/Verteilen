@@ -102,6 +102,8 @@ export interface ExecuteProxy {
     executeJobStart: (data:BusJobStart) => void
     executeJobFinish: (data:BusJobFinish) => void
     feedbackMessage: (data:Setter) => void
+    delay: (data:Setter) => void
+    system: (data:Setter) => void
 }
 
 export type BusType = {
@@ -136,6 +138,9 @@ export type BusType = {
     analysis: BusAnalysis
     debuglog: string
     isExpress: boolean
+
+    delay: Setter
+    system: Setter
 }
 
 export type BusWebType = {

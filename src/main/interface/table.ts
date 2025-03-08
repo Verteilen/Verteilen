@@ -1,9 +1,11 @@
 import { Node } from './base'
+import { SystemLoad } from './struct'
 
 export interface NodeTable extends Node {
     s?: boolean
     state: number
-    connection_rate: number
+    connection_rate?: number
+    system?: SystemLoad
 }
 
 export interface TaskTable {

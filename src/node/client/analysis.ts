@@ -1,4 +1,5 @@
-import * as share from '../interface';
+import { WebSocket } from 'ws';
+import { Header } from "../interface";
 import { ClientExecute } from "./execute";
 
 export class ClientAnalysis {
@@ -10,7 +11,7 @@ export class ClientAnalysis {
         this.messager_log = _messager_log
     }
 
-    analysis = (h:share.Header | undefined) => {
+    analysis = (h:Header | undefined, source:WebSocket) => {
         const typeMap = {
             'execute_job': this.exec.execute_job,
             'stop_job': this.exec.stop_job,
@@ -19,7 +20,8 @@ export class ClientAnalysis {
             'set_string': this.exec.set_string,
             'set_number': this.exec.set_number,
             'set_boolean': this.exec.set_boolean,
-            'console': this.exec.console
+            'console': this.exec.console,
+            'ping': this.pong,
         }
 
         if (h == undefined){
@@ -32,9 +34,14 @@ export class ClientAnalysis {
         if (h.data == undefined) return
         if(typeMap.hasOwnProperty(h.name)){
             const castingFunc = typeMap[h.name]
-            castingFunc(h.data)
+            castingFunc(h.data, source)
         }else{
             this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
         }
+    }
+
+    pong = (data:number, source: WebSocket) => {
+        const h:Header = { name: 'pong', data: data }
+        source.send(JSON.stringify(h))
     }
 }

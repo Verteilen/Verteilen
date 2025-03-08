@@ -6,6 +6,9 @@ export interface WebsocketPack {
     websocket: WebSocket
     current_job?: string
     state?: ExecuteState
+    information?: SystemLoad
+    ms?: number
+    last?: number
 }
 
 export interface CronWebsocketPack {

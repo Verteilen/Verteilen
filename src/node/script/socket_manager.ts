@@ -18,6 +18,7 @@ export class WebsocketManager {
         this.disconnect = _disconnect
         this.onAnalysis = _onAnalysis
         this.messager_log = _messager_log
+        setInterval(this.update, 1000)
     }
 
     server_start = (url:string) => this.serverconnect(url)
@@ -104,5 +105,13 @@ export class WebsocketManager {
             if(this.targets[index].websocket.readyState == WebSocket.OPEN) this.targets[index].websocket.close(1000, reason != undefined ? reason : '')
                 this.targets.splice(index, 1)
         }
+    }
+
+    private update = () => {
+        const h:Header = { name: 'ping', data: 0}
+        this.targets.forEach(x => {
+            x.last = Date.now()
+            x.websocket.send(JSON.stringify(h))
+        })
     }
 }

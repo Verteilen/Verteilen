@@ -1,11 +1,12 @@
 import tcpPortUsed from 'tcp-port-used';
 import { WebSocket, WebSocketServer } from 'ws';
-import * as share from '../interface';
+import { Header, PORT } from '../interface';
 import { ClientAnalysis } from './analysis';
 import { ClientExecute } from './execute';
 import { ClientLua } from './lua';
 import { ClientOS } from './os';
 import { ClientParameter } from './parameter';
+import { ClientResource } from './resource';
 
 export class Client {
     client:WebSocketServer | undefined = undefined
@@ -15,6 +16,7 @@ export class Client {
 
     messager:Function
     messager_log:Function
+    resource:ClientResource
     para:ClientParameter
     os:ClientOS
     lua:ClientLua
@@ -24,6 +26,7 @@ export class Client {
     constructor(_messager:Function, _messager_log:Function){
         this.messager = _messager
         this.messager_log = _messager_log
+        this.resource = new ClientResource()
         this.para = new ClientParameter(this)
         this.os = new ClientOS(() => this.tag, _messager, _messager_log)
         this.lua = new ClientLua(_messager, _messager_log)
@@ -33,10 +36,11 @@ export class Client {
             () => this.execute.libraries,
             () => this.execute.parameter
         )
+        setInterval(this.update, 1000);
     }
 
     Init = async () => {
-        let port_result = share.PORT
+        let port_result = PORT
         let canbeuse = false
 
         while(!canbeuse){
@@ -77,15 +81,21 @@ export class Client {
                 this.messager_log(`[新來源事件] 新的來源也建立連結, URL: ${this.source?.url}`)
             })
             this.source.on('message', (data, isBinery) => {
-                const h:share.Header | undefined = JSON.parse(data.toString());
-                this.analysis.analysis(h);
+                const h:Header | undefined = JSON.parse(data.toString());
+                this.analysis.analysis(h, ws);
             })
-            this.source.on('pong', (data) => {
-    
-            })
-            this.source.on('ping', (data) => {
-    
-            })
+        })
+    }
+
+    private update = () => {
+        if(this.source == undefined) return
+        this.resource.Query().then(x => {
+            if(this.source == undefined) return
+            const h:Header = {
+                name: 'system_info',
+                data: x
+            }
+            this.source.send(JSON.stringify(h))
         })
     }
 }
