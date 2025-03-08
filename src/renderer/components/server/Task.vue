@@ -288,6 +288,12 @@ onUnmounted(() => {
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
                 </template>
+                <template v-slot:item.cronjob="{ item }">
+                    <v-chip :color="item.cronjob ? 'success' : 'error'">{{ item.cronjob }}</v-chip>
+                </template>
+                <template v-slot:item.multi="{ item }">
+                    <v-chip :color="item.multi ? 'success' : 'error'">{{ item.multi }}</v-chip>
+                </template>
             </v-data-table>
         </div>
         <v-dialog width="500" v-model="createModal" class="text-white">

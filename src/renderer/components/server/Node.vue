@@ -34,6 +34,7 @@ const selected_node_ids = computed(() => props.nodes.filter(x => selection.value
 const serverUpdate = () => {
     const p = props.manager?.server_update()
     if(p != undefined) emitter?.emit('updateNode', p)
+    selection.value = selection.value.filter(x => props.nodes.map(y => y.ID).includes(x))
 }
 
 const createNode = () => {
