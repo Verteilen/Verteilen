@@ -38,6 +38,7 @@ export class ClientExecute {
             this.client.settag("")
         })
         .catch(err => {
+            console.trace(err)
             this.messager_log(`[執行狀態] 錯誤: ${err}`, this.client.tag)
             const data:FeedBack = { job_uuid: job.uuid, meta: 1, message: err }
             const h:Header = { name: 'feedback_job', data: data }
@@ -169,5 +170,9 @@ export class ClientExecute {
         const index = this.parameter.booleans.findIndex(x => x.name == data.key)
         if(index != -1) this.parameter.booleans[index].value = data.value
         this.messager_log(`[布林參數同步] ${data.key} = ${data.value}`, this.client.tag)
+    }
+
+    console = (input:string) => {
+        
     }
 }

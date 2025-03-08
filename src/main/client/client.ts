@@ -26,10 +26,13 @@ export class Client {
         this.messager_log = _messager_log
         this.para = new ClientParameter(this)
         this.os = new ClientOS(() => this.tag, _messager, _messager_log)
-        this.lua = new ClientLua(_messager, _messager_log, this.os, this.para)
+        this.lua = new ClientLua(_messager, _messager_log)
         this.execute = new ClientExecute(_messager, _messager_log, this.lua, this.os, this)
         this.analysis = new ClientAnalysis(_messager_log, this.execute)
-        this.lua.execute = this.execute
+        ClientLua.Init(_messager, _messager_log, this.os, this.para, 
+            () => this.execute.libraries,
+            () => this.execute.parameter
+        )
     }
 
     Init = async () => {

@@ -18,7 +18,8 @@ export class ClientAnalysis {
             'set_libs': this.exec.set_libs,
             'set_string': this.exec.set_string,
             'set_number': this.exec.set_number,
-            'set_boolean': this.exec.set_boolean
+            'set_boolean': this.exec.set_boolean,
+            'console': this.exec.console
         }
 
         if (h == undefined){

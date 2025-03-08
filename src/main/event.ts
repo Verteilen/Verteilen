@@ -13,6 +13,7 @@ export class BackendEvent {
 
     Init = () => {
         this.client = new Client(messager, messager_log)
+        
         ipcMain.on('client_start', (event, content:string) => {
             if(this.client == undefined) return
             this.client.Init()
