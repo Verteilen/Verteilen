@@ -98,6 +98,9 @@ const feedback_message = (d:Setter) => {
     const index = data.value!.task_detail.findIndex(x => x.node == d.key)
     if(index == -1) return
     data.value!.task_detail[index].message.push(d.value)
+    if(data.value!.task_detail[index].message.length > 1000){
+        data.value!.task_detail[index].message.shift()
+    }
     
     props.logs.logs[0].logs[data.value!.task_index].task_detail[index].message.push(d.value)
     hasNewLog = true
