@@ -1,13 +1,15 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Header, Node, NodeTable, WebsocketPack } from "../interface";
 
+/**
+ * The node connection instance manager, Use by the cluster server
+ */
 export class WebsocketManager {
-
     targets:Array<WebsocketPack> = []
-    newConnect:Function
-    disconnect:Function
-    onAnalysis:Function
-    messager_log:Function
+    private newConnect:Function
+    private disconnect:Function
+    private onAnalysis:Function
+    private messager_log:Function
 
     constructor(
         _newConnect:Function,
@@ -21,8 +23,23 @@ export class WebsocketManager {
         setInterval(this.update, 1000)
     }
 
+    /**
+     * Trying to connect a node by target URL
+     * @param url target url
+     * @returns The connection package
+     */
     server_start = (url:string) => this.serverconnect(url)
+    /**
+     * Remove the package by UUID
+     * @param uuid Key
+     * @param reason Reason for disconnect
+     */
     server_stop = (uuid:string, reason?:string) => this.removeByUUID(uuid, reason)
+    /**
+     * Manager update, it will does things below
+     * * Retry connection
+     * @returns Node table for display
+     */
     server_update = ():Array<NodeTable> => this.sendUpdate()
     server_record = (ns:Array<Node>) => {
         ns.forEach(x => {
@@ -30,6 +47,12 @@ export class WebsocketManager {
         })
     }
 
+    /**
+     * Trying to connect a node by target URL
+     * @param url target url
+     * @param uuid generate UUID, New or retry connect base on value is defined or not
+     * @returns The connection package
+     */
     private serverconnect = (url:string, uuid?:string) => {
         if(this.targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
         const client = new WebSocket(url)
@@ -62,6 +85,11 @@ export class WebsocketManager {
         return client
     }
 
+    /**
+     * The analysis method for the node connection instance
+     * @param h Package
+     * @param c Connection instance
+     */
     private analysis = (h:Header | undefined, c:WebsocketPack | undefined) => {
         if (h == undefined){
             this.messager_log('[Source Analysis] Decode failed, Get value undefined')
@@ -74,6 +102,11 @@ export class WebsocketManager {
         this.onAnalysis({name: h.name, h: h, c: c})
     }
 
+    /**
+     * Manager update, it will does things below
+     * * Retry connection
+     * @returns Node table for display
+     */
     private sendUpdate = (): Array<NodeTable> => {
         let result:Array<NodeTable> = []
         const data:Array<Node> = []
@@ -92,13 +125,19 @@ export class WebsocketManager {
                 ID: x.uuid,
                 state: x.websocket.readyState,
                 url: x.websocket.url,
-                connection_rate: 0
+                connection_rate: x.ms,
+                system: x.information
             }
         })
 
         return result
     }
 
+    /**
+     * Remove the package by UUID
+     * @param uuid Key
+     * @param reason Reason for disconnect
+     */
     private removeByUUID = (uuid:string, reason?:string) => {
         let index = this.targets.findIndex(x => x.uuid == uuid)
         if(index != -1) {
@@ -107,6 +146,9 @@ export class WebsocketManager {
         }
     }
 
+    /**
+     * Internal update, for checking the ping of every nodes
+     */
     private update = () => {
         const h:Header = { name: 'ping', data: 0}
         this.targets.forEach(x => {

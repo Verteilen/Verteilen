@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, SystemLoad, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -386,18 +386,6 @@ const analysis = (b:BusAnalysis) => {
   execute_manager.value?.Analysis(b)
 }
 
-const delay = (data:Setter) => {
-  const n = nodes.value.find(x => x.ID == data.key)
-  if(n == undefined) return
-  n.connection_rate = data.value as number
-}
-
-const system = (data:Setter) => {
-  const n = nodes.value.find(x => x.ID == data.key)
-  if(n == undefined) return
-  n.system = data.value as SystemLoad
-}
-
 onMounted(() => {
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
@@ -405,8 +393,6 @@ onMounted(() => {
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
-  emitter?.on('delay', delay)
-  emitter?.on('system', system)
 
   if(props.config.isElectron){
     websocket_manager.value = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
@@ -465,8 +451,6 @@ onUnmounted(() => {
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
-  emitter?.off('delay', delay)
-  emitter?.off('system', system)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(props.config.isElectron) {
     window.electronAPI.eventOff('createProject', menuCreateProject)
