@@ -139,7 +139,8 @@
     "types": {
         "number": "Number",
         "string": "String",
-        "boolean": "Boolean"
+        "boolean": "Boolean",
+        "expression": "Expression"
     },
     "expression": {
         "title": "Title",

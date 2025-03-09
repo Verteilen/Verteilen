@@ -56,6 +56,13 @@ export enum LuaLib {
     MESSAGE = 1 << 2
 }
 
+export const DataTypeText: { [key:number]:string } = {
+    0: 'types.boolean',
+    1: 'types.number',
+    2: 'types.string',
+    3: 'types.expression',
+}
+
 export const ExecuteStateText: { [key:number]:string } = {
     0: 'enum.state.none',
     1: 'enum.state.running',

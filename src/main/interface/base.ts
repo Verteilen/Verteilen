@@ -11,9 +11,8 @@ export interface ParameterContainer {
 
 
 export interface Parameter {
-    numbers: Array<{ s?:boolean, name: string, value: number }>
-    strings: Array<{ s?:boolean,name: string, value: string }>
-    booleans: Array<{ s?:boolean,name: string, value: boolean }>
+    canWrite: boolean
+    containers: Array<ParameterContainer>
 }
 
 export interface Job {

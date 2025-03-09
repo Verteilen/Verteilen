@@ -139,7 +139,8 @@
     "types": {
         "number": "數字",
         "string": "字串",
-        "boolean": "布林"
+        "boolean": "布林",
+        "expression": "表達式"
     },
     "expression": {
         "title": "標題",

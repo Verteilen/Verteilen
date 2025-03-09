@@ -149,9 +149,8 @@ const confirmCreate = () => {
         title: createData.value.title, 
         description: createData.value.description,
         parameter: {
-            numbers: [],
-            strings: [],
-            booleans: []
+            canWrite: true,
+            containers: []
         },
         task: [
 

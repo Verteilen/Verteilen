@@ -1,4 +1,4 @@
-import { FeedBack, Header, Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, OnePath, Parameter, Setter, TwoPath } from "../interface";
+import { DataType, FeedBack, Header, Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, OnePath, Parameter, Setter, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { Client } from "./client";
 import { ClientLua } from "./lua";
@@ -186,8 +186,8 @@ export class ClientExecute {
      */
     set_string = (data:Setter) => {
         if(this.parameter == undefined) return
-        const index = this.parameter.strings.findIndex(x => x.name == data.key)
-        if(index != -1) this.parameter.strings[index].value = data.value
+        const index = this.parameter.containers.findIndex(x => x.name == data.key&& x.type == DataType.String)
+        if(index != -1) this.parameter.containers[index].value = data.value
         this.messager_log(`[Parameter string sync] ${data.key} = ${data.value}`, this.client.tag)
     }
     /**
@@ -197,8 +197,8 @@ export class ClientExecute {
      */
     set_number = (data:Setter) => {
         if(this.parameter == undefined) return
-        const index = this.parameter.numbers.findIndex(x => x.name == data.key)
-        if(index != -1) this.parameter.numbers[index].value = data.value
+        const index = this.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Number)
+        if(index != -1) this.parameter.containers[index].value = data.value
         this.messager_log(`[Parameter number sync] ${data.key} = ${data.value}`, this.client.tag)
     }
     /**
@@ -208,8 +208,8 @@ export class ClientExecute {
      */
     set_boolean = (data:Setter) => {
         if(this.parameter == undefined) return
-        const index = this.parameter.booleans.findIndex(x => x.name == data.key)
-        if(index != -1) this.parameter.booleans[index].value = data.value
+        const index = this.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Boolean)
+        if(index != -1) this.parameter.containers[index].value = data.value
         this.messager_log(`[Parameter boolean sync] ${data.key} = ${data.value}`, this.client.tag)
     }
 

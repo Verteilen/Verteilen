@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { ConditionResult, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
+import { ConditionResult, DataType, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
 import { FUNIQUE_GS4_BLEND_PREPARE, FUNIQUE_GS4_PLYDone, FUNIQUE_GS4_PREPARE } from "./../lua/GS4";
 
 export const GetFUNIQUE_GS4ProjectTemplate_Checker = ():Task => {
@@ -415,31 +415,30 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
 
 export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
-        numbers: [
-            { name: "frameCount", value: 20 },
-            { name: "iframe_gap", value: 5 },
-            { name: "lut_thread", value: 5 },
-            { name: "group_size", value: 20 },
-            { name: "blend", value: 4 },
-            { name: "contribute", value: 2 },
-            { name: "iframe_size", value: 0 },
-            { name: "denoise", value: 0 },
-        ],
-        strings: [
-            { name: "root", value: "G:/Developer/Funique/4DGS/Test" },
-            { name: "output", value: "G:/Developer/Funique/4DGS/Test/out" },
-            { name: "prepare", value: "Prepare" },
-            { name: "before", value: "before" },
-            { name: "after", value: "after" },
-            { name: "CAM", value: "CAM" },
-            { name: "images", value: "images" },
-            { name: "sparse", value: "sparse" },
-            { name: "videogs", value: "C:/videogs/VideoGS" },
-            { name: "conda_env", value: "videogs" },
-        ],
-        booleans: [
-            { name: "start_at_0", value: false }
-        ],
+        canWrite: true,
+        containers: [
+            { name: "frameCount", value: 20, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "iframe_gap", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "lut_thread", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "group_size", value: 20, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "blend", value: 4, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "contribute", value: 2, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "iframe_size", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
+
+            { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "prepare", value: "Prepare", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "before", value: "before", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "after", value: "after", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "CAM", value: "CAM", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "images", value: "images", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "videogs", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "conda_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
+
+            { name: "start_at_0", value: false, type: DataType.Boolean, runtimeOnly: false, hidden: false },
+        ]
     }
     r.parameter = para
     r.task.push(...[

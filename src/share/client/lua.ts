@@ -1,5 +1,5 @@
 import * as luainjs from 'lua-in-js';
-import { Libraries, LuaLib, Parameter } from '../interface';
+import { DataType, Libraries, LuaLib, Parameter } from '../interface';
 import { ClientOS } from './os';
 import { ClientParameter } from './parameter';
 
@@ -26,57 +26,58 @@ let para:ClientParameter | undefined = undefined
 function hasboolean(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
-    return p.booleans.findIndex(x => x.name == key) != -1
+    return p.containers.findIndex(x => x.name == key && x.type == DataType.Boolean) != -1
 }
 function hasnumber(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
-    return p.numbers.findIndex(x => x.name == key) != -1
+    return p.containers.findIndex(x => x.name == key && x.type == DataType.Number) != -1
 }
 function hasstring(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
-    return p.strings.findIndex(x => x.name == key) != -1
+    return p.containers.findIndex(x => x.name == key && x.type == DataType.String) != -1
 }
 function getboolean(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
-    return p.booleans.find(x => x.name == key)?.value ?? false
+    return p.containers.find(x => x.name == key && x.type == DataType.Boolean)?.value ?? false
 }
 function getnumber(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return 0
-    return p.numbers.find(x => x.name == key)?.value ?? 0
+    return p.containers.find(x => x.name == key && x.type == DataType.Number)?.value ?? 0
 }
 function getstring(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return ""
-    return p.strings.find(x => x.name == key)?.value ?? ""
+    return p.containers.find(x => x.name == key && x.type == DataType.String)?.value ?? ""
 }
 function setboolean(key:string, value:boolean){
     const p = getpara?.() ?? undefined
     if(p == undefined) return
-    const target = p.booleans.find(x => x.name == key)
-    if(target == undefined) return
-    target.value = value
+    const target = p.containers.find(x => x.name == key && x.type == DataType.Boolean)
+    if(target == undefined && !p.canWrite) return
+    if(target != undefined) target.value = value
+    
     messager_log(`[布林參數回饋] ${key} = ${value}`)
     para?.feedbackboolean({key:key,value:value})
 }
 function setnumber(key:string, value:number){
     const p = getpara?.() ?? undefined
     if(p == undefined) return
-    const target = p.numbers.find(x => x.name == key)
-    if(target == undefined) return
-    target.value = value
+    const target = p.containers.find(x => x.name == key && x.type == DataType.Number)
+    if(target == undefined && !p.canWrite) return
+    if(target != undefined) target.value = value
     messager_log(`[數字參數回饋] ${key} = ${value}`)
     para?.feedbacknumber({key:key,value:value})
 }
 function setstring(key:string, value:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return
-    const target = p.strings.find(x => x.name == key)
-    if(target == undefined) return
-    target.value = value
+    const target = p.containers.find(x => x.name == key && x.type == DataType.String)
+    if(target == undefined && !p.canWrite) return
+    if(target != undefined) target.value = value
     messager_log(`[字串參數回饋] ${key} = ${value}`)
     para?.feedbackstring({key:key,value:value})
 }

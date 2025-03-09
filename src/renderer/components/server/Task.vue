@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Project, Task, TaskTable } from '../../interface';
+import { BusType, DataType, Project, Task, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -65,7 +65,7 @@ const updateTask = () => {
 }
 
 const updateParameter = () => {
-    para_keys.value = props.select?.parameter.numbers.map(x => x.name) ?? []
+    para_keys.value = props.select?.parameter.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
 }
 
 const createProject = () => {
@@ -213,7 +213,7 @@ const isLast = (uuid:string) => {
 onMounted(() => {
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateParameter', updateParameter)
-    para_keys.value = props.select?.parameter.numbers.map(x => x.name) ?? []
+    para_keys.value = props.select?.parameter.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
 })
 
 onUnmounted(() => {
