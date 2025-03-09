@@ -7,15 +7,6 @@ import { GetFUNIQUE_GS4ProjectTemplate_Checker, GetFUNIQUE_GS4ProjectTemplate_Co
 // 排序改變 優化品質做的準備
 // Colmap 的結構複製一個負的出來
 const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
-    const createhelper:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.CREATE_DIR,
-        lua: "",
-        string_args: ["%root%/before_n"],
-        number_args: [],
-        boolean_args: []
-    }
     const copyhelper:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -44,7 +35,6 @@ const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
         multiKey: "",
         properties: [],
         jobs: [
-            createhelper,
             copyhelper,
             copyhelper2
         ]
@@ -230,8 +220,6 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out" },
             { name: "prepare", value: "Prepare" },
             { name: "before", value: "before" },
-            { name: "before_n", value: "before_n" },
-            { name: "before_p", value: "before_p" },
             { name: "after", value: "after" },
             { name: "CAM", value: "CAM" },
             { name: "images", value: "images" },

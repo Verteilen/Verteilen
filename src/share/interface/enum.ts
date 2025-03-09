@@ -1,3 +1,12 @@
+export enum DataType {
+    Boolean, 
+    Number, 
+    String,
+    Expression
+}
+
+
+
 export enum JobCategory {
     Condition,
     Execution
