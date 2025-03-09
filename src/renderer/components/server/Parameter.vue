@@ -25,9 +25,9 @@ const fields:Ref<Array<any>> = ref([
 const createModal = ref(false)
 const editMode = ref(false)
 const createData:Ref<ParameterContainer> = ref({ name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number })
-const editData = ref('')
+const editData = ref({ name: '', type: 0 })
 const filter = ref({ showhidden: false, showruntime: false, type: -1 })
-const options:Ref<Array<{ text: string, value:number }>> = ref([])
+const options:Ref<Array<{ title: string, value:number }>> = ref([])
 const dirty = ref(false)
 const buffer:Ref<Parameter> = ref({ canWrite: true, containers: [] })
 const errorMessage = ref('')
@@ -44,6 +44,9 @@ const items_final = computed(() => buffer.value.containers
     .filter(x => {
         if (!filter.value.showhidden && x.hidden) return false
         return true
+    })
+    .filter(x => {
+        return search.value == null || search.value.length == 0 ? true : x.name.includes(search.value)
     })
     .filter(x => {
         if(filter.value.type == -1) return true
@@ -66,8 +69,10 @@ const createParameter = () => {
 
 const editParameter = (oldname:string) => {
     const p = buffer.value.containers.find(x => x.name == oldname)
-    if(p != undefined) createData.value = p
-    editData.value = oldname
+    if(p == undefined) return
+    createData.value = JSON.parse(JSON.stringify(p))
+    editData.value.name = p.name
+    editData.value.type = p.type
     createModal.value = true
     editMode.value = true
     errorMessage.value = ''
@@ -111,13 +116,21 @@ const confirmEdit = () => {
         titleError.value = true
         return
     }
-    if(buffer.value.containers.findIndex(x => x.name == createData.value.name) != -1){
-        errorMessage.value = i18n.global.t('error.title-repeat')
-        titleError.value = true
-        return
+    if(editData.value.name != createData.value.name){
+        if(buffer.value.containers.findIndex(x => x.name == createData.value.name) != -1){
+            errorMessage.value = i18n.global.t('error.title-repeat')
+            titleError.value = true
+            return
+        }
+    }
+    if(createData.value.type != editData.value.type){
+        if(createData.value.type = DataType.Boolean) createData.value.value = false
+        else if(createData.value.type = DataType.Expression) createData.value.value = ''
+        else if(createData.value.type = DataType.Number) createData.value.value = 0
+        else if(createData.value.type = DataType.String) createData.value.value = ''
     }
     buffer.value.containers.push(createData.value)
-    const index = buffer.value.containers.findIndex(x => x.name == editData.value)
+    const index = buffer.value.containers.findIndex(x => x.name == editData.value.name)
     buffer.value.containers.splice(index, 1)
     createModal.value = false
     dirty.value = true
@@ -138,13 +151,42 @@ const DataTypeTranslate = (t:number):string => {
 const updateLocate = () => {
     options.value = Object.keys(DataType).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
-            text: DataTypeTranslate(index),
+            title: DataTypeTranslate(index),
             value: index
         }
     })
+    options.value.push({ title: "All", value: -1 })
+}
+
+const moveup = (name:string) => {
+    const index = buffer.value.containers.findIndex(x => x.name == name)
+    const bb = buffer.value.containers[index]
+    buffer.value.containers[index] = buffer.value.containers[index - 1]
+    buffer.value.containers[index - 1] = bb
+    dirty.value = true
+}
+
+const movedown = (name:string) => {
+    const index = buffer.value.containers.findIndex(x => x.name == name)
+    const bb = buffer.value.containers[index]
+    buffer.value.containers[index] = buffer.value.containers[index + 1]
+    buffer.value.containers[index + 1] = bb
+    dirty.value = true
+}
+
+const isFirst = (name:string) => {
+    const index = buffer.value.containers.findIndex(x => x.name == name)
+    return index <= 0
+}
+
+const isLast = (name:string) => {
+    const index = buffer.value.containers.findIndex(x => x.name == name)
+    if(index == -1) return true
+    return index == buffer.value.containers.length - 1
 }
 
 onMounted(() => {
+    updateLocate()
     emitter?.on('updateLocate', updateLocate)
     emitter?.on('updateParameter', updateParameter)
     nextTick(() => {
@@ -167,6 +209,9 @@ onUnmounted(() => {
                 <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
+                <v-checkbox class="pl-1" :label="$t('filter.show-hidden')" v-model="filter.showhidden" hide-details></v-checkbox>
+                <v-checkbox class="pl-1" :label="$t('filter.show-runtime')" v-model="filter.showruntime" hide-details></v-checkbox>
+                <v-select class="pl-2" density="compact" :label="$t('filter.type')" v-model="filter.type" :items="options" item-text="text" hide-details></v-select>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -221,9 +266,20 @@ onUnmounted(() => {
         <div class="py-3 px-5 text-left">
             <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="name">
                 <template v-slot:item.detail="{ item }">
-                    <v-btn flat icon @click="editParameter(item.name)">
+                    <v-btn flat icon @click="editParameter(item.name)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
+                    <v-btn flat icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
+                        <v-icon>mdi-arrow-up</v-icon>
+                    </v-btn>
+                    <v-btn flat icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
+                        <v-icon>mdi-arrow-down</v-icon>
+                    </v-btn>
+                </template>
+                <template v-slot:item.value="{ item }">
+                    <v-checkbox density="compact" hide-details v-if="item.type == 0" v-model="item.value" @input="setdirty"></v-checkbox>
+                    <v-text-field density="compact" hide-details v-if="item.type == 1" type="number" v-model="item.value" @input="setdirty"></v-text-field>
+                    <v-text-field density="compact" hide-details v-if="item.type == 2" v-model="item.value" @input="setdirty"></v-text-field>
                 </template>
                 <template v-slot:item.hidden="{ item }">
                     <v-chip :color="item.hidden ? 'success' : 'error'">{{ item.hidden }}</v-chip>
@@ -248,7 +304,9 @@ onUnmounted(() => {
                 </v-card-title>
                 <v-card-text>
                     <v-text-field :error="titleError" v-model="createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-                    <v-select class="mt-3" v-model="createData.type" :items="options" item-title="text" :label="$t('modal.parameter-datatype')" hide-details></v-select>
+                    <v-select class="mt-3" v-model="createData.type" :items="options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
+                    <v-checkbox :label="$t('filter.show-hidden')" v-model="createData.hidden" hide-details></v-checkbox>
+                    <v-checkbox :label="$t('filter.show-runtime')" v-model="createData.runtimeOnly" hide-details></v-checkbox>
                     <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>

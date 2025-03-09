@@ -30,6 +30,11 @@
         "title-needed": "名稱不能為空",
         "title-repeat": "名稱不能重複"
     },
+    "filter": {
+        "type": "資料型態",
+        "show-hidden": "隱藏",
+        "show-runtime": "唯獨運行"
+    },
     "modal": {
         "new-project": "新增專案",
         "modify-project": "編輯專案",
@@ -41,7 +46,7 @@
         "enter-task-description": "輸入流程敘述",
         "new-job": "新增工作",
         "new-parameter": "新增參數",
-        "rename-parameter": "改名參數",
+        "edit-parameter": "編輯參數",
         "enter-parameter-name": "輸入參數名稱",
         "parameter-datatype": "資料型態",
         "new-node": "新增節點",

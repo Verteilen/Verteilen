@@ -315,19 +315,19 @@ onUnmounted(() => {
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-btn flat icon @click="datachoose(item.ID)">
+                    <v-btn flat icon @click="datachoose(item.ID)" size="small">
                         <v-icon>mdi-location-enter</v-icon>
                     </v-btn>
-                    <v-btn flat icon @click="dataedit(item.ID)">
+                    <v-btn flat icon @click="dataedit(item.ID)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn flat icon @click="dataexport(item.ID)">
+                    <v-btn flat icon @click="dataexport(item.ID)" size="small">
                         <v-icon>mdi-export</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)">
+                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
                         <v-icon>mdi-arrow-up</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)">
+                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
                 </template>

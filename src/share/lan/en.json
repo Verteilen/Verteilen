@@ -30,6 +30,11 @@
         "title-needed": "Title is needed",
         "title-repeat": "Cannot use title which already exists"
     },
+    "filter": {
+        "type": "Datatype",
+        "show-hidden": "Hidden",
+        "show-runtime": "Runtime"
+    },
     "modal": {
         "new-project": "New Project",
         "modify-project": "Modify Project",
@@ -41,7 +46,7 @@
         "enter-task-description": "Enter Task Description",
         "new-job": "New Job",
         "new-parameter": "New Parameter",
-        "rename-parameter": "Rename Parameter",
+        "edit-parameter": "Modify Parameter",
         "enter-parameter-name": "Enter Parameter Name",
         "parameter-datatype": "Datatype",
         "new-node": "New Node",
