@@ -129,9 +129,8 @@ const confirmEdit = () => {
         else if(createData.value.type = DataType.Number) createData.value.value = 0
         else if(createData.value.type = DataType.String) createData.value.value = ''
     }
-    buffer.value.containers.push(createData.value)
     const index = buffer.value.containers.findIndex(x => x.name == editData.value.name)
-    buffer.value.containers.splice(index, 1)
+    buffer.value.containers[index] = createData.value
     createModal.value = false
     dirty.value = true
 }
