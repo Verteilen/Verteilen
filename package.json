@@ -52,6 +52,7 @@
     "express": "^4.21.2",
     "expressionparser": "^1.1.5",
     "jsonwebtoken": "^9.0.2",
+    "keypair": "^1.0.4",
     "lua-in-js": "^2.2.5",
     "mitt": "^3.0.1",
     "redis": "^4.7.0",
