@@ -1,6 +1,14 @@
 // 把 Colmap 複製並且反過來擺
 export const FUNIQUE_GS4_V2_COLMAP_COPY:string = `
 local root = env.getstring("root")
+local before = env.getstring("before")
+local before_n = env.getstring("before_n")
+local before_p = env.getstring("before_p")
+local frame_size = env.getnumber("frameCount")
+
+m.messager("Create before positive and negative folder")
+o.createdir(root.."/"..before_n)
+o.createdir(root.."/"..before_p)
 
 `
 

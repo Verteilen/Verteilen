@@ -23,7 +23,7 @@ def transparent_setting(root, output, frame, blend, gap, contribution):
                 gop = blend * gap
                 reminder = (frame + (i * gap)) % gop
                 degree = (float(reminder) / float(gop)) * 360.0
-                sinv = math.sin(math.radians(degree)) * 0.5 + 0.5
+                sinv = (1.0 - math.cos(math.radians(degree))) * 0.5
                 max = max + sinv
                 inputFiles.append((path, out, sinv))
             else:

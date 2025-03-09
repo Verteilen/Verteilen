@@ -36,8 +36,8 @@ const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "排序改變",
-        description: "優化品質複製",
+        title: "排序改變, 負向準備",
+        description: "優化品質複製, Colmap 結構準備負方向的",
         cronjob: false,
         cronjobKey: "",
         multi: false,
@@ -231,6 +231,7 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
             { name: "prepare", value: "Prepare" },
             { name: "before", value: "before" },
             { name: "before_n", value: "before_n" },
+            { name: "before_p", value: "before_p" },
             { name: "after", value: "after" },
             { name: "CAM", value: "CAM" },
             { name: "images", value: "images" },
