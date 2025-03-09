@@ -32,6 +32,7 @@
     },
     "filter": {
         "type": "Datatype",
+        "canwrite": "Runtime Write",
         "show-hidden": "Hidden",
         "show-runtime": "Runtime"
     },

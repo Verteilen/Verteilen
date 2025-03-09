@@ -209,9 +209,6 @@ onUnmounted(() => {
                 <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
-                <v-checkbox class="pl-1" :label="$t('filter.show-hidden')" v-model="filter.showhidden" hide-details></v-checkbox>
-                <v-checkbox class="pl-1" :label="$t('filter.show-runtime')" v-model="filter.showruntime" hide-details></v-checkbox>
-                <v-select class="pl-2" density="compact" :label="$t('filter.type')" v-model="filter.type" :items="options" item-text="text" hide-details></v-select>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -263,6 +260,13 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
+        <v-toolbar>
+            <v-checkbox class="pl-3" :label="$t('filter.show-hidden')" v-model="filter.showhidden" hide-details></v-checkbox>
+            <v-checkbox class="pl-3" :label="$t('filter.show-runtime')" v-model="filter.showruntime" hide-details></v-checkbox>
+            <v-select class="pl-3" density="compact" :label="$t('filter.type')" v-model="filter.type" :items="options" item-text="text" hide-details max-width="300px"></v-select>
+            <v-spacer></v-spacer>
+            <v-checkbox :label="$t('filter.canwrite')" v-model="buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
+        </v-toolbar>
         <div class="py-3 px-5 text-left">
             <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="name">
                 <template v-slot:item.detail="{ item }">

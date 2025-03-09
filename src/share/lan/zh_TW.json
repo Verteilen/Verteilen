@@ -32,6 +32,7 @@
     },
     "filter": {
         "type": "資料型態",
+        "canwrite": "運行讀寫",
         "show-hidden": "隱藏",
         "show-runtime": "唯獨運行"
     },
