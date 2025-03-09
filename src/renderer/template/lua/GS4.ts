@@ -1,5 +1,3 @@
-export const DEFAULT = "// Enter your lua code here.."
-
 // 準備資料夾 跟製作準備 colmap 資料夾結構
 export const FUNIQUE_GS4_PREPARE:string = `
 m.messager("Env Init")
@@ -94,72 +92,6 @@ for i=1,iframe_size,1 do
         current = 1
     end
 end
-`
-
-// 分正負
-export const FUNIQUE_GS4_COPY:string = `
-local root = env.getstring("root")
-local before_sort_folder = env.getstring("before_sort")
-local before_folder = env.getstring("before")
-local iframe_gap = env.getnumber("iframe_gap")
-local frame_count = env.getnumber("frameCount")
-local group_size = env.getnumber("group_size")
-local blend = env.getnumber("blend")
-
-local z = 1
-local p = 1
-local n = 1
-
-m.messager("Copy dir to position or negative folder")
-local from = ""
-local to = ""
-for i=1,frame_count,group_size do
-    local step = ((group_size / 2) * (z - 1))
-
-    from = root.."/"..before_sort_folder.."/"..tostring(i)
-    to = root.."/"..before_p_folder.."/"..tostring(i - step)
-    o.copydir(from, to)
-
-    p = p + 1
-    n = n + 1
-
-    for j = 1,(group_size/2)-1,1 do
-        if i + j > frame_count then 
-            n = n - 1
-            goto skip 
-        end
-        local r = p
-        from = root.."/"..before_sort_folder.."/"..tostring(i+j)
-        to = root.."/"..before_p_folder.."/"..tostring(r)
-        o.copydir(from, to)
-        p = p + 1
-    end
-    
-    for j = 1,(group_size/2)-1,1 do
-        if i + j > frame_count then 
-            n = n - 1
-            goto skip 
-        end
-        local nj = group_size/2 - j
-        local r = nj + i - step
-        from = root.."/"..before_sort_folder.."/"..tostring(i+j+9)
-        to = root.."/"..before_n_folder.."/"..tostring(r)
-        o.copydir(from, to)
-        n = n + 1
-    end
-
-    from = root.."/"..before_sort_folder.."/"..tostring(i + group_size - 1)
-    to = root.."/"..before_n_folder.."/"..tostring(i - step)
-    o.copydir(from, to)
-
-    z = z + 1
-end
-
-::skip::
-
-env.setnumber("p_size", p - 1)
-env.setnumber("n_size", n - 1)
-
 `
 
 // 將 Blend 結果弄成結果資料夾

@@ -5,6 +5,9 @@ import subprocess
 import sys
 
 
+# example: gop = 20
+# gap = 5
+# blend = 4
 def transparent_setting(root, output, frame, blend, gap, contribution):
     print('transparent_setting mode')
     inputFiles = []
@@ -16,12 +19,15 @@ def transparent_setting(root, output, frame, blend, gap, contribution):
         out = outFolder +"/"+ str(frame) + ".ply"
         os.makedirs(outFolder, exist_ok=True)
         if os.path.exists(path):
-            gop = blend * gap
-            reminder = (frame + (i * gap)) % gop
-            degree = (float(reminder) / float(gop)) * 360.0
-            sinv = math.sin(math.radians(degree)) * 0.5 + 0.5
-            max = max + sinv
-            inputFiles.append((path, out, sinv))
+            if gap == 1:
+                gop = blend * gap
+                reminder = (frame + (i * gap)) % gop
+                degree = (float(reminder) / float(gop)) * 360.0
+                sinv = math.sin(math.radians(degree)) * 0.5 + 0.5
+                max = max + sinv
+                inputFiles.append((path, out, sinv))
+            else:
+                inputFiles.append((path, out, 1.0 / float(gap)))
     
     count = len(inputFiles)
     print('input file count: ' + str(count))

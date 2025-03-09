@@ -2,7 +2,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { ConditionResult, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
 import { FUNIQUE_GS4_BLEND_PREPARE, FUNIQUE_GS4_PLYDone, FUNIQUE_GS4_PREPARE } from "./../lua/GS4";
 
-const GetFUNIQUE_GS4ProjectTemplate_Checker = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_Checker = ():Task => {
     const prepareExist:Job = {
         uuid: uuidv6(),
         category: JobCategory.Condition,
@@ -39,7 +39,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checker = ():Task => {
 }
 
 // 從原始資料夾結構 弄成可以工作的樣子
-const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
     const sortjob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -86,7 +86,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
 }
 
 // 利用 Colmap 工具生成 .bin 資料
-const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
     const createsp:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -144,7 +144,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
 }
 
 // 生成完整 I-Frame
-const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -181,7 +181,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
 }
 
 // 備份 I-Frame
-const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
     const backup:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -208,7 +208,7 @@ const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
 }
 
 // 把渣渣刪掉 !
-const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
     const renamee:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -260,7 +260,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
 }
 
 // 排序改變 優化品質做的準備
-const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
     const copyhelper:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -287,7 +287,7 @@ const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
 }
 
 // Blend 生成多個 checkpoint 資料夾
-const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -323,7 +323,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
 }
 
 // 生成 ply 序列!!
-const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
     const sequenceJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -349,7 +349,8 @@ const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
     return t
 }
 
-const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
+// 透明度調整
+export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
     const transparentJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -380,7 +381,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
     return t
 }
 
-const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
+// 多個 ply 合併
+export const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
     const mergeJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -406,33 +408,6 @@ const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
         ],
         jobs: [
             mergeJob
-        ]
-    }
-    return t
-}
-
-// Lut 顏色校準
-const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
-    const command1:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COMMAND,
-        lua: "",
-        string_args: ["%root%/%output%/", "ply_lut", "-i %root%/%after%/%{ ck }%_merged.ply -o %root%/%after%/%{ ck }%.ply"],
-        number_args: [],
-        boolean_args: []
-    }
-    const t:Task = {
-        uuid: uuidv6(),
-        title: "Lut",
-        description: "顏色校準",
-        cronjob: true,
-        cronjobKey: "frameCount",
-        multi: true,
-        multiKey: "lut_thread",
-        properties: [],
-        jobs: [
-            command1
         ]
     }
     return t
@@ -478,8 +453,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
         GetFUNIQUE_GS4ProjectTemplate_Checkpoint(),
         GetFUNIQUE_GS4ProjectTemplate_PlyList(),
         GetFUNIQUE_GS4ProjectTemplate_Blend1(),
-        GetFUNIQUE_GS4ProjectTemplate_Blend2(),
-        GetFUNIQUE_GS4ProjectTemplate_Lut()
+        GetFUNIQUE_GS4ProjectTemplate_Blend2()
     ])
     return r
 }
