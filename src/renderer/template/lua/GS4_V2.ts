@@ -64,7 +64,7 @@ for i=1,blend,1 do
     o.createdir(n_folder)
 
     local starter = ((i - 1) * iframe_gap) + xx
-    bool hit = false
+    local hit = false
     n_count = starter
 
     for j=frame_size,starter,-1 do

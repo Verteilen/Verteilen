@@ -1,3 +1,15 @@
+import { DataType } from "./enum"
+
+export interface ParameterContainer {
+    s?: boolean
+    name: string
+    type: DataType
+    hidden: boolean
+    runtimeOnly: boolean
+    value: any
+}
+
+
 export interface Parameter {
     numbers: Array<{ s?:boolean, name: string, value: number }>
     strings: Array<{ s?:boolean,name: string, value: string }>

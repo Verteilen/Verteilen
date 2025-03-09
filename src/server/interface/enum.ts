@@ -1,3 +1,10 @@
+export enum DataType {
+    Boolean, 
+    Number, 
+    String,
+    Expression
+}
+
 export enum JobCategory {
     Condition,
     Execution
@@ -32,7 +39,10 @@ export enum JobType2 {
 export enum ProjectTemplate {
     DEFAULT,
     FUNIQUE_GS4,
-    FFmpeg_Concat
+    FUNIQUE_GS42,
+    FFmpeg_Concat,
+    Blender,
+    AfterEffect
 }
 
 export enum ExecuteState {
@@ -95,5 +105,8 @@ export const JobType2Text: { [key:number]:string } = {
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
     1: 'enum.project.gs4',
-    2: 'enum.project.concat'
+    2: 'enum.project.gs4-2',
+    3: 'enum.project.concat',
+    4: 'enum.project.blender',
+    5: 'enum.project.aftereffect',
 }

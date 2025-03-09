@@ -441,13 +441,11 @@ export class ExecuteManager{
     private system_info = (info:SystemLoad, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         source.information = info
-        this.proxy?.delay({ key: source.uuid, value: source.information })
     }
 
     private pong = (info:number, source:WebsocketPack | undefined) => {
         if(source == undefined || source.last == undefined) return
         source.ms = Date.now() - source.last
-        this.proxy?.delay({ key: source.uuid, value: source.ms })
     }
     //#endregion
 

@@ -105,7 +105,10 @@
         "project": {
             "default": "Example",
             "gs4": "Funique GS4",
-            "concat": "FFmpeg concat"
+            "gs4-2": "Funique GS4 V2",
+            "concat": "FFmpeg concat",
+            "blender": "Blender Render",
+            "aftereffect": "After Effect Render"
         },
         "state": {
             "none": "Prepare",
