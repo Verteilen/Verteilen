@@ -10,10 +10,11 @@ import { ExecuteManager } from "./script/execute_manager";
 import { WebsocketManager } from "./script/socket_manager";
 
 export class BackendEvent {
+    manager:Array<ConsoleServerManager> = []
     websocket_manager:WebsocketManager
     execute_manager:ExecuteManager
+    
     lubCall:ClientLua
-    manager:Array<ConsoleServerManager> = []
     libs:Libraries = {libs: []}
     
     constructor(){
