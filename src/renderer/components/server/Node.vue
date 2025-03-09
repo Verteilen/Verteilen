@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import byteSize from 'byte-size';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, ConnectionText, NodeTable } from '../../interface';
@@ -14,6 +15,8 @@ interface PROPS {
 }
 
 const props = defineProps<PROPS>()
+const infoModal = ref(false)
+const infoUUID = ref('')
 const connectionModal = ref(false)
 const connectionData = ref({url: ''})
 const fields:Ref<Array<any>> = ref([
@@ -31,7 +34,7 @@ const items_final = computed(() => {
 })
 const hasSelect = computed(() => selection.value.length > 0)
 const selected_node_ids = computed(() => props.nodes.filter(x => selection.value.includes(x.ID)).map(x => x.ID))
-
+const infoTarget = computed(() => props.nodes.find(x => x.ID == infoUUID.value))
 
 const serverUpdate = () => {
     const p = props.manager?.server_update()
@@ -77,7 +80,8 @@ const translate_state_color = (state:number):string => {
 }
 
 const showinfo = (uuid:string) => {
-    
+    infoModal.value = true
+    infoUUID.value = uuid
 }
 
 onMounted(() => {
@@ -126,6 +130,9 @@ onUnmounted(() => {
             <template v-slot:item.state="{ item }">
                 <v-chip :color="translate_state_color(item.state)">{{ translate_state(item.state) }}</v-chip>
             </template>
+            <template v-slot:item.delay="{ item }">
+                {{ item.connection_rate }}
+            </template>
             <template v-slot:item.detail="{ item }">
                 <v-btn flat icon @click="showinfo(item.ID)">
                     <v-icon>mdi-information</v-icon>
@@ -146,9 +153,73 @@ onUnmounted(() => {
                 </template>
             </v-card>
         </v-dialog>
+        <v-dialog width="500" v-model="infoModal" class="text-white">
+            <v-card v-if="infoTarget != undefined && infoTarget.system != undefined">
+                <v-card-title>
+                    <v-icon>mdi-information</v-icon>
+                    {{ infoTarget.ID }}
+                </v-card-title>
+                <v-card-text>
+                    <details>
+                        <summary>SYSTEM</summary>
+                        <div>
+                            <p>NAME: {{ infoTarget.system.system_name }}</p>
+                            <p>PLATFORM: {{ infoTarget.system.platform }}</p>
+                            <p>ARCH: {{ infoTarget.system.arch }}</p>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>CPU</summary>
+                        <div>
+                            <p>CPU: {{ infoTarget.system.cpu_name }}, Core: {{ infoTarget.system.cpu_core }}</p>
+                            <p>CPU Usage: {{ Math.round(infoTarget.system.cpu_usage * 100) / 100 }} %</p>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>RAM</summary>
+                        <div>
+                            <p>RAM: {{ byteSize(infoTarget.system.ram_usage).value }} {{ byteSize(infoTarget.system.ram_usage).unit }} / {{ byteSize(infoTarget.system.ram_total).value }} {{ byteSize(infoTarget.system.ram_total).unit }}</p>
+                            <p>RAM Usage: {{ Math.round((infoTarget.system.ram_usage / infoTarget.system.ram_total) * 10000) / 100 }} %</p>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>DISK</summary>
+                        <details v-for="(item, i) in infoTarget.system.disk" :key="i">
+                            <summary>{{ item.disk_name }}  {{ item.disk_type }}</summary>
+                            <div>
+                                <p>DISK: {{ byteSize(item.disk_usage).value }} {{ byteSize(item.disk_usage).unit }} / {{ byteSize(item.disk_total).value }} {{ byteSize(item.disk_total).unit }}</p>
+                                <p>DISK Usage: {{ Math.round(item.disk_percentage * 100) / 100 }} %</p>
+                            </div>
+                        </details>
+                    </details>
+                    <details>
+                        <summary>NETWORK</summary>
+                        <details v-for="(item, i) in infoTarget.system.net" :key="i">
+                            <summary>{{ item.net_name }}</summary>
+                            <div>
+                                <p>Update: {{ item.upload }}</p>
+                                <p>Download: {{ item.download }}</p>
+                            </div>
+                        </details>
+                    </details>
+                    <details>
+                        <summary>GPU</summary>
+                        <details v-for="(item, i) in infoTarget.system.gpu" :key="i">
+                            <summary>{{ item.gpu_name }}</summary>
+                            <div> </div>
+                        </details>
+                    </details>
+                </v-card-text>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 
 <style scoped>
-
+details details{
+    margin-left: 12px;
+}
+details div{
+    margin-left: 12px;
+}
 </style>

@@ -16,6 +16,7 @@ export class Client {
     tag:string = ""
     settag = (v:string) => { this.tag = v }
     source:WebSocket | undefined = undefined
+    is_query = false
 
     messager:Function
     messager_log:Function
@@ -39,7 +40,7 @@ export class Client {
             () => this.execute.libraries,
             () => this.execute.parameter
         )
-        setInterval(this.update, 1000);
+        setInterval(this.update, 10000);
     }
 
     /**
@@ -98,7 +99,8 @@ export class Client {
      * * Send system info to cluster server
      */
     private update = () => {
-        if(this.source == undefined) return
+        if(this.source == undefined || this.is_query) return
+        this.is_query = true
         this.resource.Query().then(x => {
             if(this.source == undefined) return
             const h:Header = {
@@ -106,6 +108,7 @@ export class Client {
                 data: x
             }
             this.source.send(JSON.stringify(h))
+            this.is_query = false
         })
     }
 }
