@@ -16,7 +16,8 @@ const preference:Ref<Preference> = ref({
 })
 const config:Ref<AppConfig> = ref({
   isElectron: checkifElectron(),
-  isExpress: undefined
+  isExpress: false,
+  haveBackend: false
 })
 const isExpress:Ref<boolean | undefined> = ref(undefined)
 const mode = ref(config.value.isElectron ? -1 : 1)

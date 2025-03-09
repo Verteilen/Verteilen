@@ -441,6 +441,7 @@ onMounted(() => {
       off: emitter!.off,
       emit: emitter!.emit
     })
+    x.haveBackend = x.isElectron || x.isExpress!
   })
 })
 
@@ -464,14 +465,14 @@ onUnmounted(() => {
 <template>
   <v-container fluid class="pa-0 ma-0">
     <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
-      <v-tab>{{ $t('toolbar.project') }}</v-tab>
-      <v-tab>{{ $t('toolbar.task') }}</v-tab>
-      <v-tab>{{ $t('toolbar.job') }}</v-tab>
-      <v-tab>{{ $t('toolbar.parameter') }}</v-tab>
-      <v-tab>{{ $t('toolbar.node') }}</v-tab>
-      <v-tab>{{ $t('toolbar.console') }}</v-tab>
-      <v-tab>{{ $t('toolbar.log') }}</v-tab>
-      <v-tab>{{ $t('toolbar.library') }}</v-tab>
+      <v-tab :value="0">{{ $t('toolbar.project') }}</v-tab>
+      <v-tab :value="1">{{ $t('toolbar.task') }}</v-tab>
+      <v-tab :value="2">{{ $t('toolbar.job') }}</v-tab>
+      <v-tab :value="3">{{ $t('toolbar.parameter') }}</v-tab>
+      <v-tab :value="4">{{ $t('toolbar.node') }}</v-tab>
+      <v-tab :value="5">{{ $t('toolbar.console') }}</v-tab>
+      <v-tab :value="6">{{ $t('toolbar.log') }}</v-tab>
+      <v-tab :value="7">{{ $t('toolbar.library') }}</v-tab>
       <v-menu v-if="!props.config.isElectron">
         <template v-slot:activator="{ props }">
           <v-btn class="mt-1" v-bind="props">
