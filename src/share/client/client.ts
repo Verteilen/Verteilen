@@ -1,45 +1,31 @@
 import tcpPortUsed from 'tcp-port-used';
 import { WebSocket, WebSocketServer } from 'ws';
-import { Header, PORT } from '../interface';
+import { Header, Messager, PORT } from '../interface';
 import { ClientAnalysis } from './analysis';
-import { ClientExecute } from './execute';
-import { ClientLua } from './lua';
-import { ClientOS } from './os';
-import { ClientParameter } from './parameter';
-import { ClientResource } from './resource';
 
 /**
  * The calculation node worker
  */
 export class Client {
-    client:WebSocketServer | undefined = undefined
-    tag:string = ""
-    settag = (v:string) => { this.tag = v }
-    source:WebSocket | undefined = undefined
-    is_query = false
+    private client:WebSocketServer | undefined = undefined
+    private sources:Array<WebSocket> = []
 
-    messager:Function
-    messager_log:Function
-    resource:ClientResource
-    para:ClientParameter
-    os:ClientOS
-    lua:ClientLua
-    execute:ClientExecute
-    analysis:ClientAnalysis
+    private messager:Messager
+    private messager_log:Messager
+    private analysis:ClientAnalysis
 
-    constructor(_messager:Function, _messager_log:Function){
+    public get count() : number {
+        return this.sources.length
+    }
+    
+    public get clients() : Array<WebSocket> {
+        return this.sources
+    }
+
+    constructor(_messager:Messager, _messager_log:Messager){
         this.messager = _messager
         this.messager_log = _messager_log
-        this.resource = new ClientResource()
-        this.para = new ClientParameter(this)
-        this.os = new ClientOS(() => this.tag, _messager, _messager_log)
-        this.lua = new ClientLua(_messager, _messager_log)
-        this.execute = new ClientExecute(_messager, _messager_log, this.lua, this.os, this)
-        this.analysis = new ClientAnalysis(_messager_log, this.execute)
-        ClientLua.Init(_messager, _messager_log, this.os, this.para, 
-            () => this.execute.libraries,
-            () => this.execute.parameter
-        )
+        this.analysis = new ClientAnalysis(_messager, _messager_log, this)
         setInterval(this.update, 10000);
     }
 
@@ -70,27 +56,30 @@ export class Client {
             this.messager_log('[關閉事件] 伺服器關閉 !')
         })
         this.client.on('connection', (ws, request) => {
-            if (this.source != undefined) {
-                this.messager_log(`[連線事件] 偵錯到第二個來源連線, 強制斷線`)
-                ws.close();
-                return;
-            }
-            this.source = ws;
+            this.sources.push(ws)
             this.messager_log(`[連線事件] 偵測到新來源連線, ${ws.url}`)
-            this.source.on('close', (code, reason) => {
-                this.source = undefined;
+            ws.on('close', (code, reason) => {
+                const index = this.sources.findIndex(x => x == ws)
+                if(index != -1) this.sources.splice(index, 1)
                 this.messager_log(`[來源關閉事件] ${code} ${reason}`)
             })
-            this.source.on('error', (err) => {
+            ws.on('error', (err) => {
                 this.messager_log(`[來源錯誤事件] ${err.name}\n\t${err.message}\n\t${err.stack}`)
             })
-            this.source.on('open', () => {
-                this.messager_log(`[新來源事件] 新的來源也建立連結, URL: ${this.source?.url}`)
+            ws.on('open', () => {
+                this.messager_log(`[新來源事件] 新的來源也建立連結, URL: ${ws?.url}`)
             })
-            this.source.on('message', (data, isBinery) => {
+            ws.on('message', (data, isBinery) => {
                 const h:Header | undefined = JSON.parse(data.toString());
                 this.analysis.analysis(h, ws);
             })
+        })
+    }
+
+    Destroy = () => {
+        if(this.client == undefined) return
+        this.client.close((err) => {
+            this.messager_log(`[Client] Close error ${err}`)
         })
     }
 
@@ -99,16 +88,6 @@ export class Client {
      * * Send system info to cluster server
      */
     private update = () => {
-        if(this.source == undefined || this.is_query) return
-        this.is_query = true
-        this.resource.Query().then(x => {
-            if(this.source == undefined) return
-            const h:Header = {
-                name: 'system_info',
-                data: x
-            }
-            this.source.send(JSON.stringify(h))
-            this.is_query = false
-        })
+        this.analysis.update(this)
     }
 }

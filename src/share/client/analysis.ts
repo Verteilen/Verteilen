@@ -1,17 +1,26 @@
 import { WebSocket } from 'ws';
-import { Header } from "../interface";
+import { Header, Messager } from "../interface";
+import { Client } from './client';
 import { ClientExecute } from "./execute";
+import { ClientResource } from './resource';
 
 /**
  * The analysis worker. decode the message received from cluster server
  */
 export class ClientAnalysis {
-    private messager_log: Function
+    private messager: Messager
+    private messager_log: Messager
+    private client:Client
     private exec:ClientExecute
+    private resource:ClientResource
+    private resource_wanter:Array<WebSocket> = []
 
-    constructor(_messager_log:Function, _exec:ClientExecute){
-        this.exec = _exec
+    constructor(_messager:Messager, _messager_log:Messager, _client:Client){
+        this.client = _client
+        this.messager = _messager
         this.messager_log = _messager_log
+        this.resource = new ClientResource()
+        this.exec = new ClientExecute(_messager, _messager_log, this.client)
     }
 
     /**
@@ -28,6 +37,8 @@ export class ClientAnalysis {
             'open_shell': this.exec.open_shell,
             'close_shell': this.exec.close_shell,
             'enter_shell': this.exec.enter_shell,
+            'resource_start': this.resource_start,
+            'resource_end': this.resource_end,
             'ping': this.pong,
         }
 
@@ -55,5 +66,26 @@ export class ClientAnalysis {
     pong = (data:number, source: WebSocket) => {
         const h:Header = { name: 'pong', data: data }
         source.send(JSON.stringify(h))
+    }
+
+    resource_start = (data:number, source: WebSocket) => {
+        this.resource_wanter.push(source)
+    }
+
+    resource_end = (data:number, source: WebSocket) => {
+        const index = this.resource_wanter.findIndex(x => x ==source)
+        if(index != -1) this.resource_wanter.splice(index, 1)
+    }
+
+    update = (client:Client) => {
+        if(this.resource.is_query == false && this.resource_wanter.length > 0){
+            this.resource.Query().then(x => {
+                const h:Header = {
+                    name: 'system_info',
+                    data: x
+                }
+                this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
+            })
+        }
     }
 }

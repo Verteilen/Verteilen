@@ -5,7 +5,10 @@ import { SystemLoad } from "../interface/struct"
  * The resource query helper
  */
 export class ClientResource {
+    is_query = false
+
     Query = async ():Promise<SystemLoad> => {
+        this.is_query = true
         const system = await si.system()
         const cpu = await si.cpu()
         const ram = await si.mem()
@@ -15,7 +18,8 @@ export class ClientResource {
         const gpu = await si.graphics()
         const disk = await si.fsSize()
         const net = await si.networkStats()
-
+        this.is_query = false
+        
         return {
             system_name: `${system.manufacturer} ${system.model}`,
             virtual: system.virtual,

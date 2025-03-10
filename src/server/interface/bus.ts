@@ -5,6 +5,7 @@ import { NodeTable } from "./table"
 import { ToastData } from "./ui"
 
 type Handler<T = unknown> = (event: T) => void
+export type Messager = (msg:string, tag?:string) => void
 
 export interface BusProjectStart {
     uuid: string

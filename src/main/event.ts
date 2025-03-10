@@ -1,9 +1,10 @@
 import { dialog, ipcMain } from "electron";
 import fs from "fs";
 import { Client } from "./client/client";
+import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
+import { mainWindow } from "./electron";
 import { Libraries, Log, Preference, Project, Record } from "./interface";
-import { mainWindow } from "./main";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
@@ -12,21 +13,28 @@ export class BackendEvent {
     client:Client | undefined = undefined
 
     Init = () => {
+        if(this.client != undefined) return
         this.client = new Client(messager, messager_log)
-        
+        this.client.Init()
+    }
+
+    Destroy = () => {
+        if(this.client == undefined) return
+        this.client?.Destroy()
+        this.client = undefined
+    }
+
+    EventInit = () => {
         ipcMain.on('client_start', (event, content:string) => {
-            if(this.client == undefined) return
-            this.client.Init()
+            this.Init()
         })
         ipcMain.on('client_stop', (event, content:string) => {
-            if(this.client == undefined) return
-            if (this.client?.client != undefined) this.client.client.close()
-                this.client.client = undefined
-                this.client.source = undefined;
+            this.Destroy()
         })
     
         ipcMain.on('lua', (event, content:string) => {
-            const r = this.client?.lua.LuaExecute(content)
+            const lua:ClientLua = new ClientLua(messager, messager_log)
+            const r = lua.LuaExecute(content)
             event.sender.send('lua-feedback', r?.toString() ?? '')
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {
@@ -42,8 +50,8 @@ export class BackendEvent {
             if(mainWindow == undefined) return;
             console.log(`[後台訊息] 工具列顯示設定為: ${on}`)
             this.menu_state = on
-            if(on) mainWindow.setMenu(menu_server)
-            else mainWindow.setMenu(menu_client)
+            if(on) mainWindow.setMenu(menu_server!)
+            else mainWindow.setMenu(menu_client!)
         })
         ipcMain.on('save_record', (e, record:string) => {
             fs.writeFileSync('record.json', record)
@@ -133,6 +141,8 @@ export class BackendEvent {
             setupMenu()
         })
     }
+
+    
 
     ImportProject = () => {
         if(mainWindow == undefined) return;

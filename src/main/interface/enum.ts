@@ -49,6 +49,21 @@ export enum ExecuteState {
     NONE, RUNNING, FINISH, ERROR, SKIP
 }
 
+export enum OSAction {
+    COPY_FILE,
+    COPY_DIR,
+    DELETE_FILE,
+    DELETE_DIR,
+    RENAME,
+    Exist,
+    LIST_FILE,
+    LIST_DIR,
+    CREATE_DIR,
+    CREATE_FILE,
+    READ_FILE,
+    COMMAND
+}
+
 export enum LuaLib {
     ALL = ~(~0 << 4),
     OS = 1 << 0, 

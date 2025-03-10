@@ -1,15 +1,16 @@
+import { parentPort } from "worker_threads";
+import WebSocket from "ws";
 import { Header, Setter } from "../interface";
-import { Client } from "./client";
 
 /**
  * The parameter feedback helper\
  * Update the main parameter container on the cluster server
  */
 export class ClientParameter {
-    private client:Client
+    private source:WebSocket
 
-    constructor(_client:Client){
-        this.client = _client
+    constructor(_source:WebSocket){
+        this.source = _source
     }
 
     /**
@@ -17,7 +18,7 @@ export class ClientParameter {
      * @param data Target KeyValue
      */
     feedbacknumber = (data:Setter) => {
-        if(this.client.source == undefined) return
+        if(this.source == undefined) return
         const p:Header = {
             name: "feedback_number",
             data: {
@@ -25,14 +26,14 @@ export class ClientParameter {
                 value: data.value
             }
         }
-        this.client.source.send(JSON.stringify(p, null, 2))
+        this.source.send(JSON.stringify(p, null, 2))
     }
     /**
      * Update parameter boolean on the cluster server
      * @param data Target KeyValue
      */
     feedbackboolean = (data:Setter) => {
-        if(this.client.source == undefined) return
+        if(this.source == undefined) return
         const p:Header = {
             name: "feedback_boolean",
             data: {
@@ -40,14 +41,14 @@ export class ClientParameter {
                 value: data.value
             }
         }
-        this.client.source.send(JSON.stringify(p, null, 2))
+        this.source.send(JSON.stringify(p, null, 2))
     }
     /**
      * Update parameter string on the cluster server
      * @param data Target KeyValue
      */
     feedbackstring = (data:Setter) => {
-        if(this.client.source == undefined) return
+        if(this.source == undefined) return
         const p:Header = {
             name: "feedback_string",
             data: {
@@ -55,6 +56,45 @@ export class ClientParameter {
                 value: data.value
             }
         }
-        this.client.source.send(JSON.stringify(p, null, 2))
+        this.source.send(JSON.stringify(p, null, 2))
+    }
+}
+
+export class ClientWorkerParameter {
+    /**
+     * Update parameter number on the cluster server
+     * @param data Target KeyValue
+     */
+    feedbacknumber = (data:Setter) => {
+        const p:Header = {
+            name: "feedbacknumber",
+            data: {
+                key: data.key,
+                value: data.value
+            }
+        }
+        parentPort?.postMessage(p)
+    }
+
+    feedbackboolean = (data:Setter) => {
+        const p:Header = {
+            name: "feedbackboolean",
+            data: {
+                key: data.key,
+                value: data.value
+            }
+        }
+        parentPort?.postMessage(p)
+    }
+
+    feedbackstring = (data:Setter) => {
+        const p:Header = {
+            name: "feedbackstring",
+            data: {
+                key: data.key,
+                value: data.value
+            }
+        }
+        parentPort?.postMessage(p)
     }
 }

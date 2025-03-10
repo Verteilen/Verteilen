@@ -6,7 +6,7 @@ import { OnePath, OSAction, Setter, TwoPath, WorkerOS } from "../../interface";
 class ClientOS {
     private messager:Function
     private messager_log:Function
-    private tag:string
+    private tag:string = ""
     stopState = false
 
     constructor(_messager:Function, _messager_log:Function){
@@ -196,13 +196,25 @@ class ClassOSWorker {
     }
 
     RUN = (data:WorkerOS) => {
-        this.buffer.RUN(data)
+        this.buffer.RUN(data).then(x => {
+            const d:Setter = {
+                key: 'result',
+                value: x
+            }
+            parentPort?.postMessage(d)
+        }).catch(err => {
+            const d:Setter = {
+                key: 'err',
+                value: err.toString()
+            }
+            parentPort?.postMessage(d)
+        })
     }
 
     private messager = (message:string, tag?:string) => {
         const d:Setter = {
             key: 'messager',
-            value: `${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`
+            value: `${ tag == undefined ? '[Backend]' : '[' + tag + ']' } ${message}`
         }
         parentPort?.postMessage(d)
     }
@@ -210,7 +222,7 @@ class ClassOSWorker {
     private messager_log = (message:string, tag?:string) => {
         const d:Setter = {
             key: 'messager_log',
-            value: `${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`
+            value: `${ tag == undefined ? '[Backend]' : '[' + tag + ']' } ${message}`
         }
         parentPort?.postMessage(d)
     }
