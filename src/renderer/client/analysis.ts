@@ -15,6 +15,8 @@ export class ClientAnalysis {
     private resource:ClientResource
     private resource_wanter:Array<WebSocket> = []
 
+    private resource_cache:Header | undefined = undefined
+
     constructor(_messager:Messager, _messager_log:Messager, _client:Client){
         this.client = _client
         this.messager = _messager
@@ -70,11 +72,16 @@ export class ClientAnalysis {
 
     resource_start = (data:number, source: WebSocket) => {
         this.resource_wanter.push(source)
+        this.messager_log(`Register resource_wanter!, count: ${this.resource_wanter.length}`)
+        if(this.resource_cache != undefined) source.send(JSON.stringify(this.resource_cache))
     }
 
     resource_end = (data:number, source: WebSocket) => {
         const index = this.resource_wanter.findIndex(x => x ==source)
-        if(index != -1) this.resource_wanter.splice(index, 1)
+        if(index != -1) {
+            this.resource_wanter.splice(index, 1)
+            this.messager_log(`UnRegister resource_wanter!, count: ${this.resource_wanter.length}`)
+        }
     }
 
     update = (client:Client) => {
@@ -85,6 +92,7 @@ export class ClientAnalysis {
                     data: x
                 }
                 this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
+                this.resource_cache = h
             })
         }
     }

@@ -26,7 +26,7 @@ export class Client {
         this.messager = _messager
         this.messager_log = _messager_log
         this.analysis = new ClientAnalysis(_messager, _messager_log, this)
-        setInterval(this.update, 10000);
+        setInterval(this.update, 3000);
     }
 
     /**

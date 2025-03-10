@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import byteSize from 'byte-size';
 import { Emitter } from 'mitt';
-import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ConnectionText, NodeTable } from '../../interface';
+import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { AppConfig, BusType, ConnectionText, Header, NodeTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { WebsocketManager } from '../../script/socket_manager';
 
@@ -35,6 +35,18 @@ const items_final = computed(() => {
 const hasSelect = computed(() => selection.value.length > 0)
 const selected_node_ids = computed(() => props.nodes.filter(x => selection.value.includes(x.ID)).map(x => x.ID))
 const infoTarget = computed(() => props.nodes.find(x => x.ID == infoUUID.value))
+
+watch(() => infoModal.value, () => {
+    if(infoModal.value){
+        const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
+        const d:Header = { name: 'resource_start', data: 0 }
+        p?.websocket.send(JSON.stringify(d))
+    }else{
+        const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
+        const d:Header = { name: 'resource_end', data: 0 }
+        p?.websocket.send(JSON.stringify(d))
+    }
+})
 
 const serverUpdate = () => {
     const p = props.manager?.server_update()
@@ -154,12 +166,12 @@ onUnmounted(() => {
             </v-card>
         </v-dialog>
         <v-dialog width="500" v-model="infoModal" class="text-white">
-            <v-card v-if="infoTarget != undefined && infoTarget.system != undefined">
-                <v-card-title>
+            <v-card>
+                <v-card-title v-if="infoTarget != undefined && infoTarget.system != undefined">
                     <v-icon>mdi-information</v-icon>
                     {{ infoTarget.ID }}
                 </v-card-title>
-                <v-card-text>
+                <v-card-text v-if="infoTarget != undefined && infoTarget.system != undefined">
                     <details>
                         <summary>SYSTEM</summary>
                         <div>
