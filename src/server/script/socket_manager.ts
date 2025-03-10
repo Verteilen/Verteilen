@@ -152,6 +152,7 @@ export class WebsocketManager {
     private update = () => {
         const h:Header = { name: 'ping', data: 0}
         this.targets.forEach(x => {
+            if(x.websocket.readyState != WebSocket.OPEN) return
             x.last = Date.now()
             x.websocket.send(JSON.stringify(h))
         })

@@ -392,50 +392,52 @@ onMounted(() => {
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
 
-  if(props.config.isElectron){
-    websocket_manager.value = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
-    execute_manager.value = new ExecuteManager(websocket_manager.value, messager_log)
-    execute_manager.value.libs = libs.value
-    execute_manager.value.proxy = proxy
-    websocket_manager.value.newConnect = newConnect
-    websocket_manager.value.disconnect = disconnect
-    websocket_manager.value.onAnalysis = execute_manager.value.Analysis
+  waitSetup(props.config).then(x => {
+    if(!x.isExpress){
+      websocket_manager.value = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
+      execute_manager.value = new ExecuteManager(websocket_manager.value, messager_log)
+      execute_manager.value.libs = libs.value
+      execute_manager.value.proxy = proxy
+      websocket_manager.value.newConnect = newConnect
+      websocket_manager.value.disconnect = disconnect
+      websocket_manager.value.onAnalysis = execute_manager.value.Analysis
+    }
 
-    window.electronAPI.send('menu', true)
-    window.electronAPI.eventOn('createProject', menuCreateProject)
-    window.electronAPI.eventOn('menu_export_project', menu_export_project)
-    window.electronAPI.eventOn('run_all', run_all)
-    window.electronAPI.eventOn('run_all_keep', run_all_keep)
-    window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
-    window.electronAPI.invoke('load_lib').then(x => {
-      libs.value = JSON.parse(x)
-      console.log("Libs", libs.value)
-    })
-    window.electronAPI.invoke('load_record').then(x => {
-      const record:Record = JSON.parse(x)
-      console.log("Records", record)
-      projects.value = record.projects
-      nodes.value = record.nodes.map(x => {
-        return Object.assign(x, {
-          s: false,
-          state: 0,
-          connection_rate: 0
+    if(props.config.isElectron){
+      window.electronAPI.send('menu', true)
+      window.electronAPI.eventOn('createProject', menuCreateProject)
+      window.electronAPI.eventOn('menu_export_project', menu_export_project)
+      window.electronAPI.eventOn('run_all', run_all)
+      window.electronAPI.eventOn('run_all_keep', run_all_keep)
+      window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
+      window.electronAPI.invoke('load_lib').then(x => {
+        libs.value = JSON.parse(x)
+        console.log("Libs", libs.value)
+      })
+      window.electronAPI.invoke('load_record').then(x => {
+        const record:Record = JSON.parse(x)
+        console.log("Records", record)
+        projects.value = record.projects
+        nodes.value = record.nodes.map(x => {
+          return Object.assign(x, {
+            s: false,
+            state: 0,
+            connection_rate: 0
+          })
+        })
+        nodes.value.forEach(x => {
+          websocket_manager.value?.server_start(x.url)
+        })
+        nextTick(() => {
+          allUpdate()
         })
       })
-      nodes.value.forEach(x => {
-        websocket_manager.value?.server_start(x.url)
+      window.electronAPI.invoke('load_log').then(x => {
+        log.value = JSON.parse(x)
+        console.log("Logs", log.value)
       })
-      nextTick(() => {
-        allUpdate()
-      })
-    })
-    window.electronAPI.invoke('load_log').then(x => {
-      log.value = JSON.parse(x)
-      console.log("Logs", log.value)
-    })
-  }
-
-  waitSetup(props.config).then(x => {
+    }
+    
     console_manager.value = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
       on: emitter!.on,
       off: emitter!.off,
