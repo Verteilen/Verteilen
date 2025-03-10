@@ -17,11 +17,7 @@ class ClientOS {
     RUN = async (data:WorkerOS):Promise<any> => {
         this.tag = data.tag
         switch(data.type){
-            case OSAction.COPY_FILE:
-                {
-                    this.file_copy(data.data)
-                    break
-                }
+            case OSAction.COPY_FILE: { return this.file_copy(data.data) }
             case OSAction.COPY_DIR:
                 {
                     this.dir_copy(data.data)
@@ -80,9 +76,15 @@ class ClientOS {
         }
     }
 
-    private file_copy = (data:TwoPath) => {
-        this.messager(`[OS Action] 檔案複製, ${data.from} => ${data.to}`, this.tag)
-        fs.copyFileSync(data.from, data.to)
+    private file_copy = async (data:TwoPath):Promise<any> => {
+        return new Promise<any>(() => {
+            if(!fs.existsSync(data.from)) {
+                throw `[OS Action] File does not exist: ${data.from}`
+            }
+            fs.copyFileSync(data.from, data.to)
+            this.messager_log(`[OS Action] File copy successfully, ${data.from} => ${data.to}`, this.tag)
+            return true
+        })
     }
     
     private dir_copy = (data:TwoPath) => {
@@ -202,7 +204,7 @@ class ClassOSWorker {
             key: 'messager',
             value: `${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`
         }
-        parentPort?.postMessage(JSON.stringify(d))
+        parentPort?.postMessage(d)
     }
 
     private messager_log = (message:string, tag?:string) => {
@@ -210,7 +212,7 @@ class ClassOSWorker {
             key: 'messager_log',
             value: `${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`
         }
-        parentPort?.postMessage(JSON.stringify(d))
+        parentPort?.postMessage(d)
     }
 }
 
@@ -218,16 +220,15 @@ class ClassOSWorker {
 /**
  * Multi-thread: OS action
  */
-parentPort?.on('message', msg => {
-    const d:WorkerOS = JSON.parse(msg)
+parentPort?.on('message', (msg:WorkerOS) => {
     const l = new ClassOSWorker()
-    l.RUN(d)
+    l.RUN(msg)
 })
 
 /**
  * Single-thread: OS action
  */
-export const RUN = async (d:WorkerOS, _messager:Function, _messager_log:Function):Promise<any> => {
+export const RUN = async (msg:WorkerOS, _messager:Function, _messager_log:Function):Promise<any> => {
     const l = new ClientOS(_messager, _messager_log)
-    return l.RUN(d)
+    return l.RUN(msg)
 }
