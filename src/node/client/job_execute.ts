@@ -1,5 +1,6 @@
 import cluster from 'cluster';
-import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, OnePath, Parameter, TwoPath } from "../interface";
+import { parentPort } from 'worker_threads';
+import { Header, Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, OnePath, Parameter, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { ClientJobParameter } from "./job_parameter";
 import { ClientLua } from "./lua";
@@ -46,8 +47,13 @@ export class ClientJobExecute {
             process.exit(0)
         })
         .catch(err => {
-            console.trace(err)
-            process.exit(err)
+            const d:Header = {
+                name: "error",
+                meta: "Execute job failed",
+                data: err,
+            }
+            parentPort?.postMessage(d)
+            process.exit(1)
         })
     }
     
@@ -62,50 +68,60 @@ export class ClientJobExecute {
                 case JobType.COPY_FILE:
                     {
                         const data:TwoPath = { from: this.job.string_args[0], to: this.job.string_args[1] }
-                        this.os.file_copy(data)
-                        resolve(`複製檔案成功, ${data.from}, ${data.to}`)
+                        if(this.os.fs_file_exist({path: data.from})){
+                            this.os.file_copy(data)    
+                            this.os.file_copy(data)
+                            resolve(`Copy file successfully, ${data.from}, ${data.to}`)
+                        }else{
+                            reject(`File does not exist, ${data.from}`)
+                        }
                         break
                     }
                 case JobType.COPY_DIR:
                     {
                         const data:TwoPath = { from: this.job.string_args[0], to: this.job.string_args[1] }
-                        this.os.dir_copy(data)
-                        resolve(`複製資料夾成功, ${data.from}, ${data.to}`)
+                        if(this.os.fs_dir_exist({path: data.from})){
+                            this.os.file_copy(data)    
+                            this.os.file_copy(data)
+                            resolve(`Copy dir successfully, ${data.from}, ${data.to}`)
+                        }else{
+                            reject(`Dir does not exist, ${data.from}`)
+                        }
                         break
                     }
                 case JobType.DELETE_FILE:
                     {
                         const data:OnePath = { path: this.job.string_args[0] }
                         this.os.file_delete(data)
-                        resolve(`刪除檔案成功, ${data.path}`)
+                        resolve(`Delete file successfully, ${data.path}`)
                         break
                     }
                 case JobType.DELETE_DIR:
                     {
                         const data:OnePath = { path: this.job.string_args[0] }
                         this.os.dir_delete(data)
-                        resolve(`刪除資料夾成功, ${data.path}`)
+                        resolve(`Delete folder successfully, ${data.path}`)
                         break
                     }
                 case JobType.CREATE_DIR:
                     {
                         const data:OnePath = { path: this.job.string_args[0] }
                         this.os.dir_create(data)
-                        resolve(`建立資料夾成功, ${data.path}`)
+                        resolve(`Create dir successfully, ${data.path}`)
                         break
                     }
                 case JobType.CREATE_FILE:
                     {
                         const data:TwoPath = { from: this.job.string_args[0], to: this.job.string_args[1] }
                         this.os.file_write(data)
-                        resolve(`建立檔案成功, ${data.from} ${data.to}`)
+                        resolve(`Create file successfully, ${data.from} ${data.to}`)
                         break
                     }
                 case JobType.RENAME:
                     {
                         const data:TwoPath = { from: this.job.string_args[0], to: this.job.string_args[1] }
                         this.os.rename(data)
-                        resolve(`改名成功, ${data.from} ${data.to}`)
+                        resolve(`Rename successfully, ${data.from} ${data.to}`)
                         break
                     }
                 case JobType.LUA:
@@ -139,9 +155,9 @@ export class ClientJobExecute {
                     {
                         const data:OnePath = { path: this.job.string_args[0] }
                         if(this.os.fs_exist(data)){
-                            resolve(`路徑存在 ${data.path}`)
+                            resolve(`Path exist ${data.path}`)
                         }else{
-                            reject(`路徑不存在 ${data.path}`)
+                            reject(`Path not exist ${data.path}`)
                         }
                         break
                     }
@@ -149,9 +165,9 @@ export class ClientJobExecute {
                     {
                         const r = this.lua.LuaExecuteWithLib(this.job.lua, this.job.string_args)
                         if(r != undefined && r == 0){
-                            resolve(`執行 Lua 成功`)
+                            resolve(`Execute Lua successfully`)
                         }else{
-                            reject(`執行 Lua 失敗`)
+                            reject(`Execute Lua failed`)
                         }
                         break
                     }

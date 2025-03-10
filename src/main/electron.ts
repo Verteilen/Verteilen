@@ -29,6 +29,8 @@ function createWindow () {
         backendEvent.Destroy()
     })
 
+    backendEvent.EventInit()
+
     if (process.env.NODE_ENV === 'development') {
         const rendererPort = process.argv[2];
         mainWindow.loadURL(`http://localhost:${rendererPort}`);
@@ -44,8 +46,6 @@ function createWindow () {
 }
 
 export function RUN(){
-    backendEvent.EventInit()
-
     app.whenReady().then(() => {
     createWindow();
     

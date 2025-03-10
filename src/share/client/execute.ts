@@ -56,6 +56,9 @@ export class ClientExecute {
             else if(msg.name == 'messager_log'){
                 this.messager_log(msg.data, msg.meta)
             }
+            else if(msg.name == 'error'){
+                this.messager_log(msg.data, msg.meta)
+            }
             else if(msg.name == 'feedbackstring'){
                 para.feedbackstring(msg.data)
             }

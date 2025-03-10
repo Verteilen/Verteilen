@@ -60,7 +60,7 @@ function setboolean(key:string, value:boolean){
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
     
-    messager_log(`[布林參數回饋] ${key} = ${value}`)
+    messager_log(`[Boolean feedback] ${key} = ${value}`)
     para?.feedbackboolean({key:key,value:value})
 }
 function setnumber(key:string, value:number){
@@ -69,7 +69,7 @@ function setnumber(key:string, value:number){
     const target = p.containers.find(x => x.name == key && x.type == DataType.Number)
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
-    messager_log(`[數字參數回饋] ${key} = ${value}`)
+    messager_log(`[Number feedback] ${key} = ${value}`)
     para?.feedbacknumber({key:key,value:value})
 }
 function setstring(key:string, value:string){
@@ -78,7 +78,7 @@ function setstring(key:string, value:string){
     const target = p.containers.find(x => x.name == key && x.type == DataType.String)
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
-    messager_log(`[字串參數回饋] ${key} = ${value}`)
+    messager_log(`[String feedback] ${key} = ${value}`)
     para?.feedbackstring({key:key,value:value})
 }
 //#endregion

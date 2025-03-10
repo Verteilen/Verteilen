@@ -47,27 +47,27 @@ export class Client {
         this.messager_log('[Server] Select Port: ' + port_result.toString())
         this.client = new WebSocketServer({port: port_result})
         this.client.on('listening', () => {
-            this.messager_log('[聆聽事件] 伺服器啟動於 PORT: ' + port_result.toString())
+            this.messager_log('[Server] Listen PORT: ' + port_result.toString())
         })
         this.client.on('error', (err) => {
-            this.messager_log(`[錯誤事件] ${err.name}\n\t${err.message}\n\t${err.stack}`)
+            this.messager_log(`[Server] Error ${err.name}\n\t${err.message}\n\t${err.stack}`)
         })
         this.client.on('close', () => {
-            this.messager_log('[關閉事件] 伺服器關閉 !')
+            this.messager_log('[Server] Close !')
         })
         this.client.on('connection', (ws, request) => {
             this.sources.push(ws)
-            this.messager_log(`[連線事件] 偵測到新來源連線, ${ws.url}`)
+            this.messager_log(`[Server] New Connection detected, ${ws.url}`)
             ws.on('close', (code, reason) => {
                 const index = this.sources.findIndex(x => x == ws)
                 if(index != -1) this.sources.splice(index, 1)
-                this.messager_log(`[來源關閉事件] ${code} ${reason}`)
+                this.messager_log(`[Source] Close ${code} ${reason}`)
             })
             ws.on('error', (err) => {
-                this.messager_log(`[來源錯誤事件] ${err.name}\n\t${err.message}\n\t${err.stack}`)
+                this.messager_log(`[Source] Error ${err.name}\n\t${err.message}\n\t${err.stack}`)
             })
             ws.on('open', () => {
-                this.messager_log(`[新來源事件] 新的來源也建立連結, URL: ${ws?.url}`)
+                this.messager_log(`[Source] New source is connected, URL: ${ws?.url}`)
             })
             ws.on('message', (data, isBinery) => {
                 const h:Header | undefined = JSON.parse(data.toString());

@@ -42,13 +42,13 @@ export class BackendEvent {
         })
         
         ipcMain.on('modeSelect', (event, isclient:boolean) => {
-            console.log("[後台訊息] 選擇模式: " + (isclient ? "節點" : "伺服器"))
-            if(isclient) event.sender.send('msgAppend', "客戶端模式啟動")
+            console.log("[Backend] Mode select: " + (isclient ? "Node" : "Server"))
+            if(isclient) event.sender.send('msgAppend', "Client mode activate")
         })
         
         ipcMain.on('menu', (event, on:boolean):void => {
             if(mainWindow == undefined) return;
-            console.log(`[後台訊息] 工具列顯示設定為: ${on}`)
+            console.log(`[Backend] Menu Display: ${on}`)
             this.menu_state = on
             if(on) mainWindow.setMenu(menu_server!)
             else mainWindow.setMenu(menu_client!)
@@ -58,7 +58,7 @@ export class BackendEvent {
         })
         ipcMain.handle('load_record', (e) => {
             const exist = fs.existsSync('record.json');
-            messager_log(`[事件] 讀取 record.js, 檔案存在: ${exist}`)
+            messager_log(`[Event] Read record.js, file exist: ${exist}`)
             if(!exist){
                 const record:Record = {
                     projects: [],
@@ -76,7 +76,7 @@ export class BackendEvent {
         })
         ipcMain.handle('load_log', (e) => {
             const exist = fs.existsSync('log.json');
-            messager_log(`[事件] 讀取 log.js, 檔案存在: ${exist}`)
+            messager_log(`[Event] Read log.js, file exist: ${exist}`)
             if(!exist){
                 const record:Log = {
                     logs: []
@@ -93,7 +93,7 @@ export class BackendEvent {
         })
         ipcMain.handle('load_lib', (e) => {
             const exist = fs.existsSync('log.json');
-            messager_log(`[事件] 讀取 lib.js, 檔案存在: ${exist}`)
+            messager_log(`[Event] Read lib.js, file exist: ${exist}`)
             if(!exist){
                 const record:Libraries = {
                     libs: []
@@ -110,7 +110,7 @@ export class BackendEvent {
         })
         ipcMain.handle('load_preference', (e) => {
             const exist = fs.existsSync('preference.json');
-            messager_log(`[事件] 讀取 preference.js, 檔案存在: ${exist}`)
+            messager_log(`[Event] Read preference.js, file exist: ${exist}`)
             if(!exist){
                 const record:Preference = {
                     lan: 'en'
