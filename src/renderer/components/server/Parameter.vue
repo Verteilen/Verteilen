@@ -283,6 +283,7 @@ onUnmounted(() => {
                     <v-checkbox density="compact" hide-details v-if="item.type == 0" v-model="item.value" @input="setdirty"></v-checkbox>
                     <v-text-field density="compact" hide-details v-if="item.type == 1" type="number" v-model="item.value" @input="setdirty"></v-text-field>
                     <v-text-field density="compact" hide-details v-if="item.type == 2" v-model="item.value" @input="setdirty"></v-text-field>
+                    <v-text-field density="compact" hide-details v-if="item.type == 3" v-model="item.meta" @input="setdirty"></v-text-field>
                 </template>
                 <template v-slot:item.hidden="{ item }">
                     <v-chip :color="item.hidden ? 'success' : 'error'">{{ item.hidden }}</v-chip>

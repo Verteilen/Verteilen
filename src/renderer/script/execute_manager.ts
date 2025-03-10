@@ -51,6 +51,7 @@ export class ExecuteManager{
         const n:number = job.index!
         this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
         this.proxy?.executeJobStart({ uuid: job.uuid, index: n - 1, node: wss.uuid })
+        let parameter_job:Parameter = JSON.parse(JSON.stringify(this.localPara))
 
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
@@ -58,7 +59,7 @@ export class ExecuteManager{
             for(let j = 0; j < task.properties.length; j++){
                 job.string_args[i] = job.string_args[i].replace(`%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
             }
-            job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
+            job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(parameter_job), { key: 'ck', value: n.toString() }])
             console.log("String replace: ", b, job.string_args[i])
         }
         const h:Header = {
@@ -268,6 +269,12 @@ export class ExecuteManager{
 
     SyncParameter = (p:Project) => {
         this.localPara = JSON.parse(JSON.stringify(p.parameter))
+        for(let i = 0; i < this.localPara!.containers.length; i++){
+            if(this.localPara!.containers[i].type == DataType.Expression && this.localPara!.containers[i].meta != undefined){
+                const text = `%{${this.localPara!.containers[i].meta}}%`
+                this.localPara!.containers[i].value = this.replacePara(text, [...this.to_keyvalue(this.localPara!)])
+            }
+        }
         this.websocket_manager.targets.forEach(x => {
             this.sync_para(this.localPara!, x)
         })
@@ -413,6 +420,7 @@ export class ExecuteManager{
         if(this.current_p == undefined) return
         const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.String)
         if(index != -1) this.current_p.parameter.containers[index].value = data.value
+        else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.String, hidden: true, runtimeOnly: true })
         this.messager_log(`[String Feedback] ${data.key} = ${data.value}`)
         // Sync
         const d:Header = { name: 'set_string', data: data}
@@ -423,6 +431,7 @@ export class ExecuteManager{
         if(this.current_p == undefined) return
         const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Number)
         if(index != -1) this.current_p.parameter.containers[index].value = data.value
+        else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.Number, hidden: true, runtimeOnly: true })
         this.messager_log(`[Number Feedback] ${data.key} = ${data.value}`)
         // Sync
         const d:Header = { name: 'set_number', data: data}
@@ -433,6 +442,7 @@ export class ExecuteManager{
         if(this.current_p == undefined) return
         const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Boolean)
         if(index != -1) this.current_p.parameter.containers[index].value = data.value
+        else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.Boolean, hidden: true, runtimeOnly: true })
         this.messager_log(`[Boolean Feedback] ${data.key} = ${data.value}`)
         // Sync
         const d:Header = { name: 'set_boolean', data: data}
@@ -543,14 +553,6 @@ export class ExecuteManager{
         return paras[index].value
     }
     
-    private _searchPara = (exp:string, paras:Array<KeyValue>) => {
-        let d = exp
-        paras.forEach(x => {
-            d = d.replace(x.key, x.value)
-        })
-        return d
-    }
-    
     private replacePara = (text:string, paras:Array<KeyValue>):string => {
         if (this.current_p == undefined) return text
         let buffer = ''
@@ -579,7 +581,7 @@ export class ExecuteManager{
 
     private to_keyvalue = (p:Parameter):Array<KeyValue> => {
         const paras = [
-            ...p.containers.map(x => { return { key: x.name, value: x.value.toString() } })
+            ...p.containers.filter(x => x.type != DataType.Expression).map(x => { return { key: x.name, value: x.value.toString() } })
         ]
         return paras
     }
