@@ -1,4 +1,4 @@
-import { ExecuteState } from "./enum"
+import { ExecuteState, OSAction } from "./enum"
 
 export interface WebsocketPack {
     s?:boolean
@@ -9,6 +9,12 @@ export interface WebsocketPack {
     information?: SystemLoad
     ms?: number
     last?: number
+}
+
+export interface WorkerOS {
+    type: OSAction
+    tag: string
+    data: any
 }
 
 export interface CronWebsocketPack {
