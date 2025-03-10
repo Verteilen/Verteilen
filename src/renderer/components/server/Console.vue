@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, JobCategory, Libraries, Log, Record, Setter } from '../../interface';
+import { BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, JobCategory, Libraries, Log, MESSAGE_LIMIT, Record, Setter } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 
@@ -98,6 +98,9 @@ const feedback_message = (d:Setter) => {
     const index = data.value!.task_detail.findIndex(x => x.node == d.key)
     if(index == -1) return
     data.value!.task_detail[index].message.push(d.value)
+    if(data.value!.task_detail[index].message.length > MESSAGE_LIMIT){
+        data.value!.task_detail[index].message.shift()
+    }
     
     props.logs.logs[0].logs[data.value!.task_index].task_detail[index].message.push(d.value)
     hasNewLog = true

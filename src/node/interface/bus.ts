@@ -5,6 +5,7 @@ import { NodeTable } from "./table"
 import { ToastData } from "./ui"
 
 type Handler<T = unknown> = (event: T) => void
+export type Messager = (msg:string, tag?:string) => void
 
 export interface BusProjectStart {
     uuid: string
@@ -104,6 +105,9 @@ export interface ExecuteProxy {
     feedbackMessage: (data:Setter) => void
 }
 
+/**
+ * Emitter events container for Primary use
+ */
 export type BusType = {
     makeToast: ToastData
     modeSelect: boolean
@@ -136,8 +140,14 @@ export type BusType = {
     analysis: BusAnalysis
     debuglog: string
     isExpress: boolean
+
+    delay: Setter
+    system: Setter
 }
 
+/**
+ * Emitter events container for Web client
+ */
 export type BusWebType = {
     raw_send: RawSend
 

@@ -1,23 +1,12 @@
 import bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import jwt from 'jsonwebtoken';
+import keypair from 'keypair';
 import path from 'path';
 import { JWT } from '../interface';
 
 const saltRounds = 10;
-const private_path = path.join(__dirname, 'encryption', 'private.pem')
-const public_path = path.join(__dirname, 'encryption', 'public.pem')
-
-let PRIVATEKEY = `-----BEGIN RSA PRIVATE KEY-----
-MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEA0R+eEHrMSCKfHdNX6NaJMLjnBT8fYXfnk4HbWrOi8+IOzv/es7amam5bBAr4vjerE/5ZW3iJLRovwcldLqcNxQIDAQABAkA02/aSuM9pDmNE4TZv0saTq7EtaNKwSuQcq268QvrWBSF7SM6I9mdhuIz0FgBJlAbTCfxZoxrlW3QjdGfXM5UTAiEA5iw7fS/nJSYpOwQDyETk9XKm5Wj5FIL7tmTd9x1WLjMCIQDolr1WNsgynNQ/amO8hdX3x3wKoK+l3L9+vA1uX1XsJwIgZW0SXczRD1asjnvrasGpHtuB3c+PCtHZN3tlMDJ2Om8CIQDEsc3W3ic53jUEmDVWVhyYGaSF3FQOwXtUczYslAU22wIhAN81FSd8+DPrYNCIZeHx9s53VFJQnGa2GGrMOPO+N+LG
------END RSA PRIVATE KEY-----`
-let PUBLICKEY = `-----BEGIN PUBLIC KEY-----
-MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIteiiCrnSRSrl1F+NJgpQRXto9RskFpmKNjJhOLpNvj7IfPyky4TJRKLD99416j+NASEkx7s0Hce+cCiDxXUUUCAwEAAQ==
------END PUBLIC KEY-----`
-
-
-PRIVATEKEY = fs.existsSync(private_path) ? fs.readdirSync(private_path).toString() : PRIVATEKEY
-PUBLICKEY = fs.existsSync(public_path) ? fs.readdirSync(public_path).toString() : PUBLICKEY
+const pair = keypair()
 
 export const Auth = async (username:string, password:string):Promise<boolean> => {
     return new Promise<boolean>((resolve, reject) => {
@@ -70,13 +59,13 @@ export const GenerateToken = (username: string, date:Date) => {
         user: username,
         create: Date.now(),
         expire: date.getTime()
-    }, PRIVATEKEY, { algorithm: 'RS256' })
+    }, pair.private, { algorithm: 'RS256' })
     return token
 }
 
 export const Verify = async (token:string):Promise<string | jwt.JwtPayload> => {
     return new Promise<string | jwt.JwtPayload>((resolve, reject) => {
-        jwt.verify(token, PUBLICKEY, (err, decoded) => {
+        jwt.verify(token, pair.public, (err, decoded) => {
             if(decoded == undefined || err) return false
             resolve(decoded)
         })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Parameter, Project } from '../../interface';
+import { BusType, DataType, DataTypeText, Parameter, ParameterContainer, Project } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
 interface PROPS {
@@ -14,23 +14,44 @@ const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'edit', data:Parameter): void
 }>()
+const fields:Ref<Array<any>> = ref([
+    { title: 'Name', align: 'center', key: 'name' },
+    { title: 'Type', align: 'center', key: 'type' },
+    { title: 'Hidden', align: 'center', key: 'hidden' },
+    { title: 'Runtime Only', align: 'center', key: 'runtimeOnly' },
+    { title: 'Value', align: 'center', key: 'value' },
+    { title: 'Detail', align: 'center', key: 'detail' },
+])
 const createModal = ref(false)
-const renameModal = ref(false)
-const renameData = ref({ type: 0, oldname: '', name: '' })
-const createData = ref({ temp: false, name: '', type: 0 })
-const types = ref(['字串', '數字', '布林'])
-const options:Ref<Array<{ text: string, value:number }>> = ref([])
+const editMode = ref(false)
+const createData:Ref<ParameterContainer> = ref({ name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number })
+const editData = ref({ name: '', type: 0 })
+const filter = ref({ showhidden: false, showruntime: false, type: -1 })
+const options:Ref<Array<{ title: string, value:number }>> = ref([])
 const dirty = ref(false)
-const buffer:Ref<Parameter> = ref({ numbers: [], strings: [], booleans: [] })
+const buffer:Ref<Parameter> = ref({ canWrite: true, containers: [] })
 const errorMessage = ref('')
 const titleError = ref(false)
+const selection:Ref<Array<string>> = ref([])
 const search = ref('')
 
-const hasSelect = computed(() => {
-    return buffer.value.booleans.filter(x => x.s).length > 0 || 
-        buffer.value.strings.filter(x => x.s).length > 0 || 
-        buffer.value.numbers.filter(x => x.s).length > 0
-}) 
+const hasSelect = computed(() => selection.value.length > 0)
+const items_final = computed(() => buffer.value.containers
+    .filter(x => {
+        if (!filter.value.showruntime && x.runtimeOnly) return false
+        return true
+    })
+    .filter(x => {
+        if (!filter.value.showhidden && x.hidden) return false
+        return true
+    })
+    .filter(x => {
+        return search.value == null || search.value.length == 0 ? true : x.name.includes(search.value)
+    })
+    .filter(x => {
+        if(filter.value.type == -1) return true
+        return filter.value.type == x.type
+    }))
 
 const updateParameter = () => {
     if( props.select == undefined) return
@@ -38,30 +59,30 @@ const updateParameter = () => {
     dirty.value = false
 }
 
-const getArray = (n:number):Array<{ s?:boolean, name: string, value: any }> => {
-    if( props.select == undefined) return []
-    if (n == 0) return search.value == null || search.value.length == 0 ? buffer.value.strings : buffer.value.strings.filter(x => x.name.includes(search.value))
-    else if (n == 1) return search.value == null || search.value.length == 0 ? buffer.value.numbers : buffer.value.numbers.filter(x => x.name.includes(search.value))
-    else return search.value == null || search.value.length == 0 ? buffer.value.booleans : buffer.value.booleans.filter(x => x.name.includes(search.value))
+const createParameter = () => {
+    createData.value = { name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number }
+    createModal.value = true
+    editMode.value = false
+    errorMessage.value = ''
+    titleError.value = false
 }
 
-const createParameter = () => {
-    createData.value = { temp: false, name: '', type: 0 }
+const editParameter = (oldname:string) => {
+    const p = buffer.value.containers.find(x => x.name == oldname)
+    if(p == undefined) return
+    createData.value = JSON.parse(JSON.stringify(p))
+    editData.value.name = p.name
+    editData.value.type = p.type
     createModal.value = true
+    editMode.value = true
     errorMessage.value = ''
     titleError.value = false
 }
 
 const cloneSelect = () => {
-    const bs = buffer.value.booleans.filter(x => x.s)
-    const ss = buffer.value.strings.filter(x => x.s)
-    const ns = buffer.value.numbers.filter(x => x.s)
-    bs.forEach(x => x.name += ` (${i18n.global.t('clone')})`)
-    ss.forEach(x => x.name += ` (${i18n.global.t('clone')})`)
-    ns.forEach(x => x.name += ` (${i18n.global.t('clone')})`)
-    buffer.value.booleans.push(...bs)
-    buffer.value.strings.push(...ss)
-    buffer.value.numbers.push(...ns)
+    const ps = buffer.value.containers.filter(x => selection.value.includes(x.name))
+    ps.forEach(x => x.name += ` (${i18n.global.t('clone')})`)
+    buffer.value.containers.push(...ps)
     dirty.value = true
 }
 
@@ -69,74 +90,9 @@ const saveParameter = () => {
     emits('edit', buffer.value)
 }
 
-const rename = (type:number, oldname:string) => {
-    renameData.value = { type: type, oldname: oldname, name: oldname }
-    renameData.value.type = type
-    renameModal.value = true;
-    errorMessage.value = ''
-    titleError.value = false
-}
-
 const selectall = (s:boolean) => {
-    buffer.value.booleans.forEach(x => x.s = s)
-    buffer.value.strings.forEach(x => x.s = s)
-    buffer.value.numbers.forEach(x => x.s = s)
+    selection.value = buffer.value.containers.map(x => x.name)
 }
-
-const confirmRename = () => {
-    if(renameData.value.name.length == 0){
-        errorMessage.value = i18n.global.t('error.title-needed')
-        titleError.value = true
-        return
-    }
-    if (renameData.value.type == 0){
-        const ss = buffer.value.strings.findIndex(x => x.name == renameData.value.oldname)
-        const iss = buffer.value.strings.findIndex(x => x.name == renameData.value.name)
-        if(ss != -1 && iss == -1) {
-            buffer.value.strings[ss].name = renameData.value.name
-        }else{
-            errorMessage.value = i18n.global.t('error.title-repeat')
-            titleError.value = true
-            return
-        }
-    }
-    else if (renameData.value.type == 0){
-        const ns = buffer.value.numbers.findIndex(x => x.name == renameData.value.oldname)
-        const ins = buffer.value.numbers.findIndex(x => x.name == renameData.value.name)
-        if(ns != -1 && ins == -1) {
-            buffer.value.numbers[ns].name = renameData.value.name
-        }else{
-            errorMessage.value = i18n.global.t('error.title-repeat')
-            titleError.value = true
-            return
-        }
-    }
-    else if (renameData.value.type == 0){
-        const bs = buffer.value.booleans.findIndex(x => x.name == renameData.value.oldname)
-        const ibs = buffer.value.booleans.findIndex(x => x.name == renameData.value.name)
-        if(bs != -1 && ibs == -1) {
-            buffer.value.booleans[bs].name = renameData.value.name
-        }else{
-            errorMessage.value = i18n.global.t('error.title-repeat')
-            titleError.value = true
-            return
-        }
-    }
-    renameModal.value = false;
-    dirty.value = true
-}
-
-const deleteSelect = () => {
-    const bs = buffer.value.booleans.filter(x => !x.s)
-    const ss = buffer.value.strings.filter(x => !x.s)
-    const ns = buffer.value.numbers.filter(x => !x.s)
-    buffer.value.booleans = bs
-    buffer.value.strings = ss
-    buffer.value.numbers = ns
-    dirty.value = true
-}
-
-const setdirty = () => dirty.value = true
 
 const confirmCreate = () => {
     if(createData.value.name.length == 0){
@@ -144,18 +100,93 @@ const confirmCreate = () => {
         titleError.value = true
         return
     }
+    if(buffer.value.containers.findIndex(x => x.name == createData.value.name) != -1){
+        errorMessage.value = i18n.global.t('error.title-repeat')
+        titleError.value = true
+        return
+    }
+    buffer.value.containers.push(createData.value)
     createModal.value = false
-    getArray(createData.value.type).push({ name: createData.value.name, value: 0 })
     dirty.value = true
 }
 
-onMounted(() => {
-    options.value = types.value.map((x, i) => {
+const confirmEdit = () => {
+    if(createData.value.name.length == 0){
+        errorMessage.value = i18n.global.t('error.title-needed')
+        titleError.value = true
+        return
+    }
+    if(editData.value.name != createData.value.name){
+        if(buffer.value.containers.findIndex(x => x.name == createData.value.name) != -1){
+            errorMessage.value = i18n.global.t('error.title-repeat')
+            titleError.value = true
+            return
+        }
+    }
+    if(createData.value.type != editData.value.type){
+        if(createData.value.type = DataType.Boolean) createData.value.value = false
+        else if(createData.value.type = DataType.Expression) createData.value.value = ''
+        else if(createData.value.type = DataType.Number) createData.value.value = 0
+        else if(createData.value.type = DataType.String) createData.value.value = ''
+    }
+    const index = buffer.value.containers.findIndex(x => x.name == editData.value.name)
+    buffer.value.containers[index] = createData.value
+    createModal.value = false
+    dirty.value = true
+}
+
+const deleteSelect = () => {
+    buffer.value.containers = buffer.value.containers.filter(x => !selection.value.includes(x.name))
+    selection.value = []
+    dirty.value = true
+}
+
+const setdirty = () => dirty.value = true
+
+const DataTypeTranslate = (t:number):string => {
+    return i18n.global.t(DataTypeText[t])
+}
+
+const updateLocate = () => {
+    options.value = Object.keys(DataType).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
-            text: x,
-            value: i
+            title: DataTypeTranslate(index),
+            value: index
         }
     })
+    options.value.push({ title: "All", value: -1 })
+}
+
+const moveup = (name:string) => {
+    const index = buffer.value.containers.findIndex(x => x.name == name)
+    const bb = buffer.value.containers[index]
+    buffer.value.containers[index] = buffer.value.containers[index - 1]
+    buffer.value.containers[index - 1] = bb
+    dirty.value = true
+}
+
+const movedown = (name:string) => {
+    const index = buffer.value.containers.findIndex(x => x.name == name)
+    const bb = buffer.value.containers[index]
+    buffer.value.containers[index] = buffer.value.containers[index + 1]
+    buffer.value.containers[index + 1] = bb
+    dirty.value = true
+}
+
+const isFirst = (name:string) => {
+    const index = buffer.value.containers.findIndex(x => x.name == name)
+    return index <= 0
+}
+
+const isLast = (name:string) => {
+    const index = buffer.value.containers.findIndex(x => x.name == name)
+    if(index == -1) return true
+    return index == buffer.value.containers.length - 1
+}
+
+onMounted(() => {
+    updateLocate()
+    emitter?.on('updateLocate', updateLocate)
     emitter?.on('updateParameter', updateParameter)
     nextTick(() => {
         updateParameter()
@@ -163,6 +194,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    emitter?.off('updateLocate', updateLocate)
     emitter?.off('updateParameter', updateParameter)
 })
 
@@ -227,60 +259,62 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
+        <v-toolbar>
+            <v-checkbox class="pl-3" :label="$t('filter.show-hidden')" v-model="filter.showhidden" hide-details></v-checkbox>
+            <v-checkbox class="pl-3" :label="$t('filter.show-runtime')" v-model="filter.showruntime" hide-details></v-checkbox>
+            <v-select class="pl-3" density="compact" :label="$t('filter.type')" v-model="filter.type" :items="options" item-text="text" hide-details max-width="300px"></v-select>
+            <v-spacer></v-spacer>
+            <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
+        </v-toolbar>
         <div class="py-3 px-5 text-left">
-            <v-expansion-panels class="px-6 text-white" multiple>
-                <v-expansion-panel v-for="n in 3" :key="n" class="my-2" color="blue-darken-4">
-                    <v-expansion-panel-title>
-                        <h4 v-if="n == 1">{{ $t('types.string') }}</h4>
-                        <h4 v-else-if="n == 2">{{ $t('types.number') }}</h4>
-                        <h4 v-else-if="n == 3">{{ $t('types.boolean') }}</h4>
-                    </v-expansion-panel-title>
-                    <v-expansion-panel-text>
-                        <v-row v-for="(c, i) in getArray(n - 1)" :key="i">
-                            <v-col cols="auto">
-                                <v-checkbox v-model="c.s" width="30" hide-details @input="setdirty"></v-checkbox>
-                            </v-col>
-                            <v-col cols="10">
-                                <v-text-field v-if="n == 1" :label="c.name" v-model="c.value" hide-details @input="setdirty"></v-text-field>
-                                <v-text-field v-else-if="n == 2" :label="c.name" v-model.number="c.value" type="number" hide-details @input="setdirty"></v-text-field>
-                                <v-checkbox v-else-if="n == 3" :label="c.name" v-model="c.value" hide-details @input="setdirty"></v-checkbox>
-                            </v-col>
-                            <v-col cols="1" class="mt-3">
-                                <v-btn class="w-100" color="primary" @click="rename(n - 1, c.name)" @input="setdirty">{{ $t('rename') }}</v-btn>
-                            </v-col>
-                        </v-row>
-                    </v-expansion-panel-text>
-                </v-expansion-panel>
-            </v-expansion-panels>
+            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="name">
+                <template v-slot:item.detail="{ item }">
+                    <v-btn flat icon @click="editParameter(item.name)" size="small">
+                        <v-icon>mdi-pencil</v-icon>
+                    </v-btn>
+                    <v-btn flat icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
+                        <v-icon>mdi-arrow-up</v-icon>
+                    </v-btn>
+                    <v-btn flat icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
+                        <v-icon>mdi-arrow-down</v-icon>
+                    </v-btn>
+                </template>
+                <template v-slot:item.value="{ item }">
+                    <v-checkbox density="compact" hide-details v-if="item.type == 0" v-model="item.value" @input="setdirty"></v-checkbox>
+                    <v-text-field density="compact" hide-details v-if="item.type == 1" type="number" v-model="item.value" @input="setdirty"></v-text-field>
+                    <v-text-field density="compact" hide-details v-if="item.type == 2" v-model="item.value" @input="setdirty"></v-text-field>
+                </template>
+                <template v-slot:item.hidden="{ item }">
+                    <v-chip :color="item.hidden ? 'success' : 'error'">{{ item.hidden }}</v-chip>
+                </template>
+                <template v-slot:item.runtimeOnly="{ item }">
+                    <v-chip :color="item.runtimeOnly ? 'success' : 'error'">{{ item.runtimeOnly }}</v-chip>
+                </template>
+                <template v-slot:item.type="{ item }">
+                    <v-chip color="info">{{ DataTypeTranslate(item.type) }}</v-chip>
+                </template>
+            </v-data-table>
         </div>
         <v-dialog width="500" v-model="createModal" class="text-white">
             <v-card>
-                <v-card-title>
+                <v-card-title v-if="!editMode">
                     <v-icon>mdi-hammer</v-icon>
                     {{ $t('modal.new-parameter') }}
                 </v-card-title>
-                <v-card-text>
-                    <v-text-field :error="titleError" v-model="createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-                    <v-select class="mt-3" v-model="createData.type" :items="options" item-title="text" :label="$t('modal.parameter-datatype')" hide-details></v-select>
-                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
-        <v-dialog width="500" v-model="renameModal" class="text-white">
-            <v-card>
-                <v-card-title>
+                <v-card-title v-else>
                     <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.rename-parameter') }}
+                    {{ $t('modal.edit-parameter') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field :error="titleError" v-model="renameData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                    <v-text-field :error="titleError" v-model="createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                    <v-select class="mt-3" v-model="createData.type" :items="options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
+                    <v-checkbox :label="$t('filter.show-hidden')" v-model="createData.hidden" hide-details></v-checkbox>
+                    <v-checkbox :label="$t('filter.show-runtime')" v-model="createData.runtimeOnly" hide-details></v-checkbox>
                     <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmRename">{{ $t('rename') }}</v-btn>
+                    <v-btn class="mt-3" color="primary" v-if="!editMode" @click="confirmCreate">{{ $t('create') }}</v-btn>
+                    <v-btn class="mt-3" color="primary" v-else @click="confirmEdit">{{ $t('modify') }}</v-btn>
                 </template>
             </v-card>
         </v-dialog>

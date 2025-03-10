@@ -1,6 +1,7 @@
+import cluster from 'cluster';
 import { Menu } from 'electron';
+import { mainWindow } from './electron';
 import { backendEvent } from './event';
-import { mainWindow } from './main';
 import { i18n } from './plugins/i18n';
 
 const template_file = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
@@ -119,8 +120,13 @@ const template_client = ():Array<(Electron.MenuItemConstructorOptions) | (Electr
     ...template_helper()
 ]
 
-export let menu_server = Menu.buildFromTemplate(template_server())
-export let menu_client = Menu.buildFromTemplate(template_client())
+export let menu_server:Electron.Menu | undefined = undefined
+export let menu_client:Electron.Menu | undefined = undefined
+
+if(cluster.isPrimary){
+    menu_server = Menu.buildFromTemplate(template_server())
+    menu_client = Menu.buildFromTemplate(template_client())
+}
 
 export const setupMenu = () => {
     menu_server = Menu.buildFromTemplate(template_server())

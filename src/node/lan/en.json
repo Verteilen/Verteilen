@@ -30,6 +30,12 @@
         "title-needed": "Title is needed",
         "title-repeat": "Cannot use title which already exists"
     },
+    "filter": {
+        "type": "Datatype",
+        "canwrite": "Runtime Write",
+        "show-hidden": "Hidden",
+        "show-runtime": "Runtime"
+    },
     "modal": {
         "new-project": "New Project",
         "modify-project": "Modify Project",
@@ -41,7 +47,7 @@
         "enter-task-description": "Enter Task Description",
         "new-job": "New Job",
         "new-parameter": "New Parameter",
-        "rename-parameter": "Rename Parameter",
+        "edit-parameter": "Modify Parameter",
         "enter-parameter-name": "Enter Parameter Name",
         "parameter-datatype": "Datatype",
         "new-node": "New Node",
@@ -105,7 +111,10 @@
         "project": {
             "default": "Example",
             "gs4": "Funique GS4",
-            "concat": "FFmpeg concat"
+            "gs4-2": "Funique GS4 V2",
+            "concat": "FFmpeg concat",
+            "blender": "Blender Render",
+            "aftereffect": "After Effect Render"
         },
         "state": {
             "none": "Prepare",
@@ -136,7 +145,8 @@
     "types": {
         "number": "Number",
         "string": "String",
-        "boolean": "Boolean"
+        "boolean": "Boolean",
+        "expression": "Expression"
     },
     "expression": {
         "title": "Title",

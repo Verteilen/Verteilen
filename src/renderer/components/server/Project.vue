@@ -5,7 +5,7 @@ import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vu
 import { AppConfig, BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { GetFFmpeg_Image2VideoProjectTemplate } from '../../template/project/FFmpeg_2Video';
-import { GetDefaultProjectTemplate, GetFUNIQUE_GS4ProjectTemplate } from '../../template/projectTemplate';
+import { GetAfterEffectTemplate, GetBlenderTemplate, GetDefaultProjectTemplate, GetFUNIQUE_GS4Project_V2_Template, GetFUNIQUE_GS4ProjectTemplate } from '../../template/projectTemplate';
 
 interface PROPS {
     projects: Array<Project>
@@ -41,6 +41,16 @@ const errorMessage = ref('')
 const titleError = ref(false)
 const search = ref('')
 const selection:Ref<Array<string>> = ref([])
+
+type callbackFunc = (input:Project)=>Project
+const projectTemp:{ [key:number]:callbackFunc } = {
+    0: GetDefaultProjectTemplate,
+    1: GetFUNIQUE_GS4ProjectTemplate,
+    2: GetFUNIQUE_GS4Project_V2_Template,
+    3: GetFFmpeg_Image2VideoProjectTemplate,
+    4: GetBlenderTemplate,
+    5: GetAfterEffectTemplate
+}
 
 const items_final = computed(() => {
     return search.value == null || search.value.length == 0 ? items.value : items.value.filter(x => x.title.includes(search.value) || x.ID.includes(search.value))
@@ -139,20 +149,15 @@ const confirmCreate = () => {
         title: createData.value.title, 
         description: createData.value.description,
         parameter: {
-            numbers: [],
-            strings: [],
-            booleans: []
+            canWrite: true,
+            containers: []
         },
         task: [
 
         ]
     }
-    if (createData.value.useTemp && createData.value.temp == ProjectTemplate.DEFAULT){
-        buffer = GetDefaultProjectTemplate(buffer)
-    } else if (createData.value.useTemp && createData.value.temp == ProjectTemplate.FUNIQUE_GS4){
-        buffer = GetFUNIQUE_GS4ProjectTemplate(buffer)
-    } else if (createData.value.useTemp && createData.value.temp == ProjectTemplate.FFmpeg_Concat){
-        buffer = GetFFmpeg_Image2VideoProjectTemplate(buffer)
+    if (createData.value.useTemp){
+        buffer = projectTemp[createData.value.temp](buffer)
     }
     emits('added', 
         [buffer]
@@ -310,19 +315,19 @@ onUnmounted(() => {
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-btn flat icon @click="datachoose(item.ID)">
+                    <v-btn flat icon @click="datachoose(item.ID)" size="small">
                         <v-icon>mdi-location-enter</v-icon>
                     </v-btn>
-                    <v-btn flat icon @click="dataedit(item.ID)">
+                    <v-btn flat icon @click="dataedit(item.ID)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn flat icon @click="dataexport(item.ID)">
+                    <v-btn flat icon @click="dataexport(item.ID)" size="small">
                         <v-icon>mdi-export</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)">
+                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
                         <v-icon>mdi-arrow-up</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)">
+                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
                 </template>

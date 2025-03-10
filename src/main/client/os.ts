@@ -2,13 +2,16 @@ import { spawn } from 'child_process';
 import fs from "fs";
 import { OnePath, TwoPath } from "../interface";
 
-let stopState = false
 type gettag = ()=>string
 
+/**
+ * The operation system related actions utility
+ */
 export class ClientOS {
-    messager:Function
-    messager_log:Function
-    tag:gettag
+    private messager:Function
+    private messager_log:Function
+    private tag:gettag
+    stopState = false
 
     constructor(_tag:gettag, _messager:Function, _messager_log:Function){
         this.tag = _tag
@@ -72,9 +75,9 @@ export class ClientOS {
     }
     
     stopall = () => {
-        stopState = true
+        this.stopState = true
         setTimeout(() => {
-            stopState = false
+            this.stopState = false
         }, 1000);
     }
     
@@ -85,7 +88,7 @@ export class ClientOS {
         return new Promise<string>((resolve, reject) => {
             const child = spawn(command,  args.split(' '), { cwd: cwd, shell: true, stdio: ['inherit', 'pipe', 'pipe'] })
             const timer = setInterval(() => {
-                if(stopState){
+                if(this.stopState){
                     child.kill()
                     clearInterval(timer)
                 }

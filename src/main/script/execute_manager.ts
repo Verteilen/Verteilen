@@ -1,7 +1,11 @@
 import { formula, init } from "expressionparser";
-import { BusAnalysis, CronJobState, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Parameter, Project, Setter, Single, Task, WebsocketPack, WorkState } from "../interface";
+import { BusAnalysis, CronJobState, DataType, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, NodeLoad, Parameter, Project, Setter, Single, SystemLoad, Task, WebsocketPack, WorkState } from "../interface";
 import { WebsocketManager } from "./socket_manager";
 
+/**
+ * Cluster server calculation worker\
+ * The most important worker in the entire application
+ */
 export class ExecuteManager{
     current_t:Task | undefined = undefined
     current_p:Project | undefined = undefined
@@ -30,7 +34,10 @@ export class ExecuteManager{
             'feedback_job': this.feedback_job,
             'feedback_string': this.feedback_string,
             'feedback_boolean': this.feedback_boolean,
-            'feedback_number': this.feedback_number
+            'feedback_number': this.feedback_number,
+            'system_info': this.system_info,
+            'node_info': this.node_info,
+            'pong': this.pong,
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
@@ -365,7 +372,7 @@ export class ExecuteManager{
     }
 
     //#region Feedback
-    feedback_message = (data:Single, source:WebsocketPack | undefined) => {
+    private feedback_message = (data:Single, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
         this.messager_log(`[Execute] Single Received data: ${data.data}`)
@@ -373,7 +380,7 @@ export class ExecuteManager{
         this.proxy?.feedbackMessage(d)
     }
     
-    feedback_job = (data:FeedBack, source:WebsocketPack | undefined) => {
+    private feedback_job = (data:FeedBack, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
         
@@ -402,34 +409,49 @@ export class ExecuteManager{
         this.proxy?.feedbackMessage(d)
     }
     
-    feedback_string = (data:Setter) => {
+    private feedback_string = (data:Setter) => {
         if(this.current_p == undefined) return
-        const index = this.current_p.parameter.strings.findIndex(x => x.name == data.key)
-        if(index != -1) this.current_p.parameter.strings[index].value = data.value
+        const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.String)
+        if(index != -1) this.current_p.parameter.containers[index].value = data.value
         this.messager_log(`[String Feedback] ${data.key} = ${data.value}`)
         // Sync
         const d:Header = { name: 'set_string', data: data}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
     }
     
-    feedback_number = (data:Setter) => {
+    private feedback_number = (data:Setter) => {
         if(this.current_p == undefined) return
-        const index = this.current_p.parameter.numbers.findIndex(x => x.name == data.key)
-        if(index != -1) this.current_p.parameter.numbers[index].value = data.value
+        const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Number)
+        if(index != -1) this.current_p.parameter.containers[index].value = data.value
         this.messager_log(`[Number Feedback] ${data.key} = ${data.value}`)
         // Sync
         const d:Header = { name: 'set_number', data: data}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
     }
     
-    feedback_boolean = (data:Setter) => {
+    private feedback_boolean = (data:Setter) => {
         if(this.current_p == undefined) return
-        const index = this.current_p.parameter.booleans.findIndex(x => x.name == data.key)
-        if(index != -1) this.current_p.parameter.booleans[index].value = data.value
+        const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Boolean)
+        if(index != -1) this.current_p.parameter.containers[index].value = data.value
         this.messager_log(`[Boolean Feedback] ${data.key} = ${data.value}`)
         // Sync
         const d:Header = { name: 'set_boolean', data: data}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+    }
+
+    private system_info = (info:SystemLoad, source:WebsocketPack | undefined) => {
+        if(source == undefined) return
+        source.information = info
+    }
+
+    private node_info = (info:NodeLoad, source:WebsocketPack | undefined) => {
+        if(source == undefined) return
+        source.load = info
+    }
+
+    private pong = (info:number, source:WebsocketPack | undefined) => {
+        if(source == undefined || source.last == undefined) return
+        source.ms = Date.now() - source.last
     }
     //#endregion
 
@@ -443,7 +465,7 @@ export class ExecuteManager{
     }
 
     get_number(key:string, p:Project){
-        const f = p.parameter.numbers.find(x => x.name == key)
+        const f = p.parameter.containers.find(x => x.name == key && x.type == DataType.Number)
         if(f == undefined) return -1
         return f.value
     }
@@ -473,8 +495,8 @@ export class ExecuteManager{
     
     private set_multi = (key:string):number => {
         if(this.current_p == undefined) return 1
-        const index = this.current_p.parameter.numbers.findIndex(x => x.name == key)
-        return this.current_p.parameter.numbers[index].value
+        const index = this.current_p.parameter.containers.findIndex(x => x.name == key && x.type == DataType.Number)
+        return this.current_p.parameter.containers[index].value
     }
     
     private validation = (projects:Array<Project>):boolean => {
@@ -485,26 +507,26 @@ export class ExecuteManager{
         projects.forEach(x => {
             x.task.forEach(t => {
                 if(t.cronjob){
-                    const index = x.parameter.numbers.findIndex(x => x.name == t.cronjobKey)
+                    const index = x.parameter.containers.findIndex(x => x.name == t.cronjobKey && x.type == DataType.Number)
                     if(index == -1){
                         this.messager_log(`[Execute:CronJob] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.cronjobKey}\"`)
                         this.messager_log(`[Execute:CronJob] Cron task registerd key not found`)
                         return false
                     }
-                    else if (x.parameter.numbers[index].value == 0){
+                    else if (x.parameter.containers[index].value == 0){
                         this.messager_log(`[Execute:CronJob] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.cronjobKey}\"`)
                         this.messager_log(`[Execute:CronJob] Cron task value must bigger than 0`)
                         return false
                     }
                 }
                 if(t.cronjob && t.multi){
-                    const index = x.parameter.numbers.findIndex(x => x.name == t.multiKey)
+                    const index = x.parameter.containers.findIndex(x => x.name == t.multiKey && x.type == DataType.Number)
                     if(index == -1){
                         this.messager_log(`[Execute:Multi] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.multiKey}\"`)
                         this.messager_log(`[Execute:Multi] Cron task registerd key not found`)
                         return false
                     }
-                    else if (x.parameter.numbers[index].value == 0){
+                    else if (x.parameter.containers[index].value == 0){
                         this.messager_log(`[Execute:Multi] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.multiKey}\"`)
                         this.messager_log(`[Execute:Multi] Cron task value must bigger than 0`)
                         return false
@@ -557,9 +579,7 @@ export class ExecuteManager{
 
     private to_keyvalue = (p:Parameter):Array<KeyValue> => {
         const paras = [
-            ...p.booleans.map(x => { return { key: x.name, value: x.value.toString() } }),
-            ...p.numbers.map(x => { return { key: x.name, value: x.value.toString() } }),
-            ...p.strings.map(x => { return { key: x.name, value: x.value.toString() } }),
+            ...p.containers.map(x => { return { key: x.name, value: x.value.toString() } })
         ]
         return paras
     }
@@ -592,7 +612,7 @@ export class ExecuteManager{
     }
     private get_task_count = (p:Project, t:Task) => {
         if(t.cronjob){
-            const count = p.parameter.numbers.find(x => x.name == t.cronjobKey)?.value ?? -1
+            const count = p.parameter.containers.find(x => x.name == t.cronjobKey && x.type == DataType.Number)?.value ?? -1
             return count
         }
         return 1

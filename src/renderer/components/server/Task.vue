@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, Project, Task, TaskTable } from '../../interface';
+import { BusType, DataType, Project, Task, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -65,7 +65,7 @@ const updateTask = () => {
 }
 
 const updateParameter = () => {
-    para_keys.value = props.select?.parameter.numbers.map(x => x.name) ?? []
+    para_keys.value = props.select?.parameter.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
 }
 
 const createProject = () => {
@@ -213,7 +213,7 @@ const isLast = (uuid:string) => {
 onMounted(() => {
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateParameter', updateParameter)
-    para_keys.value = props.select?.parameter.numbers.map(x => x.name) ?? []
+    para_keys.value = props.select?.parameter.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
 })
 
 onUnmounted(() => {
@@ -275,18 +275,24 @@ onUnmounted(() => {
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-btn flat icon @click="datachoose(item.ID)">
+                    <v-btn flat icon @click="datachoose(item.ID)" size="small">
                         <v-icon>mdi-location-enter</v-icon>
                     </v-btn>
-                    <v-btn flat icon @click="dataedit(item.ID)">
+                    <v-btn flat icon @click="dataedit(item.ID)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)">
+                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
                         <v-icon>mdi-arrow-up</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)">
+                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
+                </template>
+                <template v-slot:item.cronjob="{ item }">
+                    <v-chip :color="item.cronjob ? 'success' : 'error'">{{ item.cronjob }}</v-chip>
+                </template>
+                <template v-slot:item.multi="{ item }">
+                    <v-chip :color="item.multi ? 'success' : 'error'">{{ item.multi }}</v-chip>
                 </template>
             </v-data-table>
         </div>

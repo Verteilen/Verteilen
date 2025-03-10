@@ -1,3 +1,10 @@
+export enum DataType {
+    Boolean, 
+    Number, 
+    String,
+    Expression
+}
+
 export enum JobCategory {
     Condition,
     Execution
@@ -32,11 +39,43 @@ export enum JobType2 {
 export enum ProjectTemplate {
     DEFAULT,
     FUNIQUE_GS4,
-    FFmpeg_Concat
+    FUNIQUE_GS42,
+    FFmpeg_Concat,
+    Blender,
+    AfterEffect
 }
 
 export enum ExecuteState {
     NONE, RUNNING, FINISH, ERROR, SKIP
+}
+
+export enum OSAction {
+    COPY_FILE,
+    COPY_DIR,
+    DELETE_FILE,
+    DELETE_DIR,
+    RENAME,
+    Exist,
+    LIST_FILE,
+    LIST_DIR,
+    CREATE_DIR,
+    CREATE_FILE,
+    READ_FILE,
+    COMMAND
+}
+
+export enum LuaLib {
+    ALL = ~(~0 << 4),
+    OS = 1 << 0, 
+    ENV = 1 << 1, 
+    MESSAGE = 1 << 2
+}
+
+export const DataTypeText: { [key:number]:string } = {
+    0: 'types.boolean',
+    1: 'types.number',
+    2: 'types.string',
+    3: 'types.expression',
 }
 
 export const ExecuteStateText: { [key:number]:string } = {
@@ -88,5 +127,8 @@ export const JobType2Text: { [key:number]:string } = {
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
     1: 'enum.project.gs4',
-    2: 'enum.project.concat'
+    2: 'enum.project.gs4-2',
+    3: 'enum.project.concat',
+    4: 'enum.project.blender',
+    5: 'enum.project.aftereffect',
 }

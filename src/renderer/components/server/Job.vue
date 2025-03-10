@@ -36,14 +36,10 @@ const types:Ref<Array<any>> = ref([])
 const types2:Ref<Array<any>> = ref([])
 const result:Ref<Array<any>> = ref([])
 const categorise:Ref<Array<any>> = ref([])
-const para_keys:Ref<Array<{ value: string, text: string }>> = ref([])
 const dirty = ref(false)
 
 const hasSelect = computed(() => items.value.filter(x => x.s).length > 0)
 
-const updateParameter = () => {
-    para_keys.value = props.owner?.parameter.numbers.map(x => { return { value: x.name, text: x.name }}) ?? []
-}
 
 const setdirty = () => {
     dirty.value = true
@@ -56,8 +52,6 @@ const updateJob = () => {
     items.value.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)
     items.value.forEach(x => x.s = false)
     items2.value = JSON.parse(JSON.stringify(props.select?.properties ?? []))
-
-    updateParameter()
     dirty.value = false
 }
 
@@ -229,7 +223,6 @@ onMounted(() => {
     updateLocate()
     updateJob()
     emitter?.on('updateJob', updateJob)
-    emitter?.on('updateParameter', updateParameter)
     emitter?.on('updateLocate', updateLocate)
     emitter?.on('renameScript', libRename)
     emitter?.on('deleteScript', libDelete)
@@ -237,7 +230,6 @@ onMounted(() => {
 
 onUnmounted(() => {
     emitter?.off('updateJob', updateJob)
-    emitter?.off('updateParameter', updateParameter)
     emitter?.off('updateLocate', updateLocate)
     emitter?.off('renameScript', libRename)
     emitter?.off('deleteScript', libDelete)

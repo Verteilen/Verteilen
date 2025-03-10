@@ -1,6 +1,7 @@
 export interface AppConfig {
-    isExpress: boolean | undefined
+    isExpress: boolean
     isElectron: boolean
+    haveBackend: boolean
 }
 
 export interface IMessage {

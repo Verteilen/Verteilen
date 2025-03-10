@@ -1,13 +1,13 @@
 import { v6 as uuidv6 } from 'uuid';
-import { ConditionResult, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
-import { Default_LuaExample } from '../lua/Default';
+import { ConditionResult, DataType, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
+import { DEFAULT_LuaExample } from '../lua/Default';
 
 const GetDefaultProjectTemplate_Lua = ():Task => {
     const lua:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: Default_LuaExample,
+        lua: DEFAULT_LuaExample,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -113,16 +113,15 @@ const GetDefaultProjectTemplate_Checker = ():Task => {
 
 export const GetDefaultProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
-        numbers: [
-            { name: "n1", value: 120 }
-        ],
-        strings: [
-            { name: "path", value: "C:\\Tool" },
-            { name: "s1", value: "Hello World" }
-        ],
-        booleans: [
-            { name: "b1", value: false }
-        ],
+        canWrite: true,
+        containers: [
+            { name: "n1", value: 120, type: DataType.Number, runtimeOnly: false, hidden: false },
+
+            { name: "path", value: "C:\\Tool", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "s1", value: "Hello World", type: DataType.String, runtimeOnly: false, hidden: false },
+
+            { name: "b1", value: false, type: DataType.Boolean, runtimeOnly: false, hidden: false }
+        ]
     }
     r.parameter = para
     r.task = [

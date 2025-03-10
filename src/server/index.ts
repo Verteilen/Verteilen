@@ -7,7 +7,6 @@ import { Header, WebPORT } from './interface'
 let wsServer: ws.Server | undefined = undefined
 let app:express.Express | undefined = undefined
 
-backendEvent.Init()
 const webport = backendEvent.PortAvailable(80)
 const socketport = backendEvent.PortAvailable(WebPORT)
 

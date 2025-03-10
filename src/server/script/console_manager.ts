@@ -1,5 +1,8 @@
 import { BusType, EmitterProxy, Header, RawSend } from "../interface"
 
+/**
+ * Console helper, web client side handle cluster server connection instance
+ */
 export class ConsoleManager {
     url:string
     ws:WebSocket

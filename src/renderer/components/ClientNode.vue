@@ -2,7 +2,7 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ClientLog, Preference } from '../interface';
+import { AppConfig, BusType, ClientLog, MESSAGE_LIMIT, Preference } from '../interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
@@ -28,6 +28,9 @@ const autoScroll = ref(true)
 const msgAppend = (e:IpcRendererEvent, msg:string, tag?:string) => {
   if(tag == undefined){
     messages.value[0].text.push(msg)
+    if(messages.value[0].text.length > MESSAGE_LIMIT){
+      messages.value[0].text.shift()
+    }
   }else{
     const index = messages.value.findIndex(x => x.tag == tag)
     if(index == -1){
@@ -42,6 +45,9 @@ const msgAppend = (e:IpcRendererEvent, msg:string, tag?:string) => {
     }else{
       messages.value[index].text.push(msg)
       if(!panel.value.includes(index)) panel.value.push(index)
+      if(messages.value[index].text.length > MESSAGE_LIMIT){
+        messages.value[index].text.shift()
+      }
     }
   }
   if(autoScroll.value) myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
