@@ -24,7 +24,6 @@ function createWindow () {
 
     mainWindow.on('focus', () => {
         mainWindow!.setTitle(`Compute Tool ${process.env.NODE_ENV === 'development' ? process.env.npm_package_version : app.getVersion()}`)
-        backendEvent.Init()
     })
     mainWindow.on('close', () => {
         backendEvent.Destroy()

@@ -1,7 +1,7 @@
 import cluster from 'cluster'
 import { parentPort } from 'worker_threads'
 import { Header, Job } from '../interface'
-import { ClientJobExecute } from './execute'
+import { ClientJobExecute } from './job_execute'
 
 const messager = (msg:string, tag?:string) => {
     const d:Header = {

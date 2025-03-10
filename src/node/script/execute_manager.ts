@@ -1,5 +1,5 @@
 import { formula, init } from "expressionparser";
-import { BusAnalysis, CronJobState, DataType, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, Parameter, Project, Setter, Single, SystemLoad, Task, WebsocketPack, WorkState } from "../interface";
+import { BusAnalysis, CronJobState, DataType, ExecuteProxy, ExecuteState, FeedBack, Header, Job, KeyValue, Libraries, NodeLoad, Parameter, Project, Setter, Single, SystemLoad, Task, WebsocketPack, WorkState } from "../interface";
 import { WebsocketManager } from "./socket_manager";
 
 /**
@@ -36,6 +36,7 @@ export class ExecuteManager{
             'feedback_boolean': this.feedback_boolean,
             'feedback_number': this.feedback_number,
             'system_info': this.system_info,
+            'node_info': this.node_info,
             'pong': this.pong,
         }
         if(typeMap.hasOwnProperty(d.name)){
@@ -441,6 +442,11 @@ export class ExecuteManager{
     private system_info = (info:SystemLoad, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         source.information = info
+    }
+
+    private node_info = (info:NodeLoad, source:WebsocketPack | undefined) => {
+        if(source == undefined) return
+        source.load = info
     }
 
     private pong = (info:number, source:WebsocketPack | undefined) => {

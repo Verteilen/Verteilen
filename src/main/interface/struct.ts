@@ -7,6 +7,7 @@ export interface WebsocketPack {
     current_job?: string
     state?: ExecuteState
     information?: SystemLoad
+    load?: NodeLoad
     ms?: number
     last?: number
 }
@@ -107,4 +108,8 @@ export interface SystemLoad {
     net: Array<SystemLoad_Network>
 
     pid_usage: number
+}
+
+export interface NodeLoad {
+
 }
