@@ -120,7 +120,7 @@ You can monitor currently working tasks, Change the state in real-time
 - [x] Docker Support
 - [x] Pure Compute Node Support
 - [x] Recover Record Support
-- [ ] Multicore Support
+- [x] Multicore Support
 - [x] Condition Support
 - [ ] Express Support
 - [ ] Express Auth Support
