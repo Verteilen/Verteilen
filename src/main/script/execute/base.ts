@@ -1,5 +1,5 @@
 import { formula, init } from "expressionparser";
-import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, KeyValue, Libraries, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, KeyValue, Libraries, Messager, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 
 export class ExecuteManager_Base {
@@ -9,6 +9,7 @@ export class ExecuteManager_Base {
     current_cron:Array<CronJobState> = []
     current_job:Array<WorkState> = []
     current_multithread = 1
+    current_task_count = -1
     state:ExecuteState = ExecuteState.NONE
     t_state:ExecuteState = ExecuteState.NONE 
     jobstack = 0
@@ -18,9 +19,9 @@ export class ExecuteManager_Base {
     localPara: Parameter | undefined = undefined
 
     websocket_manager:WebsocketManager
-    messager_log:Function
+    messager_log:Messager
 
-    constructor(_websocket_manager:WebsocketManager, _messager_log:Function) {
+    constructor(_websocket_manager:WebsocketManager, _messager_log:Messager) {
         this.websocket_manager = _websocket_manager
         this.messager_log = _messager_log
     }
@@ -40,75 +41,36 @@ export class ExecuteManager_Base {
         source.websocket.send(JSON.stringify(h))
         source.websocket.send(JSON.stringify(h2))
     }
+    /**
+     * Check all the cronjob is finish or not
+     */
     protected check_all_cron_end = () => {
         return this.current_cron.filter(x => !this.check_cron_end(x)).length == 0
     }
+    /**
+     * Check input cronjob is finish or not
+     * @param cron target cronjob instance
+     */
     protected check_cron_end = (cron:CronJobState) => {
-        return cron.work.filter(x => x.state != ExecuteState.FINISH && x.state != ExecuteState.ERROR).length == 0
+        return cron.work.filter(x => x.state == ExecuteState.RUNNING || x.state == ExecuteState.NONE).length == 0
     }
+    /**
+     * Check current single is finish or not
+     */
     protected check_single_end = () => {
         if(this.current_t == undefined) return false
-        return this.current_job.length == this.current_t.jobs.length && this.current_job.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length == 0
-    }
-    protected get_task_count = (p:Project, t:Task) => {
-        if(t.cronjob){
-            const count = p.parameter.containers.find(x => x.name == t.cronjobKey && x.type == DataType.Number)?.value ?? -1
-            return count
-        }
-        return 1
+        return this.current_job.length == this.current_t.jobs.length && 
+            this.current_job.filter(y => y.state == ExecuteState.RUNNING || y.state == ExecuteState.NONE).length == 0
     }
     //#endregion
 
 
     //#region Utility
-    public get_task_state_count(p:Project, t:Task){
-        if (t.cronjob){
-            return this.get_number(t.cronjobKey, p)
-        }else{
-            return 1
-        }
-    }
-
-    protected get_number(key:string, p:Project){
-        const f = p.parameter.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression))
-        if(f == undefined) return -1
-        if(f.type == DataType.Expression){
-            return Number(this.replacePara(f.meta ?? '', [...this.to_keyvalue(p.parameter)]))
-        }else{
-            return f.value
-        }
-        
-    }
-
-    protected removeDups = (arr: any[]): any[] => {
-        return [...new Set(arr)];
-    }
-
-    protected parse = (str:string, paras:Array<KeyValue>):string => {
-        str = str.substring(1, str.length - 1)
-        const parser = init(formula, (term: string) => {
-            const index = paras.findIndex(x => x.key == term)
-            if(index != -1) return Number(paras[index].value)
-            else return 0
-        });
-        const r = parser.expressionToValue(str).toString()
-        console.log(str, r)
-        return r
-    }
-    
-    protected get_idle = ():Array<WebsocketPack> => {
-        const all = this.websocket_manager.targets.filter(x => x.state != ExecuteState.RUNNING && x.websocket.readyState == WebSocket.OPEN)
-        if(all.length != 0){
-            return all
-        }else return []
-    }
-    
-    protected set_multi = (key:string):number => {
-        if(this.current_p == undefined) return 1
-        const index = this.current_p.parameter.containers.findIndex(x => x.name == key && x.type == DataType.Number)
-        return this.current_p.parameter.containers[index].value
-    }
-    
+    /**
+     * Project format checking
+     * @param projects 
+     * @returns 
+     */
     protected validation = (projects:Array<Project>):boolean => {
         if (this.websocket_manager.targets.length == 0) {
             this.messager_log(`[Execute State] The execute node does not exists`)
@@ -146,13 +108,69 @@ export class ExecuteManager_Base {
         })
         return true
     }
-    
-    protected _replacePara = (store:string, paras:Array<KeyValue>) => {
-        const index = paras.findIndex(x => x.key == store)
-        if(index == -1) return ''
-        return paras[index].value
+    /**
+     * Get the multi-core setting\
+     * Find in the parameter setting
+     * @param key The multi-core-key
+     * @returns 
+     */
+    protected get_task_multi_count = (p:Project, t:Task):number => {
+        const r = this.get_number(t.multiKey, p)
+        return r == -1 ? 1 : r
+    }
+    /**
+     * Get the task's cronjob count
+     */
+    public get_task_state_count(p:Project, t:Task){
+        if (t.cronjob){
+            return this.get_number(t.cronjobKey, p)
+        }else{
+            return 1
+        }
+    }
+
+    /**
+     * Find the number in the parameter, this include the expression phrasing
+     * @param key The name key
+     * @param p Project instance
+     * @returns The value, if key cannot be found, it will return -1
+     */
+    protected get_number(key:string, p:Project){
+        const f = p.parameter.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression))
+        if(f == undefined) return -1
+        if(f.type == DataType.Expression){
+            return Number(this.replacePara(f.meta ?? '', [...this.to_keyvalue(p.parameter)]))
+        }else{
+            return f.value
+        }
+        
+    }
+
+    /**
+     * Remove dups item in the list
+     * @param arr 
+     * @returns 
+     */
+    protected removeDups = (arr: any[]): any[] => {
+        return [...new Set(arr)];
+    }
+
+    /**
+     * Filter out the idle and connection open nodes
+     * @returns All idle nodes
+     */
+    protected get_idle = ():Array<WebsocketPack> => {
+        return this.websocket_manager.targets.filter(x => x.state != ExecuteState.RUNNING && x.websocket.readyState == WebSocket.OPEN)
     }
     
+    /**
+     * Replace a string to environment string\
+     * * Include Expression calculation
+     * * Include Env string, boolean, number replacing
+     * @param text Input text
+     * @param paras The keyvalue list
+     * @returns The result string
+     */
     protected replacePara = (text:string, paras:Array<KeyValue>):string => {
         if (this.current_p == undefined) return text
         let buffer = ''
@@ -178,12 +196,40 @@ export class ExecuteManager_Base {
         }
         return buffer
     }
-
+    /**
+     * Turn parameter into a list of keyvalue structure\
+     * Exclude the expression datatype
+     * @param p Target parameter instance
+     * @returns The list of keyvalue
+     */
     protected to_keyvalue = (p:Parameter):Array<KeyValue> => {
         const paras = [
             ...p.containers.filter(x => x.type != DataType.Expression).map(x => { return { key: x.name, value: x.value.toString() } })
         ]
         return paras
+    }
+
+    private _replacePara = (store:string, paras:Array<KeyValue>) => {
+        const index = paras.findIndex(x => x.key == store)
+        if(index == -1) return ''
+        return paras[index].value
+    }
+
+    /**
+     * Expression magic
+     * @param str Input string, the expression part of string only, not the entire sentence
+     * @param paras Keyvalue list
+     * @returns Result calculation
+     */
+    private parse = (str:string, paras:Array<KeyValue>):string => {
+        str = str.substring(1, str.length - 1)
+        const parser = init(formula, (term: string) => {
+            const index = paras.findIndex(x => x.key == term)
+            if(index != -1) return Number(paras[index].value)
+            else return 0
+        });
+        const r = parser.expressionToValue(str).toString()
+        return r
     }
     //#endregion
 }

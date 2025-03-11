@@ -111,8 +111,8 @@ export class ExecuteManager extends ExecuteManager_Runner {
         if (this.current_t == undefined){
             if(this.current_p.task.length > 0){
                 this.current_t = this.current_p.task[0]
-                this.proxy?.executeTaskStart({uuid: this.current_t.uuid, count: this.get_task_count(this.current_p, this.current_t)})
-                this.t_state = ExecuteState.RUNNING
+                this.proxy?.executeTaskStart({uuid: this.current_t.uuid, count: this.get_task_state_count(this.current_p, this.current_t)})
+                this.t_state = ExecuteState.NONE
             } 
             return 0
         } else {
@@ -125,8 +125,8 @@ export class ExecuteManager extends ExecuteManager_Runner {
                 this.proxy?.executeTaskFinish({ uuid: this.current_t.uuid })
                 this.current_t = this.current_p.task[index + 1]
                 this.messager_log(`[Execute] Skip task ${index}. ${this.current_t.uuid}`)
-                this.proxy?.executeTaskStart({uuid: this.current_t.uuid, count: this.get_task_count(this.current_p, this.current_t)})
-                this.t_state = ExecuteState.RUNNING
+                this.proxy?.executeTaskStart({uuid: this.current_t.uuid, count: this.get_task_state_count(this.current_p, this.current_t)})
+                this.t_state = ExecuteState.NONE
             }
             return index
         }

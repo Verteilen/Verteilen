@@ -1,6 +1,9 @@
 import { CronJobState, DataType, ExecuteState, Header, Job, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
 import { ExecuteManager_Feedback } from "./feedback";
 
+/**
+ * The execute runner
+ */
 export class ExecuteManager_Runner extends ExecuteManager_Feedback {
     /**
      * Execute project
@@ -53,25 +56,25 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
          */
         if(this.t_state == ExecuteState.NONE){
             this.t_state = ExecuteState.RUNNING
-            this.current_multithread = task.multi ? this.set_multi(task.multiKey) : 1
+            this.current_multithread = task.multi ? this.get_task_multi_count(project, task) : 1
+            this.current_task_count = this.get_task_state_count(project, task)
         }
         let allJobFinish = false
         const hasJob = task.jobs.length > 0
-        const taskCount = this.get_task_count(project, task)
 
         /**
          * If a task has no job... we have to skip it...
          */
         if(!hasJob){
             // We end it gracefully.
-            this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
+            this.proxy?.executeTaskStart({ uuid: task.uuid, count: this.current_task_count })
             this.proxy?.executeTaskFinish({ uuid: task.uuid })
-            console.log(`[Execute] Skip ! No job exists ${task.uuid}`)
+            this.messager_log(`[Execute] Skip ! No job exists ${task.uuid}`)
             this.ExecuteTask_AllFinish(project, task)
             return
         }
 
-        allJobFinish = task.cronjob ? this.ExecuteTask_Cronjob(project, task, taskCount) : this.ExecuteTask_Single(project, task, taskCount)
+        allJobFinish = task.cronjob ? this.ExecuteTask_Cronjob(project, task, this.current_task_count) : this.ExecuteTask_Single(project, task, this.current_task_count)
 
         if (allJobFinish){
             this.ExecuteTask_AllFinish(project, task)
@@ -84,18 +87,17 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
      * @returns Is finish executing
      */
     private ExecuteTask_Cronjob(project:Project, task:Task, taskCount:number):boolean {
-        let ns:Array<WebsocketPack> = []
+        let ns:Array<WebsocketPack> = this.get_idle()
         let allJobFinish = false
 
-        if(this.current_cron.length > 0){
-            // If disconnect or deleted...
-            const worker = this.current_cron.filter(x => x.uuid != '').map(x => x.uuid)
-            ns = this.get_idle()
-            ns = ns.filter(x => !worker.includes(x.uuid))
-        }else{
+        /**
+         * if current_cron length is zero\
+         * this means the init process has not been run yet
+         */
+        if(this.current_cron.length == 0){
             // First time
             this.SyncParameter(project)
-            ns = this.get_idle()
+            // Create the cronjob instance here
             for(let index = 1; index < taskCount + 1; index++){
                 const d:CronJobState = {
                     id: index,
@@ -110,6 +112,10 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                 this.current_cron.push(d)
             }
             this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
+        } else{
+            // If disconnect or deleted...
+            const worker = this.current_cron.filter(x => x.uuid != '').map(x => x.uuid)
+            ns = ns.filter(x => !worker.includes(x.uuid))
         }
         
         const allworks:Array<WorkState> = []
@@ -233,7 +239,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                 job.string_args[i] = job.string_args[i].replace(`%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
             }
             job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(parameter_job), { key: 'ck', value: n.toString() }])
-            console.log("String replace: ", b, job.string_args[i])
+            this.messager_log(`String replace: ${b} ${job.string_args[i]}`)
         }
         const h:Header = {
             name: 'execute_job',
