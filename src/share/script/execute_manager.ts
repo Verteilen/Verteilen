@@ -1,4 +1,4 @@
-import { DataType, ExecuteState, Header, Project, WebsocketPack } from "../interface";
+import { ExecuteState, Header, Project, WebsocketPack } from "../interface";
 import { ExecuteManager_Runner } from "./execute/runner";
 
 /**
@@ -31,19 +31,6 @@ export class ExecuteManager extends ExecuteManager_Runner {
                 message: 'Stop All Jobs'
             }
             x.websocket.send(JSON.stringify(h))
-        })
-    }
-
-    SyncParameter = (p:Project) => {
-        this.localPara = JSON.parse(JSON.stringify(p.parameter))
-        for(let i = 0; i < this.localPara!.containers.length; i++){
-            if(this.localPara!.containers[i].type == DataType.Expression && this.localPara!.containers[i].meta != undefined){
-                const text = `%{${this.localPara!.containers[i].meta}}%`
-                this.localPara!.containers[i].value = this.replacePara(text, [...this.to_keyvalue(this.localPara!)])
-            }
-        }
-        this.websocket_manager.targets.forEach(x => {
-            this.sync_para(this.localPara!, x)
         })
     }
 
