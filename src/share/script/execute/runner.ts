@@ -1,0 +1,268 @@
+import { CronJobState, DataType, ExecuteState, Header, Job, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { ExecuteManager_Feedback } from "./feedback";
+
+export class ExecuteManager_Runner extends ExecuteManager_Feedback {
+    /**
+     * Execute project
+     */
+    protected ExecuteProject = (project:Project) => {
+        if(this.current_t == undefined && project.task.length > 0 && this.t_state != ExecuteState.FINISH){
+            // When we are just start it, the project run
+            this.current_t = project.task[0]
+            this.messager_log(`[Execute] Task Start ${this.current_t.uuid}`)
+            this.messager_log(`[Execute] Task cron state: ${this.current_t.cronjob}`)
+            this.current_job = []
+            this.current_cron = []
+        } else if (project.task.length == 0){
+            this.current_t = undefined
+        }
+
+        /**
+         * In any case, if the task has value, this mean we are in the task stage, so, just ignore everything.\
+         * Go for the task stage
+         */
+        if(this.current_t != undefined){
+            this.ExecuteTask(project, this.current_t)
+        }else{
+            /**
+             * If we are here, task is none by this case. This can only be 
+             * * A: We are finish all the tasks, And there is no next project, So just mark as finish for entire process
+             * * B: We are finish all the tasks, Go to next project
+             */
+            const index = this.current_projects.findIndex(x => x.uuid == project.uuid)
+            if(index == this.current_projects.length - 1){
+                // * Case A: Finish entire thing
+                this.messager_log(`[Execute] Project Finish ${this.current_p?.uuid}`)
+                this.proxy?.executeProjectFinish({ uuid: this.current_p?.uuid ?? '' } )
+                this.current_p = undefined
+                this.state = ExecuteState.FINISH
+                this.t_state = ExecuteState.NONE
+            }else{
+                // * Case B: Next project
+                this.current_p = this.current_projects[index + 1]
+            }
+        }
+    }
+
+    /**
+     * Execute task
+     */
+    private ExecuteTask = (project:Project, task:Task) => {
+        /**
+         * When it's the first iteration for this task
+         */
+        if(this.t_state == ExecuteState.NONE){
+            this.t_state = ExecuteState.RUNNING
+            this.current_multithread = task.multi ? this.set_multi(task.multiKey) : 1
+        }
+        let allJobFinish = false
+        const hasJob = task.jobs.length > 0
+        const taskCount = this.get_task_count(project, task)
+
+        /**
+         * If a task has no job... we have to skip it...
+         */
+        if(!hasJob){
+            // We end it gracefully.
+            this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
+            this.proxy?.executeTaskFinish({ uuid: task.uuid })
+            console.log(`[Execute] Skip ! No job exists ${task.uuid}`)
+            this.ExecuteTask_AllFinish(project, task)
+            return
+        }
+
+        allJobFinish = task.cronjob ? this.ExecuteTask_Cronjob(project, task, taskCount) : this.ExecuteTask_Single(project, task, taskCount)
+
+        if (allJobFinish){
+            this.ExecuteTask_AllFinish(project, task)
+        }
+    }
+
+    /**
+     * It will spawn amounts of cronjob and send the tasks for assigned node to execute them one by one
+     * @param taskCount Should be equal to cronjob result
+     * @returns Is finish executing
+     */
+    private ExecuteTask_Cronjob(project:Project, task:Task, taskCount:number):boolean {
+        let ns:Array<WebsocketPack> = []
+        let allJobFinish = false
+
+        if(this.current_cron.length > 0){
+            // If disconnect or deleted...
+            const worker = this.current_cron.filter(x => x.uuid != '').map(x => x.uuid)
+            ns = this.get_idle()
+            ns = ns.filter(x => !worker.includes(x.uuid))
+        }else{
+            // First time
+            this.SyncParameter(project)
+            ns = this.get_idle()
+            for(let index = 1; index < taskCount + 1; index++){
+                const d:CronJobState = {
+                    id: index,
+                    uuid: "",
+                    work: task.jobs.map(x => {
+                        return {
+                            uuid: x.uuid,
+                            state: ExecuteState.NONE
+                        }
+                    })
+                }
+                this.current_cron.push(d)
+            }
+            this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
+        }
+        
+        const allworks:Array<WorkState> = []
+        this.current_cron.forEach(x => {
+            allworks.push(...x.work)
+        })
+        
+        if(this.check_all_cron_end()){
+            allJobFinish = true
+        }else{
+            // Assign worker
+            const needs = this.current_cron.filter(x => x.uuid == '' && x.work.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length > 0)
+            const min = Math.min(needs.length, ns.length)
+            for(let i = 0; i < min; i++){
+                needs[i].uuid = ns[i].uuid
+            }
+
+            // Execute
+            const single = this.current_cron.filter(x => x.uuid != '')
+            for(var cronwork of single){
+                const index = this.websocket_manager.targets.findIndex(x => x.uuid == cronwork.uuid)
+                if(index != -1){
+                    this.ExecuteCronTask(project, task, cronwork, this.websocket_manager.targets[index])
+                }
+            }
+        }
+        return allJobFinish
+    }
+
+    /**
+     * There will be no CronTask be called, it will go straight to the Execute job section
+     * @param taskCount Must be 1
+     * @returns Is finish executing
+     */
+    private ExecuteTask_Single(project:Project, task:Task, taskCount:number):boolean {
+        let allJobFinish = false
+        let ns:Array<WebsocketPack> = []
+        if(this.current_job.length > 0){
+            // If disconnect or deleted...
+            const last = this.websocket_manager.targets.find(x => x.uuid == this.current_job[0].uuid)
+            if(last == undefined){
+                ns = this.get_idle()
+                this.current_job = []
+            }else{
+                ns = [last]
+                if(ns[0].websocket.readyState != WebSocket.OPEN){
+                    ns = this.get_idle()
+                    this.current_job = []
+                }
+            }
+        }else{
+            // First time
+            this.SyncParameter(project)
+            ns = this.get_idle()
+            if(ns.length > 0) {
+                this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
+                this.proxy?.executeSubtaskFinish({ index: 0, node: ns[0].uuid })
+            }
+        }
+
+        if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN && ns[0].state != ExecuteState.RUNNING)
+        {
+            if(this.check_single_end()){
+                allJobFinish = true
+            }else{
+                if(this.current_job.length != task.jobs.length){
+                    this.current_job.push({
+                        uuid: ns[0].uuid,
+                        state: ExecuteState.RUNNING
+                    })
+                    const job:Job = JSON.parse(JSON.stringify(task.jobs[this.current_job.length - 1]))
+                    job.index = 1
+                    this.ExecuteJob(project, task, job, ns[0], false)
+                }
+            }
+        }
+        return allJobFinish
+    }
+
+    private ExecuteTask_AllFinish(project:Project, task:Task){
+        this.proxy?.executeTaskFinish({ uuid: task.uuid })
+        this.messager_log(`[Execute] Task Finish ${task.uuid}`)
+        const index = project.task.findIndex(x => x.uuid == task.uuid)
+        if(index == project.task.length - 1){
+            // Finish
+            this.current_t = undefined
+            this.t_state = ExecuteState.FINISH
+        }else{
+            // Next
+            this.current_t = project.task[index + 1]
+            this.t_state = ExecuteState.NONE
+        }
+        this.current_job = []
+        this.current_cron = []
+    }
+
+    private ExecuteCronTask = (project:Project, task:Task, work:CronJobState, ns:WebsocketPack) => {
+        if(ns.state != ExecuteState.RUNNING && ns.current_job == undefined){
+            const index = work.work.findIndex(x => x.state == ExecuteState.NONE)
+            if(index == 0){
+                this.proxy?.executeSubtaskStart({ index:work.id - 1, node: ns.uuid })
+            }
+            if(index == -1) return
+            work.work[index].state = ExecuteState.RUNNING
+            const job:Job = JSON.parse(JSON.stringify(task.jobs[index]))
+            job.index = work.id
+            this.ExecuteJob(project, task, job, ns, true)
+        }
+    }
+
+    private ExecuteJob = (project:Project, task:Task, job:Job, wss:WebsocketPack, iscron:boolean) => {
+        const n:number = job.index!
+        this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
+        this.proxy?.executeJobStart({ uuid: job.uuid, index: n - 1, node: wss.uuid })
+        let parameter_job:Parameter = JSON.parse(JSON.stringify(this.localPara))
+
+        for(let i = 0; i < job.string_args.length; i++){
+            const b = job.string_args[i]
+            if(b == null || b == undefined || b.length == 0) continue
+            for(let j = 0; j < task.properties.length; j++){
+                job.string_args[i] = job.string_args[i].replace(`%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
+            }
+            job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(parameter_job), { key: 'ck', value: n.toString() }])
+            console.log("String replace: ", b, job.string_args[i])
+        }
+        const h:Header = {
+            name: 'execute_job',
+            data: job
+        }
+        wss.current_job = job.uuid
+        wss.state = ExecuteState.RUNNING
+        const stringdata = JSON.stringify(h)
+        wss.websocket.send(stringdata)
+        this.jobstack = this.jobstack + 1
+    }
+
+    /**
+     * Boradcasting all the parameter and library to all the websocket nodes
+     * @param p Target project
+     */
+    SyncParameter = (p:Project) => {
+        // Get the clone para from it
+        this.localPara = JSON.parse(JSON.stringify(p.parameter))
+        // Then phrase the expression to value
+        for(let i = 0; i < this.localPara!.containers.length; i++){
+            if(this.localPara!.containers[i].type == DataType.Expression && this.localPara!.containers[i].meta != undefined){
+                const text = `%{${this.localPara!.containers[i].meta}}%`
+                this.localPara!.containers[i].value = this.replacePara(text, [...this.to_keyvalue(this.localPara!)])
+            }
+        }
+        // Boradcasting
+        this.websocket_manager.targets.forEach(x => {
+            this.sync_para(this.localPara!, x)
+        })
+    }
+}
