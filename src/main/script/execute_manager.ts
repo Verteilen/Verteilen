@@ -35,21 +35,21 @@ export class ExecuteManager extends ExecuteManager_Runner {
     }
 
     Register = (projects:Array<Project>):number => {
-        this.messager_log(`[執行狀態] 開始執行, 專案數: ${projects.length}, 電腦數: ${this.websocket_manager.targets.length}`)
+        this.messager_log(`[Execute] Start executing, Project count: ${projects.length}, Node count: ${this.websocket_manager.targets.length}`)
         if(this.state == ExecuteState.RUNNING){
-            this.messager_log(`[執行狀態] 初始化錯誤, 目前已經有專案群集在列表中執行了`)
+            this.messager_log(`[Execute] Init error, There are projects being execute right now`)
             return -1
         }
         if(projects.map(x => x.task.length).reduce((acc, cur) => acc + cur, 0) == 0){
-            this.messager_log(`[執行狀態] 沒有流程可以被執行`)
+            this.messager_log(`[Execute] No task can be executing`)
             return -1
         }
         if(!this.validation(projects)){
-            this.messager_log(`[執行狀態] 初始化錯誤, 檢查格式出現問題`)
+            this.messager_log(`[Execute] Init failed, Format checking error`)
             return -1
         }
         this.state = ExecuteState.RUNNING
-        this.messager_log(`[執行狀態] 初始化成功, 進入執行階段`)
+        this.messager_log(`[Execute] Init successfully, Enter process right now`)
 
         this.current_projects = projects
         let i = 0
