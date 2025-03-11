@@ -108,21 +108,21 @@ export class ClientOS {
                 }
             }, 100);
             child.on('spawn', () => {
-                this.messager(`[Command] Spawn process`, this.tag())
+                this.messager_log(`[Command] Spawn process`, this.tag())
             })
             child.on('error', (err) => {
-                this.messager(`[Command] Error: ${err}`, this.tag())
+                this.messager_log(`[Command] Error: ${err}`, this.tag())
                 clearInterval(timer)
                 reject(`Error ${err}`)
             })
             child.on('exit', (code, signal) => {
-                this.messager(`[Command] Process Exit: ${code}`, this.tag())
+                this.messager_log(`[Command] Process Exit: ${code}`, this.tag())
             })
             child.on('message', (message, sendHandle) => {
-                this.messager(`[Command] : ${message.toString()}`, this.tag())
+                this.messager_log(`[Command] : ${message.toString()}`, this.tag())
             })
             child.on('close', (code, signal) => {
-                this.messager(`[Command] Process Close: ${code}`, this.tag())
+                this.messager_log(`[Command] Process Close: ${code}`, this.tag())
                 clearInterval(timer)
                 resolve(`Successfully ${code}`)
             })

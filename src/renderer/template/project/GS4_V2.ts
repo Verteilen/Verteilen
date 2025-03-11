@@ -49,7 +49,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Position = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%after%/DATASET_P_%blend_value% --output %root%/%after%/BLEND_P_%blend_value%_I/ --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -141,6 +141,7 @@ const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
     return t
 }
 
+// 透明度調整
 const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
     const transparentJob:Job = {
         uuid: uuidv6(),
@@ -172,6 +173,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
     return t
 }
 
+// 合併
 const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
     const mergeJob:Job = {
         uuid: uuidv6(),

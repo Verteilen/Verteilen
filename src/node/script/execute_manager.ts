@@ -475,9 +475,14 @@ export class ExecuteManager{
     }
 
     get_number(key:string, p:Project){
-        const f = p.parameter.containers.find(x => x.name == key && x.type == DataType.Number)
+        const f = p.parameter.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression))
         if(f == undefined) return -1
-        return f.value
+        if(f.type == DataType.Expression){
+            return Number(this.replacePara(f.meta ?? '', [...this.to_keyvalue(p.parameter)]))
+        }else{
+            return f.value
+        }
+        
     }
 
     private removeDups = (arr: any[]): any[] => {

@@ -1,8 +1,9 @@
 import cluster, { Worker } from 'cluster';
 import WebSocket from 'ws';
-import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
+import { DataType, FeedBack, Header, Job, JobCategory, JobType, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { Client } from "./client";
+import { ClientOS } from './os';
 import { ClientParameter } from './parameter';
 
 /**
@@ -39,9 +40,20 @@ export class ClientExecute {
      */
     execute_job = (job:Job, source:WebSocket) => {
         if(!cluster.isPrimary) return
+
+        if(this.use_worker(job)){
+            this.execute_job_worker(job, source)
+        }else{
+            this.execute_job_noworker(job, source)
+        }
+        
+    }
+
+    private execute_job_worker(job:Job, source:WebSocket){
         this.messager_log(`[Execute] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, this.tag)
         const para = new ClientParameter(source)
         const worker = cluster.fork({
+            ...process.env,
             type: "JOB",
             job: JSON.stringify(job),
             parameter: JSON.stringify(this.parameter),
@@ -75,17 +87,35 @@ export class ClientExecute {
         })
 
         worker.on('exit', (code, signal) => {
-            this.messager_log( code == 0 ?
-                `[Execute] Successfully: ${code} ${signal}` : 
-                `[Execute] Error: ${code} ${signal}`, this.tag)
-            const data:FeedBack = { job_uuid: job.uuid, meta: code, message: signal }
-            const h:Header = { name: 'feedback_job', data: data }
-            source.send(JSON.stringify(h))
-            this.tag = ''
-
+            this.job_finish(code, signal, job, source)
             const index = this.workers.findIndex(x => x == worker)
             if(index != -1) this.workers.splice(index, 1)
         })
+    }
+
+    private execute_job_noworker(job:Job, source:WebSocket){
+        const os = new ClientOS(() => job.uuid, this.messager, this.messager_log)
+        os.command(job.string_args[0], job.string_args[1], job.string_args[2]).then(() => {
+            this.job_finish(0, '', job, source)
+        }).catch(err => {
+            this.job_finish(1, err, job, source)
+        })
+    }
+
+    private use_worker = (job:Job):boolean => {
+        const iscommand = job.category == JobCategory.Execution && job.type == JobType.COMMAND
+        this.messager_log(`${job.uuid} Use worker: ${!iscommand}`)
+        return !iscommand
+    }
+
+    private job_finish(code, signal, job, source){
+        this.messager_log( code == 0 ?
+            `[Execute] Successfully: ${code} ${signal}` : 
+            `[Execute] Error: ${code} ${signal}`, this.tag)
+        const data:FeedBack = { job_uuid: job.uuid, meta: code, message: signal }
+        const h:Header = { name: 'feedback_job', data: data }
+        source.send(JSON.stringify(h))
+        this.tag = ''
     }
     
     /**
