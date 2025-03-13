@@ -1,6 +1,85 @@
 import { v6 as uuidv6 } from 'uuid';
 import { ConditionResult, DataType, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
-import { DEFAULT_LuaExample } from '../lua/Default';
+import { DEFAULT_LuaCronMultiExample, DEFAULT_LuaExample, DEFAULT_LuaPrintExample, DEFAULT_LuaSaveExample } from '../lua/Default';
+
+const GetDefaultProjectTemplate_PrintCustomParameter = ():Task => {
+    const lua:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.LUA,
+        lua: DEFAULT_LuaPrintExample,
+        string_args: [],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Print save custom parameters",
+        description: "",
+        cronjob: true,
+        cronjobKey: "n1",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            lua
+        ]
+    }
+    return t
+}
+
+const GetDefaultProjectTemplate_SaveCustomParameter = ():Task => {
+    const lua:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.LUA,
+        lua: DEFAULT_LuaSaveExample,
+        string_args: [],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Save paramter",
+        description: "",
+        cronjob: true,
+        cronjobKey: "n1",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            lua
+        ]
+    }
+    return t
+}
+
+const GetDefaultProjectTemplate_CronLua = ():Task => {
+    const lua:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.LUA,
+        lua: DEFAULT_LuaCronMultiExample,
+        string_args: [],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Run Multiple Lua",
+        description: "",
+        cronjob: true,
+        cronjobKey: "n1",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            lua
+        ]
+    }
+    return t
+}
+
 
 const GetDefaultProjectTemplate_Lua = ():Task => {
     const lua:Job = {
@@ -129,6 +208,9 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
         GetDefaultProjectTemplate_Pnumber(),
         GetDefaultProjectTemplate_Pnumber2(),
         GetDefaultProjectTemplate_Lua(),
+        GetDefaultProjectTemplate_CronLua(),
+        GetDefaultProjectTemplate_SaveCustomParameter(),
+        GetDefaultProjectTemplate_PrintCustomParameter(),
     ]
     return r
 }
