@@ -1,6 +1,4 @@
-import cluster from 'cluster';
-import { parentPort } from 'worker_threads';
-import { Header, Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, OnePath, Parameter, TwoPath } from "../interface";
+import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, OnePath, Parameter, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { ClientJobParameter } from "./job_parameter";
 import { ClientLua } from "./lua";
@@ -40,21 +38,9 @@ export class ClientJobExecute {
      * @param job Target job
      */
     execute = () => {
-        if(cluster.isPrimary) return
         this.messager_log(`[Execute] ${this.job.uuid}  ${this.job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[this.job.type]) : i18n.global.t(JobType2Text[this.job.type])}`, this.tag)
         const child = this.job.category == JobCategory.Execution ? this.execute_job_exe() : this.execute_job_con()
-        child.then(x => {
-            process.exit(0)
-        })
-        .catch(err => {
-            const d:Header = {
-                name: "error",
-                meta: "Execute job failed",
-                data: err,
-            }
-            parentPort?.postMessage(d)
-            process.exit(1)
-        })
+        return child
     }
     
     /**

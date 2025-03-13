@@ -14,7 +14,7 @@ const GetDefaultProjectTemplate_Lua = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "運行 Lua",
+        title: "Run Lua",
         description: "",
         cronjob: false,
         cronjobKey: "",
@@ -40,7 +40,7 @@ const GetDefaultProjectTemplate_Pnumber2 = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "輸出數字 運算式",
+        title: "Print number (With property calc)",
         description: "",
         cronjob: true,
         cronjobKey: "n1",
@@ -71,7 +71,7 @@ const GetDefaultProjectTemplate_Pnumber = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "輸出數字",
+        title: "Print number",
         description: "",
         cronjob: true,
         cronjobKey: "n1",
@@ -97,7 +97,7 @@ const GetDefaultProjectTemplate_Checker = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "檢測路徑",
+        title: "Check path",
         description: "",
         cronjob: false,
         cronjobKey: "",
@@ -115,7 +115,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
         canWrite: true,
         containers: [
-            { name: "n1", value: 120, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "n1", value: 25, type: DataType.Number, runtimeOnly: false, hidden: false },
 
             { name: "path", value: "C:\\Tool", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "s1", value: "Hello World", type: DataType.String, runtimeOnly: false, hidden: false },

@@ -3,7 +3,7 @@ import WebSocket from 'ws';
 import { DataType, FeedBack, Header, Job, JobCategory, JobType, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { Client } from "./client";
-import { ClientOS } from './os';
+import { ClientJobExecute } from './job_execute';
 import { ClientParameter } from './parameter';
 
 /**
@@ -46,7 +46,6 @@ export class ClientExecute {
         }else{
             this.execute_job_noworker(job, source)
         }
-        
     }
 
     private execute_job_worker(job:Job, source:WebSocket){
@@ -94,15 +93,21 @@ export class ClientExecute {
     }
 
     private execute_job_noworker(job:Job, source:WebSocket){
-        const os = new ClientOS(() => job.uuid, this.messager, this.messager_log)
-        os.command(job.string_args[0], job.string_args[1], job.string_args[2]).then(() => {
+        const worker = new ClientJobExecute(this.messager, this.messager_log, job)
+        worker.execute().then(() => {
             this.job_finish(0, '', job, source)
         }).catch(err => {
-            this.job_finish(1, err, job, source)
+            this.job_finish(1, '', job, source)
         })
     }
 
+    /**
+     * Check if the work type is worker support
+     * ! [BUG] Worker cannot access modulePath after packaged the application
+     * TODO need to find a way to execute multithread methods
+     */
     private use_worker = (job:Job):boolean => {
+        return false
         const iscommand = job.category == JobCategory.Execution && job.type == JobType.COMMAND
         this.messager_log(`${job.uuid} Use worker: ${!iscommand}`)
         return !iscommand

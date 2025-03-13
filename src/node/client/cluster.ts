@@ -23,12 +23,24 @@ const messager_log = (msg:string, tag?:string) => {
 
 export function RUN(){
     if(cluster.isPrimary) return
+    console.log(process.env)
     if(process.env.type == 'JOB'){
         if(process.env.job == undefined){
             process.exit(1)
         }
         const d:Job = JSON.parse(process.env.job)
         const worker = new ClientJobExecute(messager, messager_log, d)
-        worker.execute()
+        worker.execute().then(x => {
+            process.exit(0)
+        })
+        .catch(err => {
+            const d:Header = {
+                name: "error",
+                meta: "Execute job failed",
+                data: err,
+            }
+            parentPort?.postMessage(d)
+            process.exit(1)
+        })
     }
 }
