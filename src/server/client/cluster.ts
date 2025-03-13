@@ -29,7 +29,7 @@ export function RUN(){
             process.exit(1)
         }
         const d:Job = JSON.parse(process.env.job)
-        const worker = new ClientJobExecute(messager, messager_log, d)
+        const worker = new ClientJobExecute(messager, messager_log, d, undefined)
         worker.execute().then(x => {
             process.exit(0)
         })

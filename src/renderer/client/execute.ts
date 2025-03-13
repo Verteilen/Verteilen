@@ -93,7 +93,9 @@ export class ClientExecute {
     }
 
     private execute_job_noworker(job:Job, source:WebSocket){
-        const worker = new ClientJobExecute(this.messager, this.messager_log, job)
+        const worker = new ClientJobExecute(this.messager, this.messager_log, job, source)
+        worker.parameter = this.parameter
+        worker.libraries = this.libraries
         worker.execute().then(() => {
             this.job_finish(0, '', job, source)
         }).catch(err => {

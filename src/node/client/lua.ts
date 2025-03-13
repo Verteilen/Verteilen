@@ -1,7 +1,7 @@
 import * as luainjs from 'lua-in-js';
-import { DataType, Libraries, LuaLib, Parameter } from '../interface';
-import { ClientJobParameter } from './job_parameter';
+import { DataType, Job, Libraries, LuaLib, Messager, Parameter } from '../interface';
 import { ClientOS } from './os';
+import { ClientParameter } from './parameter';
 
 //#region Global
 const lib = `function split(s, sep)
@@ -15,13 +15,15 @@ end
 
 type Getlib = () => Libraries | undefined
 type Getpara = () => Parameter | undefined
+type Getjob = () => Job | undefined
 
 let getlib:Getlib | undefined = undefined
 let getpara:Getpara | undefined = undefined
-let messager: Function
-let messager_log: Function
+let getjob:Getjob | undefined = undefined
+let messager: Messager
+let messager_log: Messager
 let clientos:ClientOS | undefined
-let para:ClientJobParameter | undefined = undefined
+let para:ClientParameter | undefined = undefined
 
 function hasboolean(key:string){
     const p = getpara?.() ?? undefined
@@ -29,6 +31,7 @@ function hasboolean(key:string){
     return p.containers.findIndex(x => x.name == key && x.type == DataType.Boolean) != -1
 }
 function hasnumber(key:string){
+    if(key == 'ck') return true
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
     return p.containers.findIndex(x => x.name == key && x.type == DataType.Number) != -1
@@ -44,6 +47,9 @@ function getboolean(key:string){
     return p.containers.find(x => x.name == key && x.type == DataType.Boolean)?.value ?? false
 }
 function getnumber(key:string){
+    if(key == 'ck'){
+        return getjob?.()?.index
+    }
     const p = getpara?.() ?? undefined
     if(p == undefined) return 0
     return p.containers.find(x => x.name == key && x.type == DataType.Number)?.value ?? 0
@@ -60,16 +66,20 @@ function setboolean(key:string, value:boolean){
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
     
-    messager_log(`[Boolean feedback] ${key} = ${value}`)
+    messager_log(`[Boolean feedback] ${key} = ${value}`, getjob?.()?.uuid ?? '')
     para?.feedbackboolean({key:key,value:value})
 }
 function setnumber(key:string, value:number){
+    if(key == 'ck') {
+        messager_log("Trying to set a constant ck...", getjob?.()?.uuid ?? '')
+        return
+    }
     const p = getpara?.() ?? undefined
     if(p == undefined) return
     const target = p.containers.find(x => x.name == key && x.type == DataType.Number)
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
-    messager_log(`[Number feedback] ${key} = ${value}`)
+    messager_log(`[Number feedback] ${key} = ${value}`, getjob?.()?.uuid ?? '')
     para?.feedbacknumber({key:key,value:value})
 }
 function setstring(key:string, value:string){
@@ -78,7 +88,7 @@ function setstring(key:string, value:string){
     const target = p.containers.find(x => x.name == key && x.type == DataType.String)
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
-    messager_log(`[String feedback] ${key} = ${value}`)
+    messager_log(`[String feedback] ${key} = ${value}`, getjob?.()?.uuid ?? '')
     para?.feedbackstring({key:key,value:value})
 }
 //#endregion
@@ -88,7 +98,7 @@ export class ClientLua {
     env:luainjs.Table
     message:luainjs.Table
 
-    constructor(_messager: Function, _messager_log: Function){
+    constructor(_messager: Messager, _messager_log: Messager, _getjob:Getjob){
         this.os = new luainjs.Table({
             "copyfile": this.copyfile,
             "copydir": this.copydir,
@@ -118,18 +128,19 @@ export class ClientLua {
         })
         
         this.message = new luainjs.Table({
-            "messager": _messager, 
-            "messager_log": _messager_log
+            "messager": (m, t) => _messager(m, _getjob()?.uuid), 
+            "messager_log": (m, t) => _messager_log(m, _getjob()?.uuid)
         })
     }
 
-    static Init = (_messager: Function, _messager_log: Function, _clientos:ClientOS, _para:ClientJobParameter, _getlib:Getlib, _getpara:Getpara) => {
-        messager = _messager
-        messager_log = _messager_log
+    static Init = (_messager: Messager, _messager_log: Messager, _clientos:ClientOS, _para:ClientParameter, _getlib:Getlib, _getpara:Getpara, _getjob:Getjob) => {
+        messager = (m, t) => _messager(m, _getjob()?.uuid)
+        messager_log = (m, t) => _messager_log(m, _getjob()?.uuid)
         clientos = _clientos
         para = _para
         getlib = _getlib
         getpara = _getpara
+        getjob = _getjob
     }
 
     LuaExecuteWithLib = (lua:string, libs:Array<string>) => {

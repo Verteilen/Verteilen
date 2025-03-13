@@ -4,13 +4,14 @@ import { Client } from "./client/client";
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
-import { Libraries, Log, Preference, Project, Record } from "./interface";
+import { Job, Libraries, Log, Preference, Project, Record } from "./interface";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
 export class BackendEvent {
     menu_state = false
     client:Client | undefined = undefined
+    job: Job | undefined
 
     Init = () => {
         if(this.client != undefined) return
@@ -33,7 +34,7 @@ export class BackendEvent {
         })
     
         ipcMain.on('lua', (event, content:string) => {
-            const lua:ClientLua = new ClientLua(messager, messager_log)
+            const lua:ClientLua = new ClientLua(messager, messager_log, () => this.job)
             const r = lua.LuaExecute(content)
             event.sender.send('lua-feedback', r?.toString() ?? '')
         })

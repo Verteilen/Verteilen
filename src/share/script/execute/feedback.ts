@@ -89,7 +89,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.String, hidden: true, runtimeOnly: true })
         this.messager_log(`[String Feedback] ${data.key} = ${data.value}`)
         // Sync to other
-        const d:Header = { name: 'set_string', data: data}
+        const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
     }
     /**
@@ -103,7 +103,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.Number, hidden: true, runtimeOnly: true })
         this.messager_log(`[Number Feedback] ${data.key} = ${data.value}`)
         // Sync to other
-        const d:Header = { name: 'set_number', data: data}
+        const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
     }
     /**
@@ -117,7 +117,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.Boolean, hidden: true, runtimeOnly: true })
         this.messager_log(`[Boolean Feedback] ${data.key} = ${data.value}`)
         // Sync to other
-        const d:Header = { name: 'set_boolean', data: data}
+        const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
     }
 
