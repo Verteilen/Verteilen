@@ -11,13 +11,15 @@ local group_size = env.getnumber("group_size")
 local even = group_size % 2 == 0
 local gap_p = 0
 local gap_n = 0
-local p_count = 0
-local n_count = 0
+local p_count = 1
+local n_count = 1
 local from = ""
 local xx = 1
 
 if start_at_zero then
     xx = 0
+    p_count = 0
+    n_count = 0
 end
 
 if event then
@@ -27,6 +29,9 @@ else
     gap_p = (group_size - 1) / 2
     gap_n = (group_size - 1) / 2
 end
+
+env.setnumber("gop_positive", gap_p)
+env.setnumber("gop_negative", gap_n)
 
 function copy_to_positive()
     local to = p_folder.."/"..tostring(p_count)
@@ -92,6 +97,9 @@ local blend = env.getnumber("blend")
 local iframe_gap = env.getnumber("iframe_gap")
 local start_at_zero = env.getboolean("start_at_0")
 
+local gap_p = env.getnumber("gop_positive")
+local gap_n = env.getnumber("gop_negative")
+
 -- current value [1, 2, 3, 4]
 local current = 1
 local xx = 1
@@ -112,8 +120,14 @@ for i=1,blend,1 do
 end
 
 for i=1,iframe_size,1 do
+    local step = (i - 1) % blend
     local foldername = tostring((i - 1) * iframe_gap + xx)
     local from = root.."/"..after_folder.."/GOP_20_I/checkpoint/"..foldername
+
+    -- Positive detect
+
+    -- Negative detect
+
     local to = root.."/"..after_folder.."/".."BLEND_"..tostring((current - 1) * iframe_gap).."_I/checkpoint/"..foldername
     o.copydir(from, to)
 
@@ -121,5 +135,7 @@ for i=1,iframe_size,1 do
     if current > blend then
         current = 1
     end
+
+    ::continue::
 end
 `
