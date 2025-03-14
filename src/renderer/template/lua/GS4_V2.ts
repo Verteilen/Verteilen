@@ -101,7 +101,6 @@ local gap_p = env.getnumber("gop_positive")
 local gap_n = env.getnumber("gop_negative")
 
 -- current value [1, 2, 3, 4]
-local current = 1
 local xx = 1
 
 if start_at_zero then
@@ -120,22 +119,50 @@ for i=1,blend,1 do
 end
 
 for i=1,iframe_size,1 do
+    local index = (i - 1) * iframe_gap + xx
     local step = (i - 1) % blend
-    local foldername = tostring((i - 1) * iframe_gap + xx)
+    -- start from 0
+    local recur = math.floor((i - 1) / blend) 
+    local foldername = tostring(index)
     local from = root.."/"..after_folder.."/GOP_20_I/checkpoint/"..foldername
+    local to = ""
+    local to_foldername = ""
+
+    local delta = step * iframe_gap
+    recur * gap_p
 
     -- Positive detect
-
-    -- Negative detect
-
-    local to = root.."/"..after_folder.."/".."BLEND_"..tostring((current - 1) * iframe_gap).."_I/checkpoint/"..foldername
+    to_foldername = tostring((recur * gap_p) + delta + xx + (recur))
+    to = root.."/"..after_folder.."/".."BLEND_"..tostring(step  * iframe_gap).."_IP/checkpoint/"..to_foldername
     o.copydir(from, to)
 
-    current = current + 1
-    if current > blend then
-        current = 1
+    if i <= blend then
+        goto continue
     end
 
+    -- Negative detect
+    -- N0, N1, N2
+    to_foldername = "N"..tostring(recur - 1)
+    to = root.."/"..after_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint/"..to_foldername
+    o.copydir(from, to)
+
     ::continue::
+end
+
+for i=1,blend,1 do
+    local folder = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_IN/checkpoint/"
+    local NNumber = split(o.listdir(folder))
+    local count = #(NNumber)
+    local delta = (i - 1) * iframe_gap
+
+    for key,value in pairs(NNmuner) do
+        local from = folder..value
+        -- 0, 1, 2, 3
+        local rindex = (count - tonumber(string.sub(value, 2))) - 1
+        local to_foldername = (rindex * gap_n) + delta + xx + rindex
+        local to = folder..to_foldername
+
+        o.rename(from, to)
+    end
 end
 `
