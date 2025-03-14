@@ -5,7 +5,10 @@ import { Header, Single, WebsocketPack } from "./interface";
 /** 
 * 傳送資料到 UI 執行序 
 */
-export const messager = (...args:Array<string | undefined>) => mainWindow?.webContents.send('msgAppend', ...args);
+export const messager = (...args:Array<string | undefined>) => {
+    if(mainWindow == null || mainWindow == undefined || mainWindow.isDestroyed()) return
+    mainWindow.webContents.send('msgAppend', ...args);
+}
 
 /** 
 * 傳送資料到 UI 執行序 \
