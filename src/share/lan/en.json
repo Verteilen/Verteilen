@@ -61,7 +61,8 @@
         "node": "Node",
         "console": "Console",
         "log": "Log",
-        "library": "Library"
+        "library": "Library",
+        "client": "Self"
     },
     "tooltip": {
         "select-server": "The one who send the command to client",

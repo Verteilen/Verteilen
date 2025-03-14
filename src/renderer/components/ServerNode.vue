@@ -17,6 +17,7 @@ import LogPage from './server/Log.vue';
 import NodePage from './server/Node.vue';
 import ParameterPage from './server/Parameter.vue';
 import ProjectPage from './server/Project.vue';
+import SelfPage from './server/Self.vue';
 import TaskPage from './server/Task.vue';
 
 const websocket_manager:Ref<WebsocketManager | undefined> = ref(undefined)
@@ -475,6 +476,7 @@ onUnmounted(() => {
       <v-tab :value="5">{{ $t('toolbar.console') }}</v-tab>
       <v-tab :value="6">{{ $t('toolbar.log') }}</v-tab>
       <v-tab :value="7">{{ $t('toolbar.library') }}</v-tab>
+      <v-tab :value="8">{{ $t('toolbar.client') }}</v-tab>
       <v-menu v-if="!props.config.isElectron">
         <template v-slot:activator="{ props }">
           <v-btn class="mt-1" v-bind="props">
@@ -544,6 +546,10 @@ onUnmounted(() => {
       <LibraryPage v-show="page == 7" 
         :config="props.config"
         v-model="libs"/>
+
+      <SelfPage v-show="page == 8" 
+        :config="props.config"
+        :preference="props.preference"/>
     </div>
   </v-container>
 </template>
