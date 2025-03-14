@@ -50,6 +50,7 @@ for i=1,blend,1 do
     local p_folder = root.."/"..after.."/".."DATASET_P_"..tostring( (i-1) * iframe_gap)    
     o.createdir(p_folder)
 
+    -- 0 or 1
     local starter = ((i - 1) * iframe_gap) + xx
     p_count = starter
     
@@ -61,6 +62,7 @@ for i=1,blend,1 do
             copy_to_positive()
         end
     end
+    env.setnumber("data_p_"..tostring(i - 1), p_count - 1)
 end
 
 for i=1,blend,1 do
@@ -68,6 +70,7 @@ for i=1,blend,1 do
     local n_folder = root.."/"..after.."/".."DATASET_N_"..tostring( (i-1) * iframe_gap)
     o.createdir(n_folder)
 
+    -- 0 or 1
     local starter = ((i - 1) * iframe_gap) + xx
     local hit = false
     n_count = starter
@@ -84,6 +87,7 @@ for i=1,blend,1 do
             copy_to_negative()
         end
     end
+    env.setnumber("data_n_"..tostring(i - 1), n_count - 1)
 end
 `
 
@@ -164,5 +168,57 @@ for i=1,blend,1 do
 
         o.rename(from, to)
     end
+end
+`
+
+
+// 將 Blend 結果弄成結果資料夾
+// output/Sequence_0/1.ply
+// output/Sequence_0/2.ply
+export const FUNIQUE_GS4_V2_PLYDone:string = `
+local root = env.getstring("root")
+local after_folder = env.getstring("after")
+local output_folder = env.getstring("output")
+
+local start_at_zero = env.getboolean("start_at_0")
+local blend = env.getnumber("blend")
+local iframe_gap = env.getnumber("iframe_gap")
+
+local gap_p = env.getnumber("gop_positive")
+local gap_n = env.getnumber("gop_negative")
+
+o.createdir(output_folder.."/final")
+o.createdir(output_folder.."/trans")
+
+for i=1,blend,1 do
+    local output_folder_seq = output_folder.."/raw/Sequence_"..tostring( (i-1) * iframe_gap )
+    local source_folder = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_I/checkpoint"
+    o.createdir(output_folder_seq)
+
+    local allfolder = split(o.listdir(source_folder), "\\n")
+    local count = 0
+
+    for key,value in pairs(allfolder) do
+        local prefix = source_folder.."/"..value.."/point_cloud/"
+        local suffix = "/point_cloud.ply"
+        local plyPaths = { 
+            prefix.."iteration_7000"..suffix, 
+            prefix.."iteration_500"..suffix 
+        }
+        local exists = { 
+            o.exist(plyPaths[1]), 
+            o.exist(plyPaths[2]) 
+        }
+        for key2,value2 in pairs(exists) do
+            if value2 then
+                o.copyfile(plyPaths[key2], output_folder_seq.."/"..value..".ply")
+                count = count + 1
+                goto finish
+            end
+        end
+        ::finish::
+    end
+
+    m.messager_log("Total file copy: "..tostring(count)..", to path: "..output_folder_seq)
 end
 `
