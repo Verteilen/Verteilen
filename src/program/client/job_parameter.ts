@@ -1,4 +1,3 @@
-import { parentPort } from "worker_threads"
 import { Header, Setter } from "../interface"
 
 export class ClientJobParameter {
@@ -14,7 +13,7 @@ export class ClientJobParameter {
                 value: data.value
             }
         }
-        parentPort?.postMessage(p)
+        console.log(JSON.stringify(p))
     }
 
     feedbackboolean = (data:Setter) => {
@@ -25,7 +24,7 @@ export class ClientJobParameter {
                 value: data.value
             }
         }
-        parentPort?.postMessage(p)
+        console.log(JSON.stringify(p))
     }
 
     feedbackstring = (data:Setter) => {
@@ -36,6 +35,6 @@ export class ClientJobParameter {
                 value: data.value
             }
         }
-        parentPort?.postMessage(p)
+        console.log(JSON.stringify(p))
     }
 }

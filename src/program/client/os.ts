@@ -100,7 +100,13 @@ export class ClientOS {
         this.messager(`[OS Action] Command command: ${command}`, this.tag())
         this.messager(`[OS Action] Command args: ${args}`, this.tag())
         return new Promise<string>((resolve, reject) => {
-            const child = spawn(command,  args.split(' '), { cwd: cwd, shell: true, stdio: ['inherit', 'pipe', 'pipe'] })
+            const child = spawn(command,  args.split(' '), 
+            { 
+                cwd: cwd, 
+                shell: true, 
+                stdio: ['inherit', 'pipe', 'pipe'], 
+                windowsHide: true
+            })
             const timer = setInterval(() => {
                 if(this.stopState){
                     child.kill()
