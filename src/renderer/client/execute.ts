@@ -1,10 +1,9 @@
 import { ChildProcess, spawn } from 'child_process';
 import path from 'path';
 import WebSocket from 'ws';
-import { DataType, FeedBack, Header, Job, JobCategory, JobType, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
+import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { Client } from "./client";
-import { ClientJobExecute } from './job_execute';
 import { ClientParameter } from './parameter';
 
 /**
@@ -42,12 +41,7 @@ export class ClientExecute {
     execute_job = (job:Job, source:WebSocket) => {
         this.messager_log(`[Execute] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, this.tag)
         this.tag = job.uuid
-
-        if(this.use_worker(job)){
-            this.execute_job_worker(job, source)
-        }else{
-            this.execute_job_noworker(job, source)
-        }
+        this.execute_job_worker(job, source)
     }
 
     private execute_job_worker(job:Job, source:WebSocket){
@@ -98,28 +92,17 @@ export class ClientExecute {
             const index = this.workers.findIndex(x => x == child)
             if(index != -1) this.workers.splice(index, 1)
         })
-    }
-
-    private execute_job_noworker(job:Job, source:WebSocket){
-        const worker = new ClientJobExecute(this.messager, this.messager_log, job, source)
-        worker.parameter = this.parameter
-        worker.libraries = this.libraries
-        worker.execute().then(() => {
-            this.job_finish(0, '', job, source)
-        }).catch(err => {
-            this.job_finish(1, '', job, source)
+        child.on('message', (message, sendHandle) => {
+            this.messager_log(message.toString())
         })
-    }
-
-    /**
-     * Check if the work type is worker support
-     * ! [BUG] Worker cannot access modulePath after packaged the application
-     * TODO need to find a way to execute multithread methods
-     */
-    private use_worker = (job:Job):boolean => {
-        const iscommand = job.category == JobCategory.Execution && job.type == JobType.COMMAND
-        this.messager_log(`${job.uuid} Use worker: ${!iscommand}`)
-        return !iscommand
+        child.stdout.setEncoding('utf8');
+        child.stdout.on('data', (chunk) => {
+            this.messager_log(chunk.toString())
+        })
+        child.stderr.setEncoding('utf8');
+        child.stderr.on('data', (chunk) => {
+            this.messager_log(chunk.toString())
+        })
     }
 
     private job_finish(code, signal, job, source){

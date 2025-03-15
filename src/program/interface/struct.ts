@@ -105,5 +105,5 @@ export interface SystemLoad {
 }
 
 export interface NodeLoad {
-
+    workers: number
 }
