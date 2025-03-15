@@ -20,7 +20,6 @@ const messager_log = (msg:string, tag?:string) => {
 }
 
 export function RUN(){
-    console.log(process.env)
     if(process.env.type == 'JOB'){
         if(process.env.job == undefined){
             process.exit(1)

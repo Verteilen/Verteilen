@@ -61,8 +61,10 @@ export class ClientExecute {
         })
         this.workers.push(child)
         const para = new ClientParameter(source)
+        let k = ""
 
-        child.on('message', (msg:Header) => {
+        const workerFeedbackExec = (str:string) => {
+            const msg:Header = JSON.parse(str)
             if(msg.name == 'messager'){
                 this.messager(msg.data, msg.meta)
             } 
@@ -81,7 +83,16 @@ export class ClientExecute {
             else if(msg.name == 'feedbacknumber'){
                 para.feedbacknumber(msg.data)
             }
-        })
+        }
+        const workerFeedback = (str:string) => {
+            for(let i = 0; i < str.length; i++){
+                if(str[i] != '\n') k += str[i]
+                else {
+                    workerFeedbackExec(k)
+                    k = ''
+                }
+            }
+        }
 
         child.on('error', (err) => {
             this.messager_log(`[Worker Error] ${err}`)
@@ -93,15 +104,15 @@ export class ClientExecute {
             if(index != -1) this.workers.splice(index, 1)
         })
         child.on('message', (message, sendHandle) => {
-            this.messager_log(message.toString())
+            workerFeedback(message.toString())
         })
         child.stdout.setEncoding('utf8');
         child.stdout.on('data', (chunk) => {
-            this.messager_log(chunk.toString())
+            workerFeedback(chunk.toString())
         })
         child.stderr.setEncoding('utf8');
         child.stderr.on('data', (chunk) => {
-            this.messager_log(chunk.toString())
+            workerFeedback(chunk.toString())
         })
     }
 
