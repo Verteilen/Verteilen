@@ -15,6 +15,11 @@
     "linux":  {
         "target": ["snap"]
     },
+    "extraFiles": [
+        "README.md",
+        "docs/",
+        "build/program"
+    ],
     "files": [
         {
             "from": "build/main",

@@ -17,7 +17,9 @@
     "build:mac": "node scripts/build.js && electron-builder --mac",
     "build:linux": "node scripts/build.js && electron-builder --linux",
     "docker:node": "docker_node.sh",
-    "docker:server": "docker_server.sh"
+    "docker:server": "docker_server.sh",
+    "pkg": "node scripts/program_build.js",
+    "pkg:test": "pkg -t node16-x64 -o ./build/program/test.exe ./src/program/test.ts"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
@@ -55,6 +57,7 @@
     "keypair": "^1.0.4",
     "lua-in-js": "^2.2.5",
     "mitt": "^3.0.1",
+    "pkg": "^5.8.1",
     "redis": "^4.7.0",
     "systeminformation": "^5.25.11",
     "tcp-port-used": "^1.0.2",
