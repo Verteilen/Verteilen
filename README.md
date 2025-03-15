@@ -126,5 +126,5 @@ You can monitor currently working tasks, Change the state in real-time
 - [ ] Express Auth Support
 - [ ] Group Support
 - [ ] Node information Query
-- [ ] Console control node support
-- [ ] Self as node
+- [x] Console control node support
+- [x] Self as node
