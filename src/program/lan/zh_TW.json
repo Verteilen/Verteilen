@@ -1,0 +1,199 @@
+{
+    "menu": {
+        "file": "檔案",
+        "edit": "編輯",
+        "execute": "執行",
+        "help": "幫助",
+        "new-project": "新專案",
+        "import": "匯入",
+        "export": "匯出",
+        "quit": "退出",
+        "undo": "回復",
+        "redo": "復原",
+        "cut": "剪下",
+        "copy": "複製",
+        "paste": "複製",
+        "delete": "刪除",
+        "selectAll": "全選",
+        "language": "語言"
+    },
+    "toast": {
+        "server": "伺服器模式",
+        "node": "節點模式",
+        "server_d": "用戶選擇了伺服器模式, 主控台出現後, 控制其他節點進行工作",
+        "node_d": "用戶選擇了節點模式, 被動架構的情況下無法做任意事件, 將會等待伺服器連線..."
+    },
+    "modeselect": {
+        "title": "你擔任的角色"
+    },
+    "error": {
+        "title-needed": "名稱不能為空",
+        "title-repeat": "名稱不能重複"
+    },
+    "filter": {
+        "type": "資料型態",
+        "canwrite": "運行讀寫",
+        "show-hidden": "隱藏",
+        "show-runtime": "唯獨運行"
+    },
+    "modal": {
+        "new-project": "新增專案",
+        "modify-project": "編輯專案",
+        "enter-project-name": "輸入專案名稱",
+        "enter-project-description": "輸入專案敘述",
+        "new-task": "新增流程",
+        "modify-task": "編輯流程",
+        "enter-task-name": "輸入流程名稱",
+        "enter-task-description": "輸入流程敘述",
+        "new-job": "新增工作",
+        "new-parameter": "新增參數",
+        "edit-parameter": "編輯參數",
+        "enter-parameter-name": "輸入參數名稱",
+        "parameter-datatype": "資料型態",
+        "new-node": "新增節點",
+        "enter-node-address": "輸入節點位址"
+    },
+    "toolbar": {
+        "project": "專案管理",
+        "task": "流程管理",
+        "job": "工作管理",
+        "parameter": "參數管理",
+        "node": "節點管理",
+        "console": "控制台",
+        "log": "紀錄",
+        "library": "運行庫",
+        "client": "客戶端"
+    },
+    "tooltip": {
+        "select-server": "作為伺服器下指令的一方",
+        "select-node": "作為節點負責運作的一方",
+        "project-id": "專案的 UUID",
+        "project-taskCount": "專案下的流程總數",
+        "task-id": "流程的 UUID",
+        "task-jobCount": "流程下的工作總數",
+        "task-cronjob": "用多台電腦執行的任務",
+        "task-multi": "單一電腦會使用多核心運算"
+    },
+    "jobpage": {
+        "if-error": "如果出錯",
+        "from": "來源",
+        "to": "目的",
+        "path": "路徑",
+        "content": "內容",
+        "command": "命令",
+        "parameters": "參數值"
+    },
+    "enum":{
+        "jobtype": {
+            "copy-file": "複製檔案",
+            "copy-dir": "複製資料夾",
+            "delete-file": "刪除檔案",
+            "delete-dir": "刪除資料夾",
+            "create-file": "建立檔案",
+            "create-dir": "建立資料夾",
+            "rename": "改名",
+            "lua": "LUA 腳本",
+            "command": "指令執行"
+        },
+        "jobtype2": {
+            "check-path": "檢查路徑",
+            "lua": "LUA 腳本"
+        },
+        "jobresult": {
+            "none": "無",
+            "skip-project": "跳過專案",
+            "throw-project": "放棄專案",
+            "skip-task": "跳過流程",
+            "throw-task": "放棄流程",
+            "skip-subtask": "跳過子流程",
+            "throw-subtask": "放棄子流程",
+            "pause": "暫停"
+        },
+        "project": {
+            "default": "範例",
+            "gs4": "睿智 GS4",
+            "gs4-2": "睿智 GS4 V2",
+            "concat": "FFmpeg 合成影片",
+            "blender": "Blender 渲染",
+            "aftereffect": "After Effect 渲染"
+        },
+        "state": {
+            "none": "準備中",
+            "running": "執行中",
+            "finish": "完成",
+            "error": "錯誤",
+            "skip": "跳過"
+        },
+        "lua": {
+            "default": "預設",
+            "gs4-sort": "睿智 GS4 資料夾整理 v1"
+        },
+        "connection": {
+            "connecting": "連線中...",
+            "connected": "連線",
+            "closing": "關閉中...",
+            "closed": "關閉"
+        },
+        "category": {
+            "condition": "偵測",
+            "execution": "執行"
+        }
+    },
+    "console": {
+        "list": "專案列表",
+        "dashboard": "儀錶板"
+    },
+    "types": {
+        "number": "數字",
+        "string": "字串",
+        "boolean": "布林",
+        "expression": "表達式"
+    },
+    "expression": {
+        "title": "標題",
+        "value": "表達式"
+    },
+    "search": "搜尋",
+    "selectall": "全選",
+    "unselectall": "取消全選",
+    "project": "專案",
+    "task": "流程",
+    "job": "工作",
+    "parameter": "參數",
+    "create": "新增",
+    "clone": "克隆",
+    "delete": "刪除",
+    "save": "存檔",
+    "server": "伺服器",
+    "node": "節點",
+    "action": "動作",
+    "skip": "跳過",
+    "property": "屬性",
+    "create-property": "新增屬性",
+    "check": "查看",
+    "edit": "編輯",
+    "modify": "修改",
+    "moveup": "往上移動",
+    "movedown": "往下移動",
+    "rename": "改名",
+    "execute": "執行",
+    "execute-0": "全部",
+    "execute-1": "專案",
+    "execute-2": "流程",
+    "skip-0": "跳過專案",
+    "skip-1": "跳過流程",
+    "stop": "停下",
+    "export": "匯出",
+    "useTemplate": "使用樣板",
+    "execute-keep": "執行 (保留)",
+    "parameter-setting": "參數設定",
+    "is-running": "是否執行中",
+    "is-stop": "是否停止",
+    "clear": "清除",
+    "auto-scroll": "自動滑動",
+    "close-all": "全部關閉",
+    "clean": "清除",
+    "cronjob": "群集運算",
+    "multicore": "多核運算",
+    "recover": "恢復"
+}
