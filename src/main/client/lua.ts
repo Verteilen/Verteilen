@@ -1,7 +1,7 @@
 import * as luainjs from 'lua-in-js';
 import { DataType, Job, Libraries, LuaLib, Messager, Parameter } from '../interface';
+import { ClientJobParameter } from './job_parameter';
 import { ClientOS } from './os';
-import { ClientParameter } from './parameter';
 
 //#region Global
 const lib = `function split(s, sep)
@@ -23,7 +23,7 @@ let getjob:Getjob | undefined = undefined
 let messager: Messager
 let messager_log: Messager
 let clientos:ClientOS | undefined
-let para:ClientParameter | undefined = undefined
+let para:ClientJobParameter | undefined = undefined
 
 function hasboolean(key:string){
     const p = getpara?.() ?? undefined
@@ -133,7 +133,7 @@ export class ClientLua {
         })
     }
 
-    static Init = (_messager: Messager, _messager_log: Messager, _clientos:ClientOS, _para:ClientParameter, _getlib:Getlib, _getpara:Getpara, _getjob:Getjob) => {
+    static Init = (_messager: Messager, _messager_log: Messager, _clientos:ClientOS, _para:ClientJobParameter, _getlib:Getlib, _getpara:Getpara, _getjob:Getjob) => {
         messager = (m, t) => _messager(m, _getjob()?.uuid)
         messager_log = (m, t) => _messager_log(m, _getjob()?.uuid)
         clientos = _clientos

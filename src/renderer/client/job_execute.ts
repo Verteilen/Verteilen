@@ -1,9 +1,9 @@
 import WebSocket from "ws";
 import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, OnePath, Parameter, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";
+import { ClientJobParameter } from "./job_parameter";
 import { ClientLua } from "./lua";
 import { ClientOS } from "./os";
-import { ClientParameter } from "./parameter";
 
 export class ClientJobExecute {
     parameter:Parameter | undefined
@@ -14,7 +14,7 @@ export class ClientJobExecute {
     private messager_log:Messager
     private lua:ClientLua
     private os:ClientOS
-    private para:ClientParameter
+    private para:ClientJobParameter
     private job:Job
 
     constructor(_messager:Messager, _messager_log:Messager, _job:Job, _source:WebSocket | undefined){
@@ -22,7 +22,7 @@ export class ClientJobExecute {
         this.messager_log = _messager_log
         this.tag = _job.uuid
         this.job = _job
-        this.para = new ClientParameter(_source)
+        this.para = new ClientJobParameter()
         this.os = new ClientOS(() => this.tag, _messager, _messager_log)
         this.lua = new ClientLua(_messager, _messager_log, () => this.job)
         this.parameter = process.env.parameter != undefined ? JSON.parse(process.env.parameter) : undefined
