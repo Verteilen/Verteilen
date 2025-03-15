@@ -20,34 +20,48 @@ export class ClientOS {
     }
 
     file_copy = (data:TwoPath) => {
-        this.messager(`[作業系統動作] 檔案複製, ${data.from} => ${data.to}`, this.tag())
+        this.messager(`[OS Action] File copy, ${data.from} => ${data.to}`, this.tag())
         fs.copyFileSync(data.from, data.to)
     }
     
     dir_copy = (data:TwoPath) => {
-        this.messager(`[作業系統動作] 資料夾複製, ${data.from} => ${data.to}`, this.tag())
+        this.messager(`[OS Action] Folder copy, ${data.from} => ${data.to}`, this.tag())
         fs.cpSync(data.from, data.to, { recursive: true, force: true })
     }
     
     file_delete = (data:OnePath) => {
-        this.messager(`[作業系統動作] 檔案刪除, ${data.path}`, this.tag())
+        this.messager(`[OS Action] File delete, ${data.path}`, this.tag())
         fs.rmSync(data.path);
     }
     
     dir_delete = (data:OnePath) => {
-        this.messager(`[作業系統動作] 資料夾刪除, ${data.path}`, this.tag())
+        this.messager(`[OS Action] Folder delete, ${data.path}`, this.tag())
         fs.rmSync(data.path, { recursive: true, force: true })
     }
     
     rename = (data:TwoPath) => {
-        this.messager(`[作業系統動作] 檔案或資料夾改名, ${data.from} => ${data.to}`, this.tag())
+        this.messager(`[OS Action] File or dir rename, ${data.from} => ${data.to}`, this.tag())
         fs.renameSync(data.from, data.to)
     }
     
     fs_exist = (data:OnePath):boolean => {
         const v = fs.existsSync(data.path)
-        this.messager(`[作業系統動作] 查看路徑存在, ${data.path}`, this.tag())
+        this.messager(`[OS Action] Check path exists, ${data.path}`, this.tag())
         return v
+    }
+
+    fs_dir_exist = (data:OnePath):boolean => {
+        const p = this.fs_exist(data)
+        if(!p) return false
+        const stat = fs.statSync(data.path)
+        return stat.isDirectory()
+    }
+
+    fs_file_exist = (data:OnePath):boolean => {
+        const p = this.fs_exist(data)
+        if(!p) return false
+        const stat = fs.statSync(data.path)
+        return stat.isFile()
     }
     
     dir_files = (data:OnePath):Array<string> => {
@@ -61,12 +75,12 @@ export class ClientOS {
     }
     
     dir_create = (data:OnePath) => {
-        this.messager(`[作業系統動作] 建立資料夾, ${data.path}`, this.tag())
+        this.messager(`[OS Action] Create folder, ${data.path}`, this.tag())
         fs.mkdirSync(data.path, {recursive: true})
     }
     
     file_write = (data:TwoPath) => {
-        this.messager(`[作業系統動作] 建立檔案, ${data.from}`, this.tag())
+        this.messager(`[OS Action] Create file, ${data.from}`, this.tag())
         fs.writeFileSync(data.from, data.to)
     }
     
@@ -82,11 +96,17 @@ export class ClientOS {
     }
     
     command = async (cwd:string, command:string, args:string):Promise<string> => {
-        this.messager(`[作業系統動作] 指令呼叫 cwd: ${cwd}`, this.tag())
-        this.messager(`[作業系統動作] 指令呼叫 command: ${command}`, this.tag())
-        this.messager(`[作業系統動作] 指令呼叫 args: ${args}`, this.tag())
+        this.messager(`[OS Action] Command cwd: ${cwd}`, this.tag())
+        this.messager(`[OS Action] Command command: ${command}`, this.tag())
+        this.messager(`[OS Action] Command args: ${args}`, this.tag())
         return new Promise<string>((resolve, reject) => {
-            const child = spawn(command,  args.split(' '), { cwd: cwd, shell: true, stdio: ['inherit', 'pipe', 'pipe'] })
+            const child = spawn(command,  args.split(' '), 
+            { 
+                cwd: cwd, 
+                shell: true, 
+                stdio: ['inherit', 'pipe', 'pipe'], 
+                windowsHide: true
+            })
             const timer = setInterval(() => {
                 if(this.stopState){
                     child.kill()
@@ -94,31 +114,31 @@ export class ClientOS {
                 }
             }, 100);
             child.on('spawn', () => {
-                this.messager(`[指令執行] 生成執行序`, this.tag())
+                this.messager_log(`[Command] Spawn process`, this.tag())
             })
             child.on('error', (err) => {
-                this.messager(`[指令執行] 出現錯誤: ${err}`, this.tag())
+                this.messager_log(`[Command] Error: ${err}`, this.tag())
                 clearInterval(timer)
-                reject(`執行錯誤 ${err}`)
+                reject(`Error ${err}`)
             })
             child.on('exit', (code, signal) => {
-                this.messager(`[指令執行] 執行序強關閉(exit): ${code}`, this.tag())
+                this.messager_log(`[Command] Process Exit: ${code}`, this.tag())
             })
             child.on('message', (message, sendHandle) => {
-                this.messager(`[指令訊息] : ${message.toString()}`, this.tag())
+                this.messager_log(`[Command] : ${message.toString()}`, this.tag())
             })
             child.on('close', (code, signal) => {
-                this.messager(`[指令執行] 執行序弱關閉(close): ${code}`, this.tag())
+                this.messager_log(`[Command] Process Close: ${code}`, this.tag())
                 clearInterval(timer)
-                resolve(`執行成功 ${code}`)
+                resolve(`Successfully ${code}`)
             })
             child.stdout.setEncoding('utf8');
             child.stdout.on('data', (chunk) => {
-                this.messager_log(`[指令一般訊息] : ${chunk.toString()}`, this.tag())
+                this.messager_log(`[Command Info] : ${chunk.toString()}`, this.tag())
             })
             child.stderr.setEncoding('utf8');
             child.stderr.on('data', (chunk) => {
-                this.messager_log(`[指令錯誤訊息] : ${chunk.toString()}`, this.tag())
+                this.messager_log(`[Command Error] : ${chunk.toString()}`, this.tag())
             })
             
         })

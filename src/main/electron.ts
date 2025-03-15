@@ -18,16 +18,16 @@ function createWindow () {
         webPreferences: {
             preload: join(__dirname, 'preload.js'),
             nodeIntegration: false,
-            contextIsolation: true
+            contextIsolation: true,
+            devTools: true
         }
     });
 
     mainWindow.on('focus', () => {
         mainWindow!.setTitle(`Compute Tool ${process.env.NODE_ENV === 'development' ? process.env.npm_package_version : app.getVersion()}`)
     })
-    mainWindow.on('close', () => {
-        backendEvent.Destroy()
-    })
+
+    backendEvent.EventInit()
 
     if (process.env.NODE_ENV === 'development') {
         const rendererPort = process.argv[2];
@@ -37,15 +37,9 @@ function createWindow () {
         mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'));
     }
     mainWindow.setMenu(menu_client!)
-
-    if(process.env.NODE_ENV === 'development'){
-        mainWindow?.webContents.openDevTools()
-    }
 }
 
 export function RUN(){
-    backendEvent.EventInit()
-
     app.whenReady().then(() => {
     createWindow();
     

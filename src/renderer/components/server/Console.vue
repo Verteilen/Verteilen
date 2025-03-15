@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, JobCategory, Libraries, Log, MESSAGE_LIMIT, Record, Setter } from '../../interface';
+import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Project, Record, Setter, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 
@@ -95,18 +95,21 @@ const receivedPack = (record:Record) => {
 }
 
 const feedback_message = (d:Setter) => {
-    const index = data.value!.task_detail.findIndex(x => x.node == d.key)
+    const cronjob = props.execute?.current_t?.cronjob ?? false
+    const index = cronjob ? data.value!.task_detail.findIndex(x => x.node == d.key) : 0
     if(index == -1) return
-    data.value!.task_detail[index].message.push(d.value)
-    if(data.value!.task_detail[index].message.length > MESSAGE_LIMIT){
-        data.value!.task_detail[index].message.shift()
+    const container = data.value!.task_detail[index]
+    if(container != undefined){
+        container.message.push(d.value)
+        if(container.message.length > MESSAGE_LIMIT){
+            container.message.shift()
+        }
     }
-    
     props.logs.logs[0].logs[data.value!.task_index].task_detail[index].message.push(d.value)
     hasNewLog = true
 }
 
-const execute_project_start = (d:BusProjectStart) => {
+const execute_project_start = (d:Project) => {
     const index = data.value!.projects.findIndex(x => x.uuid == d.uuid)
     if(index == -1) return
     data.value!.project = d.uuid
@@ -141,7 +144,7 @@ const execute_project_start = (d:BusProjectStart) => {
     hasNewLog = true
 }
 
-const execute_project_finish = (d:BusProjectFinish) => {
+const execute_project_finish = (d:Project) => {
     if(process_type.value == 1) {
         data.value!.running = false
         data.value!.stop = true
@@ -162,11 +165,11 @@ const execute_project_finish = (d:BusProjectFinish) => {
     }
 }
 
-const execute_task_start = (d:BusTaskStart) => {
+const execute_task_start = (d:[Task, number]) => {
     if (data.value!.project_index == -1) return
-    const index = data.value!.projects[data.value!.project_index].task.findIndex(x => x.uuid == d.uuid)
+    const index = data.value!.projects[data.value!.project_index].task.findIndex(x => x.uuid == d[0].uuid)
     if(index == -1) return
-    data.value!.task = d.uuid
+    data.value!.task = d[0].uuid
     data.value!.task_index = index
     data.value!.task_state[index].state = ExecuteState.RUNNING
     props.logs.logs[0].logs[data.value!.task_index].task_detail = []
@@ -194,7 +197,7 @@ const execute_task_start = (d:BusTaskStart) => {
     hasNewLog = true
 }
 
-const execute_task_finish = (d:BusTaskFinish) => {
+const execute_task_finish = (d:Task) => {
     if(process_type.value == 2) {
         data.value!.running = false
         data.value!.stop = true
@@ -210,31 +213,31 @@ const execute_task_finish = (d:BusTaskFinish) => {
     hasNewLog = true
 }
 
-const execute_subtask_start = (d:BusSubTaskStart) => {
-    data.value!.task_detail[d.index].node = d.node
-    data.value!.task_detail[d.index].state = ExecuteState.RUNNING
+const execute_subtask_start = (d:[Task, number, string]) => {
+    data.value!.task_detail[d[1]].node = d[2]
+    data.value!.task_detail[d[1]].state = ExecuteState.RUNNING
 
-    props.logs.logs[0].logs[data.value!.task_index].task_detail[d.index].state = ExecuteState.RUNNING
+    props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
     hasNewLog = true
 }
 
-const execute_subtask_end = (d:BusSubTaskFinish) => {
-    data.value!.task_detail[d.index].node = ""
-    data.value!.task_detail[d.index].state = ExecuteState.FINISH
+const execute_subtask_end = (d:[Task, number, string]) => {
+    data.value!.task_detail[d[1]].node = ""
+    data.value!.task_detail[d[1]].state = ExecuteState.FINISH
 
-    props.logs.logs[0].logs[data.value!.task_index].task_detail[d.index].state = ExecuteState.FINISH
+    props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.FINISH
     hasNewLog = true
 }
 
-const execute_job_start = (d:BusJobStart) => {
+const execute_job_start = (d:[Job, number, string]) => {
     //data.value!.task_detail[index].node = node
 }
 
-const execute_job_finish = (d:BusJobFinish) => {
-    if (d.meta == 1){
+const execute_job_finish = (d:[Job, number, string, number]) => {
+    if (d[3] == 1){
         const currentLog = props.logs.logs[0]
         const task = data.value!.projects[data.value!.project_index].task[data.value!.task_index]
-        const index = task.jobs.findIndex(x => x.uuid == d.uuid)
+        const index = task.jobs.findIndex(x => x.uuid == d[0].uuid)
         if(index != -1 && task.jobs[index].category == JobCategory.Condition){
             const cr:ConditionResult = task.jobs[index].number_args[0] as ConditionResult
             if(cr == ConditionResult.None) return
@@ -246,10 +249,10 @@ const execute_job_finish = (d:BusJobFinish) => {
                     hasNewLog = true
                     clearInterval(timer)
                     const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                    currentLog.logs[data.value!.task_index].task_detail[d.index].state = state
+                    currentLog.logs[data.value!.task_index].task_detail[d[1]].state = state
                     currentLog.logs[data.value!.task_index].task_state.state = state
                     data.value!.task_state[data.value!.task_index].state = state
-                    data.value!.task_detail[d.index].state = state
+                    data.value!.task_detail[d[1]].state = state
                     if (cr == ConditionResult.Pause) return
                     if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
                         skip(0, state)
@@ -481,7 +484,7 @@ onUnmounted(() => {
                 </v-tooltip>
             </v-toolbar>
         </div>
-        <v-row style="height: calc(100vh - 120px)" class="w-100">
+        <v-row style="height: calc(100vh - 150px)" class="w-100">
             <v-col :cols="leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
                 <v-list v-model="tag" color="success">
                     <v-list-item @click="tag = 0" :value="0">

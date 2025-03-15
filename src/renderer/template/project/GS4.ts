@@ -428,12 +428,12 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
 
             { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "prepare", value: "Prepare", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "before", value: "before", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "after", value: "after", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "CAM", value: "CAM", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "images", value: "images", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "prepare", value: "Prepare", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "before", value: "before", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "after", value: "after", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "CAM", value: "CAM", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "images", value: "images", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: true },
             { name: "videogs", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "conda_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
 

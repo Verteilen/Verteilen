@@ -3,6 +3,7 @@ import { DataType } from "./enum"
 export interface ParameterContainer {
     s?: boolean
     name: string
+    meta?:string
     type: DataType
     hidden: boolean
     runtimeOnly: boolean

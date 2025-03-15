@@ -1,6 +1,6 @@
 {
   "name": "compute_tool",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
@@ -12,12 +12,13 @@
     "build:web": "node scripts/build.js",
     "build:node": "node scripts/node_builder.js",
     "build:server": "node scripts/build.js & node scripts/server_builder.js",
-    "build:dir": "node scripts/build.js && electron-builder --dir",
+    "build:dir": "node scripts/build.js && node scripts/program_build.js &&  electron-builder --dir",
     "build:win": "node scripts/build.js && electron-builder --win",
     "build:mac": "node scripts/build.js && electron-builder --mac",
     "build:linux": "node scripts/build.js && electron-builder --linux",
     "docker:node": "docker_node.sh",
-    "docker:server": "docker_server.sh"
+    "docker:server": "docker_server.sh",
+    "pkg": "node scripts/program_build.js"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
@@ -55,6 +56,7 @@
     "keypair": "^1.0.4",
     "lua-in-js": "^2.2.5",
     "mitt": "^3.0.1",
+    "pkg": "^5.8.1",
     "redis": "^4.7.0",
     "systeminformation": "^5.25.11",
     "tcp-port-used": "^1.0.2",

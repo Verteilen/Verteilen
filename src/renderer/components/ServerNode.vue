@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -17,6 +17,7 @@ import LogPage from './server/Log.vue';
 import NodePage from './server/Node.vue';
 import ParameterPage from './server/Parameter.vue';
 import ProjectPage from './server/Project.vue';
+import SelfPage from './server/Self.vue';
 import TaskPage from './server/Task.vue';
 
 const websocket_manager:Ref<WebsocketManager | undefined> = ref(undefined)
@@ -32,14 +33,14 @@ interface PROPS {
 }
 
 const proxy:ExecuteProxy = {
-  executeProjectStart: (data:BusProjectStart):void => { emitter?.emit('executeProjectStart', data) },
-  executeProjectFinish: (data:BusProjectFinish):void => { emitter?.emit('executeProjectFinish', data) },
-  executeTaskStart: (data:BusTaskStart):void => { emitter?.emit('executeTaskStart', data) },
-  executeTaskFinish: (data:BusTaskFinish):void => { emitter?.emit('executeTaskFinish', data) },
-  executeSubtaskStart: (data:BusSubTaskStart):void => { emitter?.emit('executeSubtaskStart', data) },
-  executeSubtaskFinish: (data:BusSubTaskFinish):void => { emitter?.emit('executeSubtaskFinish', data) },
-  executeJobStart: (data:BusJobStart):void => { emitter?.emit('executeJobStart', data) },
-  executeJobFinish: (data:BusJobFinish):void => { emitter?.emit('executeJobFinish', data) },
+  executeProjectStart: (data:Project):void => { emitter?.emit('executeProjectStart', data) },
+  executeProjectFinish: (data:Project):void => { emitter?.emit('executeProjectFinish', data) },
+  executeTaskStart: (data:[Task, number]):void => { emitter?.emit('executeTaskStart', data) },
+  executeTaskFinish: (data:Task):void => { emitter?.emit('executeTaskFinish', data) },
+  executeSubtaskStart: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskStart', data) },
+  executeSubtaskFinish: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskFinish', data) },
+  executeJobStart: (data:[Job, number, string]):void => { emitter?.emit('executeJobStart', data) },
+  executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
   feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) }
 }
 
@@ -475,6 +476,7 @@ onUnmounted(() => {
       <v-tab :value="5">{{ $t('toolbar.console') }}</v-tab>
       <v-tab :value="6">{{ $t('toolbar.log') }}</v-tab>
       <v-tab :value="7">{{ $t('toolbar.library') }}</v-tab>
+      <v-tab :value="8">{{ $t('toolbar.client') }}</v-tab>
       <v-menu v-if="!props.config.isElectron">
         <template v-slot:activator="{ props }">
           <v-btn class="mt-1" v-bind="props">
@@ -544,6 +546,10 @@ onUnmounted(() => {
       <LibraryPage v-show="page == 7" 
         :config="props.config"
         v-model="libs"/>
+
+      <SelfPage v-show="page == 8" 
+        :config="props.config"
+        :preference="props.preference"/>
     </div>
   </v-container>
 </template>

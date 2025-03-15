@@ -1,4 +1,4 @@
-import { Project } from "./base"
+import { Job, Project, Task } from "./base"
 import { ExecutionLog, Log, Record } from "./record"
 import { Header, Setter, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
@@ -6,64 +6,6 @@ import { ToastData } from "./ui"
 
 type Handler<T = unknown> = (event: T) => void
 export type Messager = (msg:string, tag?:string) => void
-
-export interface BusProjectStart {
-    uuid: string
-}
-
-export interface BusProjectFinish {
-    uuid: string
-}
-
-export interface BusTaskStart {
-    uuid:string
-    count:number
-}
-
-export interface BusTaskFinish {
-    uuid:string
-}
-
-export interface BusSubTaskStart {
-    index:number
-    node:string
-}
-
-export interface BusSubTaskFinish {
-    index:number
-    node:string
-}
-
-export interface BusJobStart {
-    uuid:string
-    /**
-     * Cron Index\
-     * If single, this value will be 0
-     */
-    index:number
-    node:string
-}
-
-export interface BusJobFinish {
-    /**
-     * Job uuid
-     */
-    uuid:string
-    /**
-     * Cron Index\
-     * If single, this value will be 0
-     */
-    index:number
-    /**
-     * Use node uuid
-     */
-    node:string
-    /**
-     * 0: Success\
-     * 1: Failed
-     */
-    meta:number
-}
 
 export interface BusAnalysis {
     name:string
@@ -94,14 +36,14 @@ export interface EmitterProxy<T> {
 }
 
 export interface ExecuteProxy {
-    executeProjectStart: (data:BusProjectStart) => void
-    executeProjectFinish: (data:BusProjectFinish) => void
-    executeTaskStart: (data:BusTaskStart) => void
-    executeTaskFinish: (data:BusTaskFinish) => void
-    executeSubtaskStart: (data:BusSubTaskStart) => void
-    executeSubtaskFinish: (data:BusSubTaskFinish) => void
-    executeJobStart: (data:BusJobStart) => void
-    executeJobFinish: (data:BusJobFinish) => void
+    executeProjectStart: (data:Project) => void
+    executeProjectFinish: (data:Project) => void
+    executeTaskStart: (data:[Task, number]) => void
+    executeTaskFinish: (data:Task) => void
+    executeSubtaskStart: (data:[Task, number, string]) => void
+    executeSubtaskFinish: (data:[Task, number, string]) => void
+    executeJobStart: (data:[Job, number, string]) => void
+    executeJobFinish: (data:[Job, number, string, number]) => void
     feedbackMessage: (data:Setter) => void
 }
 
@@ -128,14 +70,39 @@ export type BusType = {
     renameScript: Rename
     deleteScript: string
 
-    executeProjectStart: BusProjectStart
-    executeProjectFinish: BusProjectFinish
-    executeTaskStart: BusTaskStart
-    executeTaskFinish: BusTaskFinish
-    executeSubtaskStart: BusSubTaskStart
-    executeSubtaskFinish: BusSubTaskFinish
-    executeJobStart: BusJobStart
-    executeJobFinish: BusJobFinish
+    executeProjectStart: Project
+    executeProjectFinish: Project
+    /**
+     * * 0.Task: Task instance
+     * * 1.number: The amounts of subtask need
+     */
+    executeTaskStart: [Task, number]
+    executeTaskFinish: Task
+    /**
+     * * 0.Task: Task instance
+     * * 1.number: Subtask index
+     * * 2.string: node uuid
+     */
+    executeSubtaskStart: [Task, number, string]
+    /**
+     * * 0.Task: Task instance
+     * * 1.number: Subtask index
+     * * 2.string: node uuid
+     */
+    executeSubtaskFinish: [Task, number, string]
+    /**
+     * * 0.Job: Job instance
+     * * 1.number: Subtask index
+     * * 2.string: node uuid
+     */
+    executeJobStart: [Job, number, string]
+    /**
+     * * 0.Job: Job instance
+     * * 1.number: Subtask index
+     * * 2.string: node uuid
+     * * 3.string: meta string
+     */
+    executeJobFinish: [Job, number, string, number]
 
     analysis: BusAnalysis
     debuglog: string

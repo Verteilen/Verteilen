@@ -61,7 +61,8 @@
         "node": "節點管理",
         "console": "控制台",
         "log": "紀錄",
-        "library": "運行庫"
+        "library": "運行庫",
+        "client": "客戶端"
     },
     "tooltip": {
         "select-server": "作為伺服器下指令的一方",

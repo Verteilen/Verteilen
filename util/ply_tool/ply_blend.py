@@ -27,7 +27,9 @@ def transparent_setting(root, output, frame, blend, gap, contribution):
                 max = max + sinv
                 inputFiles.append((path, out, sinv))
             else:
-                inputFiles.append((path, out, 1.0 / float(gap)))
+                sinv = 1.0 / float(gap)
+                inputFiles.append((path, out, sinv))
+                max = max + sinv
     
     count = len(inputFiles)
     print('input file count: ' + str(count))

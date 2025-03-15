@@ -1,3 +1,4 @@
+import { Job } from "./base"
 import { ExecuteState } from "./enum"
 
 export interface CronJobState  { 
@@ -9,4 +10,5 @@ export interface CronJobState  {
 export interface WorkState {
     uuid:string, 
     state:ExecuteState 
+    job: Job
 }

@@ -1,7 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../interface";
-import { FUNIQUE_GS4_V2_BLEND_PREPARE, FUNIQUE_GS4_V2_COLMAP_COPY } from '../lua/GS4_V2';
-import { FUNIQUE_GS4_PLYDone } from "./../lua/GS4";
+import { FUNIQUE_GS4_V2_BLEND_PREPARE, FUNIQUE_GS4_V2_COLMAP_COPY, FUNIQUE_GS4_V2_PLYDone } from '../lua/GS4_V2';
 import { GetFUNIQUE_GS4ProjectTemplate_Checker, GetFUNIQUE_GS4ProjectTemplate_Colmap, GetFUNIQUE_GS4ProjectTemplate_Denoise, GetFUNIQUE_GS4ProjectTemplate_IFrame, GetFUNIQUE_GS4ProjectTemplate_IFrameBackup, GetFUNIQUE_GS4ProjectTemplate_Prepare } from './GS4';
 
 // 排序改變 優化品質做的準備
@@ -49,7 +48,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Position = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%after%/DATASET_P_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IP/ --sh 3 --interval 1 --group_size %gap_p% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -85,7 +84,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Negative = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%after%/DATASET_N_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IN/ --sh 3 --interval 1 --group_size %gap_n% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -120,7 +119,7 @@ const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: FUNIQUE_GS4_PLYDone,
+        lua: FUNIQUE_GS4_V2_PLYDone,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -141,6 +140,7 @@ const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
     return t
 }
 
+// 透明度調整
 const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
     const transparentJob:Job = {
         uuid: uuidv6(),
@@ -172,6 +172,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
     return t
 }
 
+// 合併
 const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
     const mergeJob:Job = {
         uuid: uuidv6(),
@@ -218,12 +219,12 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
 
             { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "prepare", value: "Prepare", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "before", value: "before", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "after", value: "after", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "CAM", value: "CAM", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "images", value: "images", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: false },
+            { name: "prepare", value: "Prepare", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "before", value: "before", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "after", value: "after", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "CAM", value: "CAM", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "images", value: "images", type: DataType.String, runtimeOnly: false, hidden: true },
+            { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: true },
             { name: "videogs", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "conda_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
 

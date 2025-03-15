@@ -6,9 +6,9 @@ import { Header, Setter } from "../interface";
  * Update the main parameter container on the cluster server
  */
 export class ClientParameter {
-    private source:WebSocket
+    private source:WebSocket | undefined
 
-    constructor(_source:WebSocket){
+    constructor(_source:WebSocket | undefined){
         this.source = _source
     }
 

@@ -1,4 +1,5 @@
-import cluster, { Worker } from 'cluster';
+import { ChildProcess, spawn } from 'child_process';
+import path from 'path';
 import WebSocket from 'ws';
 import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
@@ -12,7 +13,7 @@ export class ClientExecute {
     private parameter:Parameter | undefined = undefined
     private libraries:Libraries | undefined = undefined
     private tag: string = ''
-    private workers:Array<Worker> = []
+    private workers:Array<ChildProcess> = []
 
     private messager:Messager
     private messager_log:Messager
@@ -38,22 +39,39 @@ export class ClientExecute {
      * @param job Target job
      */
     execute_job = (job:Job, source:WebSocket) => {
-        if(!cluster.isPrimary) return
         this.messager_log(`[Execute] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, this.tag)
-        const para = new ClientParameter(source)
-        const worker = cluster.fork({
-            type: "JOB",
-            job: JSON.stringify(job),
-            parameter: JSON.stringify(this.parameter),
-            libraries: JSON.stringify(this.libraries),
-        })
-        this.workers.push(worker)
+        this.tag = job.uuid
+        this.execute_job_worker(job, source)
+    }
 
-        worker.on('message', (msg:Header) => {
+    private execute_job_worker(job:Job, source:WebSocket){
+        const child = spawn("worker.exe", [], 
+            { 
+                cwd: path.join('bin'),
+                stdio: ['inherit', 'pipe', 'pipe'],
+                shell: true,
+                windowsHide: true,
+                env: {
+                    ...process.env,
+                    type: "JOB",
+                    job: JSON.stringify(job),
+                    parameter: JSON.stringify(this.parameter),
+                    libraries: JSON.stringify(this.libraries),
+                }
+        })
+        this.workers.push(child)
+        const para = new ClientParameter(source)
+        let k = ""
+
+        const workerFeedbackExec = (str:string) => {
+            const msg:Header = JSON.parse(str)
             if(msg.name == 'messager'){
                 this.messager(msg.data, msg.meta)
             } 
             else if(msg.name == 'messager_log'){
+                this.messager_log(msg.data, msg.meta)
+            }
+            else if(msg.name == 'error'){
                 this.messager_log(msg.data, msg.meta)
             }
             else if(msg.name == 'feedbackstring'){
@@ -65,24 +83,47 @@ export class ClientExecute {
             else if(msg.name == 'feedbacknumber'){
                 para.feedbacknumber(msg.data)
             }
-        })
+        }
+        const workerFeedback = (str:string) => {
+            for(let i = 0; i < str.length; i++){
+                if(str[i] != '\n') k += str[i]
+                else {
+                    workerFeedbackExec(k)
+                    k = ''
+                }
+            }
+        }
 
-        worker.on('error', (err) => {
+        child.on('error', (err) => {
             this.messager_log(`[Worker Error] ${err}`)
         })
 
-        worker.on('exit', (code, signal) => {
-            this.messager_log( code == 0 ?
-                `[Execute] Successfully: ${code} ${signal}` : 
-                `[Execute] Error: ${code} ${signal}`, this.tag)
-            const data:FeedBack = { job_uuid: job.uuid, meta: code, message: signal }
-            const h:Header = { name: 'feedback_job', data: data }
-            source.send(JSON.stringify(h))
-            this.tag = ''
-
-            const index = this.workers.findIndex(x => x == worker)
+        child.on('exit', (code, signal) => {
+            this.job_finish(code, signal, job, source)
+            const index = this.workers.findIndex(x => x == child)
             if(index != -1) this.workers.splice(index, 1)
         })
+        child.on('message', (message, sendHandle) => {
+            workerFeedback(message.toString())
+        })
+        child.stdout.setEncoding('utf8');
+        child.stdout.on('data', (chunk) => {
+            workerFeedback(chunk.toString())
+        })
+        child.stderr.setEncoding('utf8');
+        child.stderr.on('data', (chunk) => {
+            workerFeedback(chunk.toString())
+        })
+    }
+
+    private job_finish(code, signal, job, source){
+        this.messager_log( code == 0 ?
+            `[Execute] Successfully: ${code} ${signal}` : 
+            `[Execute] Error: ${code} ${signal}`, this.tag)
+        const data:FeedBack = { job_uuid: job.uuid, meta: code, message: signal }
+        const h:Header = { name: 'feedback_job', data: data }
+        source.send(JSON.stringify(h))
+        this.tag = ''
     }
     
     /**

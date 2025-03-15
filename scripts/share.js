@@ -2,7 +2,7 @@ const Path = require('path');
 const Chalk = require('chalk');
 const FileSystem = require('fs');
 
-const dirs = ["main", "node", "renderer", "server"]
+const dirs = ["main", "node", "renderer", "server", "program"]
 const files = FileSystem.readdirSync(Path.join(__dirname, "..", "src", "share"))
 
 files.forEach(x => {
