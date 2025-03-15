@@ -62,7 +62,8 @@ for i=1,blend,1 do
             copy_to_positive()
         end
     end
-    env.setnumber("data_p_"..tostring(i - 1), p_count - 1)
+    -- data_p_0 data_p_1 data_p_2
+    env.setnumber("data_p_"..tostring(i), p_count - 1)
 end
 
 for i=1,blend,1 do
@@ -87,7 +88,8 @@ for i=1,blend,1 do
             copy_to_negative()
         end
     end
-    env.setnumber("data_n_"..tostring(i - 1), n_count - 1)
+    -- data_n_0 data_n_1 data_n_2
+    env.setnumber("data_n_"..tostring(i), n_count - 1)
 end
 `
 
