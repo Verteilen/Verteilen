@@ -18,7 +18,8 @@ function createWindow () {
         webPreferences: {
             preload: join(__dirname, 'preload.js'),
             nodeIntegration: false,
-            contextIsolation: true
+            contextIsolation: true,
+            devTools: true
         }
     });
 
@@ -36,10 +37,6 @@ function createWindow () {
         mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'));
     }
     mainWindow.setMenu(menu_client!)
-
-    if(process.env.NODE_ENV === 'development'){
-        mainWindow?.webContents.openDevTools()
-    }
 }
 
 export function RUN(){

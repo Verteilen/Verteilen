@@ -121,9 +121,8 @@ onUnmounted(() => {
 .flow {
   padding-top: 20px;
   padding-left: 10px;
-  width: 100vw; 
-  height: 100vh;
-  overflow-y: auto;
+  height: calc(100vh - 100px);
+  overflow-y: scroll;
   text-align: left;
 }
 .messages {

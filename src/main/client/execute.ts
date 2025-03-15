@@ -40,6 +40,7 @@ export class ClientExecute {
      */
     execute_job = (job:Job, source:WebSocket) => {
         if(!cluster.isPrimary) return
+        this.tag = job.uuid
 
         if(this.use_worker(job)){
             this.execute_job_worker(job, source)

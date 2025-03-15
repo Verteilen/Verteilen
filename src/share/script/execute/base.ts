@@ -10,6 +10,11 @@ export class ExecuteManager_Base {
     current_job:Array<WorkState> = []
     current_multithread = 1
     current_task_count = -1
+    /**
+     * * NONE: Not yet start
+     * * RUNNING: In the processing stage
+     * * FINISH: Everything is finish processing
+     */
     state:ExecuteState = ExecuteState.NONE
     t_state:ExecuteState = ExecuteState.NONE 
     jobstack = 0

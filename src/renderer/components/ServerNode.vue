@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -33,14 +33,14 @@ interface PROPS {
 }
 
 const proxy:ExecuteProxy = {
-  executeProjectStart: (data:BusProjectStart):void => { emitter?.emit('executeProjectStart', data) },
-  executeProjectFinish: (data:BusProjectFinish):void => { emitter?.emit('executeProjectFinish', data) },
-  executeTaskStart: (data:BusTaskStart):void => { emitter?.emit('executeTaskStart', data) },
-  executeTaskFinish: (data:BusTaskFinish):void => { emitter?.emit('executeTaskFinish', data) },
-  executeSubtaskStart: (data:BusSubTaskStart):void => { emitter?.emit('executeSubtaskStart', data) },
-  executeSubtaskFinish: (data:BusSubTaskFinish):void => { emitter?.emit('executeSubtaskFinish', data) },
-  executeJobStart: (data:BusJobStart):void => { emitter?.emit('executeJobStart', data) },
-  executeJobFinish: (data:BusJobFinish):void => { emitter?.emit('executeJobFinish', data) },
+  executeProjectStart: (data:Project):void => { emitter?.emit('executeProjectStart', data) },
+  executeProjectFinish: (data:Project):void => { emitter?.emit('executeProjectFinish', data) },
+  executeTaskStart: (data:[Task, number]):void => { emitter?.emit('executeTaskStart', data) },
+  executeTaskFinish: (data:Task):void => { emitter?.emit('executeTaskFinish', data) },
+  executeSubtaskStart: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskStart', data) },
+  executeSubtaskFinish: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskFinish', data) },
+  executeJobStart: (data:[Job, number, string]):void => { emitter?.emit('executeJobStart', data) },
+  executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
   feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) }
 }
 

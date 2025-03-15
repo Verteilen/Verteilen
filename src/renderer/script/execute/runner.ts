@@ -35,8 +35,8 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             const index = this.current_projects.findIndex(x => x.uuid == project.uuid)
             if(index == this.current_projects.length - 1){
                 // * Case A: Finish entire thing
-                this.messager_log(`[Execute] Project Finish ${this.current_p?.uuid}`)
-                this.proxy?.executeProjectFinish({ uuid: this.current_p?.uuid ?? '' } )
+                this.messager_log(`[Execute] Project Finish ${this.current_p!.uuid}`)
+                this.proxy?.executeProjectFinish(this.current_p!)
                 this.current_p = undefined
                 this.state = ExecuteState.FINISH
                 this.t_state = ExecuteState.NONE
@@ -67,8 +67,8 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
          */
         if(!hasJob){
             // We end it gracefully.
-            this.proxy?.executeTaskStart({ uuid: task.uuid, count: this.current_task_count })
-            this.proxy?.executeTaskFinish({ uuid: task.uuid })
+            this.proxy?.executeTaskStart([task, this.current_task_count ])
+            this.proxy?.executeTaskFinish(task)
             this.messager_log(`[Execute] Skip ! No job exists ${task.uuid}`)
             this.ExecuteTask_AllFinish(project, task)
             return
@@ -105,13 +105,14 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                     work: task.jobs.map(x => {
                         return {
                             uuid: x.uuid,
-                            state: ExecuteState.NONE
+                            state: ExecuteState.NONE,
+                            job: x
                         }
                     })
                 }
                 this.current_cron.push(d)
             }
-            this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
+            this.proxy?.executeTaskStart([task, taskCount ])
         } else{
             // If disconnect or deleted...
             const worker = this.current_cron.filter(x => x.uuid != '').map(x => x.uuid)
@@ -171,8 +172,8 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             this.SyncParameter(project)
             ns = this.get_idle()
             if(ns.length > 0) {
-                this.proxy?.executeTaskStart({ uuid: task.uuid, count: taskCount })
-                this.proxy?.executeSubtaskFinish({ index: 0, node: ns[0].uuid })
+                this.proxy?.executeTaskStart([task, taskCount ])
+                this.proxy?.executeSubtaskFinish([task, 0, ns[0].uuid])
             }
         }
 
@@ -182,11 +183,12 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                 allJobFinish = true
             }else{
                 if(this.current_job.length != task.jobs.length){
+                    const job:Job = JSON.parse(JSON.stringify(task.jobs[this.current_job.length]))
                     this.current_job.push({
                         uuid: ns[0].uuid,
-                        state: ExecuteState.RUNNING
+                        state: ExecuteState.RUNNING,
+                        job: job
                     })
-                    const job:Job = JSON.parse(JSON.stringify(task.jobs[this.current_job.length - 1]))
                     job.index = 1
                     this.ExecuteJob(project, task, job, ns[0], false)
                 }
@@ -196,7 +198,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
     }
 
     private ExecuteTask_AllFinish(project:Project, task:Task){
-        this.proxy?.executeTaskFinish({ uuid: task.uuid })
+        this.proxy?.executeTaskFinish(task)
         this.messager_log(`[Execute] Task Finish ${task.uuid}`)
         const index = project.task.findIndex(x => x.uuid == task.uuid)
         if(index == project.task.length - 1){
@@ -216,7 +218,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         if(ns.state != ExecuteState.RUNNING && ns.current_job == undefined){
             const index = work.work.findIndex(x => x.state == ExecuteState.NONE)
             if(index == 0){
-                this.proxy?.executeSubtaskStart({ index:work.id - 1, node: ns.uuid })
+                this.proxy?.executeSubtaskStart([task, work.id - 1, ns.uuid ])
             }
             if(index == -1) return
             work.work[index].state = ExecuteState.RUNNING
@@ -229,7 +231,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
     private ExecuteJob = (project:Project, task:Task, job:Job, wss:WebsocketPack, iscron:boolean) => {
         const n:number = job.index!
         this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
-        this.proxy?.executeJobStart({ uuid: job.uuid, index: n - 1, node: wss.uuid })
+        this.proxy?.executeJobStart([ job, n - 1, wss.uuid ])
         let parameter_job:Parameter = JSON.parse(JSON.stringify(this.localPara))
 
         for(let i = 0; i < job.string_args.length; i++){

@@ -51,25 +51,45 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
         
-        this.jobstack = this.jobstack - 1
+        console.log(this.current_job)
+
+        this.jobstack = Math.max(this.jobstack - 1, 0)
+        if(this.current_t == undefined) {
+            console.error("Cannot feedback when task is null")
+            return
+        }
         this.messager_log(`[Execute] Job Feedback: ${data.job_uuid} ${data.message}`)
         // If it's a single type work
+        
         if(this.current_job.length > 0){
-            this.proxy?.executeJobFinish({uuid: data.job_uuid, index: 0, node: source.uuid, meta: data.meta})
-            this.current_job[this.current_job.length - 1].state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
+            const work = this.current_job.find(x => x.uuid == source.uuid)
+            if(work == undefined) {
+                console.error("Cannot find the feedback container, work")
+                return
+            }
+
+            this.proxy?.executeJobFinish([work.job, 0, source.uuid, data.meta])
+            work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
             if(this.check_single_end()){
-                this.proxy?.executeSubtaskFinish({index: 0, node: source.uuid})
+                this.proxy?.executeSubtaskFinish([this.current_t!, 0, source.uuid])
+                this.messager_log(`[Execute] Subtask finish: ${this.current_t!.uuid}`)
             }
         }
         // If it's a cronjob type work
         else if(this.current_cron.length > 0){
-            const index = this.current_cron.findIndex(x => x.uuid == source.uuid)
-            const jindex = this.current_cron[index].work.findIndex(x => x.uuid == data.job_uuid)
-            this.proxy?.executeJobFinish({uuid: data.job_uuid, index: this.current_cron[index].id - 1, node: source.uuid, meta: data.meta})
-            this.current_cron[index].work[jindex].state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
-            if(this.check_cron_end(this.current_cron[index])){
-                this.proxy?.executeSubtaskFinish({ index: this.current_cron[index].id - 1, node: this.current_cron[index].uuid })
-                this.current_cron[index].uuid = ''
+            const cron = this.current_cron.find(x => x.uuid == source.uuid)
+            const work = cron?.work.find(x => x.uuid == data.job_uuid)
+            if(cron == undefined || work == undefined) {
+                console.error("Cannot find the feedback container, cron or work")
+                return
+            }
+
+            this.proxy?.executeJobFinish([work.job, cron.id - 1, source.uuid, data.meta])
+            work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
+            if(this.check_cron_end(cron)){
+                this.proxy?.executeSubtaskFinish([this.current_t, cron.id - 1, cron.uuid ])
+                this.messager_log(`[Execute] Subtask finish: ${this.current_t!.uuid}`)
+                cron.uuid = ''
             }
         }
         // Reset the state of the node
