@@ -1,4 +1,5 @@
-import cluster, { Worker } from 'cluster';
+import { ChildProcess, spawn } from 'child_process';
+import path from 'path';
 import WebSocket from 'ws';
 import { DataType, FeedBack, Header, Job, JobCategory, JobType, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
@@ -13,7 +14,7 @@ export class ClientExecute {
     private parameter:Parameter | undefined = undefined
     private libraries:Libraries | undefined = undefined
     private tag: string = ''
-    private workers:Array<Worker> = []
+    private workers:Array<ChildProcess> = []
 
     private messager:Messager
     private messager_log:Messager
@@ -39,7 +40,7 @@ export class ClientExecute {
      * @param job Target job
      */
     execute_job = (job:Job, source:WebSocket) => {
-        if(!cluster.isPrimary) return
+        this.messager_log(`[Execute] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, this.tag)
         this.tag = job.uuid
 
         if(this.use_worker(job)){
@@ -50,18 +51,23 @@ export class ClientExecute {
     }
 
     private execute_job_worker(job:Job, source:WebSocket){
-        this.messager_log(`[Execute] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, this.tag)
-        const para = new ClientParameter(source)
-        const worker = cluster.fork({
-            ...process.env,
-            type: "JOB",
-            job: JSON.stringify(job),
-            parameter: JSON.stringify(this.parameter),
-            libraries: JSON.stringify(this.libraries),
+        const child = spawn("worker.exe", [], 
+            { 
+                cwd: path.join(__dirname, 'bin'),
+                stdio: ['inherit', 'pipe', 'pipe'],
+                shell: true,
+                env: {
+                    ...process.env,
+                    type: "JOB",
+                    job: JSON.stringify(job),
+                    parameter: JSON.stringify(this.parameter),
+                    libraries: JSON.stringify(this.libraries),
+                }
         })
-        this.workers.push(worker)
+        this.workers.push(child)
+        const para = new ClientParameter(source)
 
-        worker.on('message', (msg:Header) => {
+        child.on('message', (msg:Header) => {
             if(msg.name == 'messager'){
                 this.messager(msg.data, msg.meta)
             } 
@@ -82,13 +88,13 @@ export class ClientExecute {
             }
         })
 
-        worker.on('error', (err) => {
+        child.on('error', (err) => {
             this.messager_log(`[Worker Error] ${err}`)
         })
 
-        worker.on('exit', (code, signal) => {
+        child.on('exit', (code, signal) => {
             this.job_finish(code, signal, job, source)
-            const index = this.workers.findIndex(x => x == worker)
+            const index = this.workers.findIndex(x => x == child)
             if(index != -1) this.workers.splice(index, 1)
         })
     }
@@ -110,7 +116,6 @@ export class ClientExecute {
      * TODO need to find a way to execute multithread methods
      */
     private use_worker = (job:Job):boolean => {
-        return false
         const iscommand = job.category == JobCategory.Execution && job.type == JobType.COMMAND
         this.messager_log(`${job.uuid} Use worker: ${!iscommand}`)
         return !iscommand

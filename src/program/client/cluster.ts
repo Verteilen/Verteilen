@@ -1,4 +1,3 @@
-import { parentPort } from 'worker_threads'
 import { Header, Job } from '../interface'
 import { ClientJobExecute } from './job_execute'
 
@@ -8,7 +7,7 @@ const messager = (msg:string, tag?:string) => {
         meta: tag,
         data: msg
     }
-    parentPort?.postMessage(d)
+    console.log(JSON.stringify(d))
 }
 
 const messager_log = (msg:string, tag?:string) => {
@@ -17,7 +16,7 @@ const messager_log = (msg:string, tag?:string) => {
         meta: tag,
         data: msg
     }
-    parentPort?.postMessage(d)
+    console.log(JSON.stringify(d))
 }
 
 export function RUN(){
@@ -37,7 +36,7 @@ export function RUN(){
                 meta: "Execute job failed",
                 data: err,
             }
-            parentPort?.postMessage(d)
+            console.log(JSON.stringify(d))
             process.exit(1)
         })
     }
