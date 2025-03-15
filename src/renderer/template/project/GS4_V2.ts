@@ -90,7 +90,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Negative = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Blend 資料準備 (正)",
+        title: "Blend 資料準備 (負)",
         description: "生成多個 checkpoint 資料夾",
         cronjob: true,
         cronjobKey: "blend",
