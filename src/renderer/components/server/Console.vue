@@ -276,13 +276,13 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
                     }
                 }
             }, 1000);
-            
         }
     }
     //data.value!.task_detail[index].node = ""
 }
 
 const update_runtime_parameter = (d:Parameter) => {
+    console.log("Sync para", d)
     para.value = d
 }
 
@@ -510,7 +510,6 @@ onUnmounted(() => {
                         Debug Log
                     </v-list-item>
                 </v-list>
-                {{ para }}
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 0">
                 <List v-model="data" />

@@ -50,17 +50,16 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
     private feedback_job = (data:FeedBack, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
-        console.log(this.current_job)
         this.jobstack = Math.max(this.jobstack - 1, 0)
         if(this.current_t == undefined) {
             console.error("Cannot feedback when task is null")
             return
         }
-        this.messager_log(`[Execute] Job Feedback: ${data.job_uuid} ${data.message}`)
+        this.messager_log(`[Execute] Job Feedback: ${data.job_uuid} ${data.message} ${data.meta}`)
         // If it's a single type work
         
         if(this.current_job.length > 0){
-            const work = this.current_job.find(x => x.uuid == source.uuid)
+            const work = this.current_job.find(x => x.uuid == source.uuid && x.state == ExecuteState.RUNNING)
             if(work == undefined) {
                 console.error("Cannot find the feedback container, work")
                 return
@@ -68,6 +67,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
 
             this.proxy?.executeJobFinish([work.job, 0, source.uuid, data.meta])
             work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
+            console.log(this.current_job)
             if(this.check_single_end()){
                 this.proxy?.executeSubtaskFinish([this.current_t!, 0, source.uuid])
                 this.messager_log(`[Execute] Subtask finish: ${this.current_t!.uuid}`)
@@ -84,6 +84,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
 
             this.proxy?.executeJobFinish([work.job, cron.id - 1, source.uuid, data.meta])
             work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
+            console.log(this.current_job)
             if(this.check_cron_end(cron)){
                 this.proxy?.executeSubtaskFinish([this.current_t, cron.id - 1, cron.uuid ])
                 this.messager_log(`[Execute] Subtask finish: ${this.current_t!.uuid}`)

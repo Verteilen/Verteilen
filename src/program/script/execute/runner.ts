@@ -1,4 +1,4 @@
-import { CronJobState, ExecuteState, Header, Job, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ExecuteState, Header, Job, Project, Task, WebsocketPack, WorkState } from "../../interface";
 import { ExecuteManager_Feedback } from "./feedback";
 
 /**
@@ -232,7 +232,6 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         const n:number = job.index!
         this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
         this.proxy?.executeJobStart([ job, n - 1, wss.uuid ])
-        let parameter_job:Parameter = JSON.parse(JSON.stringify(this.localPara))
 
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
@@ -240,7 +239,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             for(let j = 0; j < task.properties.length; j++){
                 job.string_args[i] = this.replaceAll(job.string_args[i], `%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
             }
-            job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(parameter_job), { key: 'ck', value: n.toString() }])
+            job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
             this.messager_log(`String replace: ${b} ${job.string_args[i]}`)
         }
         const h:Header = {
@@ -252,5 +251,25 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         const stringdata = JSON.stringify(h)
         wss.websocket.send(stringdata)
         this.jobstack = this.jobstack + 1
+    }
+
+    /**
+     * Boradcasting all the parameter and library to all the websocket nodes
+     * @param p Target project
+     */
+    SyncParameter = (p:Project) => {
+        // Get the clone para from it
+        this.localPara = JSON.parse(JSON.stringify(p.parameter))
+        this.messager_log("[Execute] Sync Parameter !")
+        this.messager_log("[Execute] Generate local parameter object")
+        // Then phrase the expression to value
+        for(let i = 0; i < this.localPara!.containers.length; i++){
+            if(this.localPara!.containers[i].type == DataType.Expression && this.localPara!.containers[i].meta != undefined){
+                const text = `%{${this.localPara!.containers[i].meta}}%`
+                this.localPara!.containers[i].value = this.replacePara(text, [...this.to_keyvalue(this.localPara!)])
+            }
+        }
+        // Boradcasting
+        this.sync_local_para(this.localPara!)
     }
 }
