@@ -25,6 +25,8 @@ let messager_log: Messager
 let clientos:ClientOS | undefined
 let para:ClientJobParameter | undefined = undefined
 
+const tag = () => getjob?.()?.uuid ?? 'unknown'
+
 function hasboolean(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
@@ -66,12 +68,12 @@ function setboolean(key:string, value:boolean){
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
     
-    messager_log(`[Boolean feedback] ${key} = ${value}`, getjob?.()?.uuid ?? '')
+    messager_log(`[Boolean feedback] ${key} = ${value}`, tag())
     para?.feedbackboolean({key:key,value:value})
 }
 function setnumber(key:string, value:number){
     if(key == 'ck') {
-        messager_log("Trying to set a constant ck...", getjob?.()?.uuid ?? '')
+        messager_log("Trying to set a constant ck...", tag())
         return
     }
     const p = getpara?.() ?? undefined
@@ -79,7 +81,7 @@ function setnumber(key:string, value:number){
     const target = p.containers.find(x => x.name == key && x.type == DataType.Number)
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
-    messager_log(`[Number feedback] ${key} = ${value}`, getjob?.()?.uuid ?? '')
+    messager_log(`[Number feedback] ${key} = ${value}`, tag())
     para?.feedbacknumber({key:key,value:value})
 }
 function setstring(key:string, value:string){
@@ -134,8 +136,8 @@ export class ClientLua {
     }
 
     static Init = (_messager: Messager, _messager_log: Messager, _clientos:ClientOS, _para:ClientJobParameter, _getlib:Getlib, _getpara:Getpara, _getjob:Getjob) => {
-        messager = (m, t) => _messager(m, _getjob()?.uuid)
-        messager_log = (m, t) => _messager_log(m, _getjob()?.uuid)
+        messager = _messager
+        messager_log = _messager_log
         clientos = _clientos
         para = _para
         getlib = _getlib
@@ -161,6 +163,7 @@ export class ClientLua {
             const r = execc.exec()
             return r
         }catch(err){
+            messager_log(err, tag())
             throw err
         }
     }
@@ -173,6 +176,7 @@ export class ClientLua {
             const r = execc.exec()
             return r
         }catch(err){
+            messager_log(err, tag())
             throw err
         }
     }

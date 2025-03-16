@@ -67,14 +67,14 @@ export class ClientExecute {
         const workerFeedbackExec = (str:string) => {
             const msg:Header = JSON.parse(str)
             if(msg.name == 'messager'){
-                this.messager(msg.data, msg.meta)
+                this.messager(msg.data, this.tag)
             } 
             else if(msg.name == 'messager_log'){
-                this.messager_log(msg.data, msg.meta)
+                this.messager_log(msg.data, this.tag)
             }
             else if(msg.name == 'error'){
-                if(msg.data instanceof String) this.messager_log(msg.data.toString(), msg.meta)
-                else this.messager_log(JSON.stringify(msg.data), msg.meta)
+                if(msg.data instanceof String) this.messager_log(msg.data.toString(), this.tag)
+                else this.messager_log(JSON.stringify(msg.data), this.tag)
             }
             else if(msg.name == 'feedbackstring'){
                 para.feedbackstring(msg.data)
