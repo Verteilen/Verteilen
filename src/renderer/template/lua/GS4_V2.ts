@@ -161,11 +161,11 @@ end
 for i=1,blend,1 do
     local step = i-1
     local folder = root.."/"..after_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint/"
-    local NNumber = split(o.listdir(folder), "\\n")
-    local count = #(NNumber)
-    local delta = (i - 1) * iframe_gap
+    local target_folder = split(o.listdir(folder), "\n")
+    local count = #(target_folder)
+    local delta = step * iframe_gap
 
-    for key,value in pairs(NNmuner) do
+    for key,value in pairs(target_folder) do
         local from = folder..value
         -- 0, 1, 2, 3
         local rindex = (count - tonumber(string.sub(value, 2))) - 1

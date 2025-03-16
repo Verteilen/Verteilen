@@ -22,7 +22,7 @@ o.createdir(root.."/"..after_folder)
 o.createdir(output_folder)
 
 m.messager("Get CAM list")
-local prepare_folders = split(o.listdir(root.."/"..prepare_folder.."/"..CAM), "\\n")
+local prepare_folders = split(o.listdir(root.."/"..prepare_folder.."/"..CAM), "\n")
 
 local cam_size = #(prepare_folders)
 m.messager("Get CAM count: "..cam_size)
@@ -35,7 +35,7 @@ end
 
 local frame_size = 0
 if cam_size > 0 then
-    local f1_files = split(o.listfile(root.."/"..prepare_folder.."/"..CAM.."/"..prepare_folders[1]), "\\n")
+    local f1_files = split(o.listfile(root.."/"..prepare_folder.."/"..CAM.."/"..prepare_folders[1]), "\n")
     frame_size = #(f1_files)
 end
 m.messager("Get Frame count: "..frame_size)
