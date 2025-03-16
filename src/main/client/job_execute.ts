@@ -56,25 +56,15 @@ export class ClientJobExecute {
                 case JobType.COPY_FILE:
                     {
                         const data:TwoPath = { from: this.job.string_args[0], to: this.job.string_args[1] }
-                        if(this.os.fs_file_exist({path: data.from})){
-                            this.os.file_copy(data)    
-                            this.os.file_copy(data)
-                            resolve(`Copy file successfully, ${data.from}, ${data.to}`)
-                        }else{
-                            reject(`File does not exist, ${data.from}`)
-                        }
+                        this.os.file_copy(data)
+                        resolve(`Copy file successfully, ${data.from}, ${data.to}`)
                         break
                     }
                 case JobType.COPY_DIR:
                     {
                         const data:TwoPath = { from: this.job.string_args[0], to: this.job.string_args[1] }
-                        if(this.os.fs_dir_exist({path: data.from})){
-                            this.os.file_copy(data)    
-                            this.os.file_copy(data)
-                            resolve(`Copy dir successfully, ${data.from}, ${data.to}`)
-                        }else{
-                            reject(`Dir does not exist, ${data.from}`)
-                        }
+                        this.os.dir_copy(data)
+                        resolve(`Copy dir successfully, ${data.from}, ${data.to}`)
                         break
                     }
                 case JobType.DELETE_FILE:
