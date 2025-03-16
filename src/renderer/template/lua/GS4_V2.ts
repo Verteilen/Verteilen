@@ -159,8 +159,9 @@ for i=1,iframe_size,1 do
 end
 
 for i=1,blend,1 do
-    local folder = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_IN/checkpoint/"
-    local NNumber = split(o.listdir(folder))
+    local step = i-1
+    local folder = root.."/"..after_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint/"
+    local NNumber = split(o.listdir(folder), "\\n")
     local count = #(NNumber)
     local delta = (i - 1) * iframe_gap
 

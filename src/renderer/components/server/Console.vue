@@ -389,6 +389,7 @@ const clean = () => {
     data.value!.project_state = []
     data.value!.task_state = []
     data.value!.task_detail = []
+    para.value = undefined
 }
 
 const stop = () => {
