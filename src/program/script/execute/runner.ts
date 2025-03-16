@@ -1,4 +1,4 @@
-import { CronJobState, DataType, ExecuteState, Header, Job, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, ExecuteState, Header, Job, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
 import { ExecuteManager_Feedback } from "./feedback";
 
 /**
@@ -96,7 +96,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
          */
         if(this.current_cron.length == 0){
             // First time
-            this.SyncParameter(project)
+            this.sync_local_para(this.localPara!)
             // Create the cronjob instance here
             for(let index = 1; index < taskCount + 1; index++){
                 const d:CronJobState = {
@@ -169,7 +169,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             }
         }else{
             // First time
-            this.SyncParameter(project)
+            this.sync_local_para(this.localPara!)
             ns = this.get_idle()
             if(ns.length > 0) {
                 this.proxy?.executeTaskStart([task, taskCount ])
@@ -252,25 +252,5 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         const stringdata = JSON.stringify(h)
         wss.websocket.send(stringdata)
         this.jobstack = this.jobstack + 1
-    }
-
-    /**
-     * Boradcasting all the parameter and library to all the websocket nodes
-     * @param p Target project
-     */
-    SyncParameter = (p:Project) => {
-        // Get the clone para from it
-        this.localPara = JSON.parse(JSON.stringify(p.parameter))
-        // Then phrase the expression to value
-        for(let i = 0; i < this.localPara!.containers.length; i++){
-            if(this.localPara!.containers[i].type == DataType.Expression && this.localPara!.containers[i].meta != undefined){
-                const text = `%{${this.localPara!.containers[i].meta}}%`
-                this.localPara!.containers[i].value = this.replacePara(text, [...this.to_keyvalue(this.localPara!)])
-            }
-        }
-        // Boradcasting
-        this.websocket_manager.targets.forEach(x => {
-            this.sync_para(this.localPara!, x)
-        })
     }
 }

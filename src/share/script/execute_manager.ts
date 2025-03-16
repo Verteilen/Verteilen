@@ -1,4 +1,4 @@
-import { ExecuteState, Header, Project, WebsocketPack } from "../interface";
+import { DataType, ExecuteState, Header, Project, WebsocketPack } from "../interface";
 import { ExecuteManager_Runner } from "./execute/runner";
 
 /**
@@ -13,6 +13,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
         if(this.state != ExecuteState.RUNNING) return
         if(this.current_p == undefined && this.current_projects.length > 0){
             this.current_p = this.current_projects[0]
+            this.SyncParameter(this.current_p)
             this.messager_log(`[Execute] Project Start ${this.current_p.uuid}`)
             this.proxy?.executeProjectStart(this.current_p)
         }
@@ -74,6 +75,24 @@ export class ExecuteManager extends ExecuteManager_Runner {
             }
         }
         return i
+    }
+
+    /**
+     * Boradcasting all the parameter and library to all the websocket nodes
+     * @param p Target project
+     */
+    SyncParameter = (p:Project) => {
+        // Get the clone para from it
+        this.localPara = JSON.parse(JSON.stringify(p.parameter))
+        // Then phrase the expression to value
+        for(let i = 0; i < this.localPara!.containers.length; i++){
+            if(this.localPara!.containers[i].type == DataType.Expression && this.localPara!.containers[i].meta != undefined){
+                const text = `%{${this.localPara!.containers[i].meta}}%`
+                this.localPara!.containers[i].value = this.replacePara(text, [...this.to_keyvalue(this.localPara!)])
+            }
+        }
+        // Boradcasting
+        this.sync_local_para(this.localPara!)
     }
 
     /**

@@ -141,7 +141,8 @@
     },
     "console": {
         "list": "專案列表",
-        "dashboard": "儀錶板"
+        "dashboard": "儀錶板",
+        "parameter": "參數版"
     },
     "types": {
         "number": "數字",

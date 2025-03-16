@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Project, Record, Setter, Task } from '../../interface';
+import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Project, Record, Setter, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 
 import DebugLog from './console/DebugLog.vue';
 import List from './console/List.vue';
+import ParameterPage from './console/Parameter.vue';
 import Process from './console/Process.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -22,6 +23,7 @@ const props = defineProps<PROPS>()
 const leftSize = ref(3)
 const rightSize = ref(9)
 const tag = ref(1)
+const para:Ref<Parameter | undefined> = ref(undefined)
 /**
  * 0: All\
  * 1: Project\
@@ -163,6 +165,7 @@ const execute_project_finish = (d:Project) => {
         data.value!.running = false
         data.value!.stop = true
     }
+    para.value = undefined
 }
 
 const execute_task_start = (d:[Task, number]) => {
@@ -279,6 +282,10 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
     //data.value!.task_detail[index].node = ""
 }
 
+const update_runtime_parameter = (d:Parameter) => {
+    para.value = d
+}
+
 const updateHandle = () => {
     if(data.value!.running && !data.value!.stop){
         try {
@@ -297,6 +304,7 @@ const updateHandle = () => {
     if(data.value!.stop){
         if(props.execute!.jobstack == 0){
             data.value!.running = false
+            para.value = undefined
         }
     }
     if(hasNewLog){
@@ -401,6 +409,7 @@ onMounted(() => {
     emitter?.on('executeSubtaskFinish', execute_subtask_end)
     emitter?.on('executeJobStart', execute_job_start)
     emitter?.on('executeJobFinish', execute_job_finish)
+    emitter?.on('updateRuntimeParameter', update_runtime_parameter)
 })
 
 onUnmounted(() => {
@@ -415,6 +424,7 @@ onUnmounted(() => {
     emitter?.off('executeSubtaskFinish', execute_subtask_end)
     emitter?.off('executeJobStart', execute_job_start)
     emitter?.off('executeJobFinish', execute_job_finish)
+    emitter?.off('updateRuntimeParameter', update_runtime_parameter)
 })
 
 </script>
@@ -493,10 +503,14 @@ onUnmounted(() => {
                     <v-list-item @click="tag = 1" :value="1">
                         {{ $t('console.dashboard') }}
                     </v-list-item>
+                    <v-list-item @click="tag = 3" :value="3">
+                        {{ $t('console.parameter') }}
+                    </v-list-item>
                     <v-list-item @click="tag = 2" :value="2">
                         Debug Log
                     </v-list-item>
                 </v-list>
+                {{ para }}
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 0">
                 <List v-model="data" />
@@ -506,6 +520,9 @@ onUnmounted(() => {
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 2">
                 <DebugLog />
+            </v-col>
+            <v-col :cols="rightSize" v-show="tag == 3">
+                <ParameterPage v-model="para" />
             </v-col>
         </v-row>
     </div>

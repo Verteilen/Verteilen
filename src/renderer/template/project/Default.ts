@@ -138,6 +138,42 @@ const GetDefaultProjectTemplate_Pnumber2 = ():Task => {
     return t
 }
 
+const GetDefaultProjectTemplate_OS = ():Task => {
+    const testFolder:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.CREATE_DIR,
+        lua: "",
+        string_args: ["test"],
+        number_args: [ConditionResult.ThrowProject],
+        boolean_args: []
+    }
+    const writef:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.CREATE_FILE,
+        lua: "",
+        string_args: ["test/hello.txt", "Hello World"],
+        number_args: [ConditionResult.ThrowProject],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "OS action",
+        description: "",
+        cronjob: false,
+        cronjobKey: "",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            testFolder,
+            writef
+        ]
+    }
+    return t
+}
+
 const GetDefaultProjectTemplate_Pnumber = ():Task => {
     const checker:Job = {
         uuid: uuidv6(),
@@ -205,6 +241,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
     r.parameter = para
     r.task = [
         GetDefaultProjectTemplate_Checker(),
+        GetDefaultProjectTemplate_OS(),
         GetDefaultProjectTemplate_Pnumber(),
         GetDefaultProjectTemplate_Pnumber2(),
         GetDefaultProjectTemplate_Lua(),

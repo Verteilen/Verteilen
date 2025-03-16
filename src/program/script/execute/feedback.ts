@@ -50,9 +50,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
     private feedback_job = (data:FeedBack, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
-        
         console.log(this.current_job)
-
         this.jobstack = Math.max(this.jobstack - 1, 0)
         if(this.current_t == undefined) {
             console.error("Cannot feedback when task is null")
@@ -111,6 +109,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.proxy?.updateParameter(this.current_p.parameter)
     }
     /**
      * When one of the node decide to change the parameter of number value
@@ -125,6 +124,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.proxy?.updateParameter(this.current_p.parameter)
     }
     /**
      * When one of the node decide to change the parameter of boolean value
@@ -139,6 +139,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.proxy?.updateParameter(this.current_p.parameter)
     }
 
     /**

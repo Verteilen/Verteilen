@@ -41,7 +41,8 @@ const proxy:ExecuteProxy = {
   executeSubtaskFinish: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskFinish', data) },
   executeJobStart: (data:[Job, number, string]):void => { emitter?.emit('executeJobStart', data) },
   executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
-  feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) }
+  feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
+  updateParameter: (data:Parameter):void => { emitter?.emit('updateRuntimeParameter', data) },
 }
 
 const props = defineProps<PROPS>()

@@ -1,4 +1,4 @@
-import { Job, Project, Task } from "./base"
+import { Job, Parameter, Project, Task } from "./base"
 import { ExecutionLog, Log, Record } from "./record"
 import { Header, Setter, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
@@ -45,6 +45,7 @@ export interface ExecuteProxy {
     executeJobStart: (data:[Job, number, string]) => void
     executeJobFinish: (data:[Job, number, string, number]) => void
     feedbackMessage: (data:Setter) => void
+    updateParameter: (data:Parameter) => void
 }
 
 /**
@@ -103,6 +104,7 @@ export type BusType = {
      * * 3.string: meta string
      */
     executeJobFinish: [Job, number, string, number]
+    updateRuntimeParameter: Parameter
 
     analysis: BusAnalysis
     debuglog: string

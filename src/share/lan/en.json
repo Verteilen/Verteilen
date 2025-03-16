@@ -141,7 +141,8 @@
     },
     "console": {
         "list": "Project List",
-        "dashboard": "Dashboard"
+        "dashboard": "Dashboard",
+        "parameter": "Parameter"
     },
     "types": {
         "number": "Number",

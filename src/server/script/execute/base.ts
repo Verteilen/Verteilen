@@ -31,6 +31,11 @@ export class ExecuteManager_Base {
         this.messager_log = _messager_log
     }
 
+    protected sync_local_para = (target:Parameter) => {
+        this.websocket_manager.targets.forEach(x => this.sync_para(target, x))
+        this.proxy?.updateParameter(target)
+    }
+
     //#region Helper
     protected sync_para = (target:Parameter, source:WebsocketPack) => {
         const h:Header = {
