@@ -57,6 +57,7 @@ const remove = () => {
     emitter?.emit('deleteScript', selection.value!.name)
     data.value!.libs = data.value!.libs.filter(x => x.name != selection.value!.name)
     dirty.value = true
+    clean()
 }
 
 const rename = () => {
