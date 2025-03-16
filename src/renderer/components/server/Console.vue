@@ -304,7 +304,6 @@ const updateHandle = () => {
     if(data.value!.stop){
         if(props.execute!.jobstack == 0){
             data.value!.running = false
-            para.value = undefined
         }
     }
     if(hasNewLog){
