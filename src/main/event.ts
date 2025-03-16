@@ -34,7 +34,15 @@ export class BackendEvent {
         })
     
         ipcMain.on('lua', (event, content:string) => {
-            const lua:ClientLua = new ClientLua(messager, messager_log, () => this.job)
+            const lua_messager_feedback = (msg:string, tag?:string) => {
+                messager(msg, tag)
+                event.sender.send('lua-feedback', msg)
+            }
+            const lua_messager_log_feedback = (msg:string, tag?:string) => {
+                messager_log(msg, tag)
+                event.sender.send('lua-feedback', msg)
+            }
+            const lua:ClientLua = new ClientLua(lua_messager_feedback, lua_messager_log_feedback, () => this.job)
             const r = lua.LuaExecute(content)
             event.sender.send('lua-feedback', r?.toString() ?? '')
         })
@@ -142,8 +150,6 @@ export class BackendEvent {
             setupMenu()
         })
     }
-
-    
 
     ImportProject = () => {
         if(mainWindow == undefined) return;

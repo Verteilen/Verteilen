@@ -58,7 +58,7 @@ for i=1,blend,1 do
         from = root.."/"..before.."/"..tostring(j)
         local gap = (j - ((i - 1) * iframe_gap) - xx) % group_size + xx
 
-        if gap <= (gap_p + 1 + xx) then
+        if gap <= (gap_p + 1) then
             copy_to_positive(p_folder)
         end
     end
@@ -81,10 +81,11 @@ for i=1,blend,1 do
         local gap = (j - ((i - 1) * iframe_gap) - xx) % group_size + xx
 
         if gap == xx then
+            m.messager("Hit true: "..tostring(j))
             hit = true
         end
 
-        if gap > (gap_p + 1 - xx) and hit then
+        if gap > (gap_p + 1) and hit then
             copy_to_negative(n_folder)
         end
     end
