@@ -52,6 +52,7 @@ for i=1,blend,1 do
 
     -- 0 or 1
     local starter = ((i - 1) * iframe_gap) + xx
+    m.messager("p_starter: "..tostring(starter))
     p_count = starter
     
     for j=starter,frame_size,1 do
@@ -73,10 +74,12 @@ for i=1,blend,1 do
 
     -- 0 or 1
     local starter = ((i - 1) * iframe_gap) + xx
+    m.messager("n_starter: "..tostring(starter))
     local hit = false
     n_count = starter
 
-    for j=frame_size,starter,-1 do
+    for k=1,frame_size - (starter - xx),1 do
+        local j = frame_size - (k - xx)
         from = root.."/"..before.."/"..tostring(j)
         local gap = (j - ((i - 1) * iframe_gap) - xx) % group_size + xx
 

@@ -73,7 +73,8 @@ export class ClientExecute {
                 this.messager_log(msg.data, msg.meta)
             }
             else if(msg.name == 'error'){
-                this.messager_log(msg.data, msg.meta)
+                if(msg.data instanceof String) this.messager_log(msg.data.toString(), msg.meta)
+                else this.messager_log(JSON.stringify(msg.data), msg.meta)
             }
             else if(msg.name == 'feedbackstring'){
                 para.feedbackstring(msg.data)
