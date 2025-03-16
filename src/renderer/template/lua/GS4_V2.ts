@@ -84,7 +84,6 @@ for i=1,blend,1 do
         local gap = (j - ((i - 1) * iframe_gap) - xx) % group_size + xx
 
         if gap == xx then
-            m.messager("Hit true: "..tostring(j))
             hit = true
         end
 
