@@ -14,4 +14,4 @@ buildProgram().then(() => {
     const programPath = Path.join(__dirname, '..', 'build', 'program', 'worker.js');
     console.log(Chalk.greenBright('Program successfully transpiled!'));
     pkg.exec(["-d", "-t", "node16-x64", "-o", exePath, "--public-packages", "*", programPath])
-})
+}).catch(err => console.error(err))
