@@ -65,6 +65,9 @@ export class ExecuteManager extends ExecuteManager_Runner {
         let i = 0
         for(const x of this.current_projects){
             if(x.task.length > 0){
+                this.current_p = x;
+                this.SyncParameter(this.current_p)
+                this.current_t = this.current_p.task[0]
                 break;
             }else{
                 i++
