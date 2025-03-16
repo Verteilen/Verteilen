@@ -81,13 +81,13 @@ for i=1,blend,1 do
     for k=1,frame_size - (starter - xx),1 do
         local j = frame_size - (k - xx)
         from = root.."/"..before.."/"..tostring(j)
-        local gap = (j - ((i - 1) * iframe_gap) - xx) % group_size + xx
+        local gap = (j - ((i - 1) * iframe_gap) - xx - 1) % group_size + xx
 
         if gap == xx then
             hit = true
         end
 
-        if gap > (gap_p + 1) and hit then
+        if gap > (gap_p) and hit then
             copy_to_negative(n_folder)
         end
     end
