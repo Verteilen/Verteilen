@@ -33,13 +33,13 @@ end
 env.setnumber("gop_positive", gap_p)
 env.setnumber("gop_negative", gap_n)
 
-function copy_to_positive()
+function copy_to_positive(p_folder)
     local to = p_folder.."/"..tostring(p_count)
     o.copydir(from, to)
     p_count = p_count + 1
 end
 
-function copy_to_negative()
+function copy_to_negative(n_folder)
     local to = n_folder.."/"..tostring(n_count)
     o.copydir(from, to)
     n_count = n_count + 1
@@ -59,7 +59,7 @@ for i=1,blend,1 do
         local gap = j % group_size
 
         if gap <= (gap_p + 1) then
-            copy_to_positive()
+            copy_to_positive(p_folder)
         end
     end
     -- data_p_0 data_p_1 data_p_2
@@ -85,7 +85,7 @@ for i=1,blend,1 do
         end
 
         if gap > (gap_p + 1) and hit then
-            copy_to_negative()
+            copy_to_negative(n_folder)
         end
     end
     -- data_n_0 data_n_1 data_n_2
