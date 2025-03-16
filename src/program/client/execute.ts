@@ -31,7 +31,8 @@ export class ClientExecute {
      * The stop signal, It will trying to kill the process if currently running
      */
     stop_job = () => {
-        this.workers.forEach(x => x.kill())
+        this.messager_log("[Execute] Stop All")
+        this.workers.forEach(x => x.kill(1))
     }
     
     /**

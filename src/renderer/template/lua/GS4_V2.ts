@@ -22,7 +22,7 @@ if start_at_zero then
     n_count = 0
 end
 
-if event then
+if even then
     gap_p = group_size / 2
     gap_n = group_size / 2 - 1
 else
@@ -56,9 +56,9 @@ for i=1,blend,1 do
     
     for j=starter,frame_size,1 do
         from = root.."/"..before.."/"..tostring(j)
-        local gap = j % group_size
+        local gap = (j - ((i - 1) * iframe_gap) - xx) % group_size + xx
 
-        if gap <= (gap_p + 1) then
+        if gap <= (gap_p + 1 + xx) then
             copy_to_positive(p_folder)
         end
     end
@@ -78,13 +78,13 @@ for i=1,blend,1 do
 
     for j=frame_size,starter,-1 do
         from = root.."/"..before.."/"..tostring(j)
-        local gap = j % group_size
+        local gap = (j - ((i - 1) * iframe_gap) - xx) % group_size + xx
 
-        if gap == 1 then
+        if gap == xx then
             hit = true
         end
 
-        if gap > (gap_p + 1) and hit then
+        if gap > (gap_p + 1 - xx) and hit then
             copy_to_negative(n_folder)
         end
     end

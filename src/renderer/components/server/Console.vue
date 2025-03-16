@@ -393,6 +393,7 @@ const clean = () => {
 
 const stop = () => {
     data.value!.stop = true
+    para.value = undefined
     props.execute!.Stop()
 }
 
