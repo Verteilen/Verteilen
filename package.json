@@ -1,6 +1,6 @@
 {
   "name": "compute_tool",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
@@ -10,12 +10,12 @@
     "share": "node scripts/share.js",
     "build": "node scripts/build.js && electron-builder",
     "build:web": "node scripts/build.js",
-    "build:node": "node scripts/node_builder.js",
-    "build:server": "node scripts/build.js & node scripts/server_builder.js",
-    "build:dir": "node scripts/build.js && node scripts/program_build.js &&  electron-builder --dir",
-    "build:win": "node scripts/build.js && electron-builder --win",
-    "build:mac": "node scripts/build.js && electron-builder --mac",
-    "build:linux": "node scripts/build.js && electron-builder --linux",
+    "build:node": "node scripts/program_build.js && node scripts/node_builder.js",
+    "build:server": "node scripts/build.js && node scripts/program_build.js && node scripts/server_builder.js",
+    "build:dir": "node scripts/build.js && node scripts/program_build.js && electron-builder --dir",
+    "build:win": "node scripts/build.js && node scripts/program_build.js && electron-builder --win",
+    "build:mac": "node scripts/build.js && node scripts/program_build.js && electron-builder --mac",
+    "build:linux": "node scripts/build.js && node scripts/program_build.js && electron-builder --linux",
     "docker:node": "docker_node.sh",
     "docker:server": "docker_server.sh",
     "pkg": "node scripts/program_build.js"

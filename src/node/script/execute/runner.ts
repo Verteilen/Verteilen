@@ -238,7 +238,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             const b = job.string_args[i]
             if(b == null || b == undefined || b.length == 0) continue
             for(let j = 0; j < task.properties.length; j++){
-                job.string_args[i] = job.string_args[i].replace(`%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
+                job.string_args[i] = this.replaceAll(job.string_args[i], `%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
             }
             job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(parameter_job), { key: 'ck', value: n.toString() }])
             this.messager_log(`String replace: ${b} ${job.string_args[i]}`)

@@ -229,12 +229,22 @@ export class ExecuteManager_Base {
     private parse = (str:string, paras:Array<KeyValue>):string => {
         str = str.substring(1, str.length - 1)
         const parser = init(formula, (term: string) => {
+            if(term.includes("_ck_")){
+                const index = paras.findIndex(x => x.key == "ck")
+                if(index != -1) term = this.replaceAll(term, "_ck_", paras[index].value)
+            }
             const index = paras.findIndex(x => x.key == term)
             if(index != -1) return Number(paras[index].value)
             else return 0
         });
         const r = parser.expressionToValue(str).toString()
         return r
+    }
+
+    protected replaceAll = (str:string, fi:string, tar:string):string => {
+        let p = str
+        while(p.includes(fi)) p = p.replace(fi, tar)
+        return p
     }
     //#endregion
 }

@@ -1,8 +1,9 @@
 const Path = require('path');
 const Chalk = require('chalk');
 const compileTs = require('./private/tsc');
-const { copyFile } = require('fs/promises');
+const { copyFile, mkdir } = require('fs/promises');
 const { writeFile } = require('fs/promises');
+const pkg = require('pkg');
 
 function buildNode() {
     const nodePath = Path.join(__dirname, '..', 'src', 'node');
@@ -16,6 +17,12 @@ function copyPackageJson() {
 }
 
 buildNode().then(() => {
+    const exePath = Path.join(__dirname, '..', 'bin', 'worker.exe');
+    const endProgramFolderPath = Path.join(__dirname, '..', 'build', 'node', 'bin');
+    const endProgramPath = Path.join(endProgramFolderPath, 'worker.exe');
+    mkdir(endProgramFolderPath).then(() => {
+        copyFile(exePath, endProgramPath)
+    })
     copyPackageJson().then(() => {
         writeFile(Path.join(__dirname, '..', 'build', 'node', 'run.sh'), '#!/bin/bash\n\nnode .\nread -p "Press enter to continue"')
         console.log(Chalk.greenBright('Node successfully transpiled!'));

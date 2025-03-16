@@ -48,7 +48,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Position = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%after%/DATASET_P_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IP/ --sh 3 --interval 1 --group_size %gap_p% --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount_p% --cuda 0 --iframe 0 --data %root%/%after%/DATASET_P_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IP/ --sh 3 --interval 1 --group_size %gap_p% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
@@ -68,6 +68,10 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Position = ():Task => {
             {
                 name: 'blend_value',
                 expression: '(ck - 1) * iframe_gap'
+            },
+            {
+                name: 'frameCount_p',
+                expression: 'data_p__ck_'
             }
         ],
         jobs: [
@@ -84,13 +88,13 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Negative = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%after%/DATASET_N_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IN/ --sh 3 --interval 1 --group_size %gap_n% --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount_n% --cuda 0 --iframe 0 --data %root%/%after%/DATASET_N_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IN/ --sh 3 --interval 1 --group_size %gap_n% --resolution 1"],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Blend 資料準備 (正)",
+        title: "Blend 資料準備 (負)",
         description: "生成多個 checkpoint 資料夾",
         cronjob: true,
         cronjobKey: "blend",
@@ -104,6 +108,10 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Negative = ():Task => {
             {
                 name: 'blend_value',
                 expression: '(ck - 1) * iframe_gap'
+            },
+            {
+                name: 'frameCount_n',
+                expression: 'data_n__ck_'
             }
         ],
         jobs: [

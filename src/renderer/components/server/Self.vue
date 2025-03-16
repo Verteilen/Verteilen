@@ -89,7 +89,7 @@ onUnmounted(() => {
     <div class="float_button text-white" style="z-index: 5;">
       <v-btn-group>
         <v-btn color="primary" @click="panel = []">{{ $t('close-all') }}</v-btn>
-        <v-btn :color="autoScroll ? 'success' : 'danger'" @click="autoScroll = !autoScroll">{{ $t('auto-scroll') }}</v-btn>
+        <v-btn :color="autoScroll ? 'success' : 'error'" @click="autoScroll = !autoScroll">{{ $t('auto-scroll') }}</v-btn>
         <v-btn color="primary" @click="clearMessage">{{ $t('clear') }}</v-btn>
       </v-btn-group>
     </div>
