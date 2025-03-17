@@ -96,9 +96,9 @@ export class ClientOS {
     }
     
     command = async (cwd:string, command:string, args:string):Promise<string> => {
-        this.messager(`[OS Action] Command cwd: ${cwd}`, this.tag())
-        this.messager(`[OS Action] Command command: ${command}`, this.tag())
-        this.messager(`[OS Action] Command args: ${args}`, this.tag())
+        this.messager_log(`[OS Action] Command cwd: ${cwd}`, this.tag())
+        this.messager_log(`[OS Action] Command command: ${command}`, this.tag())
+        this.messager_log(`[OS Action] Command args: ${args}`, this.tag())
         return new Promise<string>((resolve, reject) => {
             const child = spawn(command,  args.split(' '), 
             { 
