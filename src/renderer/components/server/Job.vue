@@ -116,7 +116,7 @@ const cloneSelect = () => {
 }
 
 const deleteSelect = () => {
-    deleteData.value = items.value.filter(x => x.s == undefined || x.s === false).map(x => x.uuid)
+    deleteData.value = items.value.filter(x => x.s == true).map(x => x.uuid)
     deleteModal.value = true
 }
 
