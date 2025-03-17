@@ -39,6 +39,8 @@
     "modal": {
         "new-project": "New Project",
         "modify-project": "Modify Project",
+        "delete-project": "Delete Project",
+        "delete-project-confirm": "Are you sure delete projects below",
         "enter-project-name": "Enter Project Name",
         "enter-project-description": "Enter Project Description",
         "new-task": "New Task",
