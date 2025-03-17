@@ -60,11 +60,11 @@ const getindex = (r:number, i:number):number => {
 }
 
 const clean = () => {
-    props.logs.logs = props.logs.logs.filter(x => {
+    props.logs.logs = props.logs.logs.filter((x, index) => {
         const c1 = data.value!.projects.length > 0 && data.value!.project_index >= 0 && x.project.uuid == data.value?.projects[data.value?.project_index].uuid
         const c2 = x.start_timer != 0
         const c3 = x.end_timer == 0
-        return c1 && c2 && c3
+        return c1 && c2 && c3 && index == 0
     })
     updateLog(props.logs)
 }

@@ -186,6 +186,7 @@ local root = env.getstring("root")
 local after_folder = env.getstring("after")
 local group_size = env.getnumber("group_size")
 local output_folder = env.getstring("output")
+local frame_size = env.getnumber("frameCount")
 
 local start_at_zero = env.getboolean("start_at_0")
 local blend = env.getnumber("blend")
@@ -238,6 +239,7 @@ for i=1,blend,1 do
     -- Positive
     source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IP/checkpoint"
     allfolder = split(o.listdir(source_folder), "\n")
+    
     for key,value in pairs(allfolder) do
         local n = tonumber(value - step * iframe_gap)
         local rec = (n - xx) % (gap_p + 1)
@@ -252,8 +254,11 @@ for i=1,blend,1 do
     -- Negative
     source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint"
     allfolder = split(o.listdir(source_folder), "\n")
+    local c_starter = math.floor((frame_size - 1) / 20) * group_size + xx
+
     for key,value in pairs(allfolder) do
         local n = tonumber(value)
+        
         local rec = (n - xx) % (gap_p + 1)
         local times = math.ceil(n / (gap_p + 1))
         local r = tostring(group_size * (times - 1) + rec + xx)

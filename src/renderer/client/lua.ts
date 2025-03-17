@@ -130,8 +130,8 @@ export class ClientLua {
         })
         
         this.message = new luainjs.Table({
-            "messager": (m, t) => _messager(m, _getjob()?.uuid), 
-            "messager_log": (m, t) => _messager_log(m, _getjob()?.uuid)
+            "messager": (m:string) => _messager(m, tag()), 
+            "messager_log": (m:string) => _messager_log(m, tag())
         })
     }
 
@@ -162,8 +162,8 @@ export class ClientLua {
             const execc = luaEnv.parse(script)
             const r = execc.exec()
             return r
-        }catch(err){
-            messager_log(err, tag())
+        }catch(err:any){
+            messager_log(err.tostring(), tag())
             throw err
         }
     }
@@ -175,8 +175,8 @@ export class ClientLua {
             const execc = luaEnv.parse(script)
             const r = execc.exec()
             return r
-        }catch(err){
-            messager_log(err, tag())
+        }catch(err:any){
+            messager_log(err.tostring(), tag())
             throw err
         }
     }
