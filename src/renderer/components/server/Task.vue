@@ -352,10 +352,10 @@ onUnmounted(() => {
             <v-card>
                 <v-card-title>
                     <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.delete-project') }}
+                    {{ $t('modal.delete-task') }}
                 </v-card-title>
                 <v-card-text>
-                    <p>{{ $t('modal.delete-project-confirm') }}</p>
+                    <p>{{ $t('modal.delete-task-confirm') }}</p>
                     <br />
                     <p v-for="(p, i) in deleteData">
                         {{ i }}. {{ p }}

@@ -32,7 +32,6 @@ export class BackendEvent {
         ipcMain.on('client_stop', (event, content:string) => {
             this.Destroy()
         })
-    
         ipcMain.on('lua', (event, content:string) => {
             const lua_messager_feedback = (msg:string, tag?:string) => {
                 messager(msg, tag)
