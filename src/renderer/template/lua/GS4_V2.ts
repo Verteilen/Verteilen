@@ -254,14 +254,13 @@ for i=1,blend,1 do
     -- Negative
     source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint"
     allfolder = split(o.listdir(source_folder), "\n")
-    local c_starter = math.floor((frame_size - 1) / 20) * group_size + xx
+    local c_starter = math.floor((frame_size - 1) / 20) * group_size + xx + (step * iframe_gap)
 
     for key,value in pairs(allfolder) do
         local n = tonumber(value)
-        
-        local rec = (n - xx) % (gap_p + 1)
-        local times = math.ceil(n / (gap_p + 1))
-        local r = tostring(group_size * (times - 1) + rec + xx)
+        local rec = (n - xx) % (gap_n + 1)
+        local times = math.ceil(n / (gap_n + 1))
+        local r = tostring( c_starter - ((n + (times - 1) * gap_p) - xx) )
         local src = source_root_folder.."/"..value
         local output = output_folder_seq.."/"..r..".ply"
         copyToTarget(src, output)
