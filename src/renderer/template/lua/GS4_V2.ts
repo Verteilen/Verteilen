@@ -238,6 +238,7 @@ for i=1,blend,1 do
     -- Positive
     source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IP/checkpoint"
     allfolder = split(o.listdir(source_folder), "\\n")
+    m.messager_log("total file: "..tostring(#(allfolder)).." in "..source_folder)
     
     for key,value in pairs(allfolder) do
         local n = tonumber(value - step * iframe_gap)
@@ -254,6 +255,7 @@ for i=1,blend,1 do
     -- Negative
     source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint"
     allfolder = split(o.listdir(source_folder), "\\n")
+    m.messager_log("total file: "..tostring(#(allfolder)).." in "..source_folder)
     local c_starter = math.floor((frame_size - 1) / 20) * group_size + xx + (step * iframe_gap)
 
     for key,value in pairs(allfolder) do
