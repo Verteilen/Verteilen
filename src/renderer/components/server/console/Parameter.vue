@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { BusType, DataType, DataTypeText, Parameter } from '../../../interface';
 import { i18n } from '../../../plugins/i18n';
 
@@ -13,6 +13,10 @@ const fields:Ref<Array<any>> = ref([
     { title: 'Value', align: 'center', key: 'value' },
 ])
 const options:Ref<Array<{ title: string, value:number }>> = ref([])
+
+const d:Ref<Parameter | undefined> = ref(undefined)
+
+watch(() => data.value, () => d.value = data.value)
 
 const DataTypeTranslate = (t:number):string => {
     return i18n.global.t(DataTypeText[t])
@@ -40,8 +44,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <v-container v-if="data != undefined" class="pt-4" style="max-height: 90vh; overflow-y: auto;">
-        <v-data-table :items="data.containers" :headers="fields">
+    <v-container v-if="d != undefined" class="pt-4" style="max-height: 90vh; overflow-y: auto;">
+        <v-data-table :items="d.containers" :headers="fields" item-key="name">
             <template v-slot:item.type="item">
                 <v-chip>{{ DataTypeTranslate(item.value) }}</v-chip>
             </template>
