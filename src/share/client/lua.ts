@@ -147,38 +147,28 @@ export class ClientLua {
 
     LuaExecuteWithLib = (lua:string, libs:Array<string>) => {
         const luaEnv = this.getLuaEnv()
-        try {
-            let script = lib + '\n'
+        let script = lib + '\n'
 
-            const p = getlib?.() ?? undefined
-            if(p != undefined){
-                libs.forEach(x => {
-                    const t = p.libs.find(y => y.name == x)
-                    if(t != undefined) script += ("\n" + t.content + "\n")
-                })
-            }
-            
-            script += ('\n' + lua)
-            const execc = luaEnv.parse(script)
-            const r = execc.exec()
-            return r
-        }catch(err:any){
-            messager_log(err.tostring(), tag())
-            throw err
+        const p = getlib?.() ?? undefined
+        if(p != undefined){
+            libs.forEach(x => {
+                const t = p.libs.find(y => y.name == x)
+                if(t != undefined) script += ("\n" + t.content + "\n")
+            })
         }
+        
+        script += ('\n' + lua)
+        const execc = luaEnv.parse(script)
+        const r = execc.exec()
+        return r
     }
 
     LuaExecute = (lua:string) => {
         const luaEnv = this.getLuaEnv(LuaLib.OS | LuaLib.MESSAGE)
-        try {
-            let script = lib + '\n' + lua
-            const execc = luaEnv.parse(script)
-            const r = execc.exec()
-            return r
-        }catch(err:any){
-            messager_log(err.tostring(), tag())
-            throw err
-        }
+        let script = lib + '\n' + lua
+        const execc = luaEnv.parse(script)
+        const r = execc.exec()
+        return r
     }
 
     private getLuaEnv(flags:LuaLib = LuaLib.ALL){
