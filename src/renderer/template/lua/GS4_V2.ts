@@ -160,7 +160,7 @@ end
 for i=1,blend,1 do
     local step = i-1
     local folder = root.."/"..after_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint/"
-    local target_folder = split(o.listdir(folder), "\n")
+    local target_folder = split(o.listdir(folder), "\\n")
     local count = #(target_folder)
     local delta = step * iframe_gap
 
@@ -237,7 +237,7 @@ for i=1,blend,1 do
 
     -- Positive
     source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IP/checkpoint"
-    allfolder = split(o.listdir(source_folder), "\n")
+    allfolder = split(o.listdir(source_folder), "\\n")
     
     for key,value in pairs(allfolder) do
         local n = tonumber(value - step * iframe_gap)
@@ -252,7 +252,7 @@ for i=1,blend,1 do
 
     -- Negative
     source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint"
-    allfolder = split(o.listdir(source_folder), "\n")
+    allfolder = split(o.listdir(source_folder), "\\n")
     local c_starter = math.floor((frame_size - 1) / 20) * group_size + xx + (step * iframe_gap)
 
     for key,value in pairs(allfolder) do
