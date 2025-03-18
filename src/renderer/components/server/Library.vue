@@ -14,7 +14,10 @@ const props = defineProps<PROPS>()
 const data = defineModel<Libraries>()
 const emits = defineEmits<{
     (e: 'rename', oldname:string, newname:string): void
-    (e: 'delete', uuids:string): void
+    (e: 'save', file:string): void
+    (e: 'load', file:string): void
+    (e: 'delete', file:string): void
+    (e: 'delete-all'): void
 }>()
 const leftSize = ref(3)
 const rightSize = ref(9)
