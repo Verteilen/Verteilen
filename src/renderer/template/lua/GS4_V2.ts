@@ -233,7 +233,7 @@ for i=1,blend,1 do
     local allfolder = {}
     local starter = (step * iframe_gap) + xx
     o.createdir(output_folder_seq)
-    local count = starter
+    local count = 0
 
     -- Positive
     source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IP/checkpoint"
@@ -244,9 +244,10 @@ for i=1,blend,1 do
         local rec = (n - xx) % (gap_p + 1)
         local times = math.ceil(n / (gap_p + 1))
         local r = tostring(group_size * (times - 1) + rec + xx + (step * iframe_gap))
-        local src = source_root_folder.."/"..value
+        local src = source_folder.."/"..value
         local output = output_folder_seq.."/"..r..".ply"
         copyToTarget(src, output)
+        count = count + 1
     end
 
 
@@ -260,9 +261,10 @@ for i=1,blend,1 do
         local rec = (n - xx) % (gap_n + 1)
         local times = math.ceil(n / (gap_n + 1))
         local r = tostring( c_starter - ((n + (times - 1) * gap_p) - xx) )
-        local src = source_root_folder.."/"..value
+        local src = source_folder.."/"..value
         local output = output_folder_seq.."/"..r..".ply"
         copyToTarget(src, output)
+        count = count + 1
     end
 
     m.messager_log("Total file copy: "..tostring(count)..", to path: "..output_folder_seq)
