@@ -151,7 +151,7 @@ export class BackendEvent {
         })
     }
 
-    Loader = (key:string, folder:string, name:string) => {
+    Loader = (key:string, folder:string) => {
         ipcMain.on(`save_all_${key}`, (e, log:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
