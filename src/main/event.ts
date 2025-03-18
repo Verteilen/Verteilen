@@ -5,7 +5,7 @@ import { Client } from "./client/client";
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
-import { ExecutionLog, Job, Libraries, Log, Preference, Project, Record } from "./interface";
+import { Job, Libraries, Log, Preference, Project, Record } from "./interface";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
@@ -152,30 +152,16 @@ export class BackendEvent {
     }
 
     Loader = (key:string, folder:string) => {
-        ipcMain.on(`save_all_${key}`, (e, log:string) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const record:Log = JSON.parse(log)
-            record.logs.forEach(x => {
-                const filename = `${x.project.uuid}-${x.start_timer}.json`
-                const p = path.join(root, filename)
-                fs.writeFileSync(p, JSON.stringify(p))
-            })
-            if (fs.existsSync("data")) fs.mkdirSync("data")
-            fs.writeFileSync('log.json', log)
-        })
         ipcMain.handle(`load_all_${key}`, (e) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const record:Log = {
-                logs: []
-            }
+            const r:Array<string> = []
             const ffs = fs.readFileSync(root)
             ffs.forEach(x => {
-                const file:ExecutionLog = JSON.parse(fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' }))
-                record.logs.push(file)
+                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+                r.push(file)
             })
-            return record
+            return r
         })
         ipcMain.on(`delete_all_${key}`, (e) => {
             const root = path.join("data", folder)
