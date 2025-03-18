@@ -138,7 +138,6 @@ for i=1,iframe_size,1 do
     local to_foldername = ""
 
     local delta = step * iframe_gap
-    recur * gap_p
 
     -- Positive detect
     to_foldername = tostring((recur * gap_p) + delta + xx + (recur))
