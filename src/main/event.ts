@@ -97,6 +97,8 @@ export class BackendEvent {
                 return file.toString()
             }
         })
+        //this.Loader("lib", "lua")
+
         ipcMain.on('save_lib', (e, log:string) => {
             fs.writeFileSync('lib.json', log)
         })
