@@ -103,14 +103,14 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      */
     private feedback_string = (data:Setter) => {
         if(this.current_p == undefined) return
-        const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.String)
-        if(index != -1) this.current_p.parameter.containers[index].value = data.value
-        else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.String, hidden: true, runtimeOnly: true })
+        const index = this.localPara!.containers.findIndex(x => x.name == data.key && x.type == DataType.String)
+        if(index != -1) this.localPara!.containers[index].value = data.value
+        else this.localPara!.containers.push({ name: data.key, value: data.value, type: DataType.String, hidden: true, runtimeOnly: true })
         this.messager_log(`[String Feedback] ${data.key} = ${data.value}`)
         // Sync to other
-        const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
+        const d:Header = { name: 'set_parameter', data: this.localPara!}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
-        this.proxy?.updateParameter(this.current_p.parameter)
+        this.proxy?.updateParameter(this.localPara!)
     }
     /**
      * When one of the node decide to change the parameter of number value
@@ -118,14 +118,14 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      */
     private feedback_number = (data:Setter) => {
         if(this.current_p == undefined) return
-        const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Number)
-        if(index != -1) this.current_p.parameter.containers[index].value = data.value
-        else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.Number, hidden: true, runtimeOnly: true })
+        const index = this.localPara!.containers.findIndex(x => x.name == data.key && x.type == DataType.Number)
+        if(index != -1) this.localPara!.containers[index].value = data.value
+        else this.localPara!.containers.push({ name: data.key, value: data.value, type: DataType.Number, hidden: true, runtimeOnly: true })
         this.messager_log(`[Number Feedback] ${data.key} = ${data.value}`)
         // Sync to other
-        const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
+        const d:Header = { name: 'set_parameter', data: this.localPara!}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
-        this.proxy?.updateParameter(this.current_p.parameter)
+        this.proxy?.updateParameter(this.localPara!)
     }
     /**
      * When one of the node decide to change the parameter of boolean value
@@ -133,14 +133,14 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      */
     private feedback_boolean = (data:Setter) => {
         if(this.current_p == undefined) return
-        const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Boolean)
-        if(index != -1) this.current_p.parameter.containers[index].value = data.value
-        else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.Boolean, hidden: true, runtimeOnly: true })
+        const index = this.localPara!.containers.findIndex(x => x.name == data.key && x.type == DataType.Boolean)
+        if(index != -1) this.localPara!.containers[index].value = data.value
+        else this.localPara!.containers.push({ name: data.key, value: data.value, type: DataType.Boolean, hidden: true, runtimeOnly: true })
         this.messager_log(`[Boolean Feedback] ${data.key} = ${data.value}`)
         // Sync to other
-        const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
+        const d:Header = { name: 'set_parameter', data: this.localPara!}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
-        this.proxy?.updateParameter(this.current_p.parameter)
+        this.proxy?.updateParameter(this.localPara!)
     }
 
     /**
