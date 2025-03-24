@@ -1,9 +1,19 @@
+/**
+ * Lua module cannot handle methods which in the class\
+ * In order to crack this issue, I put everything in the global scope\
+ * But spawn the thread on the cluster processes\
+ * 
+ * This might cost more resources to work, But it won't throw error... so
+ */
 import * as luainjs from 'lua-in-js';
 import { DataType, Job, Libraries, LuaLib, Messager, Parameter } from '../interface';
 import { ClientJobParameter } from './job_parameter';
 import { ClientOS } from './os';
 
 //#region Global
+/**
+ * The build-in methods for lua
+ */
 const lib = `function split(s, sep)
     local fields = {}
     local sep = sep or " "
@@ -27,6 +37,7 @@ let para:ClientJobParameter | undefined = undefined
 
 const tag = () => getjob?.()?.uuid ?? 'unknown'
 
+//#region Parameters
 function hasboolean(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
@@ -94,7 +105,11 @@ function setstring(key:string, value:string){
     para?.feedbackstring({key:key,value:value})
 }
 //#endregion
+//#endregion
 
+/**
+ * The lua runner
+ */
 export class ClientLua {
     os:luainjs.Table
     env:luainjs.Table
@@ -135,6 +150,17 @@ export class ClientLua {
         })
     }
 
+    /**
+     * Before running the lua scripts, We must init first.\
+     * ! Otherwise it won't work or throw error
+     * @param _messager Message habndle
+     * @param _messager_log Message habndle with print on screen feature
+     * @param _clientos OS worker
+     * @param _para Parameter worker
+     * @param _getlib library getter method
+     * @param _getpara Parameter getter method
+     * @param _getjob Job getter method
+     */
     static Init = (_messager: Messager, _messager_log: Messager, _clientos:ClientOS, _para:ClientJobParameter, _getlib:Getlib, _getpara:Getpara, _getjob:Getjob) => {
         messager = _messager
         messager_log = _messager_log
@@ -145,6 +171,13 @@ export class ClientLua {
         getjob = _getjob
     }
 
+    /**
+     * Running lua\
+     * With reference libraries\
+     * @param lua Lua script text
+     * @param libs Libraries header names
+     * @returns Calcuate result
+     */
     LuaExecuteWithLib = (lua:string, libs:Array<string>) => {
         const luaEnv = this.getLuaEnv()
         let script = lib + '\n'
@@ -163,6 +196,11 @@ export class ClientLua {
         return r
     }
 
+    /**
+     * Running lua
+     * @param lua Lua script text
+     * @returns Calcuate result
+     */
     LuaExecute = (lua:string) => {
         const luaEnv = this.getLuaEnv(LuaLib.OS | LuaLib.MESSAGE)
         let script = lib + '\n' + lua
@@ -178,7 +216,6 @@ export class ClientLua {
         if((flags & LuaLib.MESSAGE) == LuaLib.MESSAGE) luaEnv.loadLib('m', this.message)
         return luaEnv
     }
-
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})
     }

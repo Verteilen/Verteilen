@@ -1,6 +1,11 @@
 import { Header, Job } from '../interface'
 import { ClientJobExecute } from './job_execute'
 
+/**
+ * The message handle for reply
+ * @param msg Message
+ * @param tag Message prefix
+ */
 const messager = (msg:string, tag?:string) => {
     const d:Header = {
         name: 'messager',
@@ -10,6 +15,11 @@ const messager = (msg:string, tag?:string) => {
     console.log(JSON.stringify(d))
 }
 
+/**
+ * The message handle for reply with print on screen ffeature
+ * @param msg Message
+ * @param tag Message prefix
+ */
 const messager_log = (msg:string, tag?:string) => {
     const d:Header = {
         name: 'messager_log',
@@ -19,7 +29,11 @@ const messager_log = (msg:string, tag?:string) => {
     console.log(JSON.stringify(d))
 }
 
+/**
+ * The entry point for the cluster thread.
+ */
 export function RUN(){
+    // The cluster currently spawn should execute a job
     if(process.env.type == 'JOB'){
         if(process.env.job == undefined){
             process.exit(1)

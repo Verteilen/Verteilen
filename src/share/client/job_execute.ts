@@ -5,9 +5,23 @@ import { ClientJobParameter } from "./job_parameter";
 import { ClientLua } from "./lua";
 import { ClientOS } from "./os";
 
+/**
+ * The job execute worker\
+ * This class should spawn by the cluster thread to prevent heavy calculation on the main thread
+ */
 export class ClientJobExecute {
+    /**
+     * Project parameters for references
+     */
     parameter:Parameter | undefined
+    /**
+     * User library for lua scripts
+     */
     libraries:Libraries | undefined
+    /**
+     * The job uuid\
+     * This will put in the prefix of message
+     */
     tag: string
 
     private messager:Messager
@@ -40,6 +54,7 @@ export class ClientJobExecute {
      * @param job Target job
      */
     execute = () => {
+        // Output the job type message to let user know what is going on
         this.messager_log(`[Execute] ${this.job.uuid}  ${this.job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[this.job.type]) : i18n.global.t(JobType2Text[this.job.type])}`, this.tag)
         const child = this.job.category == JobCategory.Execution ? this.execute_job_exe() : this.execute_job_con()
         return child
