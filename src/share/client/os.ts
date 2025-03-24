@@ -1,19 +1,36 @@
 import { spawn } from 'child_process';
 import fs from "fs";
-import { OnePath, TwoPath } from "../interface";
+import { Messager, OnePath, TwoPath } from "../interface";
 
 type gettag = ()=>string
 
 /**
- * The operation system related actions utility
+ * The operation system related actions utility\
+ * If you want to do something related to things below
+ * * File operation 
+ * * Folder checker 
+ * * Writing a file
+ * * Call a exe file
+ * 
+ * Please get a instance of this, and call the methods instead using fs youself
  */
 export class ClientOS {
-    private messager:Function
-    private messager_log:Function
+    private messager:Messager
+    private messager_log:Messager
     private tag:gettag
+    /**
+     * * True: Kill all the processes
+     * * False: Do nothing
+     */
     stopState = false
 
-    constructor(_tag:gettag, _messager:Function, _messager_log:Function){
+    /**
+     * 
+     * @param _tag The tag getter that put in the prefix of the message
+     * @param _messager Message method
+     * @param _messager_log Message method with output on the screen feature
+     */
+    constructor(_tag:gettag, _messager:Messager, _messager_log:Messager){
         this.tag = _tag
         this.messager = _messager
         this.messager_log = _messager_log
@@ -88,6 +105,9 @@ export class ClientOS {
         return fs.readFileSync(data.path).toString()
     }
     
+    /**
+     * Kill all current running processes
+     */
     stopall = () => {
         this.stopState = true
         setTimeout(() => {
@@ -95,6 +115,13 @@ export class ClientOS {
         }, 1000);
     }
     
+    /**
+     * Call command on terminal
+     * @param cwd The system location
+     * @param command Command name, Or you can put filename here
+     * @param args Arguments, It will split by space afterward
+     * @returns 
+     */
     command = async (cwd:string, command:string, args:string):Promise<string> => {
         this.messager_log(`[OS Action] Command cwd: ${cwd}`, this.tag())
         this.messager_log(`[OS Action] Command command: ${command}`, this.tag())
@@ -107,6 +134,7 @@ export class ClientOS {
                 stdio: ['inherit', 'pipe', 'pipe'], 
                 windowsHide: true
             })
+            // The kill process detecter
             const timer = setInterval(() => {
                 if(this.stopState){
                     child.kill()
@@ -118,7 +146,6 @@ export class ClientOS {
             })
             child.on('error', (err) => {
                 this.messager_log(`[Command] Error: ${err}`, this.tag())
-                clearInterval(timer)
                 reject(`Error ${err}`)
             })
             child.on('exit', (code, signal) => {

@@ -62,7 +62,7 @@ export class ClientExecute {
         })
         this.workers.push(child)
         const para = new ClientParameter(source)
-        let k = ""
+        let k = "" 
 
         const workerFeedbackExec = (str:string) => {
             const msg:Header = JSON.parse(str)
