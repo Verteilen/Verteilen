@@ -62,6 +62,7 @@ export class Client {
                 const index = this.sources.findIndex(x => x == ws)
                 if(index != -1) this.sources.splice(index, 1)
                 this.messager_log(`[Source] Close ${code} ${reason}`)
+                this.analysis.disconnect(ws)
             })
             ws.on('error', (err) => {
                 this.messager_log(`[Source] Error ${err.name}\n\t${err.message}\n\t${err.stack}`)

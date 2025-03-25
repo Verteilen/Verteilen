@@ -47,6 +47,45 @@ export class WebsocketManager {
         })
     }
 
+    shell_open = (uuid:string) => {
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        if (p == undefined){
+            this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
+            return
+        }
+        const d:Header = {
+            name: "open_shell",
+            data: 0
+        }
+        p.websocket.send(JSON.stringify(d))
+    }
+
+    shell_enter = (uuid:string, text:string) => {
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        if (p == undefined){
+            this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
+            return
+        }
+        const d:Header = {
+            name: "enter_shell",
+            data: text
+        }
+        p.websocket.send(JSON.stringify(d))
+    }
+
+    shell_close = (uuid:string) => {
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        if (p == undefined){
+            this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
+            return
+        }
+        const d:Header = {
+            name: "close_shell",
+            data: 0
+        }
+        p.websocket.send(JSON.stringify(d))
+    }
+
     /**
      * Trying to connect a node by target URL
      * @param url target url

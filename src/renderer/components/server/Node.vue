@@ -2,7 +2,7 @@
 import byteSize from 'byte-size';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { AppConfig, BusType, ConnectionText, Header, NodeTable } from '../../interface';
+import { AppConfig, BusType, ConnectionText, Header, NodeTable, Single } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { WebsocketManager } from '../../script/socket_manager';
 
@@ -17,6 +17,10 @@ interface PROPS {
 const props = defineProps<PROPS>()
 const infoModal = ref(false)
 const infoUUID = ref('')
+const consoleModal = ref(false)
+const consoleUUID = ref('')
+const consoleCommand = ref('')
+const consoleMessages:Ref<Array<string>> = ref([])
 const connectionModal = ref(false)
 const connectionData = ref({url: ''})
 const fields:Ref<Array<any>> = ref([
@@ -96,12 +100,36 @@ const showinfo = (uuid:string) => {
     infoUUID.value = uuid
 }
 
+const showconsole = (uuid:string) => {
+    consoleModal.value = true
+    consoleMessages.value = []
+    consoleUUID.value = uuid
+    props.manager?.shell_open(uuid)
+}
+
+const closeConsole = () => {
+    consoleModal.value = false
+    props.manager?.shell_close(consoleUUID.value)
+}
+
+const sendCommand = () => {
+    if(consoleCommand.value.length == 0) return
+    props.manager?.shell_enter(consoleUUID.value, consoleCommand.value)
+    consoleCommand.value = ""
+}
+
+const shellReply = (data:Single) => {
+    consoleMessages.value.push(data.data.toString())
+}
+
 onMounted(() => {
     emitter?.on('updateHandle', serverUpdate)
+    emitter?.on('shellReply', shellReply)
 })
 
 onUnmounted(() => {
     emitter?.off('updateHandle', serverUpdate)
+    emitter?.off('shellReply', shellReply)
 })
 
 </script>
@@ -148,6 +176,9 @@ onUnmounted(() => {
             <template v-slot:item.detail="{ item }">
                 <v-btn flat icon @click="showinfo(item.ID)">
                     <v-icon>mdi-information</v-icon>
+                </v-btn>
+                <v-btn flat icon @click="showconsole(item.ID)" :disabled="item.state != 1">
+                    <v-icon>mdi-console</v-icon>
                 </v-btn>
             </template>
         </v-data-table>
@@ -222,6 +253,32 @@ onUnmounted(() => {
                         </details>
                     </details>
                 </v-card-text>
+            </v-card>
+        </v-dialog>
+        <v-dialog persistent width="90vw" v-model="consoleModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-console</v-icon>
+                    {{ consoleUUID }}
+                </v-card-title>
+                <v-card-text>
+                    <v-row>
+                        <v-col cols="4">
+
+                        </v-col>
+                        <v-col cols="8">
+                            <div style="height: 50vh; overflow-y: scroll; font-size: 12px;" class="mb-1">
+                                <p v-for="(c, i) in consoleMessages" :key="i">{{ c }}</p>
+                            </div>
+                            <v-text-field hide-details density="compact" v-model="consoleCommand" @keydown.enter="sendCommand"></v-text-field>        
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn color="danger" @click="closeConsole">
+                        {{ $t('close') }}
+                    </v-btn>
+                </template>
             </v-card>
         </v-dialog>
     </div>

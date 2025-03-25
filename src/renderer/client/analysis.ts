@@ -105,6 +105,9 @@ export class ClientAnalysis {
         }
         this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
         this.resource_cache = h
-        
+    }
+
+    disconnect = (source: WebSocket) => {
+        this.exec.disconnect(source)
     }
 }

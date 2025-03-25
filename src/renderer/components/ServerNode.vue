@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Single, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -43,6 +43,7 @@ const proxy:ExecuteProxy = {
   executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
   feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
   updateParameter: (data:Parameter):void => { emitter?.emit('updateRuntimeParameter', data) },
+  shellReply: (data:Single):void => { emitter?.emit('shellReply', data) },
 }
 
 const props = defineProps<PROPS>()
@@ -478,6 +479,7 @@ onUnmounted(() => {
       <v-tab :value="6">{{ $t('toolbar.log') }}</v-tab>
       <v-tab :value="7">{{ $t('toolbar.library') }}</v-tab>
       <v-tab :value="8">{{ $t('toolbar.client') }}</v-tab>
+      <v-tab :value="9">{{ $t('toolbar.setting') }}</v-tab>
       <v-menu v-if="!props.config.isElectron">
         <template v-slot:activator="{ props }">
           <v-btn class="mt-1" v-bind="props">

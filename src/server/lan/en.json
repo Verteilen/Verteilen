@@ -64,7 +64,8 @@
         "console": "Console",
         "log": "Log",
         "library": "Library",
-        "client": "Self"
+        "client": "Self",
+        "setting": "Setting"
     },
     "tooltip": {
         "select-server": "The one who send the command to client",
