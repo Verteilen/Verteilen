@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import path from 'path';
 import WebSocket from 'ws';
-import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter, Single } from "../interface";
+import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { Client } from "./client";
 import { ClientParameter } from './parameter';
@@ -177,83 +177,5 @@ export class ClientExecute {
         const index = this.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Boolean)
         if(index != -1) this.parameter.containers[index].value = data.value
         this.messager_log(`[Parameter boolean sync] ${data.key} = ${data.value}`)
-    }
-
-    /**
-     * Open shell console
-     * @param input 
-     */
-    open_shell = (data:number, source:WebSocket) => {
-        if(this.shell_workers.find(x => x[0] == source)){
-            this.messager_log(`[Shell] Error the source already open the shell`)
-            return
-        }
-        const child = spawn("cmd", [], 
-            { 
-                stdio: ['pipe', 'pipe', 'pipe'],
-                shell: true,
-                windowsHide: true,
-                env: {
-                    ...process.env,
-                }
-        })
-        this.shell_workers.push([source, child])
-        const workerFeedback = (str:string) => {
-            const data:Single = {
-                data: str
-            }
-            const d:Header = {
-                name: "shell_reply",
-                data: data
-            }
-            source.send(JSON.stringify(d))
-        }
-        child.on('exit', (code, signal) => {
-            const index = this.shell_workers.findIndex(x => x[0] == source)
-            if(index != -1) this.shell_workers.splice(index, 1)
-        })
-        child.on('message', (message, sendHandle) => {
-            workerFeedback(message.toString())
-        })
-        child.stdout.setEncoding('utf8');
-        child.stdout.on('data', (chunk) => {
-            workerFeedback(chunk.toString())
-        })
-        child.stderr.setEncoding('utf8');
-        child.stderr.on('data', (chunk) => {
-            workerFeedback(chunk.toString())
-        })
-    }
-
-    /**
-     * Open shell console
-     * @param input 
-     */
-    enter_shell = (input:string, source:WebSocket) => {
-        const p = this.shell_workers.find(x => x[0] == source)
-        if(p == undefined){
-            this.messager_log(`[Shell] Cannot find shell instance`)
-            return
-        }
-        p[1].stdin?.write(input + '\n')
-    }
-
-    /**
-     * Open shell console
-     * @param input 
-     */
-    close_shell = (data:number, source:WebSocket) => {
-        const p = this.shell_workers.find(x => x[0] == source)
-        if(p == undefined){
-            this.messager_log(`[Shell] Cannot find shell instance`)
-            return
-        }
-        p[1].kill()
-    }
-
-    disconnect = (source:WebSocket) => {
-        const p = this.shell_workers.find(x => x[0] == source)
-        if(p == undefined) return
-        p[1].kill()
     }
 }

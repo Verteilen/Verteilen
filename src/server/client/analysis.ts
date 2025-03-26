@@ -1,8 +1,9 @@
-import { WebSocket } from 'ws';
+import WebSocket from 'ws';
 import { Header, Messager } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientResource } from './resource';
+import { ClientShell } from './shell';
 
 /**
  * The analysis worker. decode the message received from cluster server
@@ -13,6 +14,7 @@ export class ClientAnalysis {
     private client:Client
     private exec:ClientExecute
     private resource:ClientResource
+    private shell:ClientShell
     private resource_wanter:Array<WebSocket> = []
 
     private resource_cache:Header | undefined = undefined
@@ -22,6 +24,7 @@ export class ClientAnalysis {
         this.messager = _messager
         this.messager_log = _messager_log
         this.resource = new ClientResource()
+        this.shell = new ClientShell(_messager, _messager_log, this.client)
         this.exec = new ClientExecute(_messager, _messager_log, this.client)
     }
 
@@ -36,9 +39,9 @@ export class ClientAnalysis {
             'stop_job': this.exec.stop_job,
             'set_parameter': this.exec.set_parameter,
             'set_libs': this.exec.set_libs,
-            'open_shell': this.exec.open_shell,
-            'close_shell': this.exec.close_shell,
-            'enter_shell': this.exec.enter_shell,
+            'open_shell': this.shell.open_shell,
+            'close_shell': this.shell.close_shell,
+            'enter_shell': this.shell.enter_shell,
             'resource_start': this.resource_start,
             'resource_end': this.resource_end,
             'ping': this.pong,
@@ -103,6 +106,6 @@ export class ClientAnalysis {
     }
 
     disconnect = (source: WebSocket) => {
-        this.exec.disconnect(source)
+        this.shell.disconnect(source)
     }
 }
