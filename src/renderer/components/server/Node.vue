@@ -65,9 +65,9 @@ const createNode = () => {
 
 const deleteNode = () => {
     selected_node_ids.value.forEach(x => {
-        props.manager?.server_stop(x, '伺服器手動斷線')
+        props.manager?.server_stop(x, 'Manually disconnect')
         if(!props.config.isElectron) return
-        window.electronAPI.send('server_stop', x, '伺服器手動斷線')
+        window.electronAPI.send('server_stop', x, 'Manually disconnect')
     })
 }
 
