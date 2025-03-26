@@ -422,7 +422,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "lut_thread", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "group_size", value: 20, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "blend", value: 4, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "contribute", value: 2, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
 

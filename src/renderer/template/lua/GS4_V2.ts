@@ -258,7 +258,11 @@ for i=1,blend,1 do
     source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint"
     allfolder = split(o.listdir(source_folder), "\\n")
     m.messager_log("total file: "..tostring(#(allfolder)).." in "..source_folder)
-    local c_starter = math.floor((frame_size - 1) / 20) * group_size + xx + (step * iframe_gap)
+    local c_starter = math.floor((frame_size - 1) / group_size) * group_size + xx + (step * iframe_gap)
+
+    if c_starter > frame_size then
+        c_starter = c_starter - gop
+    end
 
     for key,value in pairs(allfolder) do
         if tonumber(value) ~= nil then
