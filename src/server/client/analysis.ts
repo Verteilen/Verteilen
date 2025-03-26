@@ -39,6 +39,7 @@ export class ClientAnalysis {
             'stop_job': this.exec.stop_job,
             'set_parameter': this.exec.set_parameter,
             'set_libs': this.exec.set_libs,
+            'shell_folder': this.shell.shell_folder,
             'open_shell': this.shell.open_shell,
             'close_shell': this.shell.close_shell,
             'enter_shell': this.shell.enter_shell,

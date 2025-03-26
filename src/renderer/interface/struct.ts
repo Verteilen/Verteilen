@@ -107,3 +107,10 @@ export interface SystemLoad {
 export interface NodeLoad {
     workers: number
 }
+
+export interface ShellFolder {
+    path: string
+    cwd: string
+    files: Array<string>
+    folders: Array<string>
+}

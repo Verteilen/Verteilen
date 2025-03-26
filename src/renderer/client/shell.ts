@@ -1,15 +1,18 @@
 import { ChildProcess, spawn } from "child_process";
 import WebSocket from 'ws';
-import { Header, Messager, Single } from "../interface";
+import { Header, Messager, ShellFolder, Single } from "../interface";
 import { Client } from "./client";
+import { ClientOS } from "./os";
 
 
 export class ClientShell {
     private messager:Messager
     private messager_log:Messager
+    private os:ClientOS
     private shell_workers:Array<[WebSocket, ChildProcess]> = []
 
     constructor(_messager:Messager, _messager_log:Messager, _client:Client){
+        this.os = new ClientOS(() => "SHELL", _messager, _messager_log)
         this.messager = _messager
         this.messager_log = _messager_log
     }
@@ -92,6 +95,23 @@ export class ClientShell {
             return
         }
         p[1].kill()
+    }
+
+    shell_folder = (data:string, source:WebSocket) => {
+        if(data.length == 0){
+            data = process.cwd()
+        }
+        const d:ShellFolder = {
+            path: data,
+            cwd: process.cwd(),
+            folders: this.os.dir_dirs({path: data}),
+            files: this.os.dir_files({path: data})
+        }
+        const h:Header = {
+            name: "shell_folder_reply",
+            data: d
+        }
+        source.send(JSON.stringify(h))
     }
 
     disconnect = (source:WebSocket) => {
