@@ -1,5 +1,8 @@
 import { ExecuteState } from "./enum"
 
+/**
+ * The websocket instance with extra information
+ */
 export interface WebsocketPack {
     s?:boolean
     uuid: string
@@ -16,11 +19,29 @@ export interface CronWebsocketPack {
     websocket: WebsocketPack
 }
 
+/**
+ * The data transfer packet header
+ */
 export interface Header {
+    /**
+     * Header name, it will match the function dict in both server and client side
+     */
     name: string
+    /**
+     * Token for encryption
+     */
     token?: string
+    /**
+     * Extra metadata
+     */
     meta?: string
+    /**
+     * Print message
+     */
     message?: string
+    /**
+     * The data content
+     */
     data?: any
 }
 
@@ -79,6 +100,9 @@ export interface SystemLoad_Disk {
     disk_percentage: number
 }
 
+/**
+ * The resources usage 
+ */
 export interface SystemLoad {
     system_name: string
     virtual: boolean
@@ -104,13 +128,34 @@ export interface SystemLoad {
     pid_usage: number
 }
 
+/**
+ * The application usage 
+ */
 export interface NodeLoad {
+    /**
+     * How many worker has been running right now
+     */
     workers: number
 }
 
+/**
+ * The shell display folder structure
+ */
 export interface ShellFolder {
+    /**
+     * Current path, If null then it will use cwd instead
+     */
     path: string
+    /**
+     * The process.cwd path
+     */
     cwd: string
+    /**
+     * Files list in the path
+     */
     files: Array<string>
+    /**
+     * Folders list in the path
+     */
     folders: Array<string>
 }
