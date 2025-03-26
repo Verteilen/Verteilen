@@ -14,7 +14,6 @@ export class ClientExecute {
     private libraries:Libraries | undefined = undefined
     private tag: string = ''
     private workers:Array<ChildProcess> = []
-    private shell_workers:Array<[WebSocket, ChildProcess]> = []
 
     private messager:Messager
     private messager_log:Messager

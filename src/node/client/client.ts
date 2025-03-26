@@ -1,6 +1,6 @@
 import tcpPortUsed from 'tcp-port-used';
 import { WebSocket, WebSocketServer } from 'ws';
-import { Header, Messager, PORT } from '../interface';
+import { CLIENT_UPDATETICK, Header, Messager, PORT } from '../interface';
 import { ClientAnalysis } from './analysis';
 
 /**
@@ -26,7 +26,7 @@ export class Client {
         this.messager = _messager
         this.messager_log = _messager_log
         this.analysis = new ClientAnalysis(_messager, _messager_log, this)
-        setInterval(this.update, 3000);
+        setInterval(this.update, CLIENT_UPDATETICK);
     }
 
     /**

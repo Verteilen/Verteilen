@@ -1,5 +1,6 @@
 import { Header, Job } from '../interface'
 import { ClientJobExecute } from './job_execute'
+import { ClientResource } from './resource'
 
 /**
  * The message handle for reply
@@ -29,6 +30,16 @@ const messager_log = (msg:string, tag?:string) => {
     console.log(JSON.stringify(d))
 }
 
+function ERROR (err){
+    const d:Header = {
+        name: "error",
+        meta: "Execute job failed",
+        data: err,
+    }
+    console.log(JSON.stringify(d))
+    process.exit(1)
+}
+
 /**
  * The entry point for the cluster thread.
  */
@@ -43,14 +54,19 @@ export function RUN(){
         worker.execute().then(x => {
             process.exit(0)
         })
-        .catch(err => {
-            const d:Header = {
-                name: "error",
-                meta: "Execute job failed",
-                data: err,
+        .catch(err => ERROR(err))
+    }
+    else if (process.env.type == 'RESOURCE'){
+        const r:ClientResource = new ClientResource()
+        messager("Resource query")
+        r.Query().then(x => {
+            const h:Header = {
+                name: 'resource',
+                data: x
             }
-            console.log(JSON.stringify(d))
-            process.exit(1)
-        })
+            console.log(JSON.stringify(h))
+        }).catch(err => ERROR(err))
+    }else{
+        process.exit(1)
     }
 }
