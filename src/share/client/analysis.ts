@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { Header, Messager, NodeLoad } from "../interface";
+import { Header, Messager } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientResource } from './resource';
@@ -95,16 +95,11 @@ export class ClientAnalysis {
                 this.resource_cache = h
             })
         }
-
-        const d:NodeLoad = {
-            workers: this.exec.count
-        }
         const h:Header = {
             name: 'system_info',
-            data: d
+            data: this.resource_cache
         }
         this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
-        this.resource_cache = h
     }
 
     disconnect = (source: WebSocket) => {
