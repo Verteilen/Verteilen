@@ -1,6 +1,6 @@
 {
   "name": "compute_tool",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
