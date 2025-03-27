@@ -261,7 +261,7 @@ for i=1,blend,1 do
     local c_starter = math.floor((frame_size - 1) / group_size) * group_size + xx + (step * iframe_gap)
 
     if c_starter > frame_size then
-        c_starter = c_starter - gop
+        c_starter = c_starter - group_size
     end
 
     for key,value in pairs(allfolder) do

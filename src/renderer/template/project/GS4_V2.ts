@@ -168,8 +168,8 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
             { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "gap_p", value: 10, type: DataType.Number, runtimeOnly: true, hidden: false },
-            { name: "gap_n", value: 9, type: DataType.Number, runtimeOnly: true, hidden: false },
+            { name: "gop_positive", value: 10, type: DataType.Number, runtimeOnly: true, hidden: false },
+            { name: "gop_negative", value: 9, type: DataType.Number, runtimeOnly: true, hidden: false },
 
             { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
