@@ -11,10 +11,12 @@ interface PROPS {
     manager: WebsocketManager | undefined
 }
 
+const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const props = defineProps<PROPS>()
 const modal = defineModel<boolean>({ required: true })
 const consoleCommand = ref('')
 const consoleMessages:Ref<Array<string>> = ref([])
+const path = ref('')
 
 watch(() => modal.value, () => {
     consoleCommand.value = ''
@@ -27,6 +29,10 @@ const closeConsole = () => {
     props.manager?.shell_close(props.item.ID)
 }
 
+const cleanConsole = () => {
+    consoleMessages.value = []
+}
+
 const sendCommand = () => {
     if(consoleCommand.value.length == 0 || props.item == undefined) return
     props.manager?.shell_enter(props.item.ID, consoleCommand.value)
@@ -35,6 +41,11 @@ const sendCommand = () => {
 
 const shellReply = (data:Single) => {
     consoleMessages.value.push(data.data.toString())
+    myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
+}
+
+const enterPath = () => {
+
 }
 
 onMounted(() => {
@@ -57,13 +68,24 @@ onUnmounted(() => {
             <v-card-text>
                 <v-row>
                     <v-col cols="4">
+                        <v-text-field hide-details density="compact" v-model="path" @keydown.enter="enterPath"></v-text-field>        
+                        <v-list>
 
+                        </v-list>
                     </v-col>
                     <v-col cols="8">
-                        <div style="height: 50vh; overflow-y: scroll; font-size: 12px;" class="mb-1">
+                        <div style="height: 50vh; overflow-y: scroll; font-size: 12px;" class="mb-1" ref="myDiv">
                             <p v-for="(c, i) in consoleMessages" :key="i">{{ c }}</p>
                         </div>
-                        <v-text-field hide-details density="compact" v-model="consoleCommand" @keydown.enter="sendCommand"></v-text-field>        
+                        <v-row>
+                            <v-col cols="10">
+                                <v-text-field hide-details density="compact" v-model="consoleCommand" @keydown.enter="sendCommand"></v-text-field>        
+                            </v-col>
+                            <v-col cols="2">
+                                <v-btn class="w-100" @click="cleanConsole">{{ $t('clean') }}</v-btn>
+                            </v-col>
+                        </v-row>
+                        
                     </v-col>
                 </v-row>
             </v-card-text>
