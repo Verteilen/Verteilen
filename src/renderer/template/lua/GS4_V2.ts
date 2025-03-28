@@ -79,7 +79,7 @@ for i=1,blend,1 do
     n_count = starter
 
     for k=1,frame_size - (starter - xx),1 do
-        local j = frame_size - (k - xx)
+        local j = frame_size - (k - xx - 1)
         from = root.."/"..before.."/"..tostring(j)
         local gap = (j - ((i - 1) * iframe_gap) - xx - 1) % group_size + xx
 
