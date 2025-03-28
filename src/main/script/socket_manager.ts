@@ -86,6 +86,19 @@ export class WebsocketManager {
         p.websocket.send(JSON.stringify(d))
     }
 
+    shell_folder = (uuid:string, path:string) => {
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        if (p == undefined){
+            this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
+            return
+        }
+        const d:Header = {
+            name: "shell_folder",
+            data: path
+        }
+        p.websocket.send(JSON.stringify(d))
+    }
+
     /**
      * Trying to connect a node by target URL
      * @param url target url

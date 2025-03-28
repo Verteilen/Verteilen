@@ -101,6 +101,9 @@ export class ClientShell {
         if(data.length == 0){
             data = process.cwd()
         }
+        if(!this.os.fs_dir_exist({path: data})){
+            data = process.cwd()
+        }
         const d:ShellFolder = {
             path: data,
             cwd: process.cwd(),

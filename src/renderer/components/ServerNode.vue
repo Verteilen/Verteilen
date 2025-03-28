@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Single, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -44,6 +44,7 @@ const proxy:ExecuteProxy = {
   feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
   updateParameter: (data:Parameter):void => { emitter?.emit('updateRuntimeParameter', data) },
   shellReply: (data:Single):void => { emitter?.emit('shellReply', data) },
+  folderReply: (data:ShellFolder) => { emitter?.emit('folderReply', data) }
 }
 
 const props = defineProps<PROPS>()

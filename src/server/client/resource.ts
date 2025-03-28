@@ -40,7 +40,7 @@ export class ClientResource {
     
                 cpu_name: `${cpu.manufacturer} ${cpu.brand} ${cpu.speed}`,
                 cpu_core: cpu.cores,
-                cpu_usage: load.currentLoad,
+                cpu_usage: load.currentLoadGuest + load.currentLoadIrq + load.currentLoadSystem + load.currentLoad + load.currentLoadSteal + load.currentLoadNice,
     
                 ram_usage: ram.used,
                 ram_free: ram.free,

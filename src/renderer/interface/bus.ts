@@ -1,6 +1,6 @@
 import { Job, Parameter, Project, Task } from "./base"
 import { ExecutionLog, Log, Record } from "./record"
-import { Header, Setter, Single, WebsocketPack } from "./struct"
+import { Header, Setter, ShellFolder, Single, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
 
@@ -47,6 +47,7 @@ export interface ExecuteProxy {
     feedbackMessage: (data:Setter) => void
     updateParameter: (data:Parameter) => void
     shellReply: (data:Single) => void
+    folderReply: (data:ShellFolder) => void
 }
 
 /**
@@ -68,6 +69,7 @@ export type BusType = {
     updateLog: Log
     updateHandle: void
     shellReply: Single
+    folderReply: ShellFolder
     feedbackMessage: Setter
 
     renameScript: Rename

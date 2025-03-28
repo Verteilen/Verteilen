@@ -23,10 +23,14 @@ const diskPercentage = computed(() => {
     return Math.round((diskUsage.value / diskTotal.value) * 100)
 })
 const netDownload = computed(() => {
-    return props.item?.system?.net.map(x => x.download).reduce((parS, a) => parS + a, 0) ?? 0
+    let r = 0
+    props.item?.system?.net.forEach(x => r += x.download)
+    return r
 })
 const netUpload = computed(() => {
-    return props.item?.system?.net.map(x => x.upload).reduce((parS, a) => parS + a, 0) ?? 0
+    let r = 0
+    props.item?.system?.net.forEach(x => r += x.upload)
+    return r
 })
 
 </script>

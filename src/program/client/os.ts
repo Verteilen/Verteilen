@@ -82,12 +82,12 @@ export class ClientOS {
     }
     
     dir_files = (data:OnePath):Array<string> => {
-        const r = fs.readdirSync(data.path, { withFileTypes: true })
-        return r.map(x => x.name)
+        const r = fs.readdirSync(data.path, { withFileTypes: true }).filter(x => x.isFile()).map(x => x.name)
+        return r as string[]
     }
     
     dir_dirs = (data:OnePath):Array<string> => {
-        const r = fs.readdirSync(data.path, { withFileTypes: false })
+        const r = fs.readdirSync(data.path, { withFileTypes: true }).filter(x => x.isDirectory()).map(x => x.name)
         return r as string[]
     }
     

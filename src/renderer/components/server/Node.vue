@@ -104,6 +104,7 @@ const showconsole = (uuid:string) => {
     consoleModal.value = true
     consoleUUID.value = uuid
     props.manager?.shell_open(uuid)
+    props.manager?.shell_folder(uuid, '')
 }
 
 onMounted(() => {
