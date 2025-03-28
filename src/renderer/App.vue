@@ -22,6 +22,7 @@ const config:Ref<AppConfig> = ref({
 })
 const isExpress:Ref<boolean | undefined> = ref(undefined)
 const mode = ref(config.value.isElectron ? -1 : 1)
+const settingModal = ref(false)
 
 checkIfExpress((e) => {
   isExpress.value = e
@@ -46,7 +47,11 @@ const locate = (e:IpcRendererEvent, v:string) => {
 }
 
 const setting = (e:IpcRendererEvent) => {
+  settingModal.value = true
+}
 
+const preferenceUpdate = (data:Preference) => {
+  
 }
 
 const load_preference = (x:string) => {
@@ -83,6 +88,6 @@ onUnmounted(() => {
     <ClientNode v-else-if="mode == 0" :preference="preference" :config="config"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :config="config"/>
     <Messager />
-    <SettingDialog />
+    <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
   </v-container>
 </template>
