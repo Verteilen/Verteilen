@@ -217,17 +217,19 @@ const execute_task_finish = (d:Task) => {
 }
 
 const execute_subtask_start = (d:[Task, number, string]) => {
-    data.value!.task_detail[d[1]].node = d[2]
-    data.value!.task_detail[d[1]].state = ExecuteState.RUNNING
-
+    if(data.value!.task_detail.length > d[1]){
+        data.value!.task_detail[d[1]].node = d[2]
+        data.value!.task_detail[d[1]].state = ExecuteState.RUNNING
+    }
     props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
     hasNewLog = true
 }
 
 const execute_subtask_end = (d:[Task, number, string]) => {
-    data.value!.task_detail[d[1]].node = ""
-    data.value!.task_detail[d[1]].state = ExecuteState.FINISH
-
+    if(data.value!.task_detail.length > d[1]){
+        data.value!.task_detail[d[1]].node = ""
+        data.value!.task_detail[d[1]].state = ExecuteState.FINISH
+    }
     props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.FINISH
     hasNewLog = true
 }
