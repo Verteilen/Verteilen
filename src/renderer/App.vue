@@ -6,6 +6,7 @@ import ClientNode from './components/ClientNode.vue';
 import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
+import SettingDialog from './components/dialog/SettingDialog.vue';
 import { AppConfig, BusType, Preference } from './interface';
 import { checkifElectron, checkIfExpress } from './platform';
 import { i18n } from './plugins/i18n';
@@ -44,6 +45,10 @@ const locate = (e:IpcRendererEvent, v:string) => {
   }
 }
 
+const setting = (e:IpcRendererEvent) => {
+
+}
+
 const load_preference = (x:string) => {
   preference.value = JSON.parse(x)
   console.log("lan: ", preference.value)
@@ -57,6 +62,7 @@ onMounted(() => {
   emitter?.on('modeSelect', modeSelect)
   if(config.value.isElectron){
     window.electronAPI.eventOn('locate', locate)
+    window.electronAPI.eventOn('setting', setting)
     window.electronAPI.invoke('load_preference').then(x => load_preference(x))
   }
 })
@@ -65,6 +71,7 @@ onUnmounted(() => {
   emitter?.on('modeSelect', modeSelect)
   if(config.value.isElectron){
     window.electronAPI.eventOff('locate', locate)
+    window.electronAPI.eventOff('setting', setting)
   }
 })
 
@@ -76,5 +83,6 @@ onUnmounted(() => {
     <ClientNode v-else-if="mode == 0" :preference="preference" :config="config"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :config="config"/>
     <Messager />
+    <SettingDialog />
   </v-container>
 </template>

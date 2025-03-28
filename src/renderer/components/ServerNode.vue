@@ -480,20 +480,6 @@ onUnmounted(() => {
       <v-tab :value="6">{{ $t('toolbar.log') }}</v-tab>
       <v-tab :value="7">{{ $t('toolbar.library') }}</v-tab>
       <v-tab :value="8">{{ $t('toolbar.client') }}</v-tab>
-      <v-tab :value="9">{{ $t('toolbar.setting') }}</v-tab>
-      <v-menu v-if="!props.config.isElectron">
-        <template v-slot:activator="{ props }">
-          <v-btn class="mt-1" v-bind="props">
-            <v-icon class="pr-2" icon="mdi-web"></v-icon>
-            {{ lanSelect }}
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item v-for="(locate, i) in lan" :key="i" :value="locate" @click="onChangeLan(locate)">
-            {{ locate }}
-          </v-list-item>
-        </v-list>
-      </v-menu>
     </v-tabs>
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="page == 0" 

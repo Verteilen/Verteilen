@@ -50,6 +50,12 @@ const template_edit = ():Array<(Electron.MenuItemConstructorOptions) | (Electron
             { label: i18n.global.t('menu.selectAll'), role: 'selectAll' },
             { type: 'separator' },
             { 
+                label: i18n.global.t('toolbar.setting'),
+                click: () => {
+                    mainWindow?.webContents.send('setting')
+                }
+            },
+            { 
                 label: i18n.global.t('menu.language'),
                 submenu: [
                     {
