@@ -19,7 +19,7 @@ def transparent_setting(root, output, frame, blend, gap, contribution):
         out = outFolder +"/"+ str(frame) + ".ply"
         os.makedirs(outFolder, exist_ok=True)
         if os.path.exists(path):
-            if gap == 1:
+            if gap != 1:
                 gop = blend * gap
                 reminder = (frame + (i * gap)) % gop
                 degree = (float(reminder) / float(gop)) * 360.0
