@@ -14,6 +14,7 @@ const emit = defineEmits<{
 }>()
 
 const buffer:Ref<Preference | undefined> = ref(undefined)
+const lan:Ref<Array<string>> = ref(['en', 'zh_TW'])
 
 watch(() => modal.value, () => {
     buffer.value = props.item
@@ -22,6 +23,7 @@ watch(() => modal.value, () => {
 const confirm = () => {
     if(buffer.value != undefined)
     emit('update', buffer.value)
+    modal.value = false
 }
 
 const close = () => {
@@ -37,8 +39,8 @@ const close = () => {
                 <v-icon>mdi-cog</v-icon>
                 {{ $t('toolbar.setting') }}
             </v-card-title>
-            <v-card-text>
-
+            <v-card-text v-if="buffer">
+                <v-select hide-details :label="$t('menu.language')" v-model="buffer.lan" :items="lan"></v-select>
             </v-card-text>
             <template v-slot:actions>
                 <v-btn color="success" @click="confirm">

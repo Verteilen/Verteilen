@@ -54,28 +54,7 @@ const template_edit = ():Array<(Electron.MenuItemConstructorOptions) | (Electron
                 click: () => {
                     mainWindow?.webContents.send('setting')
                 }
-            },
-            { 
-                label: i18n.global.t('menu.language'),
-                submenu: [
-                    {
-                        label: 'en',
-                        click: () => {
-                            mainWindow?.webContents.send('locate', 'en')
-                            i18n.global.locale = 'en'
-                            setupMenu()
-                        }
-                    },
-                    {
-                        label: 'zh_TW',
-                        click: () => {
-                            mainWindow?.webContents.send('locate', 'zh_TW')
-                            i18n.global.locale = 'zh_TW'
-                            setupMenu()
-                        }
-                    }
-                ]
-            },
+            }
         ]
     }
 ]

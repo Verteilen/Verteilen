@@ -36,6 +36,9 @@ const modeSelect = (isclient:boolean) => {
 }
 
 const locate = (e:IpcRendererEvent, v:string) => {
+  _locate(v)
+}
+const _locate = (v:string) => {
   const t = i18n.global
   // @ts-ignore
   t.locale = v
@@ -51,7 +54,8 @@ const setting = (e:IpcRendererEvent) => {
 }
 
 const preferenceUpdate = (data:Preference) => {
-  
+  preference.value = data
+  _locate(preference.value.lan)
 }
 
 const load_preference = (x:string) => {
