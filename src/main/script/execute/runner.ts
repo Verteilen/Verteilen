@@ -1,3 +1,4 @@
+import { v6 as uuidv6 } from 'uuid';
 import { CronJobState, DataType, ExecuteState, Header, Job, Project, Task, WebsocketPack, WorkState } from "../../interface";
 import { ExecuteManager_Feedback } from "./feedback";
 
@@ -87,7 +88,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
      * @returns Is finish executing
      */
     private ExecuteTask_Cronjob(project:Project, task:Task, taskCount:number):boolean {
-        let ns:Array<WebsocketPack> = this.get_idle()
+        let ns:Array<WebsocketPack> = this.get_idle_open()
         let allJobFinish = false
 
         /**
@@ -98,25 +99,36 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             // First time
             this.sync_local_para(this.localPara!)
             // Create the cronjob instance here
-            for(let index = 1; index < taskCount + 1; index++){
+            for(let i = 0; i < taskCount; i++){
                 const d:CronJobState = {
-                    id: index,
+                    id: i + 1,
                     uuid: "",
-                    work: task.jobs.map(x => {
-                        return {
-                            uuid: x.uuid,
-                            state: ExecuteState.NONE,
-                            job: x
-                        }
-                    })
+                    work: task.jobs.map(x => ({
+                        uuid: x.uuid,
+                        runtime: uuidv6(),
+                        state: ExecuteState.NONE,
+                        job: x
+                    }))
                 }
                 this.current_cron.push(d)
             }
             this.proxy?.executeTaskStart([task, taskCount ])
         } else{
             // If disconnect or deleted...
+            /**
+             * We query all the cron state and get all the processing first and count it\
+             * All we want is to filter out the node which is fully load\
+             * So we can follow the multithread limit to send the mission
+             */
             const worker = this.current_cron.filter(x => x.uuid != '').map(x => x.uuid)
-            ns = ns.filter(x => !worker.includes(x.uuid))
+            const counter:Array<[string, number]> = []
+            worker.forEach(uuid => {
+                const index = counter.findIndex(x => x[0] == uuid)
+                if(index == -1) counter.push([uuid, 1])
+                else counter[index][1] += 1
+            })
+            const fullLoadUUID = counter.filter(x => x[1] >= this.current_multithread).map(x => x[0])
+            ns = ns.filter(x => !fullLoadUUID.includes(x.uuid))
         }
         
         const allworks:Array<WorkState> = []
@@ -128,14 +140,14 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             allJobFinish = true
         }else{
             // Assign worker
+            // Find the cron which is need to be execute by a node
             const needs = this.current_cron.filter(x => x.uuid == '' && x.work.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length > 0)
             const min = Math.min(needs.length, ns.length)
             for(let i = 0; i < min; i++){
                 needs[i].uuid = ns[i].uuid
             }
-
-            // Execute
             const single = this.current_cron.filter(x => x.uuid != '')
+            // Execute
             for(var cronwork of single){
                 const index = this.websocket_manager.targets.findIndex(x => x.uuid == cronwork.uuid)
                 if(index != -1){
@@ -177,19 +189,22 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             }
         }
 
-        if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN && ns[0].state != ExecuteState.RUNNING)
+        if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN && this.check_socket_state(ns[0]) != ExecuteState.RUNNING)
         {
             if(this.check_single_end()){
                 allJobFinish = true
             }else{
                 if(this.current_job.length != task.jobs.length){
                     const job:Job = JSON.parse(JSON.stringify(task.jobs[this.current_job.length]))
+                    const runtime = uuidv6()
                     this.current_job.push({
                         uuid: ns[0].uuid,
+                        runtime: runtime,
                         state: ExecuteState.RUNNING,
                         job: job
                     })
                     job.index = 1
+                    job.runtime_uuid = runtime
                     this.ExecuteJob(project, task, job, ns[0], false)
                 }
             }
@@ -215,15 +230,16 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
     }
 
     private ExecuteCronTask = (project:Project, task:Task, work:CronJobState, ns:WebsocketPack) => {
-        if(ns.state != ExecuteState.RUNNING && ns.current_job == undefined){
+        if(ns.current_job.length < this.current_multithread){
+            const rindex = work.work.findIndex(x => x.state == ExecuteState.RUNNING)
+            if(rindex != -1) return
             const index = work.work.findIndex(x => x.state == ExecuteState.NONE)
-            if(index == 0){
-                this.proxy?.executeSubtaskStart([task, work.id - 1, ns.uuid ])
-            }
+            if(index == 0) this.proxy?.executeSubtaskStart([task, work.id - 1, ns.uuid ])
             if(index == -1) return
             work.work[index].state = ExecuteState.RUNNING
             const job:Job = JSON.parse(JSON.stringify(task.jobs[index]))
             job.index = work.id
+            job.runtime_uuid = work.work[index].runtime
             this.ExecuteJob(project, task, job, ns, true)
         }
     }
@@ -246,8 +262,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             name: 'execute_job',
             data: job
         }
-        wss.current_job = job.uuid
-        wss.state = ExecuteState.RUNNING
+        wss.current_job.push(job.runtime_uuid!)
         const stringdata = JSON.stringify(h)
         wss.websocket.send(stringdata)
         this.jobstack = this.jobstack + 1

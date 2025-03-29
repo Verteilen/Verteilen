@@ -3,6 +3,7 @@ export const WebPORT = 11080
 
 export const MESSAGE_LIMIT = 1000
 export const CLIENT_UPDATETICK = 3000
+export const RENDER_UPDATETICK = 30
 
 export * from './interface/base'
 export * from './interface/bus'

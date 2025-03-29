@@ -223,7 +223,9 @@ const execute_subtask_start = (d:[Task, number, string]) => {
     }else{
         console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
     }
-    props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
+    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
+        props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
+    }
     hasNewLog = true
 }
 
@@ -234,7 +236,9 @@ const execute_subtask_end = (d:[Task, number, string]) => {
     }else{
         console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
     }
-    props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.FINISH
+    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
+        props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.FINISH
+    }
     hasNewLog = true
 }
 

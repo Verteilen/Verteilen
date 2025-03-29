@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, ShellFolder, Single, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_UPDATETICK, Setter, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -390,7 +390,7 @@ const analysis = (b:BusAnalysis) => {
 
 onMounted(() => {
   set_feedback(debug_feedback)
-  updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
+  updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
   console.log("updateHandle", updateHandle)
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('renameScript', libRename)

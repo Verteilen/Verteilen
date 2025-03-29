@@ -20,6 +20,7 @@ export interface Job {
     s?: boolean
     index?:number
     uuid: string
+    runtime_uuid?: string
     category: number
     type: number
     lua: string

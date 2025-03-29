@@ -101,7 +101,7 @@ export class ClientExecute {
         })
 
         child.on('exit', (code, signal) => {
-            this.job_finish(code, signal, job, source)
+            this.job_finish(code || 0, signal || '', job, source)
             const index = this.workers.findIndex(x => x == child)
             if(index != -1) this.workers.splice(index, 1)
         })
@@ -118,11 +118,11 @@ export class ClientExecute {
         })
     }
 
-    private job_finish(code, signal, job, source){
+    private job_finish(code:number, signal:string, job:Job, source:WebSocket){
         this.messager_log( code == 0 ?
             `[Execute] Successfully: ${code} ${signal}` : 
             `[Execute] Error: ${code} ${signal}`, this.tag)
-        const data:FeedBack = { job_uuid: job.uuid, meta: code, message: signal }
+        const data:FeedBack = { job_uuid: job.uuid, runtime_uuid: job.runtime_uuid!, meta: code, message: signal }
         const h:Header = { name: 'feedback_job', data: data }
         source.send(JSON.stringify(h))
         this.tag = ''

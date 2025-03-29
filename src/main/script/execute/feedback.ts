@@ -57,13 +57,13 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             console.error("Cannot feedback when task is null")
             return
         }
-        this.messager_log(`[Execute] Job Feedback: ${data.job_uuid} ${data.message} ${data.meta}`)
+        this.messager_log(`[Execute] Job Feedback: ${data.job_uuid} ${data.runtime_uuid} ${data.message} ${data.meta}`)
         // If it's a single type work
         
         if(this.current_job.length > 0){
             const work = this.current_job.find(x => x.uuid == source.uuid && x.state == ExecuteState.RUNNING)
             if(work == undefined) {
-                console.error("Cannot find the feedback container, work")
+                console.error("Cannot find the feedback container, work", work)
                 return
             }
 
@@ -78,9 +78,10 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         // If it's a cronjob type work
         else if(this.current_cron.length > 0){
             const cron = this.current_cron.find(x => x.uuid == source.uuid)
-            const work = cron?.work.find(x => x.uuid == data.job_uuid)
+            const work = cron?.work.find(x => x.runtime == data.runtime_uuid)
             if(cron == undefined || work == undefined) {
-                console.error("Cannot find the feedback container, cron or work")
+                console.error("Cannot find the feedback container, cron or work", cron, work)
+                console.error("Full current cron instance", this.current_cron)
                 return
             }
 
@@ -94,8 +95,8 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             }
         }
         // Reset the state of the node
-        source.state = ExecuteState.NONE
-        source.current_job = undefined
+        const index = source.current_job.findIndex(x => x == data.runtime_uuid)
+        source.current_job.splice(index, 1)
         const d:Setter = { key: data.job_uuid, value: data.message}
         this.proxy?.feedbackMessage(d)
     }

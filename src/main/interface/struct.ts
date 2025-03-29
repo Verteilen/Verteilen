@@ -1,4 +1,3 @@
-import { ExecuteState } from "./enum"
 
 /**
  * The websocket instance with extra information
@@ -7,8 +6,7 @@ export interface WebsocketPack {
     s?:boolean
     uuid: string
     websocket: WebSocket
-    current_job?: string
-    state?: ExecuteState
+    current_job: Array<string>
     information?: SystemLoad
     load?: NodeLoad
     ms?: number
@@ -65,6 +63,7 @@ export interface Setter {
 
 export interface FeedBack {
     job_uuid: string
+    runtime_uuid: string
     meta: number
     message: string
 }

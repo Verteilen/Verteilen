@@ -108,7 +108,7 @@ export class WebsocketManager {
     private serverconnect = (url:string, uuid?:string) => {
         if(this.targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
         const client = new WebSocket(url)
-        const index = this.targets.push({ uuid: uuid == undefined ? uuidv6() : uuid, websocket: client })
+        const index = this.targets.push({ uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] })
         client.onerror = (err:any) => {
             this.messager_log(`[Socket] Connect failed ${url}`)
         }
@@ -118,8 +118,7 @@ export class WebsocketManager {
                 this.disconnect(this.targets[index - 1])
             }
             this.targets[index - 1].s = undefined
-            this.targets[index - 1].state = undefined
-            this.targets[index - 1].current_job = undefined
+            this.targets[index - 1].current_job = []
         }
         client.onopen = () => {
             this.messager_log('[Socket] New Connection !' + client.url)

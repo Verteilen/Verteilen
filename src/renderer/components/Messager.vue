@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, ref, Ref } from 'vue';
-import { BusType, IMessage, ToastData } from '../interface';
+import { BusType, IMessage, RENDER_UPDATETICK, ToastData } from '../interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const messages:Ref<Array<IMessage>> = ref([])
@@ -20,7 +20,7 @@ const makeToast = (e:ToastData) => {
 
 const update = () => {
     messages.value.forEach(x => {
-        x.timer -= 1000
+        x.timer -= RENDER_UPDATETICK
         x.ison = x.timer > 0
     })
     messages.value = messages.value.filter(x => x.ison)

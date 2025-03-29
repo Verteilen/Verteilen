@@ -35,7 +35,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
             x.websocket.send(JSON.stringify(h))
         })
         this.jobstack = 0
-        this.websocket_manager.targets.forEach(x => x.state = ExecuteState.NONE)
+        this.websocket_manager.targets.forEach(x => x.current_job = [])
     }
 
     /**
