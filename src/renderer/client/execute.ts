@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import path from 'path';
 import WebSocket from 'ws';
-import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
+import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { Client } from "./client";
 import { ClientParameter } from './parameter';
@@ -16,13 +16,13 @@ export class ClientExecute {
     private workers:Array<ChildProcess> = []
 
     private messager:Messager
-    private messager_log:Messager
+    private messager_log:Messager_log
 
     public get count() : number {
         return this.workers.length
     }
 
-    constructor(_messager:Messager, _messager_log:Messager, _client:Client){
+    constructor(_messager:Messager, _messager_log:Messager_log, _client:Client){
         this.messager = _messager
         this.messager_log = _messager_log
     }

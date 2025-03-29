@@ -1,8 +1,8 @@
 import { spawn } from 'child_process';
 import fs from "fs";
-import { Messager, OnePath, TwoPath } from "../interface";
+import { Messager, Messager_log, OnePath, TwoPath } from "../interface";
 
-type gettag = ()=>string
+type getstring = ()=>string
 
 /**
  * The operation system related actions utility\
@@ -16,8 +16,9 @@ type gettag = ()=>string
  */
 export class ClientOS {
     private messager:Messager
-    private messager_log:Messager
-    private tag:gettag
+    private messager_log:Messager_log
+    private tag:getstring
+    private runtime:getstring
     /**
      * * True: Kill all the processes
      * * False: Do nothing
@@ -30,8 +31,9 @@ export class ClientOS {
      * @param _messager Message method
      * @param _messager_log Message method with output on the screen feature
      */
-    constructor(_tag:gettag, _messager:Messager, _messager_log:Messager){
+    constructor(_tag:getstring, _runtime:getstring, _messager:Messager, _messager_log:Messager_log){
         this.tag = _tag
+        this.runtime = _runtime
         this.messager = _messager
         this.messager_log = _messager_log
     }

@@ -10,21 +10,25 @@ export const messager = (...args:Array<string | undefined>) => {
     mainWindow.webContents.send('msgAppend', ...args);
 }
 
+export const messager_feedback = (msg:string, meta?:string) => {
+    if(backendEvent.client == undefined) return
+    if(backendEvent.client.count > 0) {
+        // 不用 message 是因為伺服器會需要知道 此訊息是從哪一個客戶端送出的
+        const h:Single = { data: msg }
+        const d:Header = { name: 'feedback_message', meta: meta, data: h}
+        backendEvent.client.clients.forEach(x => x.send(JSON.stringify(d)))
+    }
+}
+
 /** 
 * 傳送資料到 UI 執行序 \
 * 控制台輸出 \
 * 回傳伺服器訊息
 */
-export const messager_log = (msg:string, tag?:string) => {
+export const messager_log = (msg:string, tag?:string, meta?:string) => {
     messager(msg, tag);
     console.log(msg);
-    if(backendEvent.client == undefined) return
-    if(backendEvent.client.count > 0) {
-        // 不用 message 是因為伺服器會需要知道 此訊息是從哪一個客戶端送出的
-        const h:Single = { data: msg }
-        const d:Header = { name: 'feedback_message', data: h}
-        backendEvent.client.clients.forEach(x => x.send(JSON.stringify(d)))
-    }
+    messager_feedback(msg, meta)
 }
 
 /**

@@ -21,11 +21,11 @@ const messager = (msg:string, tag?:string) => {
  * @param msg Message
  * @param tag Message prefix
  */
-const messager_log = (msg:string, tag?:string) => {
+const messager_log = (msg:string, tag?:string, meta?:string) => {
     const d:Header = {
         name: 'messager_log',
-        meta: tag,
-        data: msg
+        meta: meta,
+        data: `[${tag}] ${msg}`
     }
     console.log(JSON.stringify(d))
 }

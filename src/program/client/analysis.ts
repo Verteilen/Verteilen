@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import path from 'path';
 import WebSocket from 'ws';
-import { Header, Messager } from "../interface";
+import { Header, Messager, Messager_log } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientShell } from './shell';
@@ -11,7 +11,7 @@ import { ClientShell } from './shell';
  */
 export class ClientAnalysis {
     private messager: Messager
-    private messager_log: Messager
+    private messager_log: Messager_log
     private client:Client
     private exec:ClientExecute
     private shell:ClientShell
@@ -20,7 +20,7 @@ export class ClientAnalysis {
 
     private resource_cache:Header | undefined = undefined
 
-    constructor(_messager:Messager, _messager_log:Messager, _client:Client){
+    constructor(_messager:Messager, _messager_log:Messager_log, _client:Client){
         this.client = _client
         this.messager = _messager
         this.messager_log = _messager_log

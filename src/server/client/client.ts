@@ -1,6 +1,6 @@
 import tcpPortUsed from 'tcp-port-used';
 import { WebSocket, WebSocketServer } from 'ws';
-import { CLIENT_UPDATETICK, Header, Messager, PORT } from '../interface';
+import { CLIENT_UPDATETICK, Header, Messager, Messager_log, PORT } from '../interface';
 import { ClientAnalysis } from './analysis';
 
 /**
@@ -11,7 +11,7 @@ export class Client {
     private sources:Array<WebSocket> = []
 
     private messager:Messager
-    private messager_log:Messager
+    private messager_log:Messager_log
     private analysis:ClientAnalysis
 
     public get count() : number {
@@ -22,7 +22,7 @@ export class Client {
         return this.sources
     }
 
-    constructor(_messager:Messager, _messager_log:Messager){
+    constructor(_messager:Messager, _messager_log:Messager_log){
         this.messager = _messager
         this.messager_log = _messager_log
         this.analysis = new ClientAnalysis(_messager, _messager_log, this)

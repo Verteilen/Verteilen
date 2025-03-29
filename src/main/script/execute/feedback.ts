@@ -77,7 +77,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         }
         // If it's a cronjob type work
         else if(this.current_cron.length > 0){
-            const cron = this.current_cron.find(x => x.uuid == source.uuid)
+        const cron = this.current_cron.find(x => x.uuid == source.uuid)
             const work = cron?.work.find(x => x.runtime == data.runtime_uuid)
             if(cron == undefined || work == undefined) {
                 console.error("Cannot find the feedback container, cron or work", cron, work)

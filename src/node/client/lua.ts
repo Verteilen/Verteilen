@@ -6,7 +6,7 @@
  * This might cost more resources to work, But it won't throw error... so
  */
 import * as luainjs from 'lua-in-js';
-import { DataType, Job, Libraries, LuaLib, Messager, Parameter } from '../interface';
+import { DataType, Job, Libraries, LuaLib, Messager, Messager_log, Parameter } from '../interface';
 import { ClientJobParameter } from './job_parameter';
 import { ClientOS } from './os';
 
@@ -31,11 +31,12 @@ let getlib:Getlib | undefined = undefined
 let getpara:Getpara | undefined = undefined
 let getjob:Getjob | undefined = undefined
 let messager: Messager
-let messager_log: Messager
+let messager_log: Messager_log
 let clientos:ClientOS | undefined
 let para:ClientJobParameter | undefined = undefined
 
 const tag = () => getjob?.()?.uuid ?? 'unknown'
+const runtime = () => getjob?.()?.runtime_uuid ?? 'unknown'
 
 //#region Parameters
 function hasboolean(key:string){
@@ -115,7 +116,7 @@ export class ClientLua {
     env:luainjs.Table
     message:luainjs.Table
 
-    constructor(_messager: Messager, _messager_log: Messager, _getjob:Getjob){
+    constructor(_messager: Messager, _messager_log: Messager_log, _getjob:Getjob){
         this.os = new luainjs.Table({
             "copyfile": this.copyfile,
             "copydir": this.copydir,
@@ -146,7 +147,7 @@ export class ClientLua {
         
         this.message = new luainjs.Table({
             "messager": (m:string) => _messager(m, tag()), 
-            "messager_log": (m:string) => _messager_log(m, tag())
+            "messager_log": (m:string) => _messager_log(m, tag(), runtime())
         })
     }
 

@@ -6,6 +6,7 @@ import { ToastData } from "./ui"
 
 type Handler<T = unknown> = (event: T) => void
 export type Messager = (msg:string, tag?:string) => void
+export type Messager_log = (msg:string, tag?:string, meta?:string) => void
 
 export interface BusAnalysis {
     name:string
