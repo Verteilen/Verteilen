@@ -97,17 +97,19 @@ const receivedPack = (record:Record) => {
 }
 
 const feedback_message = (d:FeedBack) => {
-    const cronjob = props.execute?.current_t?.cronjob ?? false
-    const index = cronjob ? data.value!.task_detail.findIndex(x => x.node == d.node_uuid) : 0
-    if(index == -1) return
-    const container = data.value!.task_detail[index]
+    if(d.index == undefined || d.index == -1) return
+    const container = data.value!.task_detail[d.index]
     if(container != undefined){
         container.message.push(d.message)
         if(container.message.length > MESSAGE_LIMIT){
             container.message.shift()
         }
     }
-    props.logs.logs[0].logs[data.value!.task_index].task_detail[index].message.push(d.message)
+    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length < d.index){
+        props.logs.logs[0].logs[data.value!.task_index].task_detail[d.index].message.push(d.message)
+    }else{
+        console.error("Try access message by index but failed: ", d)
+    }
     hasNewLog = true
 }
 
