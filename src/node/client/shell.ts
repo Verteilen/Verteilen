@@ -12,7 +12,7 @@ export class ClientShell {
     private shell_workers:Array<[WebSocket, ChildProcess]> = []
 
     constructor(_messager:Messager, _messager_log:Messager, _client:Client){
-        this.os = new ClientOS(() => "SHELL", _messager, _messager_log)
+        this.os = new ClientOS(() => "SHELL", () => "", _messager, _messager_log)
         this.messager = _messager
         this.messager_log = _messager_log
     }

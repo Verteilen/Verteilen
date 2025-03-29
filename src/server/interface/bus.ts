@@ -1,6 +1,6 @@
 import { Job, Parameter, Project, Task } from "./base"
 import { ExecutionLog, Log, Record } from "./record"
-import { Header, Setter, ShellFolder, Single, WebsocketPack } from "./struct"
+import { FeedBack, Header, Setter, ShellFolder, Single, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
 
@@ -45,7 +45,7 @@ export interface ExecuteProxy {
     executeSubtaskFinish: (data:[Task, number, string]) => void
     executeJobStart: (data:[Job, number, string]) => void
     executeJobFinish: (data:[Job, number, string, number]) => void
-    feedbackMessage: (data:Setter) => void
+    feedbackMessage: (data:FeedBack) => void
     updateParameter: (data:Parameter) => void
     shellReply: (data:Single) => void
     folderReply: (data:ShellFolder) => void
@@ -71,7 +71,7 @@ export type BusType = {
     updateHandle: void
     shellReply: Single
     folderReply: ShellFolder
-    feedbackMessage: Setter
+    feedbackMessage: FeedBack
 
     renameScript: Rename
     deleteScript: string

@@ -25,7 +25,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
-            castingFunc(d.h.data, d.c)
+            castingFunc(d.h.data, d.c, d.h.meta)
         }else{
             this.messager_log(`[Source Data Analysis] Decode failed, Unknowed header, name: ${d.name}, meta: ${d.h.meta}`)
         }
@@ -37,11 +37,26 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      * @param data feedback data, any type
      * @param source The node target
      */
-    private feedback_message = (data:Single, source:WebsocketPack | undefined) => {
+    private feedback_message = (data:Single, source:WebsocketPack | undefined, meta:string | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
         this.messager_log(`[Execute] Single Received data: ${data.data}`)
-        const d:Setter = { key: source.uuid, value: data.data}
+        let index = 0
+        if(this.current_cron.length > 0){
+            const cron = this.current_cron.find(x => x.uuid == source.uuid)
+            const work = cron?.work.find(x => x.runtime == meta)
+            if(cron != undefined && work != undefined){
+                index = cron.id - 1
+            }
+        }
+        const d:FeedBack = { 
+            node_uuid: source.uuid,
+            index: index,
+            job_uuid: '',
+            runtime_uuid: '',
+            meta: 0,
+            message: data.data
+        }
         this.proxy?.feedbackMessage(d)
     }
     /**
@@ -66,7 +81,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
                 console.error("Cannot find the feedback container, work", work)
                 return
             }
-
+            data.index = 0
             this.proxy?.executeJobFinish([work.job, 0, source.uuid, data.meta])
             work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
             console.log(this.current_job)
@@ -77,7 +92,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         }
         // If it's a cronjob type work
         else if(this.current_cron.length > 0){
-        const cron = this.current_cron.find(x => x.uuid == source.uuid)
+            const cron = this.current_cron.find(x => x.uuid == source.uuid)
             const work = cron?.work.find(x => x.runtime == data.runtime_uuid)
             if(cron == undefined || work == undefined) {
                 console.error("Cannot find the feedback container, cron or work", cron, work)
@@ -86,6 +101,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             }
 
             this.proxy?.executeJobFinish([work.job, cron.id - 1, source.uuid, data.meta])
+            data.index = cron.id - 1
             work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
             console.log(this.current_job)
             if(this.check_cron_end(cron)){
@@ -97,8 +113,8 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         // Reset the state of the node
         const index = source.current_job.findIndex(x => x == data.runtime_uuid)
         source.current_job.splice(index, 1)
-        const d:Setter = { key: data.job_uuid, value: data.message}
-        this.proxy?.feedbackMessage(d)
+        data.node_uuid = source.uuid
+        this.proxy?.feedbackMessage(data)
     }
     /**
      * When one of the node decide to change the parameter of string value

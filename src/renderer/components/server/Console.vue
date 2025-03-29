@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Project, Record, Setter, Task } from '../../interface';
+import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 
@@ -96,18 +96,18 @@ const receivedPack = (record:Record) => {
     hasNewLog = true
 }
 
-const feedback_message = (d:Setter) => {
+const feedback_message = (d:FeedBack) => {
     const cronjob = props.execute?.current_t?.cronjob ?? false
-    const index = cronjob ? data.value!.task_detail.findIndex(x => x.node == d.key) : 0
+    const index = cronjob ? data.value!.task_detail.findIndex(x => x.node == d.node_uuid) : 0
     if(index == -1) return
     const container = data.value!.task_detail[index]
     if(container != undefined){
-        container.message.push(d.value)
+        container.message.push(d.message)
         if(container.message.length > MESSAGE_LIMIT){
             container.message.shift()
         }
     }
-    props.logs.logs[0].logs[data.value!.task_index].task_detail[index].message.push(d.value)
+    props.logs.logs[0].logs[data.value!.task_index].task_detail[index].message.push(d.message)
     hasNewLog = true
 }
 

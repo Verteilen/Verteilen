@@ -62,6 +62,8 @@ export interface Setter {
 }
 
 export interface FeedBack {
+    node_uuid?: string
+    index?: number
     job_uuid: string
     runtime_uuid: string
     meta: number
