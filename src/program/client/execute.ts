@@ -40,7 +40,7 @@ export class ClientExecute {
      * @param job Target job
      */
     execute_job = (job:Job, source:WebSocket) => {
-        this.messager_log(`[Execute] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, this.tag)
+        this.messager_log(`[Execute] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, job.uuid, job.runtime_uuid)
         this.tag = job.uuid
         this.execute_job_worker(job, source)
     }
@@ -67,14 +67,14 @@ export class ClientExecute {
         const workerFeedbackExec = (str:string) => {
             const msg:Header = JSON.parse(str)
             if(msg.name == 'messager'){
-                this.messager(msg.data, this.tag)
+                this.messager(msg.data, job.uuid)
             } 
             else if(msg.name == 'messager_log'){
-                this.messager_log(msg.data, this.tag)
+                this.messager_log(msg.data, job.uuid, job.runtime_uuid)
             }
             else if(msg.name == 'error'){
-                if(msg.data instanceof String) this.messager_log(msg.data.toString(), this.tag)
-                else this.messager_log(JSON.stringify(msg.data), this.tag)
+                if(msg.data instanceof String) this.messager_log(msg.data.toString(), job.uuid, job.runtime_uuid)
+                else this.messager_log(JSON.stringify(msg.data), job.uuid, job.runtime_uuid)
             }
             else if(msg.name == 'feedbackstring'){
                 para.feedbackstring(msg.data)
@@ -97,7 +97,7 @@ export class ClientExecute {
         }
 
         child.on('error', (err) => {
-            this.messager_log(`[Worker Error] ${err}`)
+            this.messager_log(`[Worker Error] ${err}`, job.uuid, job.runtime_uuid)
         })
 
         child.on('exit', (code, signal) => {
@@ -121,7 +121,7 @@ export class ClientExecute {
     private job_finish(code:number, signal:string, job:Job, source:WebSocket){
         this.messager_log( code == 0 ?
             `[Execute] Successfully: ${code} ${signal}` : 
-            `[Execute] Error: ${code} ${signal}`, this.tag)
+            `[Execute] Error: ${code} ${signal}`, job.uuid, job.runtime_uuid)
         const data:FeedBack = { job_uuid: job.uuid, runtime_uuid: job.runtime_uuid!, meta: code, message: signal }
         const h:Header = { name: 'feedback_job', data: data }
         source.send(JSON.stringify(h))

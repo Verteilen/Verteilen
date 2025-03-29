@@ -37,7 +37,7 @@ export class ClientJobExecute {
         this.tag = _job.uuid
         this.job = _job
         this.para = new ClientJobParameter()
-        this.os = new ClientOS(() => this.tag, _messager, _messager_log)
+        this.os = new ClientOS(() => this.tag, () => this.job.runtime_uuid || '', _messager, _messager_log)
         this.lua = new ClientLua(_messager, _messager_log, () => this.job)
         this.parameter = process.env.parameter != undefined ? JSON.parse(process.env.parameter) : undefined
         this.libraries = process.env.libraries != undefined ? JSON.parse(process.env.libraries) : undefined
