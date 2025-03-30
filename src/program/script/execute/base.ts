@@ -1,5 +1,5 @@
 import { formula, init } from "expressionparser";
-import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, KeyValue, Libraries, Messager, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ENV_CHARACTER, ExecuteProxy, ExecuteState, Header, KeyValue, Libraries, Messager, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 
 export class ExecuteManager_Base {
@@ -197,7 +197,7 @@ export class ExecuteManager_Base {
         let state:boolean = false
         let useExp = false
         for(const v of text){
-            if(v == '%'){
+            if(v == ENV_CHARACTER){
                 state = !state
                 if(!state) { // End
                     if(useExp){
@@ -210,8 +210,8 @@ export class ExecuteManager_Base {
                 }
             }
             if(v == '{' && state && store.length == 0) useExp = true
-            if(state && v != '%') store += v
-            if(!state && v != '%') buffer += v
+            if(state && v != ENV_CHARACTER) store += v
+            if(!state && v != ENV_CHARACTER) buffer += v
         }
         return buffer
     }
