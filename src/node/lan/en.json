@@ -199,5 +199,6 @@
     "clean": "Clean",
     "cronjob": "Cronjob",
     "multicore": "Multicore",
-    "recover": "Recover"
+    "recover": "Recover",
+    "cancel": "Cancel"
 }

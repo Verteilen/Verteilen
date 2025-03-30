@@ -40,12 +40,10 @@ export class ExecuteManager_Base {
     protected sync_para = (target:Parameter, source:WebsocketPack) => {
         const h:Header = {
             name: 'set_parameter',
-            message: 'Initialization Parameter',
             data: target
         }
         const h2:Header = {
             name: 'set_libs',
-            message: 'Initialization Libs',
             data: this.libs
         }
         source.websocket.send(JSON.stringify(h))

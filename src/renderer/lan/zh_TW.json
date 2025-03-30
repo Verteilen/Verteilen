@@ -199,5 +199,6 @@
     "clean": "清除",
     "cronjob": "群集運算",
     "multicore": "多核運算",
-    "recover": "恢復"
+    "recover": "恢復",
+    "cancel": "取消"
 }

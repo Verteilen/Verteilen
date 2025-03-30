@@ -105,11 +105,12 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                     uuid: "",
                     work: task.jobs.map(x => ({
                         uuid: x.uuid,
-                        runtime: uuidv6(),
+                        runtime: '',
                         state: ExecuteState.NONE,
                         job: x
                     }))
                 }
+                d.work.forEach(x => x.runtime = uuidv6())
                 this.current_cron.push(d)
             }
             this.proxy?.executeTaskStart([task, taskCount ])

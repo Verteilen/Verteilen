@@ -105,10 +105,10 @@ const feedback_message = (d:FeedBack) => {
             container.message.shift()
         }
     }
-    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length < d.index){
+    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d.index){
         props.logs.logs[0].logs[data.value!.task_index].task_detail[d.index].message.push(d.message)
     }else{
-        console.error("Try access message by index but failed: ", d)
+        console.warn("Try access message by index but failed: ", d)
     }
     hasNewLog = true
 }

@@ -25,7 +25,7 @@ watch(() => data.value, () => {
 
 const DataTypeTranslate = (t:number):string => {
     return i18n.global.t(DataTypeText[t])
-}
+} 
 
 const updateLocate = () => {
     options.value = Object.keys(DataType).filter(key => isNaN(Number(key))).map((x, index) => {
