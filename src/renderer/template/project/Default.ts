@@ -2,6 +2,32 @@ import { v6 as uuidv6 } from 'uuid';
 import { ConditionResult, DataType, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
 import { DEFAULT_LuaCronMultiExample, DEFAULT_LuaExample, DEFAULT_LuaPrintExample, DEFAULT_LuaSaveExample } from '../lua/Default';
 
+const GetDefaultProjectTemplate_PrintCustomParameterMulticore = ():Task => {
+    const lua:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.LUA,
+        lua: DEFAULT_LuaPrintExample,
+        string_args: [],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Print save custom parameters with multicore",
+        description: "",
+        cronjob: true,
+        cronjobKey: "n1",
+        multi: true,
+        multiKey: "n2",
+        properties: [],
+        jobs: [
+            lua
+        ]
+    }
+    return t
+}
+
 const GetDefaultProjectTemplate_PrintCustomParameter = ():Task => {
     const lua:Job = {
         uuid: uuidv6(),
@@ -231,6 +257,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
         canWrite: true,
         containers: [
             { name: "n1", value: 25, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "n2", value: 4, type: DataType.Number, runtimeOnly: true, hidden: false },
 
             { name: "path", value: "C:\\Tool", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "s1", value: "Hello World", type: DataType.String, runtimeOnly: false, hidden: false },
@@ -248,6 +275,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
         GetDefaultProjectTemplate_CronLua(),
         GetDefaultProjectTemplate_SaveCustomParameter(),
         GetDefaultProjectTemplate_PrintCustomParameter(),
+        GetDefaultProjectTemplate_PrintCustomParameterMulticore(),
     ]
     return r
 }
