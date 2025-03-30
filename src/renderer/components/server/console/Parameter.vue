@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, DataType, DataTypeText, Parameter } from '../../../interface';
 import { i18n } from '../../../plugins/i18n';
 
@@ -16,12 +16,12 @@ const options:Ref<Array<{ title: string, value:number }>> = ref([])
 
 const d:Ref<Parameter | undefined> = ref(undefined)
 
-watch(() => data.value, () => {
+const update_runtime_parameter = () => {
     d.value = undefined
     nextTick(() => {
         d.value = data.value
     })
-})
+}
 
 const DataTypeTranslate = (t:number):string => {
     return i18n.global.t(DataTypeText[t])
@@ -40,10 +40,12 @@ const updateLocate = () => {
 onMounted(() => {
     updateLocate()
     emitter?.on('updateLocate', updateLocate)
+    emitter?.on('updateRuntimeParameter', update_runtime_parameter)
 })
 
 onUnmounted(() => {
     emitter?.off('updateLocate', updateLocate)
+    emitter?.off('updateRuntimeParameter', update_runtime_parameter)
 })
 
 </script>

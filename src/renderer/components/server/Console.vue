@@ -294,7 +294,6 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
 }
 
 const update_runtime_parameter = (d:Parameter) => {
-    console.log("Sync para", d)
     para.value = d
 }
 
@@ -405,7 +404,6 @@ const clean = () => {
 
 const stop = () => {
     data.value!.stop = true
-    para.value = undefined
     props.execute!.Stop()
 }
 
