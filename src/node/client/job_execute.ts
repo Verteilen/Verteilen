@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, OnePath, Parameter, TwoPath } from "../interface";
+import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, OnePath, Parameter, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { ClientJobParameter } from "./job_parameter";
 import { ClientLua } from "./lua";
@@ -23,18 +23,20 @@ export class ClientJobExecute {
      * This will put in the prefix of message
      */
     tag: string
+    runtime:string
 
     private messager:Messager
-    private messager_log:Messager
+    private messager_log:Messager_log
     private lua:ClientLua
     private os:ClientOS
     private para:ClientJobParameter
     private job:Job
 
-    constructor(_messager:Messager, _messager_log:Messager, _job:Job, _source:WebSocket | undefined){
+    constructor(_messager:Messager, _messager_log:Messager_log, _job:Job, _source:WebSocket | undefined){
         this.messager = _messager
         this.messager_log = _messager_log
         this.tag = _job.uuid
+        this.runtime = _job.runtime_uuid || ''
         this.job = _job
         this.para = new ClientJobParameter()
         this.os = new ClientOS(() => this.tag, () => this.job.runtime_uuid || '', _messager, _messager_log)
@@ -55,7 +57,7 @@ export class ClientJobExecute {
      */
     execute = () => {
         // Output the job type message to let user know what is going on
-        this.messager_log(`[Execute] ${this.job.uuid}  ${this.job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[this.job.type]) : i18n.global.t(JobType2Text[this.job.type])}`, this.tag)
+        this.messager_log(`[Execute] ${this.job.uuid}  ${this.job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[this.job.type]) : i18n.global.t(JobType2Text[this.job.type])}`, this.tag, this.runtime)
         const child = this.job.category == JobCategory.Execution ? this.execute_job_exe() : this.execute_job_con()
         return child
     }

@@ -110,7 +110,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                         job: x
                     }))
                 }
-                d.work.forEach(x => x.runtime = uuidv6())
+                d.work.forEach((x, j) => x.runtime = uuidv6({}, undefined, i * taskCount + j))
                 this.current_cron.push(d)
             }
             this.proxy?.executeTaskStart([task, taskCount ])

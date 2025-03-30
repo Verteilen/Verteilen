@@ -80,12 +80,12 @@ function setboolean(key:string, value:boolean){
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
     
-    messager_log(`[Boolean feedback] ${key} = ${value}`, tag())
+    messager_log(`[Boolean feedback] ${key} = ${value}`, tag(), runtime())
     para?.feedbackboolean({key:key,value:value})
 }
 function setnumber(key:string, value:number){
     if(key == 'ck') {
-        messager_log("Trying to set a constant ck...", tag())
+        messager_log("Trying to set a constant ck...", tag(), runtime())
         return
     }
     const p = getpara?.() ?? undefined
@@ -93,7 +93,7 @@ function setnumber(key:string, value:number){
     const target = p.containers.find(x => x.name == key && x.type == DataType.Number)
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
-    messager_log(`[Number feedback] ${key} = ${value}`, tag())
+    messager_log(`[Number feedback] ${key} = ${value}`, tag(), runtime())
     para?.feedbacknumber({key:key,value:value})
 }
 function setstring(key:string, value:string){
@@ -102,7 +102,7 @@ function setstring(key:string, value:string){
     const target = p.containers.find(x => x.name == key && x.type == DataType.String)
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
-    messager_log(`[String feedback] ${key} = ${value}`, getjob?.()?.uuid ?? '')
+    messager_log(`[String feedback] ${key} = ${value}`, tag(), runtime())
     para?.feedbackstring({key:key,value:value})
 }
 //#endregion

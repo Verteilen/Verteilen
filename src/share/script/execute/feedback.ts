@@ -1,4 +1,4 @@
-import { BusAnalysis, DataType, ExecuteState, FeedBack, Header, NodeLoad, Setter, ShellFolder, Single, SystemLoad, WebsocketPack } from "../../interface"
+import { BusAnalysis, CronJobState, DataType, ExecuteState, FeedBack, Header, NodeLoad, Setter, ShellFolder, Single, SystemLoad, WebsocketPack, WorkState } from "../../interface"
 import { ExecuteManager_Base } from "./base"
 
 /**
@@ -42,9 +42,10 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         if(this.state == ExecuteState.NONE) return
         this.messager_log(`[Execute] Single Received data: ${data.data}`)
         let index = 0
-        if(this.current_cron.length > 0){
-            const cron = this.current_cron.find(x => x.uuid == source.uuid)
-            const work = cron?.work.find(x => x.runtime == meta)
+        if(this.current_cron.length > 0 && meta != undefined){
+            const r = this.GetCronAndWork(meta, source)
+            const cron:CronJobState | undefined = r[0]
+            const work:WorkState | undefined = r[1]
             if(cron != undefined && work != undefined){
                 index = cron.id - 1
             }
@@ -92,10 +93,11 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         }
         // If it's a cronjob type work
         else if(this.current_cron.length > 0){
-            const cron = this.current_cron.find(x => x.uuid == source.uuid)
-            const work = cron?.work.find(x => x.runtime == data.runtime_uuid)
+            const r = this.GetCronAndWork(data.runtime_uuid, source)
+            const cron:CronJobState | undefined = r[0]
+            const work:WorkState | undefined = r[1]
             if(cron == undefined || work == undefined) {
-                console.error("Cannot find the feedback container, cron or work", cron, work)
+                console.error("Cannot find the feedback container, cron or work", data.runtime_uuid, cron, work)
                 console.error("Full current cron instance", this.current_cron)
                 return
             }
@@ -203,6 +205,22 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
     private pong = (info:number, source:WebsocketPack | undefined) => {
         if(source == undefined || source.last == undefined) return
         source.ms = Date.now() - source.last
+    }
+
+    private GetCronAndWork = (runtime:string, source:WebsocketPack):[CronJobState | undefined, WorkState | undefined] => {
+        let cron:CronJobState | undefined = undefined
+        let work:WorkState | undefined = undefined
+        const crons = this.current_cron.filter(x => x.uuid == source.uuid)
+        for(let i = 0; i < crons.length; i++){
+            const c = crons[i]
+            const a = c.work.find(x => x.runtime == runtime)
+            if(a != undefined) {
+                cron = c
+                work = a
+                break
+            }
+        }
+        return [cron, work]
     }
     //#endregion
 }
