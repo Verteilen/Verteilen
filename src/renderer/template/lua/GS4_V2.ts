@@ -92,7 +92,7 @@ for i=1,blend,1 do
         end
     end
     -- data_n_0 data_n_1 data_n_2
-    env.setnumber("data_n_"..tostring(i), n_count - 1)
+    env.setnumber("data_n_"..tostring(i), n_count)
 end
 `
 
