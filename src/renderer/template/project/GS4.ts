@@ -356,7 +356,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans"],
+        string_args: ["%output%", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x %xx%"],
         number_args: [],
         boolean_args: []
     }
@@ -371,6 +371,10 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         properties: [
             {
                 name: 'index',
+                expression: '(ck - 1) + IF( start_at_0, 0, 1 )'
+            },
+            {
+                name: 'xx',
                 expression: '(ck - 1) + IF( start_at_0, 0, 1 )'
             }
         ],
