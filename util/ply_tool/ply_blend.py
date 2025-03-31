@@ -8,7 +8,7 @@ import sys
 # example: gop = 20
 # gap = 5
 # blend = 4
-def transparent_setting(root, output, frame, blend, gap, contribution):
+def transparent_setting(root, output, frame, blend, gap, contribution, xx):
     print('transparent_setting mode')
     inputFiles = []
     max = 0
@@ -21,7 +21,7 @@ def transparent_setting(root, output, frame, blend, gap, contribution):
         os.makedirs(outFolder, exist_ok=True)
         if os.path.exists(path):
             if gop != 1:
-                reminder = (frame - (i * gap)) % gop
+                reminder = (frame - (i * gap) - xx) % gop
                 degree = (float(reminder) / float(gop)) * 360.0
                 sinv = (1.0 - math.cos(math.radians(degree)) * -1.0) * 0.5
                 max = max + sinv
@@ -45,7 +45,7 @@ def transparent_setting(root, output, frame, blend, gap, contribution):
         sys.stdout.flush()
         subprocess.run(["ply_set_opacity", "-i", i[0], "-o", i[1], "-s", str(weight)])
 
-def merge_setting(root, output, frame, blend, gap, contribution):
+def merge_setting(root, output, frame, blend, gap, contribution, xx):
     print('merge_setting mode')
     inputFiles = []
     os.makedirs(output, exist_ok=True)
@@ -77,6 +77,7 @@ parser.add_argument('-f', '--frame', help='frame count', type=int)
 parser.add_argument('-b', '--blend', help='blend times', type=int)
 parser.add_argument('-g', '--gaps', help='gop divide by blend', type=int)
 parser.add_argument('-c', '--contribution', help='contribution', type=int)
+parser.add_argument('-x', '--xx', help='different', type=int, default=1)
 parser.add_argument('-r', '--root', help='root folder', type=str)
 parser.add_argument('-o', '--output', help='output folder', type=str)
 args = parser.parse_args()
@@ -87,6 +88,7 @@ gaps = args.gaps
 contribution_value = args.contribution
 root = args.root
 output = args.output
+xx =args.xx
 
 if args.frame is not None:
     frame_count = args.frame
@@ -111,8 +113,9 @@ if output is None:
     sys.exit()
 
 if ops == 0:
-    transparent_setting(root, output, frame_count, blend_times, gaps, contribution_value)
+    transparent_setting(root, output, frame_count, blend_times, gaps, contribution_value, xx)
 
 if ops == 1:
-    merge_setting(root, output, frame_count, blend_times, gaps, contribution_value)
+    merge_setting(root, output, frame_count, blend_times, gaps, contribution_value, xx)
+
 
