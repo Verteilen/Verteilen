@@ -21,9 +21,9 @@ def transparent_setting(root, output, frame, blend, gap, contribution):
         os.makedirs(outFolder, exist_ok=True)
         if os.path.exists(path):
             if gop != 1:
-                reminder = (frame + (i * gap)) % gop
+                reminder = (frame - (i * gap)) % gop
                 degree = (float(reminder) / float(gop)) * 360.0
-                sinv = (1.0 - math.cos(math.radians(degree))) * 0.5
+                sinv = (1.0 - math.cos(math.radians(degree)) * -1.0) * 0.5
                 max = max + sinv
                 inputFiles.append((path, out, sinv))
             else:

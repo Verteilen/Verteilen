@@ -213,7 +213,7 @@ export class ClientLua {
 
     private getLuaEnv(flags:LuaLib = LuaLib.ALL){
         const luaEnv = luainjs.createEnv({
-            LUA_PATH: 'lua',
+            LUA_PATH: './lua',
             fileExists: fs.existsSync,
             loadFile: this.readfile_Env,
             stdout: messager,
