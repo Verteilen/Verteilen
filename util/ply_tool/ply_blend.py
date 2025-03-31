@@ -32,14 +32,17 @@ def transparent_setting(root, output, frame, blend, gap, contribution):
                 max = max + sinv
     
     count = len(inputFiles)
+    sys.stdout.flush()
     print('input file count: ' + str(count))
+    sys.stdout.flush()
     if count == 0:
         return
 
     for i in inputFiles:
         mul = contribution / max
         weight = i[2] * mul
-        print("Set file: " + i[0] + ", transparent to ", str(sinv), "  and output to " + i[1])
+        print("Set file: " + i[0] + ", transparent to ", str(i[2]), "  and output to " + i[1] + " Real weight: " + str(weight))
+        sys.stdout.flush()
         subprocess.run(["ply_set_opacity", "-i", i[0], "-o", i[1], "-s", str(weight)])
 
 def merge_setting(root, output, frame, blend, gap, contribution):
