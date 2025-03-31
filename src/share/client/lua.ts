@@ -5,6 +5,7 @@
  * 
  * This might cost more resources to work, But it won't throw error... so
  */
+import fs from 'fs';
 import * as luainjs from 'lua-in-js';
 import { DataType, Job, Libraries, LuaLib, Messager, Messager_log, Parameter } from '../interface';
 import { ClientJobParameter } from './job_parameter';
@@ -211,11 +212,19 @@ export class ClientLua {
     }
 
     private getLuaEnv(flags:LuaLib = LuaLib.ALL){
-        const luaEnv = luainjs.createEnv()
+        const luaEnv = luainjs.createEnv({
+            LUA_PATH: 'lua',
+            fileExists: fs.existsSync,
+            loadFile: this.readfile_Env,
+            stdout: messager,
+        })
         if((flags & LuaLib.OS) == LuaLib.OS) luaEnv.loadLib('o', this.os)
         if((flags & LuaLib.ENV) == LuaLib.ENV) luaEnv.loadLib('env', this.env)
         if((flags & LuaLib.MESSAGE) == LuaLib.MESSAGE) luaEnv.loadLib('m', this.message)
         return luaEnv
+    }
+    private readfile_Env(path:string):string{
+        return fs.readFileSync(path).toString()
     }
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})
