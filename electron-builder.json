@@ -18,7 +18,8 @@
     "extraFiles": [
         "README.md",
         "docs/",
-        "bin/"
+        "bin/",
+        "lua/"
     ],
     "files": [
         {

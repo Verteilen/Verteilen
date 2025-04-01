@@ -375,7 +375,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
             },
             {
                 name: 'xx',
-                expression: '(ck - 1) + IF( start_at_0, 0, 1 )'
+                expression: 'IF( start_at_0, 0, 1 )'
             }
         ],
         jobs: [
