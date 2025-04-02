@@ -4,6 +4,7 @@ import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
+import NumberDialog from '../dialog/NumberDialog.vue';
 import DebugLog from './console/DebugLog.vue';
 import List from './console/List.vue';
 import ParameterPage from './console/Parameter.vue';
@@ -25,7 +26,6 @@ const tag = ref(1)
 const para:Ref<Parameter | undefined> = ref(undefined)
 const useCron = ref(false)
 const skipModal = ref(false)
-const skipData = ref(0)
 
 /**
  * The speicifed the process step type
@@ -420,14 +420,13 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
         }
     }else if (type == 2){
         skipModal.value = true
-        skipData.value = 0
     }
 }
 /**
  * When user click confirm on the skip step modal
  */
-const confirmSkip = () => {
-    const index = props.execute!.SkipSubTask(skipData.value)
+const confirmSkip = (v:number) => {
+    const index = props.execute!.SkipSubTask(v)
     if(index < 0) {
         console.error("Skip step failed: ", index)
         return
@@ -601,19 +600,11 @@ onUnmounted(() => {
                 <ParameterPage v-model="para" />
             </v-col>
         </v-row>
-        <v-dialog v-model="skipModal" width="500">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-debug-step-over</v-icon>
-                    {{ $t('modal.skip-step') }}
-                </v-card-title>
-                <v-card-title>
-                    <v-text-field type="number" v-model="skipData" hide-details :label="$t('step')"></v-text-field>
-                </v-card-title>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmSkip">{{ $t('confirm') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
+        <NumberDialog v-model="skipModal" 
+            :default-value="0" 
+            @submit="confirmSkip" 
+            :title="$t('modal.skip-step')" 
+            icon="mdi-debug-step-over" 
+            :label="$t('step')"/>
     </div>
 </template>
