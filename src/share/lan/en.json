@@ -202,5 +202,7 @@
     "multicore": "Multicore",
     "recover": "Recover",
     "cancel": "Cancel",
-    "step": "步驟"
+    "step": "Step",
+    "confirm": "Confirm",
+    "close": "Close"
 }
