@@ -5,7 +5,6 @@
  * 
  * This might cost more resources to work, But it won't throw error... so
  */
-import axios, { AxiosResponse, Method } from 'axios';
 import fs from 'fs';
 import * as luainjs from 'lua-in-js';
 import path from 'path';
@@ -30,7 +29,7 @@ end
 type Getlib = () => Libraries | undefined
 type Getpara = () => Parameter | undefined
 type Getjob = () => Job | undefined
-type httpRequestType = [string, boolean, AxiosResponse<any, any> | undefined]
+type httpRequestType = [string, boolean, Response | undefined, any]
 
 let getlib:Getlib | undefined = undefined
 let getpara:Getpara | undefined = undefined
@@ -39,6 +38,7 @@ let messager: Messager
 let messager_log: Messager_log
 let clientos:ClientOS | undefined
 let para:ClientJobParameter | undefined = undefined
+let httpRequests:Array<httpRequestType> = []
 
 const tag = () => getjob?.()?.uuid ?? 'unknown'
 const runtime = () => getjob?.()?.runtime_uuid ?? 'unknown'
@@ -112,6 +112,68 @@ function setstring(key:string, value:string){
 }
 //#endregion
 //#endregion
+//#region Http
+function httpGet(url:string, p: luainjs.Table):string{
+    return httpGo('GET', url, p.toObject())
+}
+function httpPost(url:string, p: luainjs.Table):string{
+    return httpGo('POST', url, p.toObject())
+}
+function httpDelete(url:string, p: luainjs.Table):string{
+    return httpGo('DELETE', url, p.toObject())
+}
+function httpPatch(url:string, p: luainjs.Table):string{
+    return httpGo('PATCH', url, p.toObject())
+}
+function httpPut(url:string, p: luainjs.Table):string{
+    return httpGo('PUT', url, p.toObject())
+}
+function httpGo(method:string, url:string, p: any):string {
+    const id = uuidv6()
+    fetch(url, {
+        method: method,
+        body: p
+    }).then(x => {
+        console.log(x)
+        x.text().then(y => {
+            console.log(y)
+        })
+        x.json().then(y => {
+            console.log(y)
+            const d:httpRequestType = [id, true, x, y]
+            httpRequests.push(d)
+        })
+    }).catch((reason) => {
+        const d:httpRequestType = [id, false, undefined, reason]
+        httpRequests.push(d)
+    })
+    return id
+}
+function httpWait(id:string){
+    return httpRequests.findIndex(x => x[0] == id) == -1
+}
+function httpResultData(id:string):luainjs.Table{
+    const index = httpRequests.findIndex(x => x[0] == id)
+    if(index == -1) return new luainjs.Table()
+    const target = httpRequests[index]
+    if(target[1] == false || target[3] == undefined) return new luainjs.Table()
+    return AnyToTable(target[3])
+}
+function AnyToTable(v:any):luainjs.Table {
+    const r = new luainjs.Table()
+    const keys = Object.keys(v)
+    keys.forEach(x => {
+        const value = v[x]
+        if(value instanceof Object){
+            const table = AnyToTable(value)
+            r.set(x, table)
+        }else{
+            r.set(x, value)
+        }
+    })
+    return r
+}
+//#endregion
 
 /**
  * The lua runner
@@ -121,9 +183,10 @@ export class ClientLua {
     env:luainjs.Table
     message:luainjs.Table
     http:luainjs.Table
-    httpRequests:Array<httpRequestType> = []
 
     constructor(_messager: Messager, _messager_log: Messager_log, _getjob:Getjob){
+        messager = _messager
+        messager_log = _messager_log
         this.os = new luainjs.Table({
             "copyfile": this.copyfile,
             "copydir": this.copydir,
@@ -154,17 +217,19 @@ export class ClientLua {
         
         this.message = new luainjs.Table({
             "messager": (m:string) => _messager(m, tag()), 
-            "messager_log": (m:string) => _messager_log(m, tag(), runtime())
+            "messager_log": (m:string) => _messager_log(m, tag(), runtime()),
+            "table": (m:luainjs.Table) => _messager(JSON.stringify(m.toObject()), tag()),
+            "table_log": (m:luainjs.Table) => _messager_log(JSON.stringify(m.toObject()), tag()),
         })
 
         this.http = new luainjs.Table({
-            "get": this.httpGet,
-            "post": this.httpPost,
-            "put": this.httpPut,
-            "delete": this.httpDelete,
-            "patch": this.httpPatch,
-            "wait": this.httpWait,
-            "resultdata": this.httpResultData,
+            "get": httpGet,
+            "post": httpPost,
+            "put": httpPut,
+            "delete": httpDelete,
+            "patch": httpPatch,
+            "wait": httpWait,
+            "resultdata": httpResultData,
         })
     }
 
@@ -220,7 +285,7 @@ export class ClientLua {
      * @returns Calcuate result
      */
     LuaExecute = (lua:string) => {
-        const luaEnv = this.getLuaEnv(LuaLib.OS | LuaLib.MESSAGE)
+        const luaEnv = this.getLuaEnv(LuaLib.OS | LuaLib.MESSAGE | LuaLib.HTTP)
         let script = lib + '\n' + lua
         const execc = luaEnv.parse(script)
         const r = execc.exec()
@@ -239,6 +304,7 @@ export class ClientLua {
         if((flags & LuaLib.OS) == LuaLib.OS) luaEnv.loadLib('o', this.os)
         if((flags & LuaLib.ENV) == LuaLib.ENV) luaEnv.loadLib('env', this.env)
         if((flags & LuaLib.MESSAGE) == LuaLib.MESSAGE) luaEnv.loadLib('m', this.message)
+        if((flags & LuaLib.HTTP) == LuaLib.HTTP) luaEnv.loadLib('http', this.http)
         const fss = fs.readdirSync(root, {withFileTypes: true})
         fss.forEach(x => {
             if(!x.isFile()) return
@@ -283,72 +349,5 @@ export class ClientLua {
     }
     private readfile(path:string){
         return clientos?.file_read({path:path})
-    }
-    private httpGet(url:string, p: luainjs.Table):string{
-        return this.httpGo('GET', url, p)
-    }
-    private httpPost(url:string, p: luainjs.Table, d: luainjs.Table):string{
-        return this.httpGo('POST', url, p, d)
-    }
-    private httpDelete(url:string, p: luainjs.Table):string{
-        return this.httpGo('DELETE', url, p)
-    }
-    private httpPatch(url:string, p: luainjs.Table):string{
-        return this.httpGo('PATCH', url, p)
-    }
-    private httpPut(url:string, p: luainjs.Table):string{
-        return this.httpGo('PUT', url, p)
-    }
-    private httpGo(type:Method, url:string, p: luainjs.Table, d?: luainjs.Table):string {
-        const params = {}
-        const datas = {}
-        for(let i = 0; i < p.getn(); i++){
-            const key = p.keys[i]
-            const value = p.get(key)
-            params[key] = value
-        }
-        if(d != undefined){
-            for(let i = 0; i < d.getn(); i++){
-                const key = d.keys[i]
-                const value = d.get(key)
-                datas[key] = value
-            }
-        }
-        const id = uuidv6()
-        const request = axios({ url: url, method: type, params: params, data: datas })
-        request.then(x => {
-            const d:httpRequestType = [id, true, x]
-            this.httpRequests.push(d)
-        }).catch((reason) => {
-            const d:httpRequestType = [id, false, undefined]
-            messager("[Lua Http Error]: " + reason)
-            this.httpRequests.push(d)
-        })
-        return id
-    }
-    private httpWait(id:string){
-        return this.httpRequests.findIndex(x => x[0] == id) != -1
-    }
-    private httpResultData(id:string):luainjs.Table{
-        const index = this.httpRequests.findIndex(x => x[0] == id)
-        if(index == -1) return new luainjs.Table()
-        const target = this.httpRequests[index]
-        if(target[1] == false || target[2] == undefined) return new luainjs.Table()
-        return this.AnyToTable(target[2].data)
-    }
-
-    private AnyToTable(v:any):luainjs.Table{
-        const r = new luainjs.Table()
-        const keys = Object.keys(v)
-        keys.forEach(x => {
-            const value = v[x]
-            if(value instanceof Object){
-                const table = this.AnyToTable(value)
-                r.set(x, table)
-            }else{
-                r.set(x, value)
-            }
-        })
-        return r
     }
 }

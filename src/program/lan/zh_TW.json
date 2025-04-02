@@ -53,7 +53,8 @@
         "enter-parameter-name": "輸入參數名稱",
         "parameter-datatype": "資料型態",
         "new-node": "新增節點",
-        "enter-node-address": "輸入節點位址"
+        "enter-node-address": "輸入節點位址",
+        "skip-step": "跳過步驟"
     },
     "toolbar": {
         "project": "專案管理",
@@ -200,5 +201,6 @@
     "cronjob": "群集運算",
     "multicore": "多核運算",
     "recover": "恢復",
-    "cancel": "取消"
+    "cancel": "取消",
+    "step": "步驟"
 }

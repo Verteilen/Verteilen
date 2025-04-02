@@ -53,7 +53,8 @@
         "enter-parameter-name": "Enter Parameter Name",
         "parameter-datatype": "Datatype",
         "new-node": "New Node",
-        "enter-node-address": "Enter Node Address"
+        "enter-node-address": "Enter Node Address",
+        "skip-step": "Skip Step"
     },
     "toolbar": {
         "project": "Project",
@@ -200,5 +201,6 @@
     "cronjob": "Cronjob",
     "multicore": "Multicore",
     "recover": "Recover",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "step": "步驟"
 }
