@@ -152,8 +152,12 @@ export class ExecuteManager extends ExecuteManager_Runner {
             // If we are in the start
             if(this.current_p.task.length > 0){
                 this.current_t = this.current_p.task[0]
-                this.proxy?.executeTaskStart([this.current_t, this.get_task_state_count(this.current_p, this.current_t)])
+                const taskCount = this.get_task_state_count(this.current_p, this.current_t)
+                if(this.current_t.cronjob){
+                    this.Init_CronContainer(this.current_t, taskCount)
+                }
                 this.t_state = ExecuteState.NONE
+                this.proxy?.executeTaskStart([this.current_t, taskCount])
                 return 0
             }else{
                 console.error("Project has no task, Skip failed")
@@ -172,12 +176,37 @@ export class ExecuteManager extends ExecuteManager_Runner {
                 this.proxy?.executeTaskFinish(this.current_t)
                 this.current_t = this.current_p.task[index + 1]
                 this.messager_log(`[Execute] Skip task ${index}. ${this.current_t.uuid}`)
-                this.proxy?.executeTaskStart([this.current_t, this.get_task_state_count(this.current_p, this.current_t)])
+                const taskCount = this.get_task_state_count(this.current_p, this.current_t)
+                if(this.current_t.cronjob){
+                    this.Init_CronContainer(this.current_t, taskCount)
+                }
+                this.proxy?.executeTaskStart([this.current_t, taskCount])
             }
-            this.current_cron = []
             this.current_job = []
             this.t_state = ExecuteState.NONE
             return index
+        }
+    }
+
+    SkipSubTask = (v:number):number => {
+        if (this.current_p == undefined) {
+            console.error("No project exist, Skip failed")
+            return -2
+        }
+        if (this.current_t == undefined){
+            console.error("Project has no task, Skip failed")
+            return -2
+        } else {
+            if(!this.current_t.cronjob){
+                return this.SkipTask()
+            }
+
+            const min = Math.min(v, this.current_cron.length)
+            for(let i = 0; i < min; i++){
+                const ps = this.current_cron[i].work.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR)
+                ps.forEach(x => x.state = ExecuteState.FINISH)
+            }
+            return min
         }
     }
 }

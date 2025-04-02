@@ -96,11 +96,10 @@ onUnmounted(() => {
 <template>
     <v-container fluid class="ma-0 pa-0">
         <div class="py-3">
-            <v-toolbar density="compact" class="px-3">
-                <v-spacer></v-spacer>
+            <v-toolbar density="compact">
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
-                        <v-btn icon v-bind="pro.props" @click="clean">
+                        <v-btn icon color="error" v-bind="pro.props" @click="clean">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>

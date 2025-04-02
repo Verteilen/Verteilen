@@ -24,6 +24,10 @@ const leftSize = ref(3)
 const rightSize = ref(9)
 const tag = ref(1)
 const para:Ref<Parameter | undefined> = ref(undefined)
+const useCron = ref(false)
+const skipModal = ref(false)
+const skipData = ref(0)
+
 /**
  * 0: All\
  * 1: Project\
@@ -174,6 +178,7 @@ const execute_task_start = (d:[Task, number]) => {
     if (data.value!.project_index == -1) return
     const index = data.value!.projects[data.value!.project_index].task.findIndex(x => x.uuid == d[0].uuid)
     if(index == -1) return
+    useCron.value = d[0].cronjob
     data.value!.task = d[0].uuid
     data.value!.task_index = index
     data.value!.task_state[index].state = ExecuteState.RUNNING
@@ -210,6 +215,7 @@ const execute_task_finish = (d:Task) => {
     if (data.value!.project_index == -1) return
     const index = data.value!.projects[data.value!.project_index].task.findIndex(x => x.uuid == d.uuid)
     if(index == -1) return
+    useCron.value = false
     data.value!.task = ""
     data.value!.task_state[index].state = ExecuteState.FINISH
 
@@ -359,7 +365,7 @@ const skip = (type:number, state?:ExecuteState) => {
                 })
             }
             const index = props.execute!.SkipProject()
-            console.log("跳過專案", index)
+            console.log("Skip project", index)
         }
     }else if (type == 1){
         // Task
@@ -382,9 +388,25 @@ const skip = (type:number, state?:ExecuteState) => {
                 })
             }
             const index = props.execute!.SkipTask()
-            console.log("跳過流程", index)
+            console.log("Skip task", index)
         }
+    }else if (type == 2){
+        skipModal.value = true
+        skipData.value = 0
     }
+}
+
+const confirmSkip = () => {
+    const index = props.execute!.SkipSubTask(skipData.value)
+    if(index < 0) {
+        console.error("Skip step failed: ", index)
+        return
+    }
+    for(let i = 0; i < index; i++){
+        data.value!.task_detail[i].state = ExecuteState.FINISH
+    }
+    console.log("Skip task", index)
+    skipModal.value = false
 }
 
 const clean = () => {
@@ -485,6 +507,14 @@ onUnmounted(() => {
                     </template>
                     {{ $t('task') }}
                 </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="skip(2)" :disabled="data.projects.length == 0 || data.running" color="info">
+                            <v-icon>mdi-debug-step-over</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('step') }}
+                </v-tooltip>
                 <p>{{ $t('action') }}</p>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -534,6 +564,20 @@ onUnmounted(() => {
                 <ParameterPage v-model="para" />
             </v-col>
         </v-row>
+        <v-dialog v-model="skipModal" width="500">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-debug-step-over</v-icon>
+                    {{ $t('modal.skip-step') }}
+                </v-card-title>
+                <v-card-title>
+                    <v-text-field type="number" v-model="skipData" hide-details :label="$t('step')"></v-text-field>
+                </v-card-title>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="confirmSkip">{{ $t('confirm') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 

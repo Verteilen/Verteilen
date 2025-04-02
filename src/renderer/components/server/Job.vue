@@ -424,11 +424,11 @@ onUnmounted(() => {
                     <v-icon>mdi-hammer</v-icon>
                     {{ $t('modal.new-job') }}
                 </v-card-title>
-                <v-card-title>
+                <v-card-text>
                     <v-select class="mb-1" hide-details v-model="createData.category" :items="categorise" item-title="text" item-value="value"></v-select>
                     <v-select class="mb-1" hide-details v-if="createData.category == 0" v-model="createData.type" :items="types2" item-title="text" item-value="value"></v-select>
                     <v-select class="mb-1" hide-details v-if="createData.category == 1" v-model="createData.type" :items="types" item-title="text" item-value="value"></v-select>
-                </v-card-title>
+                </v-card-text>
                 <template v-slot:actions>
                     <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
                 </template>
