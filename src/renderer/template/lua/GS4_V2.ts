@@ -22,7 +22,7 @@ if start_at_zero then
     n_count = 0
 end
 
-if event then
+if even then
     gap_p = group_size / 2
     gap_n = group_size / 2 - 1
 else
@@ -33,13 +33,13 @@ end
 env.setnumber("gop_positive", gap_p)
 env.setnumber("gop_negative", gap_n)
 
-function copy_to_positive()
+function copy_to_positive(p_folder)
     local to = p_folder.."/"..tostring(p_count)
     o.copydir(from, to)
     p_count = p_count + 1
 end
 
-function copy_to_negative()
+function copy_to_negative(n_folder)
     local to = n_folder.."/"..tostring(n_count)
     o.copydir(from, to)
     n_count = n_count + 1
@@ -52,14 +52,15 @@ for i=1,blend,1 do
 
     -- 0 or 1
     local starter = ((i - 1) * iframe_gap) + xx
+    m.messager("p_starter: "..tostring(starter))
     p_count = starter
     
     for j=starter,frame_size,1 do
         from = root.."/"..before.."/"..tostring(j)
-        local gap = j % group_size
+        local gap = (j - ((i - 1) * iframe_gap) - xx) % group_size + xx
 
         if gap <= (gap_p + 1) then
-            copy_to_positive()
+            copy_to_positive(p_folder)
         end
     end
     -- data_p_0 data_p_1 data_p_2
@@ -73,23 +74,25 @@ for i=1,blend,1 do
 
     -- 0 or 1
     local starter = ((i - 1) * iframe_gap) + xx
+    m.messager("n_starter: "..tostring(starter))
     local hit = false
     n_count = starter
 
-    for j=frame_size,starter,-1 do
+    for k=1,frame_size - (starter - xx),1 do
+        local j = frame_size - (k - xx - 1)
         from = root.."/"..before.."/"..tostring(j)
-        local gap = j % group_size
+        local gap = (j - ((i - 1) * iframe_gap) - xx - 1) % group_size + xx
 
-        if gap == 1 then
+        if gap == xx then
             hit = true
         end
 
-        if gap > (gap_p + 1) and hit then
-            copy_to_negative()
+        if gap > (gap_p) and hit then
+            copy_to_negative(n_folder)
         end
     end
     -- data_n_0 data_n_1 data_n_2
-    env.setnumber("data_n_"..tostring(i), n_count - 1)
+    env.setnumber("data_n_"..tostring(i), n_count)
 end
 `
 
@@ -135,7 +138,6 @@ for i=1,iframe_size,1 do
     local to_foldername = ""
 
     local delta = step * iframe_gap
-    recur * gap_p
 
     -- Positive detect
     to_foldername = tostring((recur * gap_p) + delta + xx + (recur))
@@ -156,12 +158,13 @@ for i=1,iframe_size,1 do
 end
 
 for i=1,blend,1 do
-    local folder = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_IN/checkpoint/"
-    local NNumber = split(o.listdir(folder))
-    local count = #(NNumber)
-    local delta = (i - 1) * iframe_gap
+    local step = i-1
+    local folder = root.."/"..after_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint/"
+    local target_folder = split(o.listdir(folder), "\\n")
+    local count = #(target_folder)
+    local delta = step * iframe_gap
 
-    for key,value in pairs(NNmuner) do
+    for key,value in pairs(target_folder) do
         local from = folder..value
         -- 0, 1, 2, 3
         local rindex = (count - tonumber(string.sub(value, 2))) - 1
@@ -180,7 +183,9 @@ end
 export const FUNIQUE_GS4_V2_PLYDone:string = `
 local root = env.getstring("root")
 local after_folder = env.getstring("after")
+local group_size = env.getnumber("group_size")
 local output_folder = env.getstring("output")
+local frame_size = env.getnumber("frameCount")
 
 local start_at_zero = env.getboolean("start_at_0")
 local blend = env.getnumber("blend")
@@ -189,36 +194,87 @@ local iframe_gap = env.getnumber("iframe_gap")
 local gap_p = env.getnumber("gop_positive")
 local gap_n = env.getnumber("gop_negative")
 
+-- current value [1, 2, 3, 4]
+local xx = 1
+
+if start_at_zero then
+    xx = 0
+end
+
 o.createdir(output_folder.."/final")
 o.createdir(output_folder.."/trans")
 
+function copyToTarget(src, output)
+    local prefix = src.."/point_cloud/"
+    local suffix = "/point_cloud.ply"
+    local plyPaths = { 
+        prefix.."iteration_7000"..suffix, 
+        prefix.."iteration_500"..suffix 
+    }
+    local exists = { 
+        o.exist(plyPaths[1]), 
+        o.exist(plyPaths[2]) 
+    }
+    for key2,value2 in pairs(exists) do
+        if value2 then
+            o.copyfile(plyPaths[key2], output)
+            count = count + 1
+            goto finish
+        end
+    end
+    ::finish::
+end
+
 for i=1,blend,1 do
     local output_folder_seq = output_folder.."/raw/Sequence_"..tostring( (i-1) * iframe_gap )
-    local source_folder = root.."/"..after_folder.."/".."BLEND_"..tostring((i - 1) * iframe_gap).."_I/checkpoint"
+    local source_root_folder = root.."/"..after_folder
+    local source_folder = ""
+    local step = i - 1
+    local allfolder = {}
+    local starter = (step * iframe_gap) + xx
     o.createdir(output_folder_seq)
-
-    local allfolder = split(o.listdir(source_folder), "\\n")
     local count = 0
 
+    -- Positive
+    source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IP/checkpoint"
+    allfolder = split(o.listdir(source_folder), "\\n")
+    m.messager_log("total file: "..tostring(#(allfolder)).." in "..source_folder)
+    
     for key,value in pairs(allfolder) do
-        local prefix = source_folder.."/"..value.."/point_cloud/"
-        local suffix = "/point_cloud.ply"
-        local plyPaths = { 
-            prefix.."iteration_7000"..suffix, 
-            prefix.."iteration_500"..suffix 
-        }
-        local exists = { 
-            o.exist(plyPaths[1]), 
-            o.exist(plyPaths[2]) 
-        }
-        for key2,value2 in pairs(exists) do
-            if value2 then
-                o.copyfile(plyPaths[key2], output_folder_seq.."/"..value..".ply")
-                count = count + 1
-                goto finish
-            end
+        if tonumber(value) ~= nil then
+            local n = tonumber(value - step * iframe_gap)
+            local rec = (n - xx) % (gap_p + 1)
+            local times = math.ceil(n / (gap_p + 1))
+            local r = tostring(group_size * (times - 1) + rec + xx + (step * iframe_gap))
+            local src = source_folder.."/"..value
+            local output = output_folder_seq.."/"..r..".ply"
+            copyToTarget(src, output)
+            count = count + 1
         end
-        ::finish::
+    end
+
+
+    -- Negative
+    source_folder = source_root_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint"
+    allfolder = split(o.listdir(source_folder), "\\n")
+    m.messager_log("total file: "..tostring(#(allfolder)).." in "..source_folder)
+    local c_starter = math.floor((frame_size - 1) / group_size) * group_size + xx + (step * iframe_gap)
+
+    if c_starter > frame_size then
+        c_starter = c_starter - group_size
+    end
+
+    for key,value in pairs(allfolder) do
+        if tonumber(value) ~= nil then
+            local n = tonumber(value - step * iframe_gap)
+            local rec = (n - xx) % (gap_n + 1)
+            local times = math.ceil(n / (gap_n + 1))
+            local r = tostring( c_starter - ((n + (times - 1) * gap_p) - xx) )
+            local src = source_folder.."/"..value
+            local output = output_folder_seq.."/"..r..".ply"
+            copyToTarget(src, output)
+            count = count + 1
+        end
     end
 
     m.messager_log("Total file copy: "..tostring(count)..", to path: "..output_folder_seq)

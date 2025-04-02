@@ -15,11 +15,10 @@ export class ExecuteManager extends ExecuteManager_Runner {
             this.current_p = this.current_projects[0]
             this.messager_log(`[Execute] Project Start ${this.current_p.uuid}`)
             this.proxy?.executeProjectStart(this.current_p)
+            this.SyncParameter(this.current_p)
         }
         if (this.current_p != undefined){
-            if(this.first) {
-                this.first = false
-            }
+            if(this.first) this.first = false
             this.ExecuteProject(this.current_p)
         }
     }
@@ -36,7 +35,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
             x.websocket.send(JSON.stringify(h))
         })
         this.jobstack = 0
-        this.websocket_manager.targets.forEach(x => x.state = ExecuteState.NONE)
+        this.websocket_manager.targets.forEach(x => x.current_job = [])
     }
 
     /**
@@ -67,6 +66,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
         for(const x of this.current_projects){
             if(x.task.length > 0){
                 this.current_p = x;
+                this.SyncParameter(this.current_p)
                 this.current_t = this.current_p.task[0]
                 break;
             }else{
@@ -112,6 +112,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
         if (this.current_p == undefined) {
             this.current_p = this.current_projects[0]
             this.proxy?.executeProjectStart(this.current_p)
+            this.SyncParameter(this.current_p)
             this.state = ExecuteState.RUNNING
             return 0
         } else {
@@ -132,6 +133,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
                 this.state = ExecuteState.RUNNING
                 this.messager_log(`[Execute] Skip project ${index}. ${this.current_p.uuid}`)
                 this.proxy?.executeProjectStart(this.current_p)
+                this.SyncParameter(this.current_p)
                 return index
             }
         }

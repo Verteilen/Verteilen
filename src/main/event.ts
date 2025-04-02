@@ -1,5 +1,6 @@
 import { dialog, ipcMain } from "electron";
 import fs from "fs";
+import path from "path";
 import { Client } from "./client/client";
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
@@ -32,9 +33,16 @@ export class BackendEvent {
         ipcMain.on('client_stop', (event, content:string) => {
             this.Destroy()
         })
-    
         ipcMain.on('lua', (event, content:string) => {
-            const lua:ClientLua = new ClientLua(messager, messager_log, () => this.job)
+            const lua_messager_feedback = (msg:string, tag?:string) => {
+                messager(msg, tag)
+                event.sender.send('lua-feedback', msg)
+            }
+            const lua_messager_log_feedback = (msg:string, tag?:string) => {
+                messager_log(msg, tag)
+                event.sender.send('lua-feedback', msg)
+            }
+            const lua:ClientLua = new ClientLua(lua_messager_feedback, lua_messager_log_feedback, () => this.job)
             const r = lua.LuaExecute(content)
             event.sender.send('lua-feedback', r?.toString() ?? '')
         })
@@ -89,6 +97,8 @@ export class BackendEvent {
                 return file.toString()
             }
         })
+        //this.Loader("lib", "lua")
+
         ipcMain.on('save_lib', (e, log:string) => {
             fs.writeFileSync('lib.json', log)
         })
@@ -143,7 +153,56 @@ export class BackendEvent {
         })
     }
 
-    
+    Loader = (key:string, folder:string) => {
+        ipcMain.handle(`load_all_${key}`, (e) => {
+            const root = path.join("data", folder)
+            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+            const r:Array<string> = []
+            const ffs = fs.readFileSync(root)
+            ffs.forEach(x => {
+                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+                r.push(file)
+            })
+            return r
+        })
+        ipcMain.on(`delete_all_${key}`, (e) => {
+            const root = path.join("data", folder)
+            if (fs.existsSync(root)) fs.rmSync(root, {recursive: true})
+            fs.mkdirSync(root, {recursive: true})
+        })
+        ipcMain.handle(`list_all_${key}`, (e) => {
+            const root = path.join("data", folder)
+            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+            return fs.readFileSync(root)
+        })
+        ipcMain.on(`save_${key}`, (e, name:string, log:string) => {
+            const root = path.join("data", folder)
+            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+            const filename = name + ".json"
+            const p = path.join(root, filename)
+            fs.writeFileSync(p, log)
+        })
+        ipcMain.on(`delete_${key}`, (e, name:string) => {
+            const root = path.join("data", folder)
+            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+            const filename = name + ".json"
+            const p = path.join(root, filename)
+            if (fs.existsSync(p)) fs.rmSync(p)
+        })
+        ipcMain.handle(`load_${key}`, (e, name:string) => {
+            const root = path.join("data", folder)
+            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+            const filename = name + ".json"
+            const p = path.join(root, filename)
+            if (fs.existsSync(p)){
+                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+                return file.toString()
+            }else{
+                return undefined
+            }
+        })
+        
+    }
 
     ImportProject = () => {
         if(mainWindow == undefined) return;

@@ -39,6 +39,8 @@
     "modal": {
         "new-project": "新增專案",
         "modify-project": "編輯專案",
+        "delete-project": "刪除專案",
+        "delete-project-confirm": "確定刪除以下專案嗎?",
         "enter-project-name": "輸入專案名稱",
         "enter-project-description": "輸入專案敘述",
         "new-task": "新增流程",
@@ -62,7 +64,8 @@
         "console": "控制台",
         "log": "紀錄",
         "library": "運行庫",
-        "client": "客戶端"
+        "client": "客戶端",
+        "setting": "設定"
     },
     "tooltip": {
         "select-server": "作為伺服器下指令的一方",
@@ -141,7 +144,8 @@
     },
     "console": {
         "list": "專案列表",
-        "dashboard": "儀錶板"
+        "dashboard": "儀錶板",
+        "parameter": "參數版"
     },
     "types": {
         "number": "數字",
@@ -195,5 +199,6 @@
     "clean": "清除",
     "cronjob": "群集運算",
     "multicore": "多核運算",
-    "recover": "恢復"
+    "recover": "恢復",
+    "cancel": "取消"
 }

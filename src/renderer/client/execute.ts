@@ -1,7 +1,7 @@
 import { ChildProcess, spawn } from 'child_process';
 import path from 'path';
 import WebSocket from 'ws';
-import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Parameter, Setter } from "../interface";
+import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { Client } from "./client";
 import { ClientParameter } from './parameter';
@@ -16,13 +16,13 @@ export class ClientExecute {
     private workers:Array<ChildProcess> = []
 
     private messager:Messager
-    private messager_log:Messager
+    private messager_log:Messager_log
 
     public get count() : number {
         return this.workers.length
     }
 
-    constructor(_messager:Messager, _messager_log:Messager, _client:Client){
+    constructor(_messager:Messager, _messager_log:Messager_log, _client:Client){
         this.messager = _messager
         this.messager_log = _messager_log
     }
@@ -31,7 +31,8 @@ export class ClientExecute {
      * The stop signal, It will trying to kill the process if currently running
      */
     stop_job = () => {
-        this.workers.forEach(x => x.kill())
+        this.messager_log("[Execute] Stop All")
+        this.workers.forEach(x => x.kill(1))
     }
     
     /**
@@ -39,7 +40,7 @@ export class ClientExecute {
      * @param job Target job
      */
     execute_job = (job:Job, source:WebSocket) => {
-        this.messager_log(`[Execute] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, this.tag)
+        this.messager_log(`[Execute] ${job.uuid}  ${job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[job.type]) : i18n.global.t(JobType2Text[job.type])}`, job.uuid, job.runtime_uuid)
         this.tag = job.uuid
         this.execute_job_worker(job, source)
     }
@@ -61,18 +62,19 @@ export class ClientExecute {
         })
         this.workers.push(child)
         const para = new ClientParameter(source)
-        let k = ""
+        let k = "" 
 
         const workerFeedbackExec = (str:string) => {
             const msg:Header = JSON.parse(str)
             if(msg.name == 'messager'){
-                this.messager(msg.data, msg.meta)
+                this.messager(msg.data, job.uuid)
             } 
             else if(msg.name == 'messager_log'){
-                this.messager_log(msg.data, msg.meta)
+                this.messager_log(msg.data, job.uuid, job.runtime_uuid)
             }
             else if(msg.name == 'error'){
-                this.messager_log(msg.data, msg.meta)
+                if(msg.data instanceof String) this.messager_log(msg.data.toString(), job.uuid, job.runtime_uuid)
+                else this.messager_log(JSON.stringify(msg.data), job.uuid, job.runtime_uuid)
             }
             else if(msg.name == 'feedbackstring'){
                 para.feedbackstring(msg.data)
@@ -95,11 +97,11 @@ export class ClientExecute {
         }
 
         child.on('error', (err) => {
-            this.messager_log(`[Worker Error] ${err}`)
+            this.messager_log(`[Worker Error] ${err}`, job.uuid, job.runtime_uuid)
         })
 
         child.on('exit', (code, signal) => {
-            this.job_finish(code, signal, job, source)
+            this.job_finish(code || 0, signal || '', job, source)
             const index = this.workers.findIndex(x => x == child)
             if(index != -1) this.workers.splice(index, 1)
         })
@@ -116,11 +118,11 @@ export class ClientExecute {
         })
     }
 
-    private job_finish(code, signal, job, source){
+    private job_finish(code:number, signal:string, job:Job, source:WebSocket){
         this.messager_log( code == 0 ?
             `[Execute] Successfully: ${code} ${signal}` : 
-            `[Execute] Error: ${code} ${signal}`, this.tag)
-        const data:FeedBack = { job_uuid: job.uuid, meta: code, message: signal }
+            `[Execute] Error: ${code} ${signal}`, job.uuid, job.runtime_uuid)
+        const data:FeedBack = { job_uuid: job.uuid, runtime_uuid: job.runtime_uuid!, meta: code, message: signal }
         const h:Header = { name: 'feedback_job', data: data }
         source.send(JSON.stringify(h))
         this.tag = ''
@@ -174,29 +176,5 @@ export class ClientExecute {
         const index = this.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Boolean)
         if(index != -1) this.parameter.containers[index].value = data.value
         this.messager_log(`[Parameter boolean sync] ${data.key} = ${data.value}`)
-    }
-
-    /**
-     * Open shell console
-     * @param input 
-     */
-    open_shell = (data:number) => {
-        
-    }
-
-    /**
-     * Open shell console
-     * @param input 
-     */
-    enter_shell = (input:string) => {
-
-    }
-
-    /**
-     * Open shell console
-     * @param input 
-     */
-    close_shell = (data:number) => {
-
     }
 }

@@ -1,27 +1,30 @@
-import { WebSocket } from 'ws';
-import { Header, Messager, NodeLoad } from "../interface";
+import { ChildProcess, spawn } from 'child_process';
+import path from 'path';
+import WebSocket from 'ws';
+import { Header, Messager, Messager_log } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
-import { ClientResource } from './resource';
+import { ClientShell } from './shell';
 
 /**
  * The analysis worker. decode the message received from cluster server
  */
 export class ClientAnalysis {
     private messager: Messager
-    private messager_log: Messager
+    private messager_log: Messager_log
     private client:Client
     private exec:ClientExecute
-    private resource:ClientResource
+    private shell:ClientShell
     private resource_wanter:Array<WebSocket> = []
+    private resource_thread:ChildProcess | undefined = undefined
 
     private resource_cache:Header | undefined = undefined
 
-    constructor(_messager:Messager, _messager_log:Messager, _client:Client){
+    constructor(_messager:Messager, _messager_log:Messager_log, _client:Client){
         this.client = _client
         this.messager = _messager
         this.messager_log = _messager_log
-        this.resource = new ClientResource()
+        this.shell = new ClientShell(_messager, _messager_log, this.client)
         this.exec = new ClientExecute(_messager, _messager_log, this.client)
     }
 
@@ -36,9 +39,10 @@ export class ClientAnalysis {
             'stop_job': this.exec.stop_job,
             'set_parameter': this.exec.set_parameter,
             'set_libs': this.exec.set_libs,
-            'open_shell': this.exec.open_shell,
-            'close_shell': this.exec.close_shell,
-            'enter_shell': this.exec.enter_shell,
+            'shell_folder': this.shell.shell_folder,
+            'open_shell': this.shell.open_shell,
+            'close_shell': this.shell.close_shell,
+            'enter_shell': this.shell.enter_shell,
             'resource_start': this.resource_start,
             'resource_end': this.resource_end,
             'ping': this.pong,
@@ -85,26 +89,82 @@ export class ClientAnalysis {
     }
 
     update = (client:Client) => {
-        if(this.resource.is_query == false && this.resource_wanter.length > 0){
-            this.resource.Query().then(x => {
+        this.resource_require()
+        if(this.resource_cache != undefined){
+            this.resource_wanter.forEach(x => x.send(JSON.stringify(this.resource_cache)))
+        }
+    }
+
+    disconnect = (source: WebSocket) => {
+        this.shell.disconnect(source)
+    }
+
+
+    private resource_require = () => {
+        const shouldRun = this.resource_thread == undefined && (this.resource_cache == undefined || this.resource_wanter.length > 0)
+        if(!shouldRun) return
+        this.resource_thread = spawn("worker.exe", [],
+            {
+                cwd: path.join('bin'),
+                stdio: ['inherit', 'pipe', 'pipe'],
+                shell: true,
+                windowsHide: true,
+                env: {
+                    ...process.env,
+                    type: "RESOURCE",
+                }
+            }
+        )
+        let k = "" 
+
+        const workerFeedbackExec = (str:string) => {
+            const msg:Header = JSON.parse(str)
+            if(msg.name == 'messager'){
+                this.messager(msg.data, "RESOURCE")
+            } 
+            else if(msg.name == 'messager_log'){
+                this.messager_log(msg.data, "RESOURCE")
+            }
+            else if(msg.name == 'resource'){
                 const h:Header = {
                     name: 'system_info',
-                    data: x
+                    data: msg.data
                 }
-                this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
                 this.resource_cache = h
-            })
+                this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
+            } 
+            else if(msg.name == 'error'){
+                if(msg.data instanceof String) this.messager_log(msg.data.toString(), "RESOURCE")
+                else this.messager_log(JSON.stringify(msg.data), "RESOURCE")
+            }
+        }
+        const workerFeedback = (str:string) => {
+            for(let i = 0; i < str.length; i++){
+                if(str[i] != '\n') k += str[i]
+                else {
+                    workerFeedbackExec(k)
+                    k = ''
+                }
+            }
         }
 
-        const d:NodeLoad = {
-            workers: this.exec.count
-        }
-        const h:Header = {
-            name: 'system_info',
-            data: d
-        }
-        this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
-        this.resource_cache = h
-        
+        this.resource_thread.on('error', (err) => {
+            this.messager_log(`[Worker Error] ${err}`)
+        })
+
+        this.resource_thread.on('exit', (code, signal) => {
+            this.resource_thread = undefined
+        })
+        this.resource_thread.on('message', (message, sendHandle) => {
+            workerFeedback(message.toString())
+        })
+        this.resource_thread.stdout?.setEncoding('utf8');
+        this.resource_thread.stdout?.on('data', (chunk) => {
+            workerFeedback(chunk.toString())
+        })
+        this.resource_thread.stderr?.setEncoding('utf8');
+        this.resource_thread.stderr?.on('data', (chunk) => {
+            workerFeedback(chunk.toString())
+        })
     }
 }

@@ -5,6 +5,8 @@ log.json
 record.json
 preference.json
 lib.json
+data
+mytest
 .vscode
 .idea
 bin

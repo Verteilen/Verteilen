@@ -50,26 +50,11 @@ const template_edit = ():Array<(Electron.MenuItemConstructorOptions) | (Electron
             { label: i18n.global.t('menu.selectAll'), role: 'selectAll' },
             { type: 'separator' },
             { 
-                label: i18n.global.t('menu.language'),
-                submenu: [
-                    {
-                        label: 'en',
-                        click: () => {
-                            mainWindow?.webContents.send('locate', 'en')
-                            i18n.global.locale = 'en'
-                            setupMenu()
-                        }
-                    },
-                    {
-                        label: 'zh_TW',
-                        click: () => {
-                            mainWindow?.webContents.send('locate', 'zh_TW')
-                            i18n.global.locale = 'zh_TW'
-                            setupMenu()
-                        }
-                    }
-                ]
-            },
+                label: i18n.global.t('toolbar.setting'),
+                click: () => {
+                    mainWindow?.webContents.send('setting')
+                }
+            }
         ]
     }
 ]

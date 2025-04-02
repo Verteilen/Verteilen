@@ -1,4 +1,4 @@
-import { BusAnalysis, DataType, ExecuteState, FeedBack, Header, NodeLoad, Setter, Single, SystemLoad, WebsocketPack } from "../../interface"
+import { BusAnalysis, CronJobState, DataType, ExecuteState, FeedBack, Header, NodeLoad, Setter, ShellFolder, Single, SystemLoad, WebsocketPack, WorkState } from "../../interface"
 import { ExecuteManager_Base } from "./base"
 
 /**
@@ -17,13 +17,15 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             'feedback_string': this.feedback_string,
             'feedback_boolean': this.feedback_boolean,
             'feedback_number': this.feedback_number,
+            'shell_reply': this.shell_reply,
+            'shell_folder_reply': this.shell_folder_reply,
             'system_info': this.system_info,
             'node_info': this.node_info,
             'pong': this.pong,
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
-            castingFunc(d.h.data, d.c)
+            castingFunc(d.h.data, d.c, d.h.meta)
         }else{
             this.messager_log(`[Source Data Analysis] Decode failed, Unknowed header, name: ${d.name}, meta: ${d.h.meta}`)
         }
@@ -35,11 +37,27 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      * @param data feedback data, any type
      * @param source The node target
      */
-    private feedback_message = (data:Single, source:WebsocketPack | undefined) => {
+    private feedback_message = (data:Single, source:WebsocketPack | undefined, meta:string | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
         this.messager_log(`[Execute] Single Received data: ${data.data}`)
-        const d:Setter = { key: source.uuid, value: data.data}
+        let index = 0
+        if(this.current_cron.length > 0 && meta != undefined){
+            const r = this.GetCronAndWork(meta, source)
+            const cron:CronJobState | undefined = r[0]
+            const work:WorkState | undefined = r[1]
+            if(cron != undefined && work != undefined){
+                index = cron.id - 1
+            }
+        }
+        const d:FeedBack = { 
+            node_uuid: source.uuid,
+            index: index,
+            job_uuid: '',
+            runtime_uuid: '',
+            meta: 0,
+            message: data.data
+        }
         this.proxy?.feedbackMessage(d)
     }
     /**
@@ -50,26 +68,24 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
     private feedback_job = (data:FeedBack, source:WebsocketPack | undefined) => {
         if(source == undefined) return
         if(this.state == ExecuteState.NONE) return
-        
-        console.log(this.current_job)
-
         this.jobstack = Math.max(this.jobstack - 1, 0)
         if(this.current_t == undefined) {
             console.error("Cannot feedback when task is null")
             return
         }
-        this.messager_log(`[Execute] Job Feedback: ${data.job_uuid} ${data.message}`)
+        this.messager_log(`[Execute] Job Feedback: ${data.job_uuid} ${data.runtime_uuid} ${data.message} ${data.meta}`)
         // If it's a single type work
         
         if(this.current_job.length > 0){
-            const work = this.current_job.find(x => x.uuid == source.uuid)
+            const work = this.current_job.find(x => x.uuid == source.uuid && x.state == ExecuteState.RUNNING)
             if(work == undefined) {
-                console.error("Cannot find the feedback container, work")
+                console.error("Cannot find the feedback container, work", work)
                 return
             }
-
+            data.index = 0
             this.proxy?.executeJobFinish([work.job, 0, source.uuid, data.meta])
             work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
+            console.log(this.current_job)
             if(this.check_single_end()){
                 this.proxy?.executeSubtaskFinish([this.current_t!, 0, source.uuid])
                 this.messager_log(`[Execute] Subtask finish: ${this.current_t!.uuid}`)
@@ -77,15 +93,19 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         }
         // If it's a cronjob type work
         else if(this.current_cron.length > 0){
-            const cron = this.current_cron.find(x => x.uuid == source.uuid)
-            const work = cron?.work.find(x => x.uuid == data.job_uuid)
+            const r = this.GetCronAndWork(data.runtime_uuid, source)
+            const cron:CronJobState | undefined = r[0]
+            const work:WorkState | undefined = r[1]
             if(cron == undefined || work == undefined) {
-                console.error("Cannot find the feedback container, cron or work")
+                console.error("Cannot find the feedback container, cron or work", data.runtime_uuid, cron, work)
+                console.error("Full current cron instance", this.current_cron)
                 return
             }
 
             this.proxy?.executeJobFinish([work.job, cron.id - 1, source.uuid, data.meta])
+            data.index = cron.id - 1
             work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
+            console.log(this.current_job)
             if(this.check_cron_end(cron)){
                 this.proxy?.executeSubtaskFinish([this.current_t, cron.id - 1, cron.uuid ])
                 this.messager_log(`[Execute] Subtask finish: ${this.current_t!.uuid}`)
@@ -93,10 +113,10 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             }
         }
         // Reset the state of the node
-        source.state = ExecuteState.NONE
-        source.current_job = undefined
-        const d:Setter = { key: data.job_uuid, value: data.message}
-        this.proxy?.feedbackMessage(d)
+        const index = source.current_job.findIndex(x => x == data.runtime_uuid)
+        source.current_job.splice(index, 1)
+        data.node_uuid = source.uuid
+        this.proxy?.feedbackMessage(data)
     }
     /**
      * When one of the node decide to change the parameter of string value
@@ -104,13 +124,26 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      */
     private feedback_string = (data:Setter) => {
         if(this.current_p == undefined) return
-        const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.String)
-        if(index != -1) this.current_p.parameter.containers[index].value = data.value
-        else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.String, hidden: true, runtimeOnly: true })
+        const index = this.localPara!.containers.findIndex(x => x.name == data.key && x.type == DataType.String)
+        if(index != -1) this.localPara!.containers[index].value = data.value
+        else this.localPara!.containers.push({ name: data.key, value: data.value, type: DataType.String, hidden: true, runtimeOnly: true })
         this.messager_log(`[String Feedback] ${data.key} = ${data.value}`)
         // Sync to other
-        const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
+        const d:Header = { name: 'set_parameter', data: this.localPara!}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.proxy?.updateParameter(this.localPara!)
+    }
+    /**
+     * Recevied the shell text from client node
+     */
+    private shell_reply = (data:Single) => {
+        this.proxy?.shellReply(data)
+    }
+    /**
+     * Recevied the folders from client node
+     */
+    private shell_folder_reply = (data:ShellFolder) => {
+        this.proxy?.folderReply(data)
     }
     /**
      * When one of the node decide to change the parameter of number value
@@ -118,13 +151,14 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      */
     private feedback_number = (data:Setter) => {
         if(this.current_p == undefined) return
-        const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Number)
-        if(index != -1) this.current_p.parameter.containers[index].value = data.value
-        else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.Number, hidden: true, runtimeOnly: true })
+        const index = this.localPara!.containers.findIndex(x => x.name == data.key && x.type == DataType.Number)
+        if(index != -1) this.localPara!.containers[index].value = data.value
+        else this.localPara!.containers.push({ name: data.key, value: data.value, type: DataType.Number, hidden: true, runtimeOnly: true })
         this.messager_log(`[Number Feedback] ${data.key} = ${data.value}`)
         // Sync to other
-        const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
+        const d:Header = { name: 'set_parameter', data: this.localPara!}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.proxy?.updateParameter(this.localPara!)
     }
     /**
      * When one of the node decide to change the parameter of boolean value
@@ -132,13 +166,14 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      */
     private feedback_boolean = (data:Setter) => {
         if(this.current_p == undefined) return
-        const index = this.current_p.parameter.containers.findIndex(x => x.name == data.key && x.type == DataType.Boolean)
-        if(index != -1) this.current_p.parameter.containers[index].value = data.value
-        else this.current_p.parameter.containers.push({ name: data.key, value: data.value, type: DataType.Boolean, hidden: true, runtimeOnly: true })
+        const index = this.localPara!.containers.findIndex(x => x.name == data.key && x.type == DataType.Boolean)
+        if(index != -1) this.localPara!.containers[index].value = data.value
+        else this.localPara!.containers.push({ name: data.key, value: data.value, type: DataType.Boolean, hidden: true, runtimeOnly: true })
         this.messager_log(`[Boolean Feedback] ${data.key} = ${data.value}`)
         // Sync to other
-        const d:Header = { name: 'set_parameter', data: this.current_p.parameter}
+        const d:Header = { name: 'set_parameter', data: this.localPara!}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.proxy?.updateParameter(this.localPara!)
     }
 
     /**
@@ -170,6 +205,22 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
     private pong = (info:number, source:WebsocketPack | undefined) => {
         if(source == undefined || source.last == undefined) return
         source.ms = Date.now() - source.last
+    }
+
+    private GetCronAndWork = (runtime:string, source:WebsocketPack):[CronJobState | undefined, WorkState | undefined] => {
+        let cron:CronJobState | undefined = undefined
+        let work:WorkState | undefined = undefined
+        const crons = this.current_cron.filter(x => x.uuid == source.uuid)
+        for(let i = 0; i < crons.length; i++){
+            const c = crons[i]
+            const a = c.work.find(x => x.runtime == runtime)
+            if(a != undefined) {
+                cron = c
+                work = a
+                break
+            }
+        }
+        return [cron, work]
     }
     //#endregion
 }

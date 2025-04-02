@@ -60,11 +60,11 @@ const getindex = (r:number, i:number):number => {
 }
 
 const clean = () => {
-    props.logs.logs = props.logs.logs.filter(x => {
+    props.logs.logs = props.logs.logs.filter((x, index) => {
         const c1 = data.value!.projects.length > 0 && data.value!.project_index >= 0 && x.project.uuid == data.value?.projects[data.value?.project_index].uuid
         const c2 = x.start_timer != 0
         const c3 = x.end_timer == 0
-        return c1 && c2 && c3
+        return c1 && c2 && c3 && index == 0
     })
     updateLog(props.logs)
 }
@@ -126,7 +126,7 @@ onUnmounted(() => {
                     </v-list-item>
                 </v-list>
             </v-col>
-            <v-col :cols="rightSize" v-if="getselect != undefined">
+            <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="getselect != undefined">
                 <div class="py-3">
                     <v-btn-group>
                         <v-btn color='primary' :disabled="getselect == undefined" @click="recover">{{ $t('recover') }}</v-btn>

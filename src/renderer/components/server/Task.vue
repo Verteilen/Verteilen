@@ -35,6 +35,8 @@ const createModal = ref(false)
 const createData = ref({cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""})
 const editModal = ref(false)
 const editUUID = ref('')
+const deleteModal = ref(false)
+const deleteData:Ref<Array<string>> = ref([])
 const items:Ref<Array<TaskTable>> = ref([])
 const para_keys:Ref<Array<string>> = ref([])
 const errorMessage = ref('')
@@ -100,7 +102,13 @@ const selectall = () => {
 }
 
 const deleteSelect = () => {
-    emits('delete', selected_task_ids.value)
+    deleteData.value = selected_task_ids.value
+    deleteModal.value = true
+}
+
+const deleteConfirm = () => {
+    deleteModal.value = false
+    emits('delete', deleteData.value)
     nextTick(() => {
         updateTask()
     })
@@ -337,6 +345,25 @@ onUnmounted(() => {
                 </v-card-text>
                 <template v-slot:actions>
                     <v-btn class="mt-3" color="primary" @click="confirmEdit">{{ $t('modify') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="deleteModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.delete-task') }}
+                </v-card-title>
+                <v-card-text>
+                    <p>{{ $t('modal.delete-task-confirm') }}</p>
+                    <br />
+                    <p v-for="(p, i) in deleteData">
+                        {{ i }}. {{ p }}
+                    </p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
                 </template>
             </v-card>
         </v-dialog>

@@ -6,6 +6,7 @@ import ClientNode from './components/ClientNode.vue';
 import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
+import SettingDialog from './components/dialog/SettingDialog.vue';
 import { AppConfig, BusType, Preference } from './interface';
 import { checkifElectron, checkIfExpress } from './platform';
 import { i18n } from './plugins/i18n';
@@ -21,6 +22,7 @@ const config:Ref<AppConfig> = ref({
 })
 const isExpress:Ref<boolean | undefined> = ref(undefined)
 const mode = ref(config.value.isElectron ? -1 : 1)
+const settingModal = ref(false)
 
 checkIfExpress((e) => {
   isExpress.value = e
@@ -34,6 +36,9 @@ const modeSelect = (isclient:boolean) => {
 }
 
 const locate = (e:IpcRendererEvent, v:string) => {
+  _locate(v)
+}
+const _locate = (v:string) => {
   const t = i18n.global
   // @ts-ignore
   t.locale = v
@@ -42,6 +47,15 @@ const locate = (e:IpcRendererEvent, v:string) => {
   if(config.value.isElectron){
     window.electronAPI.send('save_preference', JSON.stringify(preference.value, null, 4))
   }
+}
+
+const setting = (e:IpcRendererEvent) => {
+  settingModal.value = true
+}
+
+const preferenceUpdate = (data:Preference) => {
+  preference.value = data
+  _locate(preference.value.lan)
 }
 
 const load_preference = (x:string) => {
@@ -57,6 +71,7 @@ onMounted(() => {
   emitter?.on('modeSelect', modeSelect)
   if(config.value.isElectron){
     window.electronAPI.eventOn('locate', locate)
+    window.electronAPI.eventOn('setting', setting)
     window.electronAPI.invoke('load_preference').then(x => load_preference(x))
   }
 })
@@ -65,6 +80,7 @@ onUnmounted(() => {
   emitter?.on('modeSelect', modeSelect)
   if(config.value.isElectron){
     window.electronAPI.eventOff('locate', locate)
+    window.electronAPI.eventOff('setting', setting)
   }
 })
 
@@ -76,5 +92,6 @@ onUnmounted(() => {
     <ClientNode v-else-if="mode == 0" :preference="preference" :config="config"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :config="config"/>
     <Messager />
+    <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
   </v-container>
 </template>

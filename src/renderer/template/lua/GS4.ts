@@ -46,7 +46,7 @@ o.copydir(root.."/"..prepare_folder.."/"..sparse, root.."/"..before_folder.."/".
 for key=1,frame_size,1 do
     o.createdir(root.."/"..before_folder.."/"..tostring(key - minus).."/images")
     for key2=1,cam_size,1 do
-        local from = root.."/"..prepare_folder.."/"..CAM.."/C"..string.format("%04d", key2).."/"..string.format("%04d", key2).."_"..string.format("%06d", key)..".jpg"
+        local from = root.."/"..prepare_folder.."/"..CAM.."/"..string.format("%04d", key2).."/"..string.format("%04d", key2).."_"..string.format("%06d", key)..".jpg"
         local to = root.."/"..before_folder.."/"..tostring(key - minus).."/images/"..string.format("%04d", key2)..".jpg"
         o.copyfile(from, to)
         m.messager_log("Copy file: '"..from.."'   to  '"..to.."'")

@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, Setter, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_UPDATETICK, Setter, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -41,7 +41,10 @@ const proxy:ExecuteProxy = {
   executeSubtaskFinish: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskFinish', data) },
   executeJobStart: (data:[Job, number, string]):void => { emitter?.emit('executeJobStart', data) },
   executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
-  feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) }
+  feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
+  updateParameter: (data:Parameter):void => { emitter?.emit('updateRuntimeParameter', data) },
+  shellReply: (data:Single):void => { emitter?.emit('shellReply', data) },
+  folderReply: (data:ShellFolder) => { emitter?.emit('folderReply', data) }
 }
 
 const props = defineProps<PROPS>()
@@ -387,7 +390,7 @@ const analysis = (b:BusAnalysis) => {
 
 onMounted(() => {
   set_feedback(debug_feedback)
-  updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
+  updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
   console.log("updateHandle", updateHandle)
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('renameScript', libRename)
@@ -477,19 +480,6 @@ onUnmounted(() => {
       <v-tab :value="6">{{ $t('toolbar.log') }}</v-tab>
       <v-tab :value="7">{{ $t('toolbar.library') }}</v-tab>
       <v-tab :value="8">{{ $t('toolbar.client') }}</v-tab>
-      <v-menu v-if="!props.config.isElectron">
-        <template v-slot:activator="{ props }">
-          <v-btn class="mt-1" v-bind="props">
-            <v-icon class="pr-2" icon="mdi-web"></v-icon>
-            {{ lanSelect }}
-          </v-btn>
-        </template>
-        <v-list>
-          <v-list-item v-for="(locate, i) in lan" :key="i" :value="locate" @click="onChangeLan(locate)">
-            {{ locate }}
-          </v-list-item>
-        </v-list>
-      </v-menu>
     </v-tabs>
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="page == 0" 

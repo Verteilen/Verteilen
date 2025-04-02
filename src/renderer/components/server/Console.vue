@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, ref } from 'vue';
-import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Project, Record, Setter, Task } from '../../interface';
+import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 
 import DebugLog from './console/DebugLog.vue';
 import List from './console/List.vue';
+import ParameterPage from './console/Parameter.vue';
 import Process from './console/Process.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -22,6 +23,7 @@ const props = defineProps<PROPS>()
 const leftSize = ref(3)
 const rightSize = ref(9)
 const tag = ref(1)
+const para:Ref<Parameter | undefined> = ref(undefined)
 /**
  * 0: All\
  * 1: Project\
@@ -94,18 +96,20 @@ const receivedPack = (record:Record) => {
     hasNewLog = true
 }
 
-const feedback_message = (d:Setter) => {
-    const cronjob = props.execute?.current_t?.cronjob ?? false
-    const index = cronjob ? data.value!.task_detail.findIndex(x => x.node == d.key) : 0
-    if(index == -1) return
-    const container = data.value!.task_detail[index]
+const feedback_message = (d:FeedBack) => {
+    if(d.index == undefined || d.index == -1) return
+    const container = data.value!.task_detail[d.index]
     if(container != undefined){
-        container.message.push(d.value)
+        container.message.push(d.message)
         if(container.message.length > MESSAGE_LIMIT){
             container.message.shift()
         }
     }
-    props.logs.logs[0].logs[data.value!.task_index].task_detail[index].message.push(d.value)
+    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d.index){
+        props.logs.logs[0].logs[data.value!.task_index].task_detail[d.index].message.push(d.message)
+    }else{
+        console.warn("Try access message by index but failed: ", d)
+    }
     hasNewLog = true
 }
 
@@ -163,6 +167,7 @@ const execute_project_finish = (d:Project) => {
         data.value!.running = false
         data.value!.stop = true
     }
+    para.value = undefined
 }
 
 const execute_task_start = (d:[Task, number]) => {
@@ -214,18 +219,28 @@ const execute_task_finish = (d:Task) => {
 }
 
 const execute_subtask_start = (d:[Task, number, string]) => {
-    data.value!.task_detail[d[1]].node = d[2]
-    data.value!.task_detail[d[1]].state = ExecuteState.RUNNING
-
-    props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
+    if(data.value!.task_detail.length > d[1]){
+        data.value!.task_detail[d[1]].node = d[2]
+        data.value!.task_detail[d[1]].state = ExecuteState.RUNNING
+    }else{
+        console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
+    }
+    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
+        props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
+    }
     hasNewLog = true
 }
 
 const execute_subtask_end = (d:[Task, number, string]) => {
-    data.value!.task_detail[d[1]].node = ""
-    data.value!.task_detail[d[1]].state = ExecuteState.FINISH
-
-    props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.FINISH
+    if(data.value!.task_detail.length > d[1]){
+        data.value!.task_detail[d[1]].node = ""
+        data.value!.task_detail[d[1]].state = ExecuteState.FINISH
+    }else{
+        console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
+    }
+    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
+        props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.FINISH
+    }
     hasNewLog = true
 }
 
@@ -273,10 +288,13 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
                     }
                 }
             }, 1000);
-            
         }
     }
     //data.value!.task_detail[index].node = ""
+}
+
+const update_runtime_parameter = (d:Parameter) => {
+    para.value = d
 }
 
 const updateHandle = () => {
@@ -366,7 +384,6 @@ const skip = (type:number, state?:ExecuteState) => {
             const index = props.execute!.SkipTask()
             console.log("跳過流程", index)
         }
-        
     }
 }
 
@@ -382,6 +399,7 @@ const clean = () => {
     data.value!.project_state = []
     data.value!.task_state = []
     data.value!.task_detail = []
+    para.value = undefined
 }
 
 const stop = () => {
@@ -401,6 +419,7 @@ onMounted(() => {
     emitter?.on('executeSubtaskFinish', execute_subtask_end)
     emitter?.on('executeJobStart', execute_job_start)
     emitter?.on('executeJobFinish', execute_job_finish)
+    emitter?.on('updateRuntimeParameter', update_runtime_parameter)
 })
 
 onUnmounted(() => {
@@ -415,6 +434,7 @@ onUnmounted(() => {
     emitter?.off('executeSubtaskFinish', execute_subtask_end)
     emitter?.off('executeJobStart', execute_job_start)
     emitter?.off('executeJobFinish', execute_job_finish)
+    emitter?.off('updateRuntimeParameter', update_runtime_parameter)
 })
 
 </script>
@@ -493,6 +513,9 @@ onUnmounted(() => {
                     <v-list-item @click="tag = 1" :value="1">
                         {{ $t('console.dashboard') }}
                     </v-list-item>
+                    <v-list-item @click="tag = 3" :value="3">
+                        {{ $t('console.parameter') }}
+                    </v-list-item>
                     <v-list-item @click="tag = 2" :value="2">
                         Debug Log
                     </v-list-item>
@@ -506,6 +529,9 @@ onUnmounted(() => {
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 2">
                 <DebugLog />
+            </v-col>
+            <v-col :cols="rightSize" v-show="tag == 3">
+                <ParameterPage v-model="para" />
             </v-col>
         </v-row>
     </div>

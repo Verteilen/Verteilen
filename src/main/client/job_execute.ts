@@ -1,29 +1,45 @@
 import WebSocket from "ws";
-import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, OnePath, Parameter, TwoPath } from "../interface";
+import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, OnePath, Parameter, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { ClientJobParameter } from "./job_parameter";
 import { ClientLua } from "./lua";
 import { ClientOS } from "./os";
 
+/**
+ * The job execute worker\
+ * This class should spawn by the cluster thread to prevent heavy calculation on the main thread
+ */
 export class ClientJobExecute {
+    /**
+     * Project parameters for references
+     */
     parameter:Parameter | undefined
+    /**
+     * User library for lua scripts
+     */
     libraries:Libraries | undefined
+    /**
+     * The job uuid\
+     * This will put in the prefix of message
+     */
     tag: string
+    runtime:string
 
     private messager:Messager
-    private messager_log:Messager
+    private messager_log:Messager_log
     private lua:ClientLua
     private os:ClientOS
     private para:ClientJobParameter
     private job:Job
 
-    constructor(_messager:Messager, _messager_log:Messager, _job:Job, _source:WebSocket | undefined){
+    constructor(_messager:Messager, _messager_log:Messager_log, _job:Job, _source:WebSocket | undefined){
         this.messager = _messager
         this.messager_log = _messager_log
         this.tag = _job.uuid
+        this.runtime = _job.runtime_uuid || ''
         this.job = _job
         this.para = new ClientJobParameter()
-        this.os = new ClientOS(() => this.tag, _messager, _messager_log)
+        this.os = new ClientOS(() => this.tag, () => this.job.runtime_uuid || '', _messager, _messager_log)
         this.lua = new ClientLua(_messager, _messager_log, () => this.job)
         this.parameter = process.env.parameter != undefined ? JSON.parse(process.env.parameter) : undefined
         this.libraries = process.env.libraries != undefined ? JSON.parse(process.env.libraries) : undefined
@@ -40,7 +56,8 @@ export class ClientJobExecute {
      * @param job Target job
      */
     execute = () => {
-        this.messager_log(`[Execute] ${this.job.uuid}  ${this.job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[this.job.type]) : i18n.global.t(JobType2Text[this.job.type])}`, this.tag)
+        // Output the job type message to let user know what is going on
+        this.messager_log(`[Execute] ${this.job.uuid}  ${this.job.category == JobCategory.Execution ? i18n.global.t(JobTypeText[this.job.type]) : i18n.global.t(JobType2Text[this.job.type])}`, this.tag, this.runtime)
         const child = this.job.category == JobCategory.Execution ? this.execute_job_exe() : this.execute_job_con()
         return child
     }
@@ -56,25 +73,15 @@ export class ClientJobExecute {
                 case JobType.COPY_FILE:
                     {
                         const data:TwoPath = { from: this.job.string_args[0], to: this.job.string_args[1] }
-                        if(this.os.fs_file_exist({path: data.from})){
-                            this.os.file_copy(data)    
-                            this.os.file_copy(data)
-                            resolve(`Copy file successfully, ${data.from}, ${data.to}`)
-                        }else{
-                            reject(`File does not exist, ${data.from}`)
-                        }
+                        this.os.file_copy(data)
+                        resolve(`Copy file successfully, ${data.from}, ${data.to}`)
                         break
                     }
                 case JobType.COPY_DIR:
                     {
                         const data:TwoPath = { from: this.job.string_args[0], to: this.job.string_args[1] }
-                        if(this.os.fs_dir_exist({path: data.from})){
-                            this.os.file_copy(data)    
-                            this.os.file_copy(data)
-                            resolve(`Copy dir successfully, ${data.from}, ${data.to}`)
-                        }else{
-                            reject(`Dir does not exist, ${data.from}`)
-                        }
+                        this.os.dir_copy(data)
+                        resolve(`Copy dir successfully, ${data.from}, ${data.to}`)
                         break
                     }
                 case JobType.DELETE_FILE:

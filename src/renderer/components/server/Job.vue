@@ -30,6 +30,8 @@ const emits = defineEmits<{
 }>()
 const createModal = ref(false)
 const createData = ref({category: 0, type: 0, spe_template: 0})
+const deleteModal = ref(false)
+const deleteData:Ref<Array<string>> = ref([])
 const items:Ref<Array<JobTable>> = ref([])
 const items2:Ref<Array<Property>> = ref([])
 const types:Ref<Array<any>> = ref([])
@@ -114,7 +116,13 @@ const cloneSelect = () => {
 }
 
 const deleteSelect = () => {
-    items.value = items.value.filter(x => x.s == undefined || x.s === false)
+    deleteData.value = items.value.filter(x => x.s == true).map(x => x.uuid)
+    deleteModal.value = true
+}
+
+const deleteConfirm = () => {
+    deleteModal.value = false
+    items.value = items.value.filter(x => !deleteData.value.includes(x.uuid))
     dirty.value = true
 }
 
@@ -423,6 +431,25 @@ onUnmounted(() => {
                 </v-card-title>
                 <template v-slot:actions>
                     <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="deleteModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.delete-job') }}
+                </v-card-title>
+                <v-card-text>
+                    <p>{{ $t('modal.delete-job-confirm') }}</p>
+                    <br />
+                    <p v-for="(p, i) in deleteData">
+                        {{ i }}. {{ p }}
+                    </p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
                 </template>
             </v-card>
         </v-dialog>

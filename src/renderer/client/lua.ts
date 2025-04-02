@@ -1,9 +1,21 @@
+/**
+ * Lua module cannot handle methods which in the class\
+ * In order to crack this issue, I put everything in the global scope\
+ * But spawn the thread on the cluster processes\
+ * 
+ * This might cost more resources to work, But it won't throw error... so
+ */
+import fs from 'fs';
 import * as luainjs from 'lua-in-js';
-import { DataType, Job, Libraries, LuaLib, Messager, Parameter } from '../interface';
+import path from 'path';
+import { DataType, Job, Libraries, LuaLib, Messager, Messager_log, Parameter } from '../interface';
 import { ClientJobParameter } from './job_parameter';
 import { ClientOS } from './os';
 
 //#region Global
+/**
+ * The build-in methods for lua
+ */
 const lib = `function split(s, sep)
     local fields = {}
     local sep = sep or " "
@@ -21,10 +33,14 @@ let getlib:Getlib | undefined = undefined
 let getpara:Getpara | undefined = undefined
 let getjob:Getjob | undefined = undefined
 let messager: Messager
-let messager_log: Messager
+let messager_log: Messager_log
 let clientos:ClientOS | undefined
 let para:ClientJobParameter | undefined = undefined
 
+const tag = () => getjob?.()?.uuid ?? 'unknown'
+const runtime = () => getjob?.()?.runtime_uuid ?? 'unknown'
+
+//#region Parameters
 function hasboolean(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
@@ -66,12 +82,12 @@ function setboolean(key:string, value:boolean){
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
     
-    messager_log(`[Boolean feedback] ${key} = ${value}`, getjob?.()?.uuid ?? '')
+    messager_log(`[Boolean feedback] ${key} = ${value}`, tag(), runtime())
     para?.feedbackboolean({key:key,value:value})
 }
 function setnumber(key:string, value:number){
     if(key == 'ck') {
-        messager_log("Trying to set a constant ck...", getjob?.()?.uuid ?? '')
+        messager_log("Trying to set a constant ck...", tag(), runtime())
         return
     }
     const p = getpara?.() ?? undefined
@@ -79,7 +95,7 @@ function setnumber(key:string, value:number){
     const target = p.containers.find(x => x.name == key && x.type == DataType.Number)
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
-    messager_log(`[Number feedback] ${key} = ${value}`, getjob?.()?.uuid ?? '')
+    messager_log(`[Number feedback] ${key} = ${value}`, tag(), runtime())
     para?.feedbacknumber({key:key,value:value})
 }
 function setstring(key:string, value:string){
@@ -88,17 +104,21 @@ function setstring(key:string, value:string){
     const target = p.containers.find(x => x.name == key && x.type == DataType.String)
     if(target == undefined && !p.canWrite) return
     if(target != undefined) target.value = value
-    messager_log(`[String feedback] ${key} = ${value}`, getjob?.()?.uuid ?? '')
+    messager_log(`[String feedback] ${key} = ${value}`, tag(), runtime())
     para?.feedbackstring({key:key,value:value})
 }
 //#endregion
+//#endregion
 
+/**
+ * The lua runner
+ */
 export class ClientLua {
     os:luainjs.Table
     env:luainjs.Table
     message:luainjs.Table
 
-    constructor(_messager: Messager, _messager_log: Messager, _getjob:Getjob){
+    constructor(_messager: Messager, _messager_log: Messager_log, _getjob:Getjob){
         this.os = new luainjs.Table({
             "copyfile": this.copyfile,
             "copydir": this.copydir,
@@ -128,14 +148,25 @@ export class ClientLua {
         })
         
         this.message = new luainjs.Table({
-            "messager": (m, t) => _messager(m, _getjob()?.uuid), 
-            "messager_log": (m, t) => _messager_log(m, _getjob()?.uuid)
+            "messager": (m:string) => _messager(m, tag()), 
+            "messager_log": (m:string) => _messager_log(m, tag(), runtime())
         })
     }
 
+    /**
+     * Before running the lua scripts, We must init first.\
+     * ! Otherwise it won't work or throw error
+     * @param _messager Message habndle
+     * @param _messager_log Message habndle with print on screen feature
+     * @param _clientos OS worker
+     * @param _para Parameter worker
+     * @param _getlib library getter method
+     * @param _getpara Parameter getter method
+     * @param _getjob Job getter method
+     */
     static Init = (_messager: Messager, _messager_log: Messager, _clientos:ClientOS, _para:ClientJobParameter, _getlib:Getlib, _getpara:Getpara, _getjob:Getjob) => {
-        messager = (m, t) => _messager(m, _getjob()?.uuid)
-        messager_log = (m, t) => _messager_log(m, _getjob()?.uuid)
+        messager = _messager
+        messager_log = _messager_log
         clientos = _clientos
         para = _para
         getlib = _getlib
@@ -143,48 +174,61 @@ export class ClientLua {
         getjob = _getjob
     }
 
+    /**
+     * Running lua\
+     * With reference libraries\
+     * @param lua Lua script text
+     * @param libs Libraries header names
+     * @returns Calcuate result
+     */
     LuaExecuteWithLib = (lua:string, libs:Array<string>) => {
         const luaEnv = this.getLuaEnv()
-        try {
-            let script = lib + '\n'
+        let script = lib + '\n'
 
-            const p = getlib?.() ?? undefined
-            if(p != undefined){
-                libs.forEach(x => {
-                    const t = p.libs.find(y => y.name == x)
-                    if(t != undefined) script += ("\n" + t.content + "\n")
-                })
-            }
-            
-            script += ('\n' + lua)
-            const execc = luaEnv.parse(script)
-            const r = execc.exec()
-            return r
-        }catch(err){
-            throw err
+        const p = getlib?.() ?? undefined
+        if(p != undefined){
+            libs.forEach(x => {
+                const t = p.libs.find(y => y.name == x)
+                if(t != undefined) script += ("\n" + t.content + "\n")
+            })
         }
+        
+        script += ('\n' + lua)
+        const execc = luaEnv.parse(script)
+        const r = execc.exec()
+        return r
     }
 
+    /**
+     * Running lua
+     * @param lua Lua script text
+     * @returns Calcuate result
+     */
     LuaExecute = (lua:string) => {
         const luaEnv = this.getLuaEnv(LuaLib.OS | LuaLib.MESSAGE)
-        try {
-            let script = lib + '\n' + lua
-            const execc = luaEnv.parse(script)
-            const r = execc.exec()
-            return r
-        }catch(err){
-            throw err
-        }
+        let script = lib + '\n' + lua
+        const execc = luaEnv.parse(script)
+        const r = execc.exec()
+        return r
     }
 
     private getLuaEnv(flags:LuaLib = LuaLib.ALL){
-        const luaEnv = luainjs.createEnv()
+        const root = path.join(__dirname, 'lua')
+        const luaEnv = luainjs.createEnv({
+            LUA_PATH: root,
+            fileExists: p => fs.existsSync(path.join(root, p)),
+            loadFile: p => this.readfile_Env(path.join(root, p)),
+            stdout: messager,
+        })
         if((flags & LuaLib.OS) == LuaLib.OS) luaEnv.loadLib('o', this.os)
         if((flags & LuaLib.ENV) == LuaLib.ENV) luaEnv.loadLib('env', this.env)
         if((flags & LuaLib.MESSAGE) == LuaLib.MESSAGE) luaEnv.loadLib('m', this.message)
+        luaEnv.loadLib('async', luaEnv.parseFile('async.lua').exec() as luainjs.Table)
         return luaEnv
     }
-
+    private readfile_Env(path:string):string{
+        return fs.readFileSync(path).toString()
+    }
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})
     }

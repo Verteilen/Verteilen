@@ -1,5 +1,5 @@
 import { formula, init } from "expressionparser";
-import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, KeyValue, Libraries, Messager, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ENV_CHARACTER, ExecuteProxy, ExecuteState, Header, KeyValue, Libraries, Messager, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 
 export class ExecuteManager_Base {
@@ -31,16 +31,19 @@ export class ExecuteManager_Base {
         this.messager_log = _messager_log
     }
 
+    protected sync_local_para = (target:Parameter) => {
+        this.websocket_manager.targets.forEach(x => this.sync_para(target, x))
+        this.proxy?.updateParameter(target)
+    }
+
     //#region Helper
     protected sync_para = (target:Parameter, source:WebsocketPack) => {
         const h:Header = {
             name: 'set_parameter',
-            message: 'Initialization Parameter',
             data: target
         }
         const h2:Header = {
             name: 'set_libs',
-            message: 'Initialization Libs',
             data: this.libs
         }
         source.websocket.send(JSON.stringify(h))
@@ -162,10 +165,21 @@ export class ExecuteManager_Base {
 
     /**
      * Filter out the idle and connection open nodes
-     * @returns All idle nodes
+     * @returns All idle and open connection nodes
      */
     protected get_idle = ():Array<WebsocketPack> => {
-        return this.websocket_manager.targets.filter(x => x.state != ExecuteState.RUNNING && x.websocket.readyState == WebSocket.OPEN)
+        return this.websocket_manager.targets.filter(x => this.check_socket_state(x) != ExecuteState.RUNNING && x.websocket.readyState == WebSocket.OPEN)
+    }
+    /**
+     * Filter out the connection open nodes
+     * @returns All open connection nodes
+     */
+    protected get_idle_open = ():Array<WebsocketPack> => {
+        return this.websocket_manager.targets.filter(x => x.websocket.readyState == WebSocket.OPEN)
+    }
+
+    protected check_socket_state = (target:WebsocketPack) => {
+        return target.current_job.length == 0 ? ExecuteState.NONE : ExecuteState.RUNNING
     }
     
     /**
@@ -183,7 +197,7 @@ export class ExecuteManager_Base {
         let state:boolean = false
         let useExp = false
         for(const v of text){
-            if(v == '%'){
+            if(v == ENV_CHARACTER){
                 state = !state
                 if(!state) { // End
                     if(useExp){
@@ -196,8 +210,8 @@ export class ExecuteManager_Base {
                 }
             }
             if(v == '{' && state && store.length == 0) useExp = true
-            if(state && v != '%') store += v
-            if(!state && v != '%') buffer += v
+            if(state && v != ENV_CHARACTER) store += v
+            if(!state && v != ENV_CHARACTER) buffer += v
         }
         return buffer
     }

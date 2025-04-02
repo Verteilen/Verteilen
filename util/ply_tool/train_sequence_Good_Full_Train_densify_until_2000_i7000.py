@@ -20,6 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--group_size', type=str, default='')
     parser.add_argument('--resolution', type=int, default=2)
     parser.add_argument('--iframe', type=int, default=1)
+    parser.add_argument('--overwrite', type=int, default=0)
     args = parser.parse_args()
 
     print(args.start, args.end)

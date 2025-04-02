@@ -1,11 +1,12 @@
-import { Job, Project, Task } from "./base"
+import { Job, Parameter, Project, Task } from "./base"
 import { ExecutionLog, Log, Record } from "./record"
-import { Header, Setter, WebsocketPack } from "./struct"
+import { FeedBack, Header, Setter, ShellFolder, Single, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
 
 type Handler<T = unknown> = (event: T) => void
 export type Messager = (msg:string, tag?:string) => void
+export type Messager_log = (msg:string, tag?:string, meta?:string) => void
 
 export interface BusAnalysis {
     name:string
@@ -44,7 +45,10 @@ export interface ExecuteProxy {
     executeSubtaskFinish: (data:[Task, number, string]) => void
     executeJobStart: (data:[Job, number, string]) => void
     executeJobFinish: (data:[Job, number, string, number]) => void
-    feedbackMessage: (data:Setter) => void
+    feedbackMessage: (data:FeedBack) => void
+    updateParameter: (data:Parameter) => void
+    shellReply: (data:Single) => void
+    folderReply: (data:ShellFolder) => void
 }
 
 /**
@@ -65,7 +69,9 @@ export type BusType = {
     updateCurrent: ExecutionLog,
     updateLog: Log
     updateHandle: void
-    feedbackMessage: Setter
+    shellReply: Single
+    folderReply: ShellFolder
+    feedbackMessage: FeedBack
 
     renameScript: Rename
     deleteScript: string
@@ -103,6 +109,7 @@ export type BusType = {
      * * 3.string: meta string
      */
     executeJobFinish: [Job, number, string, number]
+    updateRuntimeParameter: Parameter
 
     analysis: BusAnalysis
     debuglog: string

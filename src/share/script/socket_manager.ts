@@ -47,6 +47,58 @@ export class WebsocketManager {
         })
     }
 
+    shell_open = (uuid:string) => {
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        if (p == undefined){
+            this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
+            return
+        }
+        const d:Header = {
+            name: "open_shell",
+            data: 0
+        }
+        p.websocket.send(JSON.stringify(d))
+    }
+
+    shell_enter = (uuid:string, text:string) => {
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        if (p == undefined){
+            this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
+            return
+        }
+        const d:Header = {
+            name: "enter_shell",
+            data: text
+        }
+        p.websocket.send(JSON.stringify(d))
+    }
+
+    shell_close = (uuid:string) => {
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        if (p == undefined){
+            this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
+            return
+        }
+        const d:Header = {
+            name: "close_shell",
+            data: 0
+        }
+        p.websocket.send(JSON.stringify(d))
+    }
+
+    shell_folder = (uuid:string, path:string) => {
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        if (p == undefined){
+            this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
+            return
+        }
+        const d:Header = {
+            name: "shell_folder",
+            data: path
+        }
+        p.websocket.send(JSON.stringify(d))
+    }
+
     /**
      * Trying to connect a node by target URL
      * @param url target url
@@ -56,7 +108,7 @@ export class WebsocketManager {
     private serverconnect = (url:string, uuid?:string) => {
         if(this.targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
         const client = new WebSocket(url)
-        const index = this.targets.push({ uuid: uuid == undefined ? uuidv6() : uuid, websocket: client })
+        const index = this.targets.push({ uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] })
         client.onerror = (err:any) => {
             this.messager_log(`[Socket] Connect failed ${url}`)
         }
@@ -66,8 +118,7 @@ export class WebsocketManager {
                 this.disconnect(this.targets[index - 1])
             }
             this.targets[index - 1].s = undefined
-            this.targets[index - 1].state = undefined
-            this.targets[index - 1].current_job = undefined
+            this.targets[index - 1].current_job = []
         }
         client.onopen = () => {
             this.messager_log('[Socket] New Connection !' + client.url)

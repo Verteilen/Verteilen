@@ -356,7 +356,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans"],
+        string_args: ["%output%", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x %xx%"],
         number_args: [],
         boolean_args: []
     }
@@ -372,6 +372,10 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
             {
                 name: 'index',
                 expression: '(ck - 1) + IF( start_at_0, 0, 1 )'
+            },
+            {
+                name: 'xx',
+                expression: 'IF( start_at_0, 0, 1 )'
             }
         ],
         jobs: [
@@ -422,7 +426,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "lut_thread", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "group_size", value: 20, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "blend", value: 4, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "contribute", value: 2, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
 
