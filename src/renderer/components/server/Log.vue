@@ -4,6 +4,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
 import { AppConfig, BusType, ExecuteRecord, ExecuteState, Log, Project } from '../../interface';
+import ParameterPage from './console/Parameter.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -20,9 +21,10 @@ const rightSize = ref(9)
 const totalLength = ref(4)
 const current:Ref<number> = ref(-1)
 const selection:Ref<Array<number>> = ref([])
+const panelValue:Ref<Array<number>> = ref([])
+
 const getselect = computed(() => selection.value.length == 0 ? undefined : props.logs.logs[selection.value[0]])
 const getselectTask = computed(() => getselect.value == undefined || current.value == -1 ? undefined : getselect.value.logs[current.value])
-const panelValue:Ref<Array<number>> = ref([])
 
 const getEnable = (r:number):Array<number> => {
     if(getselect.value == undefined || current.value == -1) return []
@@ -144,7 +146,7 @@ onUnmounted(() => {
                     </v-list-item>
                 </v-list>
             </v-col>
-            <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="getselect != undefined">
+            <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 0 && getselect != undefined">
                 <v-stepper :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
                     <v-stepper-header>
                         <template v-for="i in page(r - 1)" :key="i">
@@ -174,6 +176,9 @@ onUnmounted(() => {
                     </v-expansion-panel>
                 </v-expansion-panels>
                 <br /> <br />
+            </v-col>
+            <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 1 && getselect != undefined">
+                <ParameterPage v-model="getselect.parameter" />
             </v-col>
         </v-row>
     </v-container>
