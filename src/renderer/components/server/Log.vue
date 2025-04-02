@@ -12,6 +12,7 @@ interface PROPS {
     config: AppConfig
 }
 
+const tag = ref(0)
 const data = defineModel<ExecuteRecord>()
 const props = defineProps<PROPS>()
 const leftSize = ref(3)
@@ -96,7 +97,16 @@ onUnmounted(() => {
 <template>
     <v-container fluid class="ma-0 pa-0">
         <div class="py-3">
-            <v-toolbar density="compact">
+            <v-toolbar density="compact" class="px-3">
+                <p>{{ $t('action') }}</p>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
+                        <v-btn icon color="success" v-bind="pro.props" :disabled="getselect == undefined" @click="recover">
+                            <v-icon>mdi-recycle</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('recover') }}
+                </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
                         <v-btn icon color="error" v-bind="pro.props" @click="clean">
@@ -109,6 +119,15 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="leftSize" style="border-right: brown 1px solid;">
+                <v-list v-model.number="tag" mandatory color="success" style="filter:brightness(1.2)">
+                    <v-list-item @click="tag = 0" :value="0" :active="tag == 0">
+                        {{ $t('console.dashboard') }}
+                    </v-list-item>
+                    <v-list-item @click="tag = 1" :value="1" :active="tag == 1">
+                        {{ $t('console.parameter') }}
+                    </v-list-item>
+                </v-list>
+
                 <v-list v-model:selected="selection" @update:selected="current = -1">
                     <v-list-item v-for="(item, i) in props.logs.logs" :key="i" :value="i">
                         <template v-slot:prepend>
@@ -126,11 +145,6 @@ onUnmounted(() => {
                 </v-list>
             </v-col>
             <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="getselect != undefined">
-                <div class="py-3">
-                    <v-btn-group>
-                        <v-btn color='primary' :disabled="getselect == undefined" @click="recover">{{ $t('recover') }}</v-btn>
-                    </v-btn-group>
-                </div>
                 <v-stepper :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
                     <v-stepper-header>
                         <template v-for="i in page(r - 1)" :key="i">

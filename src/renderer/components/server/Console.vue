@@ -73,7 +73,7 @@ const updateHandle = () => {
  */
 const update_runtime_parameter = (d:Parameter) => {
     para.value = d
-    props.logs.logs[0].parameter = d
+    if(props.logs.logs.length > 0) props.logs.logs[0].parameter = d
     hasNewLog = true
 }
 const receivedPack = (record:Record) => {
@@ -572,17 +572,17 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 150px)" class="w-100">
             <v-col :cols="leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
-                <v-list v-model="tag" color="success">
-                    <v-list-item @click="tag = 0" :value="0">
+                <v-list v-model.number="tag" mandatory color="success">
+                    <v-list-item @click="tag = 0" :value="0" :active="tag == 0">
                         {{ $t('console.list') }}
                     </v-list-item>
-                    <v-list-item @click="tag = 1" :value="1">
+                    <v-list-item @click="tag = 1" :value="1" :active="tag == 1">
                         {{ $t('console.dashboard') }}
                     </v-list-item>
-                    <v-list-item @click="tag = 3" :value="3">
+                    <v-list-item @click="tag = 3" :value="3" :active="tag == 3">
                         {{ $t('console.parameter') }}
                     </v-list-item>
-                    <v-list-item @click="tag = 2" :value="2">
+                    <v-list-item @click="tag = 2" :value="2" :active="tag == 2">
                         Debug Log
                     </v-list-item>
                 </v-list>
