@@ -223,7 +223,6 @@ export class ClientLua {
         if((flags & LuaLib.OS) == LuaLib.OS) luaEnv.loadLib('o', this.os)
         if((flags & LuaLib.ENV) == LuaLib.ENV) luaEnv.loadLib('env', this.env)
         if((flags & LuaLib.MESSAGE) == LuaLib.MESSAGE) luaEnv.loadLib('m', this.message)
-        luaEnv.loadLib('async', luaEnv.parseFile('async.lua').exec() as luainjs.Table)
         return luaEnv
     }
     private readfile_Env(path:string):string{

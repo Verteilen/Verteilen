@@ -339,7 +339,7 @@ onUnmounted(() => {
                     <v-checkbox v-model="createData.cronjob" :label="$t('cronjob')" hide_details></v-checkbox>
                     <v-select class="my-3" v-if="createData.cronjob" v-model="createData.cronjobKey" :items="para_keys" hide-details></v-select>
                     <br />
-                    <v-checkbox v-if="createData.multi" v-model="createData.multi" :label="$t('multicore')" hide_details></v-checkbox>
+                    <v-checkbox v-if="createData.cronjob" v-model="createData.multi" :label="$t('multicore')" hide_details></v-checkbox>
                     <v-select class="my-3" v-if="createData.multi" v-model="createData.multiKey" :items="para_keys" hide-details></v-select>
                     <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
                 </v-card-text>
