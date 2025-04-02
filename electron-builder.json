@@ -1,0 +1,53 @@
+{
+    "appId": "com.compute.app",
+    "productName": "Compute Tool",
+    "compression": "maximum",
+    "directories": {
+        "output": "dist"
+    },
+    "win": {
+        "target": "msi",
+        "icon": "src/renderer/assets/vite.ico"
+    },
+    "msi": {
+        "runAfterFinish": false
+    },
+    "linux":  {
+        "target": ["snap"]
+    },
+    "extraFiles": [
+        "README.md",
+        "docs/",
+        "bin/"
+    ],
+    "files": [
+        {
+            "from": "build/main",
+            "to": "main",
+            "filter": ["**/*"]
+        },
+        {
+            "from": "build/renderer",
+            "to": "renderer",
+            "filter": ["**/*"]
+        },
+        {
+            "from": "src/main/static",
+            "to": "static",
+            "filter": ["**/*"]
+        },
+        "!bin",
+        "!src",
+        "!.git",
+        "!.github",
+        "!build",
+        "!dist",
+        "!docs",
+        "!util",
+        "!scripts",
+        "!record.json",
+        "!preference.json",
+        "!log.json",
+        "!node_modules/express"
+    ]
+}
