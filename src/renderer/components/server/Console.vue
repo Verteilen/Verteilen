@@ -4,7 +4,6 @@ import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
-
 import DebugLog from './console/DebugLog.vue';
 import List from './console/List.vue';
 import ParameterPage from './console/Parameter.vue';
@@ -29,13 +28,54 @@ const skipModal = ref(false)
 const skipData = ref(0)
 
 /**
- * 0: All\
- * 1: Project\
- * 2: Task
+ * The speicifed the process step type
+ * * 0: All Projects through
+ * * 1: Single project through
+ * * 2: SIngle task through
  */
 const process_type = ref(-1)
 let hasNewLog = false
 
+//#region Bus Events
+/**
+ * Attach to main update cycle events\
+ * This will response for the main update for the process worker
+ */
+const updateHandle = () => {
+    if(data.value!.running && !data.value!.stop){
+        try {
+            props.execute?.Update()
+        }catch(err:any){
+            data.value!.stop = true
+            const str = 'Execute Error: ' + err.name + '\n' + err.message
+            emitter?.emit('makeToast', {
+                title: 'Error Interrupt',
+                message: str,
+                type: 'danger'
+            })
+            console.error(err)
+        }
+    }
+    if(data.value!.stop){
+        if(props.execute!.jobstack == 0){
+            data.value!.running = false
+        }
+    }
+    if(hasNewLog){
+        emitter?.emit('updateLog', props.logs)
+        hasNewLog = false
+    }
+}
+/**
+ * When parameter getting change by the process steps\
+ * This get called
+ * @param d The whole container for the parameters
+ */
+const update_runtime_parameter = (d:Parameter) => {
+    para.value = d
+    props.logs.logs[0].parameter = d
+    hasNewLog = true
+}
 const receivedPack = (record:Record) => {
     const pass = props.execute!.Register(record.projects)
     if(pass == -1){
@@ -81,6 +121,7 @@ const receivedPack = (record:Record) => {
     const target = data.value!.projects[data.value!.project_index]
     const newlog:ExecutionLog = {
         project: target,
+        parameter: target.parameter,
         state: ExecuteState.NONE,
         start_timer: Date.now(),
         end_timer: 0,
@@ -135,6 +176,7 @@ const execute_project_start = (d:Project) => {
         project: target,
         state: ExecuteState.RUNNING,
         start_timer: Date.now(),
+        parameter: d.parameter,
         end_timer: 0,
         logs: target.task.map(x => {
             return {
@@ -298,45 +340,31 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
     }
     //data.value!.task_detail[index].node = ""
 }
+//#endregion
 
-const update_runtime_parameter = (d:Parameter) => {
-    para.value = d
-}
-
-const updateHandle = () => {
-    if(data.value!.running && !data.value!.stop){
-        try {
-            props.execute?.Update()
-        }catch(err:any){
-            data.value!.stop = true
-            const str = '執行中出現錯誤: ' + err.name + '\n' + err.message
-            emitter?.emit('makeToast', {
-                title: '錯誤中斷',
-                message: str,
-                type: 'danger'
-            })
-            console.error(err)
-        }
-    }
-    if(data.value!.stop){
-        if(props.execute!.jobstack == 0){
-            data.value!.running = false
-        }
-    }
-    if(hasNewLog){
-        emitter?.emit('updateLog', props.logs)
-        hasNewLog = false
-    }
-}
-
+//#region UI Events
+/**
+ * Running the process
+ * @param type How long does the step goes {@link process_type}
+ * * 0: All Projects through
+ * * 1: Single project through
+ * * 2: SIngle task through
+ */
 const execute = (type:number) => {
     process_type.value = type
     data.value!.running = true
     data.value!.stop = false
     props.execute!.first = true
 }
-
-const skip = (type:number, state?:ExecuteState) => {
+/**
+ * Skip the project ahead, 
+ * @param type How far step you want to skip
+ * * 0: Project
+ * * 1: Task
+ * * 2: Step
+ * @param state The override state, default is FINISH
+ */
+const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
     if(type == 0){
         // Project
         data.value!.project_state[data.value!.project_index].state = state != undefined ? state : ExecuteState.FINISH
@@ -395,7 +423,9 @@ const skip = (type:number, state?:ExecuteState) => {
         skipData.value = 0
     }
 }
-
+/**
+ * When user click confirm on the skip step modal
+ */
 const confirmSkip = () => {
     const index = props.execute!.SkipSubTask(skipData.value)
     if(index < 0) {
@@ -408,7 +438,9 @@ const confirmSkip = () => {
     console.log("Skip task", index)
     skipModal.value = false
 }
-
+/**
+ * Destroy all state and reset
+ */
 const clean = () => {
     props.logs.logs[0].end_timer = Date.now()
     hasNewLog = true
@@ -423,11 +455,16 @@ const clean = () => {
     data.value!.task_detail = []
     para.value = undefined
 }
-
+/**
+ * It means pause... but i just name it 'stop' anyway. you get the idea\
+ * This will not destroy the state, it just stop the update thought\
+ * If you want to destroy and reset all state, you should call {@link clean()} function instead
+ */
 const stop = () => {
     data.value!.stop = true
     props.execute!.Stop()
 }
+//#endregion
 
 onMounted(() => {
     emitter?.on('execute', receivedPack)
@@ -580,10 +617,3 @@ onUnmounted(() => {
         </v-dialog>
     </div>
 </template>
-
-<style scoped>
-
-</style>
-
-
-
