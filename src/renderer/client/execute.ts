@@ -124,7 +124,9 @@ export class ClientExecute {
             `[Execute] Error: ${code} ${signal}`, job.uuid, job.runtime_uuid)
         const data:FeedBack = { job_uuid: job.uuid, runtime_uuid: job.runtime_uuid!, meta: code, message: signal }
         const h:Header = { name: 'feedback_job', data: data }
-        source.send(JSON.stringify(h))
+        if(source.readyState == WebSocket.OPEN){
+            source.send(JSON.stringify(h))
+        }
         this.tag = ''
     }
     

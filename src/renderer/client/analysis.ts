@@ -97,6 +97,7 @@ export class ClientAnalysis {
 
     disconnect = (source: WebSocket) => {
         this.shell.disconnect(source)
+        this.exec.stop_job()
     }
 
 

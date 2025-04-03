@@ -104,16 +104,18 @@ export class ExecuteManager extends ExecuteManager_Runner {
         if(this.current_t == undefined) return
         if(this.current_job.length > 0){
             const singleContainIt = this.current_job.filter(x => x.uuid == source.uuid && x.state == ExecuteState.RUNNING)
-            singleContainIt.forEach(x => {
+            singleContainIt.forEach((x, index) => {
                 x.uuid = ''
                 x.state = ExecuteState.NONE
+                this.proxy?.executeSubtaskUpdate([this.current_t!, index, x.uuid, x.state])
             })
         }else if (this.current_cron.length > 0){
             const cronContainIt = this.current_cron.filter(x => x.work.filter(y => y.state == ExecuteState.RUNNING && y.uuid == source.uuid).length > 0)
             cronContainIt.forEach(element => {
-                element.work.forEach(x => {
+                element.work.forEach((x, index) => {
                     x.uuid = ''
                     x.state = ExecuteState.NONE
+                    this.proxy?.executeSubtaskUpdate([this.current_t!, index, x.uuid, x.state])
                 })
             });
         }
