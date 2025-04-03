@@ -2,7 +2,7 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ClientLog, MESSAGE_LIMIT, Preference } from '../interface';
+import { AppConfig, BusType, ClientLog, MESSAGE_LIMIT, Preference, RENDER_UPDATETICK } from '../interface';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
@@ -68,7 +68,7 @@ const clearMessage = () => {
 }
 
 onMounted(() => {
-  updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
+  updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
   if(props.config.isElectron){
     window.electronAPI.eventOn('msgAppend', msgAppend);
     window.electronAPI.send('menu', false)

@@ -281,7 +281,7 @@ const execute_subtask_start = (d:[Task, number, string]) => {
 
 const execute_subtask_end = (d:[Task, number, string]) => {
     if(data.value!.task_detail.length > d[1]){
-        data.value!.task_detail[d[1]].node = ""
+        //data.value!.task_detail[d[1]].node = ""
         data.value!.task_detail[d[1]].state = ExecuteState.FINISH
     }else{
         console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
@@ -591,7 +591,7 @@ onUnmounted(() => {
                 <List v-model="data" />
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 1">
-                <Process v-model="data" />
+                <Process v-model="data" :socket="props.socket" />
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 2">
                 <DebugLog />

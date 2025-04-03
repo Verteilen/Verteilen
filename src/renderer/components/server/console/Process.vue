@@ -2,11 +2,17 @@
 import { Emitter } from 'mitt';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { BusType, ExecuteRecord, ExecuteState } from '../../../interface';
+import { BusType, ExecuteRecord, ExecuteState, Task } from '../../../interface';
+import { WebsocketManager } from '../../../script/socket_manager';
+
+interface PROPS {
+    socket: WebsocketManager | undefined
+}
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 const data = defineModel<ExecuteRecord>()
+const props = defineProps<PROPS>()
 const totalLength = ref(4)
 const panelValue:Ref<Array<number>> = ref([])
 
@@ -15,6 +21,13 @@ const getStateColor = (state:number):string => {
     else if (state == ExecuteState.RUNNING) return colors.indigo.darken3
     else if (state == ExecuteState.FINISH) return colors.green.darken3
     else return colors.red.darken4
+}
+
+const getURL = (id: string) => {
+    if(props.socket == undefined) return `unknowned id: ${id}`
+    const t = props.socket.targets.find(x => x.uuid == id)
+    if(t == undefined) return `unknowned id: ${id}`
+    return t.websocket.url
 }
 
 const page = (r:number):number => {
@@ -33,21 +46,21 @@ const getselect = (r:number):Array<number> => {
     else return []
 }
 
-const ExecuteSubtaskStart = (d:{index:number, node:string}) => {
+const ExecuteSubtaskStart = (d:[Task, number, string]) => {
     nextTick(() => {
-        const v = !panelValue.value.includes(d.index - 1)
-        if(v) panelValue.value.push(d.index - 1)
+        const v = !panelValue.value.includes(d[1] - 1)
+        if(v) panelValue.value.push(d[1] - 1)
     })
 }
 
-const ExecuteSubtaskFinish = (d:{index:number, node:string}) => {
+const ExecuteSubtaskFinish = (d:[Task, number, string]) => {
     nextTick(() => {
-        const v = panelValue.value.findIndex(x => x == d.index - 1)
+        const v = panelValue.value.findIndex(x => x == d[1] - 1)
         if(v != -1) panelValue.value.splice(v, 1)
     })
 }
 
-const ExecuteTaskStart = (d:{uuid:string, count:number}) => {
+const ExecuteTaskStart = (d:[Task, number]) => {
     nextTick(() => {
         panelValue.value = []
     })
@@ -105,7 +118,7 @@ onUnmounted(() => {
             <v-expansion-panel v-for="(task, i) in data.task_detail" :key="i"
                 class="w-100 text-white mb-3 px-4">
                 <v-expansion-panel-title :style="{ 'color': getStateColor(task.state) }" style="background-color: transparent;">
-                    Index: {{ task.index }}
+                    Index: {{ task.index }}, node: {{ getURL(task.node) }}
                 </v-expansion-panel-title>
                 <v-expansion-panel-text class="py-3" style="min-height: 50px;">
                     <p style="line-height: 15px; margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>    

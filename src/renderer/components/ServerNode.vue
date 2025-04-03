@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_UPDATETICK, Setter, ShellFolder, Single, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, FeedBack, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -41,7 +41,7 @@ const proxy:ExecuteProxy = {
   executeSubtaskFinish: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskFinish', data) },
   executeJobStart: (data:[Job, number, string]):void => { emitter?.emit('executeJobStart', data) },
   executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
-  feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
+  feedbackMessage: (data:FeedBack):void => { emitter?.emit('feedbackMessage', data) },
   updateParameter: (data:Parameter):void => { emitter?.emit('updateRuntimeParameter', data) },
   shellReply: (data:Single):void => { emitter?.emit('shellReply', data) },
   folderReply: (data:ShellFolder) => { emitter?.emit('folderReply', data) }
