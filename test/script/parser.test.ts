@@ -39,23 +39,39 @@ describe('Parser testing (replacePara)', () => {
     let e:Util_Parser | undefined = undefined
     beforeAll(() => {
         p = { canWrite: true, containers: [
-            { name: 'n1', value: 0, type: DataType.Number, hidden: false, runtimeOnly: false },
+            { name: 'n1', value: 7, type: DataType.Number, hidden: false, runtimeOnly: false },
+            { name: 'n2', value: 9, type: DataType.Number, hidden: false, runtimeOnly: false },
             { name: 's1', value: "Test", type: DataType.Number, hidden: false, runtimeOnly: false },
             { name: 'b1', value: true, type: DataType.Number, hidden: false, runtimeOnly: false },
         ]}
-        e = new Util_Parser(Util_Parser.to_keyvalue(p))
+        e = new Util_Parser([...Util_Parser.to_keyvalue(p), { key: 'ck', value: 1 }])
     })
     afterAll(() => {
         p = undefined
         e = undefined
     })
+    test("KeyValue Checker", () => {
+        expect(e!.count).toBe(5)
+    })
     test("Number replace", () => {
-        expect(e!.replacePara("%n1% Hello")).toBe("0 Hello")
+        expect(e!.replacePara("%n1% Hello")).toBe("7 Hello")
     })
     test("String replace", () => {
         expect(e!.replacePara("%s1% Hello")).toBe("Test Hello")
     })
     test("Boolean replace", () => {
         expect(e!.replacePara("%b1% Hello")).toBe("true Hello")
+    })
+    test("Expression replace", () => {
+        expect(e!.replacePara("%{ n1 * n2 }% Hello")).toBe("63 Hello")
+    })
+    test("Expression replace include index", () => {
+        expect(e!.replacePara("%{ n_ck_ * n2 }% Hello")).toBe("63 Hello")
+    })
+    test("Prevent Failed Expression replace", () => {
+        expect(e!.replacePara("%{ n1 * OK }% Hello")).toBe("0 Hello")
+    })
+    test("Prevent replace", () => {
+        expect(e!.replacePara("%OK% Hello")).toBe("%OK% Hello")
     })
 })
