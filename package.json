@@ -19,8 +19,7 @@
     "docker:node": "docker_node.sh",
     "docker:server": "docker_server.sh",
     "pkg": "node scripts/program_build.js",
-    "test": "jest --watch --verbose false",
-    "check": "jest"
+    "test": "jest"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
@@ -40,9 +39,9 @@
     "electron": "^32.1.2",
     "electron-builder": "^25.1.6",
     "electron-installer-snap": "^5.2.0",
-    "jest": "^29.7.0",
     "sass": "^1.84.0",
     "sass-loader": "^16.0.4",
+    "ts-jest": "^29.3.1",
     "typescript": "^5.2.2",
     "unplugin-icons": "^22.0.0",
     "unplugin-vue-components": "^28.0.0",
@@ -57,6 +56,7 @@
     "codemirror": "^6.0.1",
     "express": "^4.21.2",
     "expressionparser": "^1.1.5",
+    "jest": "^29.7.0",
     "jsonwebtoken": "^9.0.2",
     "keypair": "^1.0.4",
     "lua-in-js": "^2.2.5",
