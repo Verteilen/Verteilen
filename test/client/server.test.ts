@@ -1,4 +1,5 @@
 import { Client } from '../../src/share/client/client';
+import { i18n } from '../../src/share/plugins/i18n';
 
 describe("Client Test", () => {
     let client:Client | undefined
@@ -8,11 +9,13 @@ describe("Client Test", () => {
         client.Init()
     })
     afterAll(() => {
-        client?.Destroy()
+        client!.Destroy()
+        client!.Dispose()
         client = undefined
+        i18n.dispose()
     })
     test("Check init state", () => {
         expect(client).toBeDefined()
-        expect(client!.clients).toBe(0)
+        expect(client!.clients.length).toBe(0)
     })
 })

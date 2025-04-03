@@ -4,6 +4,9 @@ import { ENV_CHARACTER, KeyValue, Parameter } from "../../interface";
 export class Util_Parser {
 
     paras:Array<KeyValue> = []
+    public get count() : number {
+        return this.paras.length
+    }
 
     constructor(_paras:Array<KeyValue>){
         this.paras = _paras
@@ -48,7 +51,7 @@ export class Util_Parser {
                     if(useExp){
                         buffer += this.parse(store)
                     }else{
-                        buffer += this._replacePara(store)
+                        buffer = this._replacePara(store)
                     }
                     store = ""
                     useExp = false
@@ -84,7 +87,7 @@ export class Util_Parser {
 
     private _replacePara = (store:string) => {
         const index = this.paras.findIndex(x => x.key == store)
-        if(index == -1) return ''
+        if(index == -1) return `%${store}%`
         return this.paras[index].value
     }
 }

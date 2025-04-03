@@ -1,6 +1,6 @@
 import { ChildProcess, spawn } from 'child_process';
-import path from 'path';
-import WebSocket from 'ws';
+import * as path from 'path';
+import { WebSocket } from 'ws';
 import { Header, Messager, Messager_log } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";

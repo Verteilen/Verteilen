@@ -7,7 +7,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": false,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "../../build/main",
+    "outDir": "../../build/test",
     "allowJs": true,
     "removeComments": true,
     "noImplicitAny": false,

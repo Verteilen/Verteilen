@@ -1,6 +1,6 @@
 import { ChildProcess, spawn } from 'child_process';
-import path from 'path';
-import WebSocket from 'ws';
+import * as path from 'path';
+import { WebSocket } from 'ws';
 import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { Client } from "./client";

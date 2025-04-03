@@ -10,6 +10,7 @@ describe("Execute Manager Test", () => {
         socket = undefined
     })
     test("Check init state", () => {
-        
+        expect(socket).toBeDefined()
+        expect(socket!.targets.length).toBe(0)
     })
 })
