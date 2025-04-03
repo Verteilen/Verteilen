@@ -234,6 +234,13 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
         this.proxy?.executeJobStart([ job, n - 1, wss.uuid ])
 
+        const exps = this.localPara!.containers.filter(x => x.type == DataType.Expression)
+        exps.forEach(x => {
+            if(x.meta == undefined) return
+            x.value = this.parse(x.meta, [...this.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
+        })
+        
+
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
             if(b == null || b == undefined || b.length == 0) continue

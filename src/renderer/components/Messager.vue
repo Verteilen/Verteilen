@@ -53,7 +53,8 @@ const update = () => {
 }
 
 const darken = (color: string) => {
-    return shadeColor(GetColor(color), -50)
+    const e = GetColor(color)
+    return e == undefined ? color : shadeColor(GetColor(color), -50)
 }
 
 onMounted(() => {

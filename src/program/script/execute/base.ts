@@ -223,7 +223,7 @@ export class ExecuteManager_Base {
      */
     protected to_keyvalue = (p:Parameter):Array<KeyValue> => {
         const paras = [
-            ...p.containers.filter(x => x.type != DataType.Expression).map(x => { return { key: x.name, value: x.value.toString() } })
+            ...p.containers.map(x => { return { key: x.name, value: x.value.toString() } })
         ]
         return paras
     }
@@ -240,7 +240,7 @@ export class ExecuteManager_Base {
      * @param paras Keyvalue list
      * @returns Result calculation
      */
-    private parse = (str:string, paras:Array<KeyValue>):string => {
+    protected parse = (str:string, paras:Array<KeyValue>):string => {
         str = str.substring(1, str.length - 1)
         const parser = init(formula, (term: string) => {
             if(term.includes("_ck_")){

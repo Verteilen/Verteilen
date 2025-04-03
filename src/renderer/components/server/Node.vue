@@ -66,6 +66,7 @@ const createNode = () => {
 }
 
 const deleteConfirm = () => {
+    deleteModal.value = false
     deleteData.value.forEach(x => {
         props.manager?.server_stop(x, 'Manually disconnect')
         if(!props.config.isElectron) return
