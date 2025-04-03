@@ -44,6 +44,10 @@ const tag = () => getjob?.()?.uuid ?? 'unknown'
 const runtime = () => getjob?.()?.runtime_uuid ?? 'unknown'
 
 //#region Parameters
+async function wait(time:number){
+    const TIME = luainjs.utils.coerceArgToNumber(time, "wait", 1)
+    return new Promise((resolve) => setTimeout(resolve, TIME * 1000))
+}
 function hasboolean(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
@@ -149,8 +153,12 @@ function httpGo(method:string, url:string, p: any):string {
     })
     return id
 }
-function httpWait(id:string){
-    return httpRequests.findIndex(x => x[0] == id) == -1
+async function httpWait(id:string){
+    return new Promise<boolean>((resolve) => {
+        setTimeout(() => {
+            resolve(httpRequests.findIndex(x => x[0] == id) == -1)
+        }, 100);
+    })
 }
 function httpResultData(id:string):luainjs.Table{
     const index = httpRequests.findIndex(x => x[0] == id)
@@ -202,6 +210,7 @@ export class ClientLua {
         })
         
         this.env = new luainjs.Table({
+            "wait": wait,
             "hasboolean": hasboolean, 
             "getboolean": getboolean, 
             "setboolean": setboolean,
