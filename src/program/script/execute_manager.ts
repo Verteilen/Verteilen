@@ -130,7 +130,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
             this.proxy?.executeSubtaskUpdate([this.current_t!, 0, '', ExecuteState.NONE])
         }else if (this.current_cron.length > 0){
             const target = this.current_cron[task_index]
-            target.work.forEach((x, index) => {
+            target.work.forEach(x => {
                 x.uuid = ''
                 x.state = ExecuteState.NONE
             })
