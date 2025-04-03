@@ -1,4 +1,5 @@
 import { Job, Parameter, Project, Task } from "./base"
+import { ExecuteState } from "./enum"
 import { ExecutionLog, Log, Record } from "./record"
 import { FeedBack, Header, Setter, ShellFolder, Single, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
@@ -42,6 +43,7 @@ export interface ExecuteProxy {
     executeTaskStart: (data:[Task, number]) => void
     executeTaskFinish: (data:Task) => void
     executeSubtaskStart: (data:[Task, number, string]) => void
+    executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]) => void
     executeSubtaskFinish: (data:[Task, number, string]) => void
     executeJobStart: (data:[Job, number, string]) => void
     executeJobFinish: (data:[Job, number, string, number]) => void
@@ -96,6 +98,7 @@ export type BusType = {
      * * 2.string: node uuid
      */
     executeSubtaskFinish: [Task, number, string]
+    executeSubtaskUpdate: [Task, number, string, ExecuteState]
     /**
      * * 0.Job: Job instance
      * * 1.number: Subtask index

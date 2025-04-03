@@ -250,8 +250,12 @@ const execute_task_start = (d:[Task, number]) => {
             state: ExecuteState.NONE
         })
     }
-    props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.RUNNING
-    props.logs.logs[0].logs[data.value!.task_index].start_timer = Date.now()
+
+    if(!props.preference.log) return
+    if(props.logs.logs[0].logs.length > data.value!.task_index){
+        props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.RUNNING
+        props.logs.logs[0].logs[data.value!.task_index].start_timer = Date.now()
+    }
     hasNewLog = true
 }
 
@@ -268,8 +272,10 @@ const execute_task_finish = (d:Task) => {
     data.value!.task_state[index].state = ExecuteState.FINISH
 
     if(!props.preference.log) return
-    props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.FINISH
-    props.logs.logs[0].logs[data.value!.task_index].end_timer = Date.now()
+    if(props.logs.logs[0].logs.length > data.value!.task_index){
+        props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.FINISH
+        props.logs.logs[0].logs[data.value!.task_index].end_timer = Date.now()
+    }
     hasNewLog = true
 }
 
@@ -287,7 +293,20 @@ const execute_subtask_start = (d:[Task, number, string]) => {
     }
     hasNewLog = true
 }
+const execute_subtask_update = (d:[Task, number, string, ExecuteState]) => {
+    if(data.value!.task_detail.length > d[1]){
+        data.value!.task_detail[d[1]].node = d[2]
+        data.value!.task_detail[d[1]].state = d[3]
+    }else{
+        console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
+    }
 
+    if(!props.preference.log) return
+    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
+        props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = d[3]
+    }
+    hasNewLog = true
+}
 const execute_subtask_end = (d:[Task, number, string]) => {
     if(data.value!.task_detail.length > d[1]){
         //data.value!.task_detail[d[1]].node = ""
@@ -485,6 +504,7 @@ onMounted(() => {
     emitter?.on('executeTaskStart', execute_task_start)
     emitter?.on('executeTaskFinish', execute_task_finish)
     emitter?.on('executeSubtaskStart', execute_subtask_start)
+    emitter?.on('executeSubtaskUpdate', execute_subtask_update)
     emitter?.on('executeSubtaskFinish', execute_subtask_end)
     emitter?.on('executeJobStart', execute_job_start)
     emitter?.on('executeJobFinish', execute_job_finish)
@@ -500,6 +520,7 @@ onUnmounted(() => {
     emitter?.off('executeTaskStart', execute_task_start)
     emitter?.off('executeTaskFinish', execute_task_finish)
     emitter?.off('executeSubtaskStart', execute_subtask_start)
+    emitter?.off('executeSubtaskUpdate', execute_subtask_update)
     emitter?.off('executeSubtaskFinish', execute_subtask_end)
     emitter?.off('executeJobStart', execute_job_start)
     emitter?.off('executeJobFinish', execute_job_finish)

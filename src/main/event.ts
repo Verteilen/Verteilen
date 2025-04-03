@@ -62,7 +62,7 @@ export class BackendEvent {
             if(on) mainWindow.setMenu(menu_server!)
             else mainWindow.setMenu(menu_client!)
         })
-        this.Loader('record', 'record')
+        //this.Loader('record', 'record')
         ipcMain.on('save_record', (e, record:string) => {
             fs.writeFileSync('record.json', record)
         })
@@ -81,7 +81,7 @@ export class BackendEvent {
                 return file.toString()
             }
         })
-        this.Loader('log', 'log')
+        //this.Loader('log', 'log')
         ipcMain.on('save_log', (e, log:string) => {
             fs.writeFileSync('log.json', log)
         })
@@ -99,9 +99,7 @@ export class BackendEvent {
                 return file.toString()
             }
         })
-        //this.Loader("lib", "lua")
-        this.Loader('lib', 'lib')
-
+        //this.Loader('lib', 'lib')
         ipcMain.on('save_lib', (e, log:string) => {
             fs.writeFileSync('lib.json', log)
         })
