@@ -33,7 +33,7 @@ const close = () => {
 </script>
 
 <template>
-    <v-dialog persistent width="90vw" v-model="modal" class="text-white">
+    <v-dialog persistent width="600" v-model="modal" class="text-white">
         <v-card>
             <v-card-title>
                 <v-icon>mdi-cog</v-icon>

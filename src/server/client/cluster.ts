@@ -1,4 +1,5 @@
 import { Header, Job } from '../interface'
+import { ClientHTTP } from './http'
 import { ClientJobExecute } from './job_execute'
 import { ClientResource } from './resource'
 
@@ -66,7 +67,15 @@ export function RUN(){
             }
             console.log(JSON.stringify(h))
         }).catch(err => ERROR(err))
-    }else{
+    }
+    else if (process.env.type == 'HTTP'){
+        const m:string = process.env.method || 'GET'
+        const u:string = process.env.url || ''
+        const p:any = process.env.params
+        const r:ClientHTTP = new ClientHTTP(u, m, p)
+        r.RUN()
+    }
+    else{
         process.exit(1)
     }
 }

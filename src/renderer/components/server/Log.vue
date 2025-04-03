@@ -4,6 +4,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
 import { AppConfig, BusType, ExecuteRecord, ExecuteState, Log, Project } from '../../interface';
+import ParameterPage from './console/Parameter.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -12,6 +13,7 @@ interface PROPS {
     config: AppConfig
 }
 
+const tag = ref(0)
 const data = defineModel<ExecuteRecord>()
 const props = defineProps<PROPS>()
 const leftSize = ref(3)
@@ -19,9 +21,10 @@ const rightSize = ref(9)
 const totalLength = ref(4)
 const current:Ref<number> = ref(-1)
 const selection:Ref<Array<number>> = ref([])
+const panelValue:Ref<Array<number>> = ref([])
+
 const getselect = computed(() => selection.value.length == 0 ? undefined : props.logs.logs[selection.value[0]])
 const getselectTask = computed(() => getselect.value == undefined || current.value == -1 ? undefined : getselect.value.logs[current.value])
-const panelValue:Ref<Array<number>> = ref([])
 
 const getEnable = (r:number):Array<number> => {
     if(getselect.value == undefined || current.value == -1) return []
@@ -97,10 +100,18 @@ onUnmounted(() => {
     <v-container fluid class="ma-0 pa-0">
         <div class="py-3">
             <v-toolbar density="compact" class="px-3">
-                <v-spacer></v-spacer>
+                <p>{{ $t('action') }}</p>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
-                        <v-btn icon v-bind="pro.props" @click="clean">
+                        <v-btn icon color="success" v-bind="pro.props" :disabled="getselect == undefined" @click="recover">
+                            <v-icon>mdi-recycle</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('recover') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
+                        <v-btn icon color="error" v-bind="pro.props" @click="clean">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>
@@ -110,6 +121,15 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="leftSize" style="border-right: brown 1px solid;">
+                <v-list v-model.number="tag" mandatory color="success" style="filter:brightness(1.2)">
+                    <v-list-item @click="tag = 0" :value="0" :active="tag == 0">
+                        {{ $t('console.dashboard') }}
+                    </v-list-item>
+                    <v-list-item @click="tag = 1" :value="1" :active="tag == 1">
+                        {{ $t('console.parameter') }}
+                    </v-list-item>
+                </v-list>
+
                 <v-list v-model:selected="selection" @update:selected="current = -1">
                     <v-list-item v-for="(item, i) in props.logs.logs" :key="i" :value="i">
                         <template v-slot:prepend>
@@ -126,12 +146,7 @@ onUnmounted(() => {
                     </v-list-item>
                 </v-list>
             </v-col>
-            <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="getselect != undefined">
-                <div class="py-3">
-                    <v-btn-group>
-                        <v-btn color='primary' :disabled="getselect == undefined" @click="recover">{{ $t('recover') }}</v-btn>
-                    </v-btn-group>
-                </div>
+            <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 0 && getselect != undefined">
                 <v-stepper :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
                     <v-stepper-header>
                         <template v-for="i in page(r - 1)" :key="i">
@@ -161,6 +176,9 @@ onUnmounted(() => {
                     </v-expansion-panel>
                 </v-expansion-panels>
                 <br /> <br />
+            </v-col>
+            <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 1 && getselect != undefined">
+                <ParameterPage v-model="getselect.parameter" />
             </v-col>
         </v-row>
     </v-container>

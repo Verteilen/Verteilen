@@ -1,4 +1,4 @@
-import { Node, Project } from "./base"
+import { Node, Parameter, Project } from "./base"
 import { ExecuteState } from "./enum"
 
 export interface ExecuteData {
@@ -8,15 +8,16 @@ export interface ExecuteData {
 
 export interface ExecutionTaskLog {
     task_state: ExecuteData
-    start_timer: number,
-    end_timer: number,
+    start_timer: number
+    end_timer: number
     task_detail: Array<ExecuteRecordTask>
 }
 
 export interface ExecutionLog {
     project: Project
-    start_timer: number,
-    end_timer: number,
+    parameter: Parameter
+    start_timer: number
+    end_timer: number
     state: ExecuteState
     logs: Array<ExecutionTaskLog>
 }

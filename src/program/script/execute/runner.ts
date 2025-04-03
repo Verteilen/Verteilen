@@ -97,23 +97,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
          */
         if(this.current_cron.length == 0){
             // First time
-            this.sync_local_para(this.localPara!)
-            // Create the cronjob instance here
-            for(let i = 0; i < taskCount; i++){
-                const d:CronJobState = {
-                    id: i + 1,
-                    uuid: "",
-                    work: task.jobs.map(x => ({
-                        uuid: x.uuid,
-                        runtime: '',
-                        state: ExecuteState.NONE,
-                        job: x
-                    }))
-                }
-                d.work.forEach((x, j) => x.runtime = uuidv6({}, undefined, i * taskCount + j))
-                this.current_cron.push(d)
-            }
-            this.proxy?.executeTaskStart([task, taskCount ])
+            this.Init_CronContainer(task, taskCount)
         } else{
             // If disconnect or deleted...
             /**
@@ -287,5 +271,26 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         }
         // Boradcasting
         this.sync_local_para(this.localPara!)
+    }
+
+
+    protected Init_CronContainer = (task:Task, taskCount:number) => {
+        this.sync_local_para(this.localPara!)
+        // Create the cronjob instance here
+        for(let i = 0; i < taskCount; i++){
+            const d:CronJobState = {
+                id: i + 1,
+                uuid: "",
+                work: task.jobs.map(x => ({
+                    uuid: x.uuid,
+                    runtime: '',
+                    state: ExecuteState.NONE,
+                    job: x
+                }))
+            }
+            d.work.forEach((x, j) => x.runtime = uuidv6({}, undefined, i * taskCount + j))
+            this.current_cron.push(d)
+        }
+        this.proxy?.executeTaskStart([task, taskCount ])
     }
 }

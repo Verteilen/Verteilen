@@ -50,10 +50,11 @@ export enum ExecuteState {
 }
 
 export enum LuaLib {
-    ALL = ~(~0 << 4),
+    ALL = ~(~0 << 7),
     OS = 1 << 0, 
     ENV = 1 << 1, 
-    MESSAGE = 1 << 2
+    MESSAGE = 1 << 2,
+    HTTP = 1 << 3,
 }
 
 export const DataTypeText: { [key:number]:string } = {

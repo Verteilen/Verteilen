@@ -40,12 +40,12 @@ const updateLocate = () => {
 onMounted(() => {
     updateLocate()
     emitter?.on('updateLocate', updateLocate)
-    emitter?.on('updateRuntimeParameter', update_runtime_parameter)
+    emitter?.on('updateHandle', update_runtime_parameter)
 })
 
 onUnmounted(() => {
     emitter?.off('updateLocate', updateLocate)
-    emitter?.off('updateRuntimeParameter', update_runtime_parameter)
+    emitter?.off('updateHandle', update_runtime_parameter)
 })
 
 </script>

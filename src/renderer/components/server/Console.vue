@@ -4,7 +4,7 @@ import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
-
+import NumberDialog from '../dialog/NumberDialog.vue';
 import DebugLog from './console/DebugLog.vue';
 import List from './console/List.vue';
 import ParameterPage from './console/Parameter.vue';
@@ -24,14 +24,58 @@ const leftSize = ref(3)
 const rightSize = ref(9)
 const tag = ref(1)
 const para:Ref<Parameter | undefined> = ref(undefined)
+const useCron = ref(false)
+const skipModal = ref(false)
+
 /**
- * 0: All\
- * 1: Project\
- * 2: Task
+ * The speicifed the process step type
+ * * 0: All Projects through
+ * * 1: Single project through
+ * * 2: SIngle task through
  */
 const process_type = ref(-1)
 let hasNewLog = false
 
+//#region Bus Events
+/**
+ * Attach to main update cycle events\
+ * This will response for the main update for the process worker
+ */
+const updateHandle = () => {
+    if(data.value!.running && !data.value!.stop){
+        try {
+            props.execute?.Update()
+        }catch(err:any){
+            data.value!.stop = true
+            const str = 'Execute Error: ' + err.name + '\n' + err.message
+            emitter?.emit('makeToast', {
+                title: 'Error Interrupt',
+                message: str,
+                type: 'danger'
+            })
+            console.error(err)
+        }
+    }
+    if(data.value!.stop){
+        if(props.execute!.jobstack == 0){
+            data.value!.running = false
+        }
+    }
+    if(hasNewLog){
+        emitter?.emit('updateLog', props.logs)
+        hasNewLog = false
+    }
+}
+/**
+ * When parameter getting change by the process steps\
+ * This get called
+ * @param d The whole container for the parameters
+ */
+const update_runtime_parameter = (d:Parameter) => {
+    para.value = d
+    if(props.logs.logs.length > 0) props.logs.logs[0].parameter = d
+    hasNewLog = true
+}
 const receivedPack = (record:Record) => {
     const pass = props.execute!.Register(record.projects)
     if(pass == -1){
@@ -77,6 +121,7 @@ const receivedPack = (record:Record) => {
     const target = data.value!.projects[data.value!.project_index]
     const newlog:ExecutionLog = {
         project: target,
+        parameter: target.parameter,
         state: ExecuteState.NONE,
         start_timer: Date.now(),
         end_timer: 0,
@@ -131,6 +176,7 @@ const execute_project_start = (d:Project) => {
         project: target,
         state: ExecuteState.RUNNING,
         start_timer: Date.now(),
+        parameter: d.parameter,
         end_timer: 0,
         logs: target.task.map(x => {
             return {
@@ -174,6 +220,7 @@ const execute_task_start = (d:[Task, number]) => {
     if (data.value!.project_index == -1) return
     const index = data.value!.projects[data.value!.project_index].task.findIndex(x => x.uuid == d[0].uuid)
     if(index == -1) return
+    useCron.value = d[0].cronjob
     data.value!.task = d[0].uuid
     data.value!.task_index = index
     data.value!.task_state[index].state = ExecuteState.RUNNING
@@ -210,6 +257,7 @@ const execute_task_finish = (d:Task) => {
     if (data.value!.project_index == -1) return
     const index = data.value!.projects[data.value!.project_index].task.findIndex(x => x.uuid == d.uuid)
     if(index == -1) return
+    useCron.value = false
     data.value!.task = ""
     data.value!.task_state[index].state = ExecuteState.FINISH
 
@@ -292,45 +340,31 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
     }
     //data.value!.task_detail[index].node = ""
 }
+//#endregion
 
-const update_runtime_parameter = (d:Parameter) => {
-    para.value = d
-}
-
-const updateHandle = () => {
-    if(data.value!.running && !data.value!.stop){
-        try {
-            props.execute?.Update()
-        }catch(err:any){
-            data.value!.stop = true
-            const str = '執行中出現錯誤: ' + err.name + '\n' + err.message
-            emitter?.emit('makeToast', {
-                title: '錯誤中斷',
-                message: str,
-                type: 'danger'
-            })
-            console.error(err)
-        }
-    }
-    if(data.value!.stop){
-        if(props.execute!.jobstack == 0){
-            data.value!.running = false
-        }
-    }
-    if(hasNewLog){
-        emitter?.emit('updateLog', props.logs)
-        hasNewLog = false
-    }
-}
-
+//#region UI Events
+/**
+ * Running the process
+ * @param type How long does the step goes {@link process_type}
+ * * 0: All Projects through
+ * * 1: Single project through
+ * * 2: SIngle task through
+ */
 const execute = (type:number) => {
     process_type.value = type
     data.value!.running = true
     data.value!.stop = false
     props.execute!.first = true
 }
-
-const skip = (type:number, state?:ExecuteState) => {
+/**
+ * Skip the project ahead, 
+ * @param type How far step you want to skip
+ * * 0: Project
+ * * 1: Task
+ * * 2: Step
+ * @param state The override state, default is FINISH
+ */
+const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
     if(type == 0){
         // Project
         data.value!.project_state[data.value!.project_index].state = state != undefined ? state : ExecuteState.FINISH
@@ -359,7 +393,7 @@ const skip = (type:number, state?:ExecuteState) => {
                 })
             }
             const index = props.execute!.SkipProject()
-            console.log("跳過專案", index)
+            console.log("Skip project", index)
         }
     }else if (type == 1){
         // Task
@@ -382,11 +416,30 @@ const skip = (type:number, state?:ExecuteState) => {
                 })
             }
             const index = props.execute!.SkipTask()
-            console.log("跳過流程", index)
+            console.log("Skip task", index)
         }
+    }else if (type == 2){
+        skipModal.value = true
     }
 }
-
+/**
+ * When user click confirm on the skip step modal
+ */
+const confirmSkip = (v:number) => {
+    const index = props.execute!.SkipSubTask(v)
+    if(index < 0) {
+        console.error("Skip step failed: ", index)
+        return
+    }
+    for(let i = 0; i < index; i++){
+        data.value!.task_detail[i].state = ExecuteState.FINISH
+    }
+    console.log("Skip task", index)
+    skipModal.value = false
+}
+/**
+ * Destroy all state and reset
+ */
 const clean = () => {
     props.logs.logs[0].end_timer = Date.now()
     hasNewLog = true
@@ -401,11 +454,16 @@ const clean = () => {
     data.value!.task_detail = []
     para.value = undefined
 }
-
+/**
+ * It means pause... but i just name it 'stop' anyway. you get the idea\
+ * This will not destroy the state, it just stop the update thought\
+ * If you want to destroy and reset all state, you should call {@link clean()} function instead
+ */
 const stop = () => {
     data.value!.stop = true
     props.execute!.Stop()
 }
+//#endregion
 
 onMounted(() => {
     emitter?.on('execute', receivedPack)
@@ -485,6 +543,14 @@ onUnmounted(() => {
                     </template>
                     {{ $t('task') }}
                 </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="skip(2)" :disabled="data.projects.length == 0 || data.running" color="info">
+                            <v-icon>mdi-debug-step-over</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('step') }}
+                </v-tooltip>
                 <p>{{ $t('action') }}</p>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -506,17 +572,17 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 150px)" class="w-100">
             <v-col :cols="leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
-                <v-list v-model="tag" color="success">
-                    <v-list-item @click="tag = 0" :value="0">
+                <v-list v-model.number="tag" mandatory color="success">
+                    <v-list-item @click="tag = 0" :value="0" :active="tag == 0">
                         {{ $t('console.list') }}
                     </v-list-item>
-                    <v-list-item @click="tag = 1" :value="1">
+                    <v-list-item @click="tag = 1" :value="1" :active="tag == 1">
                         {{ $t('console.dashboard') }}
                     </v-list-item>
-                    <v-list-item @click="tag = 3" :value="3">
+                    <v-list-item @click="tag = 3" :value="3" :active="tag == 3">
                         {{ $t('console.parameter') }}
                     </v-list-item>
-                    <v-list-item @click="tag = 2" :value="2">
+                    <v-list-item @click="tag = 2" :value="2" :active="tag == 2">
                         Debug Log
                     </v-list-item>
                 </v-list>
@@ -534,12 +600,11 @@ onUnmounted(() => {
                 <ParameterPage v-model="para" />
             </v-col>
         </v-row>
+        <NumberDialog v-model="skipModal" 
+            :default-value="0" 
+            @submit="confirmSkip" 
+            :title="$t('modal.skip-step')" 
+            icon="mdi-debug-step-over" 
+            :label="$t('step')"/>
     </div>
 </template>
-
-<style scoped>
-
-</style>
-
-
-
