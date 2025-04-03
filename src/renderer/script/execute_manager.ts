@@ -100,7 +100,25 @@ export class ExecuteManager extends ExecuteManager_Runner {
     }
 
     Disconnect = (source:WebsocketPack) => {
-        
+        if(this.current_p == undefined) return
+        if(this.current_t == undefined) return
+        if(this.current_job.length > 0){
+            const singleContainIt = this.current_job.filter(x => x.uuid == source.uuid && x.state == ExecuteState.RUNNING)
+            singleContainIt.forEach(x => {
+                x.uuid = ''
+                x.state = ExecuteState.NONE
+            })
+        }else if (this.current_cron.length > 0){
+            const cronContainIt = this.current_cron.filter(x => x.work.filter(y => y.state == ExecuteState.RUNNING && y.uuid == source.uuid).length > 0)
+            cronContainIt.forEach(element => {
+                element.work.forEach(x => {
+                    x.uuid = ''
+                    x.state = ExecuteState.NONE
+                })
+            });
+        }
+
+        source.current_job = []
     }
 
     /**
