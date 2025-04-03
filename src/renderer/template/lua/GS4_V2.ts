@@ -35,13 +35,17 @@ env.setnumber("gop_negative", gap_n)
 
 function copy_to_positive(p_folder)
     local to = p_folder.."/"..tostring(p_count)
-    o.copydir(from, to)
+    if o.exist('from') then
+        o.copydir(from, to)
+    end
     p_count = p_count + 1
 end
 
 function copy_to_negative(n_folder)
     local to = n_folder.."/"..tostring(n_count)
-    o.copydir(from, to)
+    if o.exist('from') then
+        o.copydir(from, to)
+    end
     n_count = n_count + 1
 end
 

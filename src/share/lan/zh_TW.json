@@ -55,7 +55,9 @@
         "parameter-datatype": "資料型態",
         "new-node": "新增節點",
         "enter-node-address": "輸入節點位址",
-        "skip-step": "跳過步驟"
+        "skip-step": "跳過步驟",
+        "delete-node": "刪除節點",
+        "delete-node-confirm": "確定刪除以下節點嗎?"
     },
     "toolbar": {
         "project": "專案管理",

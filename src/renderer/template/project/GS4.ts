@@ -440,8 +440,6 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: true },
             { name: "videogs", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "conda_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
-
-            { name: "start_at_0", value: false, type: DataType.Boolean, runtimeOnly: false, hidden: false },
         ]
     }
     r.parameter = para

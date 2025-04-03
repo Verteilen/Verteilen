@@ -63,7 +63,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Position = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap + IF( start_at_0, 0, 1 )'
+                expression: '(ck - 1) * iframe_gap'
             },
             {
                 name: 'blend_value',
@@ -107,7 +107,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Negative = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap + IF( start_at_0, 0, 1 )'
+                expression: '(ck - 1) * iframe_gap'
             },
             {
                 name: 'blend_value',
@@ -168,8 +168,8 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
             { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "gop_positive", value: 10, type: DataType.Number, runtimeOnly: true, hidden: false },
-            { name: "gop_negative", value: 9, type: DataType.Number, runtimeOnly: true, hidden: false },
+            { name: "gop_positive", value: 10, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "gop_negative", value: 9, type: DataType.Number, runtimeOnly: false, hidden: false },
 
             { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
@@ -181,8 +181,6 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
             { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: true },
             { name: "videogs", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "conda_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
-
-            { name: "start_at_0", value: false, type: DataType.Boolean, runtimeOnly: false, hidden: false },
         ]
     }
     r.parameter = para

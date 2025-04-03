@@ -86,6 +86,7 @@ const getindex = (r:number, i:number):number => {
 const clean = () => {
     if(!props.config.isElectron) return
     window.electronAPI.send('delete_all_log')
+    logs.value.logs = []
 }
 
 const recover = () => {
@@ -130,6 +131,7 @@ const receivedPack = async (record:Record) => {
 }
 
 const feedback_message = (d:FeedBack) => {
+    if(!props.preference.log) return
     if(d.index == undefined || d.index == -1) return
     if(!props.preference.log) return
     if(logs.value.logs[0].logs[task_index.value].task_detail.length > d.index){
@@ -141,6 +143,7 @@ const feedback_message = (d:FeedBack) => {
 }
 
 const execute_project_start = async (d:Project) => {
+    if(!props.preference.log) return
     const target = data.value!.projects[data.value!.project_index]
     const title = await getnewname(target.title)
     const newlog:ExecutionLog = {
@@ -169,12 +172,14 @@ const execute_project_start = async (d:Project) => {
 }
 
 const execute_project_finish = (d:Project) => {
+    if(!props.preference.log) return
     logs.value.logs[0].state = ExecuteState.FINISH
     logs.value.logs[0].end_timer = Date.now()
     logs.value.logs[0].dirty = true
 }
 
 const execute_task_start = (d:[Task, number]) => {
+    if(!props.preference.log) return
     const index = logs.value.logs[0].project.task.findIndex(x => x.uuid == d[0].uuid)
     if(index == -1) return
     task_index.value = index
@@ -239,6 +244,7 @@ const execute_job_start = (d:[Job, number, string]) => {
 }
 
 const execute_job_finish = (d:[Job, number, string, number]) => {
+    if(!props.preference.log) return
     if (d[3] == 1){
         const currentLog = logs.value.logs[0]
         const task = currentLog.project.task[task_index.value]
