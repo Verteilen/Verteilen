@@ -52,6 +52,7 @@ export interface ExecuteRecord extends Record {
 
 export interface Preference {
     lan: string
+    log: boolean
 }
 
 export interface Library {

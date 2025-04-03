@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Project, Record, Task } from '../../interface';
+import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Preference, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 import NumberDialog from '../dialog/NumberDialog.vue';
@@ -13,6 +13,8 @@ import Process from './console/Process.vue';
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
+    config: AppConfig
+    preference: Preference
     socket: WebsocketManager | undefined
     execute: ExecuteManager | undefined
     logs: Log
@@ -150,6 +152,8 @@ const feedback_message = (d:FeedBack) => {
             container.message.shift()
         }
     }
+
+    if(!props.preference.log) return
     if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d.index){
         props.logs.logs[0].logs[data.value!.task_index].task_detail[d.index].message.push(d.message)
     }else{
@@ -190,6 +194,8 @@ const execute_project_start = (d:Project) => {
             }
         })
     }
+
+    if(!props.preference.log) return
     props.logs.logs = [newlog].concat(props.logs.logs)
     hasNewLog = true
 }
@@ -261,6 +267,7 @@ const execute_task_finish = (d:Task) => {
     data.value!.task = ""
     data.value!.task_state[index].state = ExecuteState.FINISH
 
+    if(!props.preference.log) return
     props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.FINISH
     props.logs.logs[0].logs[data.value!.task_index].end_timer = Date.now()
     hasNewLog = true
@@ -273,6 +280,8 @@ const execute_subtask_start = (d:[Task, number, string]) => {
     }else{
         console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
     }
+
+    if(!props.preference.log) return
     if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
         props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
     }
@@ -286,6 +295,8 @@ const execute_subtask_end = (d:[Task, number, string]) => {
     }else{
         console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
     }
+
+    if(!props.preference.log) return
     if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
         props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.FINISH
     }

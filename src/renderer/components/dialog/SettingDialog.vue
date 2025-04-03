@@ -41,6 +41,7 @@ const close = () => {
             </v-card-title>
             <v-card-text v-if="buffer">
                 <v-select hide-details :label="$t('menu.language')" v-model="buffer.lan" :items="lan"></v-select>
+                <v-checkbox hide-details :label="$t('menu.log')" v-model="buffer.log"></v-checkbox>
             </v-card-text>
             <template v-slot:actions>
                 <v-btn color="success" @click="confirm">

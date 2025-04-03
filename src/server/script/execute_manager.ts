@@ -99,6 +99,10 @@ export class ExecuteManager extends ExecuteManager_Runner {
         }
     }
 
+    Disconnect = (source:WebsocketPack) => {
+        
+    }
+
     /**
      * When user trying to skip project
      * @returns The index of the project

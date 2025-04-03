@@ -382,6 +382,7 @@ const disconnect = (x:WebsocketPack) => {
     type: 'danger',
     message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
   })
+  execute_manager.value?.Disconnect(x)
 }
 
 const analysis = (b:BusAnalysis) => {
@@ -523,6 +524,8 @@ onUnmounted(() => {
         :nodes="nodes" />
 
       <ConsolePage v-show="page == 5" 
+        :config="props.config"
+        :preference="props.preference"
         :socket="websocket_manager"
         :execute="execute_manager"
         :logs="log"
