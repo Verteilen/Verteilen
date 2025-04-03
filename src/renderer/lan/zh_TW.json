@@ -15,7 +15,8 @@
         "paste": "複製",
         "delete": "刪除",
         "selectAll": "全選",
-        "language": "語言"
+        "language": "語言",
+        "log": "紀錄"
     },
     "toast": {
         "server": "伺服器模式",

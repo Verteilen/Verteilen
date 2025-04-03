@@ -15,7 +15,8 @@
         "paste": "Paste",
         "delete": "Delete",
         "selectAll": "Select All",
-        "language": "Language"
+        "language": "Language",
+        "log": "Log"
     },
     "toast": {
         "server": "Server Mode",
