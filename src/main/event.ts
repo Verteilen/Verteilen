@@ -5,7 +5,7 @@ import { Client } from "./client/client";
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
-import { Job, Libraries, Log, Preference, Project, Record } from "./interface";
+import { Job, Libraries, Preference, Project, Record } from "./interface";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
@@ -81,24 +81,7 @@ export class BackendEvent {
                 return file.toString()
             }
         })
-        //this.Loader('log', 'log')
-        ipcMain.on('save_log', (e, log:string) => {
-            fs.writeFileSync('log.json', log)
-        })
-        ipcMain.handle('load_log', (e) => {
-            const exist = fs.existsSync('log.json');
-            messager_log(`[Event] Read log.js, file exist: ${exist}`)
-            if(!exist){
-                const record:Log = {
-                    logs: []
-                }
-                fs.writeFileSync('log.json', JSON.stringify(record, null, 4))
-                return JSON.stringify(record)
-            } else {
-                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }
-        })
+        this.Loader('log', 'log')
         //this.Loader('lib', 'lib')
         ipcMain.on('save_lib', (e, log:string) => {
             fs.writeFileSync('lib.json', log)
@@ -175,7 +158,15 @@ export class BackendEvent {
         ipcMain.handle(`list_all_${key}`, (e) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            return fs.readFileSync(root)
+            const ps = fs.readdirSync(root, { withFileTypes: false })
+            ps.map(x => {
+                const stat = fs.statSync(path.join(root, x))
+                return {
+                    name: x,
+                    size: stat.size,
+                    time: stat.ctime
+                }
+            })
         })
         ipcMain.on(`save_${key}`, (e, name:string, log:string) => {
             const root = path.join("data", folder)
@@ -190,6 +181,12 @@ export class BackendEvent {
             const filename = name + ".json"
             const p = path.join(root, filename)
             if (fs.existsSync(p)) fs.rmSync(p)
+        })
+        ipcMain.on(`delete_all_${key}`, (e, name:string) => {
+            const root = path.join("data", folder)
+            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+            const ps = fs.readdirSync(root, { withFileTypes: false })
+            ps.forEach(x => fs.rmSync(path.join(root, x)))
         })
         ipcMain.handle(`load_${key}`, (e, name:string) => {
             const root = path.join("data", folder)

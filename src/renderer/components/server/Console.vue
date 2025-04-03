@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Libraries, Log, MESSAGE_LIMIT, Parameter, Preference, Project, Record, Task } from '../../interface';
+import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, FileState, Job, JobCategory, Libraries, MESSAGE_LIMIT, Parameter, Preference, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 import NumberDialog from '../dialog/NumberDialog.vue';
@@ -17,7 +17,7 @@ interface PROPS {
     preference: Preference
     socket: WebsocketManager | undefined
     execute: ExecuteManager | undefined
-    logs: Log
+    logs: Array<FileState>
     libs: Libraries
 }
 const data = defineModel<ExecuteRecord>()

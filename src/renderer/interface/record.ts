@@ -71,3 +71,9 @@ export interface Library {
 export interface Libraries {
     libs: Array<Library>
 }
+
+export interface FileState {
+    name: string,
+    size: number
+    time: Date
+}

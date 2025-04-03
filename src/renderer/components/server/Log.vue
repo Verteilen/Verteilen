@@ -3,13 +3,13 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { AppConfig, BusType, ExecuteRecord, ExecuteState, Log, Project } from '../../interface';
+import { AppConfig, BusType, ExecuteRecord, ExecuteState, FileState, Log, Project } from '../../interface';
 import ParameterPage from './console/Parameter.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
-    logs: Log
+    logs: Array<FileState>
     config: AppConfig
 }
 
@@ -63,12 +63,8 @@ const getindex = (r:number, i:number):number => {
 }
 
 const clean = () => {
-    props.logs.logs = props.logs.logs.filter((x, index) => {
-        const c1 = data.value!.projects.length > 0 && data.value!.project_index >= 0 && x.project.uuid == data.value?.projects[data.value?.project_index].uuid
-        const c2 = x.start_timer != 0
-        const c3 = x.end_timer == 0
-        return c1 && c2 && c3 && index == 0
-    })
+    if(!props.config.isElectron) return
+    window.electronAPI.send('delete_all_log')
     updateLog(props.logs)
 }
 
@@ -130,18 +126,16 @@ onUnmounted(() => {
                     </v-list-item>
                 </v-list>
 
-                <v-list v-model:selected="selection" @update:selected="current = -1">
-                    <v-list-item v-for="(item, i) in props.logs.logs" :key="i" :value="i">
+                <v-list v-model.number="current">
+                    <v-list-item v-for="(item, i) in props.logs" :key="i" :value="i" :active="current == i">
                         <template v-slot:prepend>
-                            <v-icon color="primary" v-if="item.state == ExecuteState.NONE || item.state == ExecuteState.RUNNING">mdi-book</v-icon>
-                            <v-icon color="danger" v-else-if="item.state == ExecuteState.ERROR || item.state == ExecuteState.SKIP">mdi-minus</v-icon>
-                            <v-icon color="success" v-else-if="item.state == ExecuteState.FINISH">mdi-check</v-icon>
+                            <v-icon color="primary">mdi-book</v-icon>
                         </template>
                         <v-list-item-title>
-                            {{ $t('project') }}: {{ item.project.title }}    
+                            {{ $t('project') }}: {{ item.name }}    
                         </v-list-item-title>
                         <v-list-item-subtitle>
-                            {{ new Date(item.start_timer).toUTCString() }}    
+                            {{ new Date(item.time).toUTCString() }}    
                         </v-list-item-subtitle>
                     </v-list-item>
                 </v-list>

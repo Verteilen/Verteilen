@@ -71,6 +71,7 @@ export type BusType = {
     updateCurrent: ExecutionLog,
     updateLog: Log
     updateHandle: void
+    slowUpdateHandle: void
     shellReply: Single
     folderReply: ShellFolder
     feedbackMessage: FeedBack

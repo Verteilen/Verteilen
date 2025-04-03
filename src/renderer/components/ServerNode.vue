@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, FileState, Job, JobCategory, JobType, JobType2, Libraries, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -26,6 +26,7 @@ const console_manager:Ref<ConsoleManager | undefined> = ref(undefined)
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
+let slowUpdateHandle:any = undefined
 
 interface PROPS {
     preference: Preference
@@ -67,7 +68,7 @@ const projects_exe:Ref<ExecuteRecord>  = ref({
   task_state: [],
   task_detail: [],
 })
-const log:Ref<Log> = ref({logs: []})
+const log:Ref<Array<FileState>> = ref([])
 const libs:Ref<Libraries> = ref({libs: []})
 const selectProject:Ref<Project | undefined> = ref(undefined)
 const selectTask:Ref<Task | undefined> = ref(undefined)
@@ -390,13 +391,21 @@ const analysis = (b:BusAnalysis) => {
   execute_manager.value?.Analysis(b)
 }
 
+const slowUpdate = () => {
+  if(!props.config.isElectron) return
+  window.electronAPI.invoke('list_all_log').then(x => {
+    log.value = x
+  })
+}
+
 onMounted(() => {
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
-  console.log("updateHandle", updateHandle)
+  slowUpdateHandle = setInterval(() => emitter?.emit('slowUpdateHandle'), RENDER_FILE_UPDATETICK);
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
+  emitter?.on('slowUpdateHandle', slowUpdate)
 
   waitSetup(props.config).then(x => {
     if(!x.isExpress){
@@ -458,7 +467,9 @@ onUnmounted(() => {
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
+  emitter?.off('slowUpdateHandle', slowUpdate)
   if(updateHandle != undefined) clearInterval(updateHandle)
+  if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   if(props.config.isElectron) {
     window.electronAPI.eventOff('createProject', menuCreateProject)
     window.electronAPI.eventOff('menu_export_project', menu_export_project)
