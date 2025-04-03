@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, FileState, Job, JobCategory, Libraries, MESSAGE_LIMIT, Parameter, Preference, Project, Record, Task } from '../../interface';
+import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, Libraries, MESSAGE_LIMIT, Parameter, Preference, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 import NumberDialog from '../dialog/NumberDialog.vue';
@@ -17,7 +17,6 @@ interface PROPS {
     preference: Preference
     socket: WebsocketManager | undefined
     execute: ExecuteManager | undefined
-    logs: Array<FileState>
     libs: Libraries
 }
 const data = defineModel<ExecuteRecord>()
@@ -36,7 +35,6 @@ const skipModal = ref(false)
  * * 2: SIngle task through
  */
 const process_type = ref(-1)
-let hasNewLog = false
 
 //#region Bus Events
 /**
@@ -63,10 +61,7 @@ const updateHandle = () => {
             data.value!.running = false
         }
     }
-    if(hasNewLog){
-        emitter?.emit('updateLog', props.logs)
-        hasNewLog = false
-    }
+    
 }
 /**
  * When parameter getting change by the process steps\
@@ -75,8 +70,6 @@ const updateHandle = () => {
  */
 const update_runtime_parameter = (d:Parameter) => {
     para.value = d
-    if(props.logs.logs.length > 0) props.logs.logs[0].parameter = d
-    hasNewLog = true
 }
 const receivedPack = (record:Record) => {
     const pass = props.execute!.Register(record.projects)
@@ -119,28 +112,6 @@ const receivedPack = (record:Record) => {
             state: ExecuteState.NONE
         })
     }
-    
-    const target = data.value!.projects[data.value!.project_index]
-    const newlog:ExecutionLog = {
-        project: target,
-        parameter: target.parameter,
-        state: ExecuteState.NONE,
-        start_timer: Date.now(),
-        end_timer: 0,
-        logs: target.task.map(x => {
-            return {
-                start_timer: 0,
-                end_timer: 0,
-                task_state: {
-                    uuid: x.uuid,
-                    state: ExecuteState.NONE
-                },
-                task_detail: []
-            }
-        })
-    }
-    props.logs.logs = [newlog].concat(props.logs.logs)
-    hasNewLog = true
 }
 
 const feedback_message = (d:FeedBack) => {
@@ -152,14 +123,6 @@ const feedback_message = (d:FeedBack) => {
             container.message.shift()
         }
     }
-
-    if(!props.preference.log) return
-    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d.index){
-        props.logs.logs[0].logs[data.value!.task_index].task_detail[d.index].message.push(d.message)
-    }else{
-        console.warn("Try access message by index but failed: ", d)
-    }
-    hasNewLog = true
 }
 
 const execute_project_start = (d:Project) => {
@@ -174,30 +137,6 @@ const execute_project_start = (d:Project) => {
             state: ExecuteState.NONE
         }
     })
-
-    const target = data.value!.projects[data.value!.project_index]
-    const newlog:ExecutionLog = {
-        project: target,
-        state: ExecuteState.RUNNING,
-        start_timer: Date.now(),
-        parameter: d.parameter,
-        end_timer: 0,
-        logs: target.task.map(x => {
-            return {
-                start_timer: 0,
-                end_timer: 0,
-                task_state: {
-                    uuid: x.uuid,
-                    state: ExecuteState.NONE
-                },
-                task_detail: []
-            }
-        })
-    }
-
-    if(!props.preference.log) return
-    props.logs.logs = [newlog].concat(props.logs.logs)
-    hasNewLog = true
 }
 
 const execute_project_finish = (d:Project) => {
@@ -209,10 +148,6 @@ const execute_project_finish = (d:Project) => {
     if(index == -1) return
     data.value!.project = ""
     data.value!.project_state[index].state = ExecuteState.FINISH
-
-    props.logs.logs[0].state = ExecuteState.FINISH
-    props.logs.logs[0].end_timer = Date.now()
-    hasNewLog = true
 
     if(data.value!.projects.length - 1 == index){
         clean()
@@ -230,8 +165,6 @@ const execute_task_start = (d:[Task, number]) => {
     data.value!.task = d[0].uuid
     data.value!.task_index = index
     data.value!.task_state[index].state = ExecuteState.RUNNING
-    props.logs.logs[0].logs[data.value!.task_index].task_detail = []
-
     data.value!.task_detail = []
     const p = data.value!.projects[data.value!.project_index]
     const t = p.task[data.value!.task_index]
@@ -243,20 +176,7 @@ const execute_task_start = (d:[Task, number]) => {
             message: [],
             state: ExecuteState.NONE
         })
-        props.logs.logs[0].logs[data.value!.task_index].task_detail.push({
-            index: i,
-            node: "",
-            message: [],
-            state: ExecuteState.NONE
-        })
     }
-
-    if(!props.preference.log) return
-    if(props.logs.logs[0].logs.length > data.value!.task_index){
-        props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.RUNNING
-        props.logs.logs[0].logs[data.value!.task_index].start_timer = Date.now()
-    }
-    hasNewLog = true
 }
 
 const execute_task_finish = (d:Task) => {
@@ -270,13 +190,6 @@ const execute_task_finish = (d:Task) => {
     useCron.value = false
     data.value!.task = ""
     data.value!.task_state[index].state = ExecuteState.FINISH
-
-    if(!props.preference.log) return
-    if(props.logs.logs[0].logs.length > data.value!.task_index){
-        props.logs.logs[0].logs[data.value!.task_index].task_state.state = ExecuteState.FINISH
-        props.logs.logs[0].logs[data.value!.task_index].end_timer = Date.now()
-    }
-    hasNewLog = true
 }
 
 const execute_subtask_start = (d:[Task, number, string]) => {
@@ -286,12 +199,6 @@ const execute_subtask_start = (d:[Task, number, string]) => {
     }else{
         console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
     }
-
-    if(!props.preference.log) return
-    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
-        props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
-    }
-    hasNewLog = true
 }
 const execute_subtask_update = (d:[Task, number, string, ExecuteState]) => {
     if(data.value!.task_detail.length > d[1]){
@@ -300,12 +207,6 @@ const execute_subtask_update = (d:[Task, number, string, ExecuteState]) => {
     }else{
         console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
     }
-
-    if(!props.preference.log) return
-    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
-        props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = d[3]
-    }
-    hasNewLog = true
 }
 const execute_subtask_end = (d:[Task, number, string]) => {
     if(data.value!.task_detail.length > d[1]){
@@ -314,12 +215,6 @@ const execute_subtask_end = (d:[Task, number, string]) => {
     }else{
         console.error(`subtask_start ${d[1]} is out of range: ${data.value!.task_detail.length}`)
     }
-
-    if(!props.preference.log) return
-    if(props.logs.logs[0].logs[data.value!.task_index].task_detail.length > d[1]){
-        props.logs.logs[0].logs[data.value!.task_index].task_detail[d[1]].state = ExecuteState.FINISH
-    }
-    hasNewLog = true
 }
 
 const execute_job_start = (d:[Job, number, string]) => {
@@ -328,7 +223,6 @@ const execute_job_start = (d:[Job, number, string]) => {
 
 const execute_job_finish = (d:[Job, number, string, number]) => {
     if (d[3] == 1){
-        const currentLog = props.logs.logs[0]
         const task = data.value!.projects[data.value!.project_index].task[data.value!.task_index]
         const index = task.jobs.findIndex(x => x.uuid == d[0].uuid)
         if(index != -1 && task.jobs[index].category == JobCategory.Condition){
@@ -339,17 +233,13 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
             let timer:any
             timer = setInterval(() => {
                 if(data.value!.running == false){
-                    hasNewLog = true
                     clearInterval(timer)
                     const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                    currentLog.logs[data.value!.task_index].task_detail[d[1]].state = state
-                    currentLog.logs[data.value!.task_index].task_state.state = state
                     data.value!.task_state[data.value!.task_index].state = state
                     data.value!.task_detail[d[1]].state = state
                     if (cr == ConditionResult.Pause) return
                     if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
                         skip(0, state)
-                        currentLog.state = state
                         if(data.value!.project.length > 0){
                             if(process_type.value == 0){
                                 execute(process_type.value)
@@ -471,8 +361,6 @@ const confirmSkip = (v:number) => {
  * Destroy all state and reset
  */
 const clean = () => {
-    props.logs.logs[0].end_timer = Date.now()
-    hasNewLog = true
     props.execute!.Clean()
     data.value!.projects = []
     data.value!.project = ""

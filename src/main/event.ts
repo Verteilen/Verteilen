@@ -54,7 +54,9 @@ export class BackendEvent {
             console.log("[Backend] Mode select: " + (isclient ? "Node" : "Server"))
             if(isclient) event.sender.send('msgAppend', "Client mode activate")
         })
-        
+        ipcMain.handle('exist', (event, d:string) => {
+            return fs.existsSync(d)
+        })
         ipcMain.on('menu', (event, on:boolean):void => {
             if(mainWindow == undefined) return;
             console.log(`[Backend] Menu Display: ${on}`)
@@ -141,14 +143,15 @@ export class BackendEvent {
     Loader = (key:string, folder:string) => {
         ipcMain.handle(`load_all_${key}`, (e) => {
             const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+            if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             const r:Array<string> = []
-            const ffs = fs.readFileSync(root)
+            const ffs = fs.readdirSync(root, {withFileTypes: true})
             ffs.forEach(x => {
-                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+                if(!x.isFile()) return
+                const file = fs.readFileSync(path.join(root, x.name), { encoding: 'utf8', flag: 'r' })
                 r.push(file)
             })
-            return r
+            return JSON.stringify(r)
         })
         ipcMain.on(`delete_all_${key}`, (e) => {
             const root = path.join("data", folder)
@@ -171,8 +174,8 @@ export class BackendEvent {
         ipcMain.on(`save_${key}`, (e, name:string, log:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ".json"
-            const p = path.join(root, filename)
+            let filename = name + ".json"
+            let p = path.join(root, filename)
             fs.writeFileSync(p, log)
         })
         ipcMain.on(`delete_${key}`, (e, name:string) => {

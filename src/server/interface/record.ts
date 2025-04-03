@@ -14,6 +14,8 @@ export interface ExecutionTaskLog {
 }
 
 export interface ExecutionLog {
+    dirty?: boolean
+    filename: string
     project: Project
     parameter: Parameter
     start_timer: number

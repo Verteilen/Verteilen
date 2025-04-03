@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, FileState, Job, JobCategory, JobType, JobType2, Libraries, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, Libraries, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -68,7 +68,6 @@ const projects_exe:Ref<ExecuteRecord>  = ref({
   task_state: [],
   task_detail: [],
 })
-const log:Ref<Array<FileState>> = ref([])
 const libs:Ref<Libraries> = ref({libs: []})
 const selectProject:Ref<Project | undefined> = ref(undefined)
 const selectTask:Ref<Task | undefined> = ref(undefined)
@@ -391,13 +390,6 @@ const analysis = (b:BusAnalysis) => {
   execute_manager.value?.Analysis(b)
 }
 
-const slowUpdate = () => {
-  if(!props.config.isElectron) return
-  window.electronAPI.invoke('list_all_log').then(x => {
-    log.value = x
-  })
-}
-
 onMounted(() => {
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
@@ -405,7 +397,6 @@ onMounted(() => {
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
-  emitter?.on('slowUpdateHandle', slowUpdate)
 
   waitSetup(props.config).then(x => {
     if(!x.isExpress){
@@ -447,10 +438,7 @@ onMounted(() => {
           allUpdate()
         })
       })
-      window.electronAPI.invoke('load_log').then(x => {
-        log.value = JSON.parse(x)
-        console.log("Logs", log.value)
-      })
+      
     }
     
     console_manager.value = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
@@ -467,7 +455,6 @@ onUnmounted(() => {
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
-  emitter?.off('slowUpdateHandle', slowUpdate)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   if(props.config.isElectron) {
@@ -540,12 +527,13 @@ onUnmounted(() => {
         :preference="props.preference"
         :socket="websocket_manager"
         :execute="execute_manager"
-        :logs="log"
         :libs="libs"
         v-model="projects_exe"/>
         
-      <LogPage v-show="page == 6" :logs="log" 
+      <LogPage v-show="page == 6" 
         :config="props.config"
+        :execute="execute_manager"
+        :preference="props.preference"
         v-model="projects_exe"/>
 
       <LibraryPage v-show="page == 7" 
