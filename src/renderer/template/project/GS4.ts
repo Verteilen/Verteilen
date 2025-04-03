@@ -166,11 +166,11 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap + IF( start_at_0, 0, 1 )'
+                expression: '(ck - 1) * iframe_gap'
             },
             {
                 name: 'gap_value_end',
-                expression: '(ck - 1) * iframe_gap + IF( start_at_0, 0, 1 ) + 1'
+                expression: '(ck - 1) * iframe_gap + 1'
             }
         ],
         jobs: [
@@ -247,7 +247,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap + IF( start_at_0, 0, 1 )'
+                expression: '(ck - 1) * iframe_gap'
             }
         ],
         jobs: [
@@ -308,7 +308,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap + IF( start_at_0, 0, 1 )'
+                expression: '(ck - 1) * iframe_gap'
             },
             {
                 name: 'blend_value',
@@ -356,7 +356,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x %xx%"],
+        string_args: ["%output%", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x 0"],
         number_args: [],
         boolean_args: []
     }
@@ -371,11 +371,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         properties: [
             {
                 name: 'index',
-                expression: '(ck - 1) + IF( start_at_0, 0, 1 )'
-            },
-            {
-                name: 'xx',
-                expression: 'IF( start_at_0, 0, 1 )'
+                expression: '(ck - 1)'
             }
         ],
         jobs: [
@@ -407,7 +403,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
         properties: [
             {
                 name: 'index',
-                expression: '(ck - 1) + IF( start_at_0, 0, 1 )'
+                expression: '(ck - 1)'
             }
         ],
         jobs: [
