@@ -36,6 +36,7 @@
     "chokidar": "^3.5.3",
     "electron": "^32.1.2",
     "electron-builder": "^25.1.6",
+    "electron-installer-snap": "^5.2.0",
     "sass": "^1.84.0",
     "sass-loader": "^16.0.4",
     "typescript": "^5.2.2",
