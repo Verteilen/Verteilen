@@ -123,6 +123,15 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         number_args: [],
         boolean_args: []
     }
+    const deleteion:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.DELETE_FILE,
+        lua: "",
+        string_args: ["%root%/%before%/%{ ck - 1 }%/sparse/0/database.db"],
+        number_args: [],
+        boolean_args: []
+    }
 
     const t:Task = {
         uuid: uuidv6(),
@@ -137,7 +146,8 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
             createsp,
             command1,
             command2,
-            command3
+            command3,
+            deleteion
         ]
     }
     return t
