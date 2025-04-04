@@ -59,9 +59,11 @@ const setEnable = (index:number) => {
 
 const slowUpdateHandle = () => {
     if(!props.config.isElectron) return
-    logs.value.logs.filter(x => x.dirty).forEach(x => {
+    logs.value.logs.filter(x => x.dirty && x.output).forEach(x => {
         x.dirty = false
+        x.output = undefined
         window.electronAPI.send('save_log', x.filename, JSON.stringify(x))
+        x.output = true
     })
 }
 
@@ -94,6 +96,7 @@ const recover = () => {
     const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
     p.uuid = uuidv6()
     p.title = p.title + " (恢復)"
+    p.parameter = getselect.value.parameter
     p.task.forEach(x => {
         x.uuid = uuidv6()
         x.jobs.forEach(y => {
@@ -110,6 +113,7 @@ const receivedPack = async (record:Record) => {
     const newlog:ExecutionLog = {
         filename: title,
         dirty: true,
+        output: props.preference.log,
         project: target,
         parameter: target.parameter,
         state: ExecuteState.NONE,
@@ -149,6 +153,7 @@ const execute_project_start = async (d:Project) => {
     const newlog:ExecutionLog = {
         filename: title,
         dirty: true,
+        output: props.preference.log,
         project: target,
         state: ExecuteState.RUNNING,
         start_timer: Date.now(),
