@@ -1,4 +1,4 @@
-import { checkifElectron } from "../platform"
+import { checkifElectron } from "./platform"
 
 const isElectron = checkifElectron()
 let feedback:Function | undefined = undefined

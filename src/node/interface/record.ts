@@ -15,6 +15,7 @@ export interface ExecutionTaskLog {
 
 export interface ExecutionLog {
     dirty?: boolean
+    output?: boolean
     filename: string
     project: Project
     parameter: Parameter

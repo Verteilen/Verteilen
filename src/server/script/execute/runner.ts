@@ -242,7 +242,6 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             x.value = e.parse(x.meta)
         })
         
-
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
             if(b == null || b == undefined || b.length == 0) continue
