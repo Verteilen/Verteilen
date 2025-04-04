@@ -169,7 +169,6 @@ const execute_task_start = (d:[Task, number]) => {
     const p = data.value!.projects[data.value!.project_index]
     const t = p.task[data.value!.task_index]
     const count = props.execute!.get_task_state_count(t)
-    console.log(count, p, t)
     for(let i = 0; i < count; i++){
         data.value!.task_detail.push({
             index: i,
