@@ -9,25 +9,27 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-import os
-import torch
-from random import randint
-from utils.loss_utils import l1_loss, ssim, l2_loss
-from gaussian_renderer import render, network_gui
-import sys
-from scene import Scene, GaussianModel, DynamicScene, GTPTGaussianModel
-from utils.general_utils import safe_state
-from utils.system_utils import searchForMaxIteration
-import uuid
-from tqdm import tqdm
-from utils.image_utils import psnr
-from argparse import ArgumentParser, Namespace
-from arguments import ModelParams, PipelineParams, OptimizationParams
-import shutil
 import copy
-import torch.nn.functional as F
-import plyfile
+import os
+import shutil
+import sys
+import uuid
+from argparse import ArgumentParser, Namespace
+from random import randint
+
 import numpy as np
+import plyfile
+import torch
+import torch.nn.functional as F
+from arguments import ModelParams, OptimizationParams, PipelineParams
+from gaussian_renderer import network_gui, render
+from scene import DynamicScene, GaussianModel, GTPTGaussianModel, Scene
+from tqdm import tqdm
+from utils.general_utils import safe_state
+from utils.image_utils import psnr
+from utils.loss_utils import l1_loss, l2_loss, ssim
+from utils.system_utils import searchForMaxIteration
+
 try:
     from torch.utils.tensorboard import SummaryWriter
     TENSORBOARD_FOUND = True
@@ -272,10 +274,10 @@ def dynamic_training(dataset, opt, pipe, testing_iterations, saving_iterations, 
         print("Keyframe model not find")
         return
     
-    gtp_iterations = 500
+    gtp_iterations = saving_iterations
     # gtp_iterations = 4000
     # finetune_iterations = 3500
-    finetune_iterations = 500
+    finetune_iterations = saving_iterations
     load_last_rt_model = False
     load_init_rt_model = False
 

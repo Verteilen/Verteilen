@@ -184,6 +184,9 @@ local iframe_gap = env.getnumber("iframe_gap")
 local gap_p = env.getnumber("gop_positive")
 local gap_n = env.getnumber("gop_negative")
 
+local iframe_iteration = env.getnumber(iframe_iteration)
+local finetune_iteration = env.getnumber(finetune_iteration)
+
 -- current value [1, 2, 3, 4]
 o.createdir(output_folder.."/final")
 o.createdir(output_folder.."/trans")
@@ -192,8 +195,8 @@ function copyToTarget(src, output)
     local prefix = src.."/point_cloud/"
     local suffix = "/point_cloud.ply"
     local plyPaths = { 
-        prefix.."iteration_7000"..suffix, 
-        prefix.."iteration_500"..suffix 
+        prefix.."iteration_"..tostring(iframe_iteration)..suffix, 
+        prefix.."iteration_"..tostring(finetune_iteration)..suffix 
     }
     local exists = { 
         o.exist(plyPaths[1]), 
