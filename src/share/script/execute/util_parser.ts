@@ -54,7 +54,7 @@ export class Util_Parser {
                     if(useExp){
                         buffer += this.parse(store)
                     }else{
-                        buffer = this._replacePara(store)
+                        buffer += this._replacePara(store)
                     }
                     store = ""
                     useExp = false

@@ -58,6 +58,7 @@ describe('Parser testing (replacePara)', () => {
     })
     test("String replace", () => {
         expect(e!.replacePara("%s1% Hello")).toBe("Test Hello")
+        expect(e!.replacePara("%s1%/%s1%/Hello")).toBe("Test/Test/Hello")
     })
     test("Boolean replace", () => {
         expect(e!.replacePara("%b1% Hello")).toBe("true Hello")
