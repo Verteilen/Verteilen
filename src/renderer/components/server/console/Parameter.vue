@@ -17,7 +17,7 @@ const options:Ref<Array<{ title: string, value:number }>> = ref([])
 const d:Ref<Parameter | undefined> = ref(undefined)
 
 const update_runtime_parameter = () => {
-    d.value = data.value
+    if(data.value != undefined) d.value = JSON.parse(JSON.stringify(data.value))
 }
 
 const DataTypeTranslate = (t:number):string => {

@@ -49,15 +49,6 @@ export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         number_args: [],
         boolean_args: []
     }
-    const copyjob:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COPY_FILE,
-        lua: "",
-        string_args: ["%root%/%prepare%/train_sequence.py", "%root%/%after%/train_sequence.py"],
-        number_args: [],
-        boolean_args: []
-    }
     const createdir:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -78,7 +69,6 @@ export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         properties: [],
         jobs: [
             sortjob,
-            copyjob,
             createdir
         ]
     }

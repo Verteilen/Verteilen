@@ -1,5 +1,5 @@
 import { formula, init } from "expressionparser";
-import { ENV_CHARACTER, KeyValue, Parameter } from "../../interface";
+import { DataType, ENV_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
 
 export class Util_Parser {
 
@@ -19,10 +19,13 @@ export class Util_Parser {
      * @returns The list of keyvalue
      */
     static to_keyvalue = (p:Parameter):Array<KeyValue> => {
-        const paras = [
-            ...p.containers.map(x => { return { key: x.name, value: x.value.toString() } })
+        return [
+            ...this._to_keyvalue(p.containers.filter(x => x.type != DataType.Expression))
         ]
-        return paras
+    }
+
+    static _to_keyvalue = (p:Array<ParameterContainer>):Array<KeyValue> => {
+        return p.map(x => { return { key: x.name, value: x.value.toString() } })
     }
 
     static replaceAll = (str:string, fi:string, tar:string):string => {
