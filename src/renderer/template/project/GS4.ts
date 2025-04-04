@@ -46,7 +46,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%/sparse/0"],
+        string_args: ["%root%/%before%/%ck%/sparse/0"],
         number_args: [],
         boolean_args: []
     }
@@ -55,7 +55,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "feature_extractor --database_path sparse/0/database.db --image_path images"],
+        string_args: ["%root%/%before%/%ck%", "colmap", "feature_extractor --database_path sparse/0/database.db --image_path images"],
         number_args: [],
         boolean_args: []
     }
@@ -64,7 +64,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "exhaustive_matcher --database_path sparse/0/database.db"],
+        string_args: ["%root%/%before%/%ck%", "colmap", "exhaustive_matcher --database_path sparse/0/database.db"],
         number_args: [],
         boolean_args: []
     }
@@ -73,7 +73,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "point_triangulator --database sparse/0/database.db --image_path images --input_path ../sparse/0/TXT/edit --output_path sparse/0"],
+        string_args: ["%root%/%before%/%ck%", "colmap", "point_triangulator --database sparse/0/database.db --image_path images --input_path ../sparse/0/TXT/edit --output_path sparse/0"],
         number_args: [],
         boolean_args: []
     }
@@ -82,7 +82,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.DELETE_FILE,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%/sparse/0/database.db"],
+        string_args: ["%root%/%before%/%ck%/sparse/0/database.db"],
         number_args: [],
         boolean_args: []
     }

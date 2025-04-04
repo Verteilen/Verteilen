@@ -99,6 +99,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         if(this.current_cron.length == 0){
             // First time
             this.Init_CronContainer(task, taskCount)
+            this.messager_log(`[Execute] TaskCount: ${taskCount}`)
         } else{
             // If disconnect or deleted...
             /**
@@ -294,6 +295,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             d.work.forEach((x, j) => x.runtime = uuidv6({}, undefined, i * taskCount + j))
             this.current_cron.push(d)
         }
+        console.log("Init cron container", this.current_cron)
         this.proxy?.executeTaskStart([task, taskCount ])
     }
 }
