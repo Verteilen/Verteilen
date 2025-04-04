@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n'
-import * as en from './../lan/en.json'
-import * as zh_TW from './../lan/zh_TW.json'
+import en from './../lan/en.json'
+import zh_TW from './../lan/zh_TW.json'
 
 export const i18nData = {
     locale: 'zh_TW',
