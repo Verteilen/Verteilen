@@ -21,6 +21,8 @@ if __name__ == '__main__':
     parser.add_argument('--resolution', type=int, default=2)
     parser.add_argument('--iframe', type=int, default=1)
     parser.add_argument('--overwrite', type=int, default=0)
+    parser.add_argument('--iteration', type=int, default=7000)
+    parser.add_argument('--dynamic', type=int, default=500)
     args = parser.parse_args()
 
     print(args.start, args.end)
@@ -60,13 +62,15 @@ if __name__ == '__main__':
             """ Gaussian """
             # generate output
             frame_model_path = os.path.join(gaussian_output_path, str(i))
-            first_frame_iteration = 7000
+            first_frame_iteration = args.iteration
             first_frame_save_iterations = first_frame_iteration
             first_gaussian_command = f"python train.py -s {frame_path} -m {frame_model_path} --densify_until_iter 2000 --iterations {first_frame_iteration} --save_iterations {first_frame_save_iterations} --sh_degree {sh} -r {resolution_scale} --port 600{card_id}"
             os.system(first_gaussian_command)
 
+        first_frame_iteration = args.dynamic
+        first_frame_save_iterations = first_frame_iteration
         # rest frame
-        dynamic_command = f"python train_dynamic.py -s {data_root_path} -m {gaussian_output_path} --sh_degree {sh} -r {resolution_scale} --st {group_start} --ed {group_end} --interval {interval}"
+        dynamic_command = f"python train_dynamic.py -s {data_root_path} -m {gaussian_output_path} --sh_degree {sh} -r {resolution_scale} --st {group_start} --ed {group_end} --interval {interval} --iterations {first_frame_iteration} --save_iterations {first_frame_save_iterations}"
         os.system(dynamic_command)
 
         print(f"Finish {group_start} to {group_end}")

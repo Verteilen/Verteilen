@@ -150,7 +150,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %gap_value_end% --cuda 0 --iframe 1 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %gap_value_end% --cuda 0 --iframe 1 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1 --iteration %iteration_iframe% --dynamic %iteration_dynamic%"],
         number_args: [],
         boolean_args: []
     }
@@ -293,13 +293,13 @@ export const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --sh 3 --interval 1 --group_size %group_size% --resolution 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount% --cuda 0 --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --sh 3 --interval 1 --group_size %group_size% --resolution 1  --iteration %iteration_iframe% --dynamic %iteration_dynamic%"],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Blend 資料準備 (正)",
+        title: "Blend 資料準備",
         description: "生成多個 checkpoint 資料夾",
         cronjob: true,
         cronjobKey: "blend",
@@ -425,6 +425,8 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "iteration_iframe", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "iteration_dynamic", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
 
             { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
