@@ -48,7 +48,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Position = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount_p% --iframe 0 --data %root%/%after%/DATASET_P_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IP/ --group_size %gap_p% --iteration %iteration_iframe% --dynamic %iteration_dynamic% %train_command%"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount_p% --iframe 0 --data %root%/%after%/DATASET_P_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IP/ --group_size %gap_p% --iteration %iframe_iteration% --dynamic %finetune_iteration% %train_command%"],
         number_args: [],
         boolean_args: []
     }
@@ -92,7 +92,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Negative = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount_n% --iframe 0 --data %root%/%after%/DATASET_N_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IN/ --group_size %gap_n% --iteration %iteration_iframe% --dynamic %iteration_dynamic% %train_command%"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %frameCount_n% --iframe 0 --data %root%/%after%/DATASET_N_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IN/ --group_size %gap_n% --iteration %iframe_iteration% --dynamic %finetune_iteration% %train_command%"],
         number_args: [],
         boolean_args: []
     }
@@ -170,8 +170,8 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "gop_positive", value: 10, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "gop_negative", value: 9, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iteration_iframe", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iteration_dynamic", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "iframe_iteration", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "finetune_iteration", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
 
             { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },

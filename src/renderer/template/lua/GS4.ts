@@ -99,8 +99,8 @@ local output_folder = env.getstring("output")
 
 local blend = env.getnumber("blend")
 local iframe_gap = env.getnumber("iframe_gap")
-local iteration_iframe = env.getnumber("iteration_iframe")
-local iteration_dynamic = env.getnumber("iteration_dynamic")
+local iframe_iteration = env.getnumber(iframe_iteration)
+local finetune_iteration = env.getnumber(finetune_iteration)
 
 o.createdir(output_folder.."/final")
 o.createdir(output_folder.."/trans")
@@ -117,8 +117,8 @@ for i=1,blend,1 do
         local prefix = source_folder.."/"..value.."/point_cloud/"
         local suffix = "/point_cloud.ply"
         local plyPaths = { 
-            prefix.."iteration_"..tostring(iteration_iframe)..suffix, 
-            prefix.."iteration_"..tostring(iteration_dunamic)..suffix 
+            prefix.."iteration_"..tostring(iframe_iteration)..suffix, 
+            prefix.."iteration_"..tostring(finetune_iteration)..suffix 
         }
         local exists = { 
             o.exist(plyPaths[1]), 

@@ -160,7 +160,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %gap_value_end% --cuda 0 --iframe 1 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1 --iteration %iteration_iframe% --dynamic %iteration_dynamic%"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %gap_value_end% --cuda 0 --iframe 1 --data %root%/%before% --output %root%/%after%/GOP_20_I --sh 3 --interval %iframe_gap% --group_size 1 --resolution 1 --iteration %iframe_iteration% --dynamic %finetune_iteration%"],
         number_args: [],
         boolean_args: []
     }
@@ -435,8 +435,8 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iteration_iframe", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iteration_dynamic", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "iframe_iteration", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "finetune_iteration", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
 
             { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
