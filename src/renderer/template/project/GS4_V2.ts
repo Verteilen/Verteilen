@@ -1,7 +1,7 @@
 import { v6 as uuidv6 } from 'uuid';
 import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../interface";
 import { FUNIQUE_GS4_V2_BLEND_PREPARE, FUNIQUE_GS4_V2_COLMAP_COPY, FUNIQUE_GS4_V2_PLYDone } from '../lua/GS4_V2';
-import { GetFUNIQUE_GS4ProjectTemplate_Blend1, GetFUNIQUE_GS4ProjectTemplate_Blend2, GetFUNIQUE_GS4ProjectTemplate_Checker, GetFUNIQUE_GS4ProjectTemplate_Colmap, GetFUNIQUE_GS4ProjectTemplate_Denoise, GetFUNIQUE_GS4ProjectTemplate_IFrame, GetFUNIQUE_GS4ProjectTemplate_IFrameBackup, GetFUNIQUE_GS4ProjectTemplate_Prepare } from './GS4';
+import { GetFUNIQUE_GS4ProjectTemplate_Blend1, GetFUNIQUE_GS4ProjectTemplate_Blend2, GetFUNIQUE_GS4ProjectTemplate_Colmap, GetFUNIQUE_GS4ProjectTemplate_Denoise, GetFUNIQUE_GS4ProjectTemplate_IFrame, GetFUNIQUE_GS4ProjectTemplate_IFrameBackup, GetFUNIQUE_GS4ProjectTemplate_Prepare } from './GS4';
 
 // 排序改變 優化品質做的準備
 // Colmap 的結構複製一個負的出來
@@ -189,7 +189,6 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
     }
     r.parameter = para
     r.task.push(...[
-        GetFUNIQUE_GS4ProjectTemplate_Checker(),
         GetFUNIQUE_GS4ProjectTemplate_Prepare(),
         GetFUNIQUE_GS4ProjectTemplate_Colmap(),
         GetFUNIQUE_GS4ProjectTemplate_IFrame(),

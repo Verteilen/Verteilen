@@ -1,42 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
-import { ConditionResult, DataType, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
+import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../interface";
 import { FUNIQUE_GS4_BLEND_PREPARE, FUNIQUE_GS4_PLYDone, FUNIQUE_GS4_PREPARE } from "./../lua/GS4";
-
-export const GetFUNIQUE_GS4ProjectTemplate_Checker = ():Task => {
-    const prepareExist:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Condition,
-        type: JobType2.CHECK_PATH,
-        lua: "",
-        string_args: ["%root%/%prepare%"],
-        number_args: [ConditionResult.ThrowProject],
-        boolean_args: []
-    }
-    const videogsExist:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Condition,
-        type: JobType2.CHECK_PATH,
-        lua: "",
-        string_args: ["%videogs%"],
-        number_args: [ConditionResult.ThrowProject],
-        boolean_args: []
-    }
-    const t:Task = {
-        uuid: uuidv6(),
-        title: "檢查階段",
-        description: "從原始資料檢查正確性",
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
-        properties: [],
-        jobs: [
-            prepareExist,
-            videogsExist
-        ]
-    }
-    return t
-}
 
 // 從原始資料夾結構 弄成可以工作的樣子
 export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
@@ -82,7 +46,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%/sparse/0"],
+        string_args: ["%root%/%before%/%ck%/sparse/0"],
         number_args: [],
         boolean_args: []
     }
@@ -91,7 +55,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "feature_extractor --database_path sparse/0/database.db --image_path images"],
+        string_args: ["%root%/%before%/%ck%", "colmap", "feature_extractor --database_path sparse/0/database.db --image_path images"],
         number_args: [],
         boolean_args: []
     }
@@ -100,7 +64,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "exhaustive_matcher --database_path sparse/0/database.db"],
+        string_args: ["%root%/%before%/%ck%", "colmap", "exhaustive_matcher --database_path sparse/0/database.db"],
         number_args: [],
         boolean_args: []
     }
@@ -109,7 +73,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%", "colmap", "point_triangulator --database sparse/0/database.db --image_path images --input_path ../sparse/0/TXT/edit --output_path sparse/0"],
+        string_args: ["%root%/%before%/%ck%", "colmap", "point_triangulator --database sparse/0/database.db --image_path images --input_path ../sparse/0/TXT/edit --output_path sparse/0"],
         number_args: [],
         boolean_args: []
     }
@@ -118,7 +82,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         category: JobCategory.Execution,
         type: JobType.DELETE_FILE,
         lua: "",
-        string_args: ["%root%/%before%/%{ ck - 1 }%/sparse/0/database.db"],
+        string_args: ["%root%/%before%/%ck%/sparse/0/database.db"],
         number_args: [],
         boolean_args: []
     }
@@ -444,7 +408,6 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
     }
     r.parameter = para
     r.task.push(...[
-        GetFUNIQUE_GS4ProjectTemplate_Checker(),
         GetFUNIQUE_GS4ProjectTemplate_Prepare(),
         GetFUNIQUE_GS4ProjectTemplate_Colmap(),
         GetFUNIQUE_GS4ProjectTemplate_IFrame(),

@@ -191,7 +191,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
             // If we are in the start
             if(this.current_p.task.length > 0){
                 this.current_t = this.current_p.task[0]
-                const taskCount = this.get_task_state_count(this.current_p, this.current_t)
+                const taskCount = this.get_task_state_count(this.current_t)
                 if(this.current_t.cronjob){
                     this.Init_CronContainer(this.current_t, taskCount)
                 }
@@ -215,7 +215,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
                 this.proxy?.executeTaskFinish(this.current_t)
                 this.current_t = this.current_p.task[index + 1]
                 this.messager_log(`[Execute] Skip task ${index}. ${this.current_t.uuid}`)
-                const taskCount = this.get_task_state_count(this.current_p, this.current_t)
+                const taskCount = this.get_task_state_count(this.current_t)
                 if(this.current_t.cronjob){
                     this.Init_CronContainer(this.current_t, taskCount)
                 }
