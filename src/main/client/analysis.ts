@@ -1,6 +1,6 @@
 import { ChildProcess, spawn } from 'child_process';
-import path from 'path';
-import WebSocket from 'ws';
+import * as path from 'path';
+import { WebSocket } from 'ws';
 import { Header, Messager, Messager_log } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
@@ -97,6 +97,7 @@ export class ClientAnalysis {
 
     disconnect = (source: WebSocket) => {
         this.shell.disconnect(source)
+        this.exec.stop_job()
     }
 
 

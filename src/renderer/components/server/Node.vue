@@ -16,6 +16,8 @@ interface PROPS {
 }
 
 const props = defineProps<PROPS>()
+const deleteModal = ref(false)
+const deleteData:Ref<Array<string>> = ref([])
 const infoModal = ref(false)
 const infoUUID = ref('')
 const consoleModal = ref(false)
@@ -63,12 +65,18 @@ const createNode = () => {
     connectionModal.value = true
 }
 
-const deleteNode = () => {
-    selected_node_ids.value.forEach(x => {
+const deleteConfirm = () => {
+    deleteModal.value = false
+    deleteData.value.forEach(x => {
         props.manager?.server_stop(x, 'Manually disconnect')
         if(!props.config.isElectron) return
         window.electronAPI.send('server_stop', x, 'Manually disconnect')
     })
+}
+
+const deleteNode = () => {
+    deleteModal.value = true
+    deleteData.value = selected_node_ids.value
 }
 
 const selectall = () => {
@@ -181,6 +189,25 @@ onUnmounted(() => {
         </v-dialog>
         <NodeInfoDialog v-model="infoModal" :item="infoTarget" />
         <NodeShellDialog v-model="consoleModal" :item="consoleTarget" :manager="props.manager" />
+        <v-dialog width="500" v-model="deleteModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.delete-node') }}
+                </v-card-title>
+                <v-card-text>
+                    <p>{{ $t('modal.delete-node-confirm') }}</p>
+                    <br />
+                    <p v-for="(p, i) in deleteData">
+                        {{ i }}. {{ p }}
+                    </p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
 

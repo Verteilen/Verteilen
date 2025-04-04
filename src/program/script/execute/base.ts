@@ -1,6 +1,6 @@
-import { formula, init } from "expressionparser";
-import { CronJobState, DataType, ENV_CHARACTER, ExecuteProxy, ExecuteState, Header, KeyValue, Libraries, Messager, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, Libraries, Messager, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
+import { Util_Parser } from './util_parser';
 
 export class ExecuteManager_Base {
     current_t:Task | undefined = undefined
@@ -146,8 +146,13 @@ export class ExecuteManager_Base {
     protected get_number(key:string, p:Project){
         const f = p.parameter.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression))
         if(f == undefined) return -1
+        if(f.meta == undefined){
+            f.value = 0
+            return f.value
+        }
         if(f.type == DataType.Expression){
-            return Number(this.replacePara(f.meta ?? '', [...this.to_keyvalue(p.parameter)]))
+            const e = new Util_Parser([...Util_Parser.to_keyvalue(p.parameter)])
+            return Number(e.replacePara(f.meta || ''))
         }else{
             return f.value
         }
@@ -180,85 +185,6 @@ export class ExecuteManager_Base {
 
     protected check_socket_state = (target:WebsocketPack) => {
         return target.current_job.length == 0 ? ExecuteState.NONE : ExecuteState.RUNNING
-    }
-    
-    /**
-     * Replace a string to environment string\
-     * * Include Expression calculation
-     * * Include Env string, boolean, number replacing
-     * @param text Input text
-     * @param paras The keyvalue list
-     * @returns The result string
-     */
-    protected replacePara = (text:string, paras:Array<KeyValue>):string => {
-        if (this.current_p == undefined) return text
-        let buffer = ''
-        let store = ''
-        let state:boolean = false
-        let useExp = false
-        for(const v of text){
-            if(v == ENV_CHARACTER){
-                state = !state
-                if(!state) { // End
-                    if(useExp){
-                        buffer += this.parse(store, paras)
-                    }else{
-                        buffer += this._replacePara(store, paras)
-                    }
-                    store = ""
-                    useExp = false
-                }
-            }
-            if(v == '{' && state && store.length == 0) useExp = true
-            if(state && v != ENV_CHARACTER) store += v
-            if(!state && v != ENV_CHARACTER) buffer += v
-        }
-        return buffer
-    }
-    /**
-     * Turn parameter into a list of keyvalue structure\
-     * Exclude the expression datatype
-     * @param p Target parameter instance
-     * @returns The list of keyvalue
-     */
-    protected to_keyvalue = (p:Parameter):Array<KeyValue> => {
-        const paras = [
-            ...p.containers.filter(x => x.type != DataType.Expression).map(x => { return { key: x.name, value: x.value.toString() } })
-        ]
-        return paras
-    }
-
-    private _replacePara = (store:string, paras:Array<KeyValue>) => {
-        const index = paras.findIndex(x => x.key == store)
-        if(index == -1) return ''
-        return paras[index].value
-    }
-
-    /**
-     * Expression magic
-     * @param str Input string, the expression part of string only, not the entire sentence
-     * @param paras Keyvalue list
-     * @returns Result calculation
-     */
-    private parse = (str:string, paras:Array<KeyValue>):string => {
-        str = str.substring(1, str.length - 1)
-        const parser = init(formula, (term: string) => {
-            if(term.includes("_ck_")){
-                const index = paras.findIndex(x => x.key == "ck")
-                if(index != -1) term = this.replaceAll(term, "_ck_", paras[index].value)
-            }
-            const index = paras.findIndex(x => x.key == term)
-            if(index != -1) return Number(paras[index].value)
-            else return 0
-        });
-        const r = parser.expressionToValue(str).toString()
-        return r
-    }
-
-    protected replaceAll = (str:string, fi:string, tar:string):string => {
-        let p = str
-        while(p.includes(fi)) p = p.replace(fi, tar)
-        return p
     }
     //#endregion
 }

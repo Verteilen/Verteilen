@@ -14,6 +14,8 @@ export interface ExecutionTaskLog {
 }
 
 export interface ExecutionLog {
+    dirty?: boolean
+    filename: string
     project: Project
     parameter: Parameter
     start_timer: number
@@ -51,7 +53,16 @@ export interface ExecuteRecord extends Record {
 }
 
 export interface Preference {
+    /**
+     * Language setting
+     */
     lan: string
+    /**
+     * You can turn off the logging\
+     * To prevent IO works to slowdown your works\
+     * ![NOTICE] there will be no log to recover your works
+     */
+    log: boolean
 }
 
 export interface Library {
@@ -61,4 +72,10 @@ export interface Library {
 
 export interface Libraries {
     libs: Array<Library>
+}
+
+export interface FileState {
+    name: string,
+    size: number
+    time: Date
 }

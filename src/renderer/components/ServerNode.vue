@@ -3,7 +3,7 @@ import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, Job, JobCategory, JobType, JobType2, Libraries, Log, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_UPDATETICK, Setter, ShellFolder, Single, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, Libraries, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { messager_log, set_feedback } from '../script/debugger';
@@ -26,6 +26,7 @@ const console_manager:Ref<ConsoleManager | undefined> = ref(undefined)
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
+let slowUpdateHandle:any = undefined
 
 interface PROPS {
     preference: Preference
@@ -38,10 +39,11 @@ const proxy:ExecuteProxy = {
   executeTaskStart: (data:[Task, number]):void => { emitter?.emit('executeTaskStart', data) },
   executeTaskFinish: (data:Task):void => { emitter?.emit('executeTaskFinish', data) },
   executeSubtaskStart: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskStart', data) },
+  executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { emitter?.emit('executeSubtaskUpdate', data) },
   executeSubtaskFinish: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskFinish', data) },
   executeJobStart: (data:[Job, number, string]):void => { emitter?.emit('executeJobStart', data) },
   executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
-  feedbackMessage: (data:Setter):void => { emitter?.emit('feedbackMessage', data) },
+  feedbackMessage: (data:FeedBack):void => { emitter?.emit('feedbackMessage', data) },
   updateParameter: (data:Parameter):void => { emitter?.emit('updateRuntimeParameter', data) },
   shellReply: (data:Single):void => { emitter?.emit('shellReply', data) },
   folderReply: (data:ShellFolder) => { emitter?.emit('folderReply', data) }
@@ -66,7 +68,6 @@ const projects_exe:Ref<ExecuteRecord>  = ref({
   task_state: [],
   task_detail: [],
 })
-const log:Ref<Log> = ref({logs: []})
 const libs:Ref<Libraries> = ref({libs: []})
 const selectProject:Ref<Project | undefined> = ref(undefined)
 const selectTask:Ref<Task | undefined> = ref(undefined)
@@ -382,6 +383,7 @@ const disconnect = (x:WebsocketPack) => {
     type: 'danger',
     message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
   })
+  execute_manager.value?.Disconnect(x)
 }
 
 const analysis = (b:BusAnalysis) => {
@@ -391,7 +393,7 @@ const analysis = (b:BusAnalysis) => {
 onMounted(() => {
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
-  console.log("updateHandle", updateHandle)
+  slowUpdateHandle = setInterval(() => emitter?.emit('slowUpdateHandle'), RENDER_FILE_UPDATETICK);
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
@@ -436,10 +438,7 @@ onMounted(() => {
           allUpdate()
         })
       })
-      window.electronAPI.invoke('load_log').then(x => {
-        log.value = JSON.parse(x)
-        console.log("Logs", log.value)
-      })
+      
     }
     
     console_manager.value = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
@@ -457,6 +456,7 @@ onUnmounted(() => {
   emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
   if(updateHandle != undefined) clearInterval(updateHandle)
+  if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   if(props.config.isElectron) {
     window.electronAPI.eventOff('createProject', menuCreateProject)
     window.electronAPI.eventOff('menu_export_project', menu_export_project)
@@ -523,14 +523,17 @@ onUnmounted(() => {
         :nodes="nodes" />
 
       <ConsolePage v-show="page == 5" 
+        :config="props.config"
+        :preference="props.preference"
         :socket="websocket_manager"
         :execute="execute_manager"
-        :logs="log"
         :libs="libs"
         v-model="projects_exe"/>
         
-      <LogPage v-show="page == 6" :logs="log" 
+      <LogPage v-show="page == 6" 
         :config="props.config"
+        :execute="execute_manager"
+        :preference="props.preference"
         v-model="projects_exe"/>
 
       <LibraryPage v-show="page == 7" 

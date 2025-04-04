@@ -1,10 +1,10 @@
 {
   "name": "compute_tool",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
-    "dev": "node scripts/dev-server.js",
+    "dev": "node scripts/share.js && node scripts/dev-server.js",
     "express": "node scripts/express.js && cd ./src/server && ts-node .",
     "node": "ts-node src/node/main.ts",
     "share": "node scripts/share.js",
@@ -18,7 +18,8 @@
     "build:linux": "node scripts/build.js && node scripts/program_build.js && electron-builder --linux",
     "docker:node": "docker_node.sh",
     "docker:server": "docker_server.sh",
-    "pkg": "node scripts/program_build.js"
+    "pkg": "node scripts/program_build.js",
+    "test": "jest"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
@@ -26,6 +27,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/byte-size": "^8.1.2",
     "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/tcp-port-used": "^1.0.4",
     "@types/vue-markdown": "^2.2.4",
@@ -39,6 +41,7 @@
     "electron-installer-snap": "^5.2.0",
     "sass": "^1.84.0",
     "sass-loader": "^16.0.4",
+    "ts-jest": "^29.3.1",
     "typescript": "^5.2.2",
     "unplugin-icons": "^22.0.0",
     "unplugin-vue-components": "^28.0.0",
@@ -53,6 +56,7 @@
     "codemirror": "^6.0.1",
     "express": "^4.21.2",
     "expressionparser": "^1.1.5",
+    "jest": "^29.7.0",
     "jsonwebtoken": "^9.0.2",
     "keypair": "^1.0.4",
     "lua-in-js": "^2.2.5",

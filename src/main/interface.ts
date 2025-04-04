@@ -19,6 +19,7 @@ export const CLIENT_UPDATETICK = 3000
  * The server side update tick, this will have effect on the time gap between task sending
  */
 export const RENDER_UPDATETICK = 30
+export const RENDER_FILE_UPDATETICK = 5000
 
 /**
  * The environment character for replacing text

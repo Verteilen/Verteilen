@@ -15,7 +15,8 @@
         "paste": "Paste",
         "delete": "Delete",
         "selectAll": "Select All",
-        "language": "Language"
+        "language": "Language",
+        "log": "Log"
     },
     "toast": {
         "server": "Server Mode",
@@ -54,7 +55,9 @@
         "parameter-datatype": "Datatype",
         "new-node": "New Node",
         "enter-node-address": "Enter Node Address",
-        "skip-step": "Skip Step"
+        "skip-step": "Skip Step",
+        "delete-node": "Delete Node",
+        "delete-node-confirm": "Are you sure delete nodes below"
     },
     "toolbar": {
         "project": "Project",

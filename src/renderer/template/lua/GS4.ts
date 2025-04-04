@@ -65,14 +65,9 @@ local iframe_size = env.getnumber("iframe_size")
 local group_size = env.getnumber("group_size")
 local blend = env.getnumber("blend")
 local iframe_gap = env.getnumber("iframe_gap")
-local start_at_zero = env.getboolean("start_at_0")
 
 local current = 1
-local xx = 1
 
-if start_at_zero then
-    xx = 0
-end
 
 for i=1,blend,1 do
     -- Folder name: BLEND_0_I, BLEND_5_I, BLEND_10_I
@@ -82,7 +77,7 @@ for i=1,blend,1 do
 end
 
 for i=1,iframe_size,1 do
-    local foldername = tostring((i - 1) * iframe_gap + xx)
+    local foldername = tostring((i - 1) * iframe_gap + 1)
     local from = root.."/"..after_folder.."/GOP_20_I/checkpoint/"..foldername
     local to = root.."/"..after_folder.."/".."BLEND_"..tostring((current - 1) * iframe_gap).."_I/checkpoint/"..foldername
     o.copydir(from, to)
@@ -102,9 +97,10 @@ local root = env.getstring("root")
 local after_folder = env.getstring("after")
 local output_folder = env.getstring("output")
 
-local start_at_zero = env.getboolean("start_at_0")
 local blend = env.getnumber("blend")
 local iframe_gap = env.getnumber("iframe_gap")
+local iteration_iframe = env.getnumber("iteration_iframe")
+local iteration_dynamic = env.getnumber("iteration_dynamic")
 
 o.createdir(output_folder.."/final")
 o.createdir(output_folder.."/trans")
@@ -121,8 +117,8 @@ for i=1,blend,1 do
         local prefix = source_folder.."/"..value.."/point_cloud/"
         local suffix = "/point_cloud.ply"
         local plyPaths = { 
-            prefix.."iteration_7000"..suffix, 
-            prefix.."iteration_500"..suffix 
+            prefix.."iteration_"..tostring(iteration_iframe)..suffix, 
+            prefix.."iteration_"..tostring(iteration_dunamic)..suffix 
         }
         local exists = { 
             o.exist(plyPaths[1]), 

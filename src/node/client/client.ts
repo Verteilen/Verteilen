@@ -1,4 +1,4 @@
-import tcpPortUsed from 'tcp-port-used';
+import { check } from 'tcp-port-used';
 import { WebSocket, WebSocketServer } from 'ws';
 import { CLIENT_UPDATETICK, Header, Messager, Messager_log, PORT } from '../interface';
 import { ClientAnalysis } from './analysis';
@@ -13,6 +13,7 @@ export class Client {
     private messager:Messager
     private messager_log:Messager_log
     private analysis:ClientAnalysis
+    private updatehandle 
 
     public get count() : number {
         return this.sources.length
@@ -26,7 +27,11 @@ export class Client {
         this.messager = _messager
         this.messager_log = _messager_log
         this.analysis = new ClientAnalysis(_messager, _messager_log, this)
-        setInterval(this.update, CLIENT_UPDATETICK);
+        this.updatehandle = setInterval(this.update, CLIENT_UPDATETICK);
+    }
+
+    Dispose (){
+        clearInterval(this.updatehandle)
     }
 
     /**
@@ -37,7 +42,7 @@ export class Client {
         let canbeuse = false
 
         while(!canbeuse){
-            await tcpPortUsed.check(port_result).then(x => {
+            await check(port_result).then(x => {
                 canbeuse = !x
             }).catch(err => {
                 canbeuse = true

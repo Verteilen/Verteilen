@@ -1,6 +1,7 @@
 import { v6 as uuidv6 } from 'uuid';
 import { CronJobState, DataType, ExecuteState, Header, Job, Project, Task, WebsocketPack, WorkState } from "../../interface";
 import { ExecuteManager_Feedback } from "./feedback";
+import { Util_Parser } from './util_parser';
 
 /**
  * The execute runner
@@ -234,13 +235,22 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
         this.proxy?.executeJobStart([ job, n - 1, wss.uuid ])
 
+        const exps = this.localPara!.containers.filter(x => x.type == DataType.Expression)
+        exps.forEach(x => {
+            if(x.meta == undefined) return
+            const e = new Util_Parser([...Util_Parser.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
+            x.value = e.parse(x.meta)
+        })
+        
+
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
             if(b == null || b == undefined || b.length == 0) continue
             for(let j = 0; j < task.properties.length; j++){
-                job.string_args[i] = this.replaceAll(job.string_args[i], `%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
+                job.string_args[i] = Util_Parser.replaceAll(job.string_args[i], `%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
             }
-            job.string_args[i] = this.replacePara(job.string_args[i], [...this.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
+            const e = new Util_Parser([...Util_Parser.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
+            job.string_args[i] = e.replacePara(job.string_args[i])
             this.messager_log(`String replace: ${b} ${job.string_args[i]}`)
         }
         const h:Header = {
@@ -266,7 +276,8 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         for(let i = 0; i < this.localPara!.containers.length; i++){
             if(this.localPara!.containers[i].type == DataType.Expression && this.localPara!.containers[i].meta != undefined){
                 const text = `%{${this.localPara!.containers[i].meta}}%`
-                this.localPara!.containers[i].value = this.replacePara(text, [...this.to_keyvalue(this.localPara!)])
+                const e = new Util_Parser([...Util_Parser.to_keyvalue(this.localPara!)])
+                this.localPara!.containers[i].value = e.replacePara(text)
             }
         }
         // Boradcasting
