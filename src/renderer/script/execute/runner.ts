@@ -58,8 +58,8 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
          */
         if(this.t_state == ExecuteState.NONE){
             this.t_state = ExecuteState.RUNNING
-            this.current_multithread = task.multi ? this.get_task_multi_count(project, task) : 1
-            this.current_task_count = this.get_task_state_count(project, task)
+            this.current_multithread = task.multi ? this.get_task_multi_count(task) : 1
+            this.current_task_count = this.get_task_state_count(task)
         }
         let allJobFinish = false
         const hasJob = task.jobs.length > 0
@@ -234,13 +234,6 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         const n:number = job.index!
         this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
         this.proxy?.executeJobStart([ job, n - 1, wss.uuid ])
-
-        const exps = this.localPara!.containers.filter(x => x.type == DataType.Expression)
-        exps.forEach(x => {
-            if(x.meta == undefined) return
-            const e = new Util_Parser([...Util_Parser.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
-            x.value = e.parse(x.meta)
-        })
         
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]

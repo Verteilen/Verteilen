@@ -108,7 +108,7 @@ const recover = () => {
 
 const receivedPack = async (record:Record) => {
     task_index.value = 0
-    const target = data.value!.projects[data.value!.project_index]
+    const target = record.projects[0]
     const title = await getnewname(target.title)
     const newlog:ExecutionLog = {
         filename: title,
@@ -192,7 +192,7 @@ const execute_task_start = (d:[Task, number]) => {
 
     const p = data.value!.projects[data.value!.project_index]
     const t = p.task[task_index.value]
-    const count = props.execute!.get_task_state_count(p, t)
+    const count = props.execute!.get_task_state_count(t)
     
     for(let i = 0; i < count; i++){
         logs.value.logs[0].logs[task_index.value].task_detail.push({

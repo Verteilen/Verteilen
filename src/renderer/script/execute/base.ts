@@ -122,16 +122,16 @@ export class ExecuteManager_Base {
      * @param key The multi-core-key
      * @returns 
      */
-    protected get_task_multi_count = (p:Project, t:Task):number => {
-        const r = this.get_number(t.multiKey, p)
+    protected get_task_multi_count = (t:Task):number => {
+        const r = this.get_number(t.multiKey)
         return r == -1 ? 1 : r
     }
     /**
      * Get the task's cronjob count
      */
-    public get_task_state_count(p:Project, t:Task){
+    public get_task_state_count(t:Task){
         if (t.cronjob){
-            return this.get_number(t.cronjobKey, p)
+            return this.get_number(t.cronjobKey)
         }else{
             return 1
         }
@@ -143,15 +143,15 @@ export class ExecuteManager_Base {
      * @param p Project instance
      * @returns The value, if key cannot be found, it will return -1
      */
-    protected get_number(key:string, p:Project){
-        const f = p.parameter.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression))
+    protected get_number(key:string){
+        const f = this.localPara!.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression))
         if(f == undefined) return -1
-        if(f.meta == undefined){
+        if(f.meta == undefined && f.type == DataType.Expression){
             f.value = 0
             return f.value
         }
         if(f.type == DataType.Expression){
-            const e = new Util_Parser([...Util_Parser.to_keyvalue(p.parameter)])
+            const e = new Util_Parser([...Util_Parser.to_keyvalue(this.localPara!)])
             return Number(e.replacePara(f.meta || ''))
         }else{
             return f.value
