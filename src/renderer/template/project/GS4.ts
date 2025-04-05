@@ -89,7 +89,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
 
     const t:Task = {
         uuid: uuidv6(),
-        title: "運算資料準備",
+        title: "運算資料準備 (COLMAP)",
         description: "利用 Colmap 工具生成 .bin 資料",
         cronjob: true,
         cronjobKey: "frameCount",
@@ -257,7 +257,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density% --start %gap_value% --end %frameCount% --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --group_size %group_size% --iteration %iteration_iframe% --dynamic %iteration_dynamic% %train_command%"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %frameCount% --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --group_size %group_size% --iteration %iteration_iframe% --dynamic %iteration_dynamic% %train_command%"],
         number_args: [],
         boolean_args: []
     }
@@ -389,7 +389,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "density", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "density_util", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_iteration", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "finetune_iteration", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
 
