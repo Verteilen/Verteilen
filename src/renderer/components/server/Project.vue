@@ -4,8 +4,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { GetFFmpeg_Image2VideoProjectTemplate } from '../../template/project/FFmpeg_2Video';
-import { GetAfterEffectTemplate, GetBlenderTemplate, GetDefaultProjectTemplate, GetFUNIQUE_GS4Project_V2_Template, GetFUNIQUE_GS4ProjectTemplate } from '../../template/projectTemplate';
+import { CreateField, Temp, Util_Project } from '../../util/project';
 
 interface PROPS {
     projects: Array<Project>
@@ -33,8 +32,8 @@ const fields:Ref<Array<any>> = ref([
     { title: 'Detail', align: 'center', key: 'detail' },
 ])
 const createModal = ref(false)
-const createData = ref({title: "", description: "", useTemp: false, temp: 0})
-const temps:Ref<Array<{ text: string, value:number }>> = ref([])
+const createData:Ref<CreateField> = ref({title: "", description: "", useTemp: false, temp: 0})
+const temps:Ref<Array<Temp>> = ref([])
 const editModal = ref(false)
 const editUUID = ref('')
 const deleteModal = ref(false)
@@ -44,19 +43,20 @@ const titleError = ref(false)
 const search = ref('')
 const selection:Ref<Array<string>> = ref([])
 
-type callbackFunc = (input:Project)=>Project
-const projectTemp:{ [key:number]:callbackFunc } = {
-    0: GetDefaultProjectTemplate,
-    1: GetFUNIQUE_GS4ProjectTemplate,
-    2: GetFUNIQUE_GS4Project_V2_Template,
-    3: GetFFmpeg_Image2VideoProjectTemplate,
-    4: GetBlenderTemplate,
-    5: GetAfterEffectTemplate
-}
+const util:Util_Project = new Util_Project({
+    items: items,
+    createModal: createModal,
+    createData: createData,
+    temps: temps,
+    editModal: editModal,
+    editUUID: editUUID,
+    deleteModal: deleteModal,
+    deleteData: deleteData,
+    errorMessage: errorMessage,
+    titleError: titleError,
+}, () => props.projects)
 
-const items_final = computed(() => {
-    return search.value == null || search.value.length == 0 ? items.value : items.value.filter(x => x.title.includes(search.value) || x.ID.includes(search.value))
-})
+const items_final = computed(() => { return search.value == null || search.value.length == 0 ? items.value : items.value.filter(x => x.title.includes(search.value) || x.ID.includes(search.value)) })
 const hasSelect = computed(() => selection.value.length > 0)
 const selected_project_ids = computed(() => items.value.filter(x => selection.value.includes(x.ID)).map(x => x.ID))
 
@@ -74,20 +74,9 @@ const updateProject = () => {
     selection.value = selection.value.filter(x => allid.includes(x))
 }
 
-const recoverProject = (p:Project) => {
-    emits('added', [p])
-}
-
-const createProject = () => {
-    createData.value = {title: "", description: "", useTemp: false, temp: 0};
-    createModal.value = true
-    errorMessage.value = ''
-    titleError.value = false
-}
-
-const datachoose = (uuid:string) => {
-    emits('select', uuid)
-}
+const recoverProject = (p:Project) => emits('added', [p])
+const createProject = () => util.createProject()
+const datachoose = (uuid:string) => emits('select', uuid)
 
 const dataedit = (uuid:string) => {
     const selectp = props.projects.find(x => x.uuid == uuid)
@@ -146,27 +135,8 @@ const execute = (keep:boolean) => {
 }
 
 const confirmCreate = () => {
-    if(createData.value.title.length == 0){
-        errorMessage.value = i18n.global.t('error.title-needed')
-        titleError.value = true
-        return
-    }
-    createModal.value = false
-    let buffer:Project = { 
-        uuid: uuidv6(),
-        title: createData.value.title, 
-        description: createData.value.description,
-        parameter: {
-            canWrite: true,
-            containers: []
-        },
-        task: [
-
-        ]
-    }
-    if (createData.value.useTemp){
-        buffer = projectTemp[createData.value.temp](buffer)
-    }
+    const buffer = util.confirmCreate()
+    if(buffer == undefined) return
     emits('added', 
         [buffer]
     )
@@ -176,14 +146,8 @@ const confirmCreate = () => {
 }
 
 const confirmEdit = () => {
-    if(createData.value.title.length == 0){
-        errorMessage.value = i18n.global.t('error.title-needed')
-        titleError.value = true
-        return
-    }
-    const selectp = props.projects.find(x => x.uuid == editUUID.value)
-    if(selectp == undefined) return;
-    editModal.value = false
+    const selectp = util.confirmEdit()
+    if(selectp == undefined) return
     emits('edit', 
         editUUID.value,
         { 
@@ -217,16 +181,8 @@ const movedown = (uuid:string) => {
     })
 }
 
-const isFirst = (uuid:string) => {
-    const index = props.projects.findIndex(x => x.uuid == uuid)
-    return index <= 0
-}
-
-const isLast = (uuid:string) => {
-    const index = props.projects.findIndex(x => x.uuid == uuid)
-    if(index == -1) return true
-    return index == props.projects.length - 1
-}
+const isFirst = (uuid:string) => util.isFirst(uuid)
+const isLast = (uuid:string) => util.isLast(uuid)
 
 const updateLocate = () => {
     temps.value = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
