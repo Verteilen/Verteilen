@@ -18,7 +18,7 @@ const totalLength = ref(4)
 const panelValue:Ref<Array<number>> = ref([])
 
 const getStateColor = (state:number):string => {
-    if (state == ExecuteState.NONE) return colors.teal.base
+    if (state == ExecuteState.NONE) return colors.teal.lighten1
     else if (state == ExecuteState.RUNNING) return colors.blue.lighten1
     else if (state == ExecuteState.FINISH) return colors.green.lighten2
     else return colors.red.lighten2
