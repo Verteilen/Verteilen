@@ -60,6 +60,7 @@ export class ClientExecute {
                 cwd: path.join('bin'),
                 stdio: ['inherit', 'pipe', 'pipe'],
                 shell: true,
+                detached: true,
                 windowsHide: true,
                 env: {
                     ...process.env,
