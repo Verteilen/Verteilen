@@ -2,9 +2,9 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, Preference, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { AppConfig, BusType, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, Temp, Util_Project } from '../../util/project';
+import { DATA, Util_Project } from '../../util/project';
 
 interface PROPS {
     preference: Preference
@@ -13,7 +13,6 @@ interface PROPS {
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
-
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', project:Project[]): void
@@ -24,70 +23,39 @@ const emits = defineEmits<{
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
-const items:Ref<Array<ProjectTable>> = ref([])
-const fields:Ref<Array<any>> = ref([
-    { title: 'ID', align: 'center', key: 'ID' },
-    { title: 'Title', align: 'center', key: 'title' },
-    { title: 'Description', align: 'center', key: 'description' },
-    { title: 'TaskCount', align: 'center', key: 'taskCount' },
-    { title: 'Detail', align: 'center', key: 'detail' },
-])
-const createModal = ref(false)
-const createData:Ref<CreateField> = ref({title: "", description: "", useTemp: false, temp: 0})
-const temps:Ref<Array<Temp>> = ref([])
-const editModal = ref(false)
-const editUUID = ref('')
-const deleteModal = ref(false)
-const deleteData:Ref<Array<string>> = ref([])
-const errorMessage = ref('')
-const titleError = ref(false)
-const search = ref('')
-const selection:Ref<Array<string>> = ref([])
+const data:Ref<DATA> = ref({
+    items: [],
+    fields: [
+        { title: 'ID', align: 'center', key: 'ID' },
+        { title: 'Title', align: 'center', key: 'title' },
+        { title: 'Description', align: 'center', key: 'description' },
+        { title: 'TaskCount', align: 'center', key: 'taskCount' },
+        { title: 'Detail', align: 'center', key: 'detail' },
+    ],
+    createModal: false,
+    createData: {title: "", description: "", useTemp: false, temp: 0},
+    temps: [],
+    editModal: false,
+    editUUID: '',
+    deleteModal: false,
+    deleteData: [],
+    errorMessage: '',
+    titleError: false,
+    search: '',
+    selection: []
+})
 
-const util:Util_Project = new Util_Project({
-    items: items,
-    createModal: createModal,
-    createData: createData,
-    temps: temps,
-    editModal: editModal,
-    editUUID: editUUID,
-    deleteModal: deleteModal,
-    deleteData: deleteData,
-    errorMessage: errorMessage,
-    titleError: titleError,
-}, () => props.projects)
+const util:Util_Project = new Util_Project(data, () => props.projects)
 
-const items_final = computed(() => { return search.value == null || search.value.length == 0 ? items.value : items.value.filter(x => x.title.includes(search.value) || x.ID.includes(search.value)) })
-const hasSelect = computed(() => selection.value.length > 0)
-const selected_project_ids = computed(() => items.value.filter(x => selection.value.includes(x.ID)).map(x => x.ID))
+const items_final = computed(() => { return data.value.search == null || data.value.search.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(data.value.search) || x.ID.includes(data.value.search)) })
+const hasSelect = computed(() => data.value.selection.length > 0)
+const selected_project_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
 
-const updateProject = () => {
-    items.value = props.projects.map(x => {
-        return {
-            s: false,
-            ID: x.uuid,
-            title: x.title,
-            description: x.description,
-            taskCount: x.task.length
-        }
-    })
-    const allid = items.value.map(x => x.ID)
-    selection.value = selection.value.filter(x => allid.includes(x))
-}
-
+const updateProject = () => util.updateProject()
 const recoverProject = (p:Project) => emits('added', [p])
 const createProject = () => util.createProject()
 const datachoose = (uuid:string) => emits('select', uuid)
-
-const dataedit = (uuid:string) => {
-    const selectp = props.projects.find(x => x.uuid == uuid)
-    if(selectp == undefined) return;
-    createData.value = {title: selectp.title, description: selectp.description, useTemp: false, temp: 0};
-    editModal.value = true;
-    editUUID.value = uuid;
-    errorMessage.value = ''
-    titleError.value = false
-}
+const dataedit = (uuid:string) => util.dataedit(uuid)
 
 const dataexport = (uuid:string) => {
     if(!props.config.isElectron) return
@@ -97,13 +65,13 @@ const dataexport = (uuid:string) => {
 }
 
 const deleteSelect = () => {
-    deleteData.value = selected_project_ids.value
-    deleteModal.value = true
+    data.value.deleteData = selected_project_ids.value
+    data.value.deleteModal = true
 }
 
 const deleteConfirm = () => {
-    deleteModal.value = false
-    emits('delete', deleteData.value)
+    data.value.deleteModal = false
+    emits('delete', data.value.deleteData)
     nextTick(() => {
         updateProject()
     })
@@ -128,7 +96,7 @@ const cloneSelect = () => {
 }
 
 const selectall = () => {
-    selection.value = items.value.map(x => x.ID)
+    data.value.selection = data.value.items.map(x => x.ID)
 }
 
 const execute = (keep:boolean) => {
@@ -150,11 +118,11 @@ const confirmEdit = () => {
     const selectp = util.confirmEdit()
     if(selectp == undefined) return
     emits('edit', 
-        editUUID.value,
+    data.value.editUUID,
         { 
-            uuid: editUUID.value,
-            title: createData.value.title, 
-            description: createData.value.description,
+            uuid: data.value.editUUID,
+            title: data.value.createData.title, 
+            description: data.value.createData.description,
             parameter: selectp.parameter,
             task: selectp.task
         }
@@ -186,7 +154,7 @@ const isFirst = (uuid:string) => util.isFirst(uuid)
 const isLast = (uuid:string) => util.isLast(uuid)
 
 const updateLocate = () => {
-    temps.value = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
+    data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: ProjectTemplateTranslate(index as ProjectTemplate),
             value: index
@@ -222,7 +190,7 @@ onUnmounted(() => {
     <div>
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
-                <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
+                <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -275,7 +243,7 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="pt-3">
-            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
@@ -298,42 +266,42 @@ onUnmounted(() => {
                 </template>
             </v-data-table>
         </div>
-        <v-dialog width="500" v-model="createModal" class="text-white">
+        <v-dialog width="500" v-model="data.createModal" class="text-white">
             <v-card>
                 <v-card-title>
                     <v-icon>mdi-hammer</v-icon>
                     {{ $t('modal.new-project') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-                    <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
+                    <v-text-field :error="data.titleError" v-model="data.createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
+                    <v-text-field class="mt-3" v-model="data.createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
                     <br />
-                    <v-checkbox v-model="createData.useTemp" hide-details :label="$t('useTemplate')"></v-checkbox>
-                    <v-select v-if="createData.useTemp" v-model="createData.temp" :items="temps" item-title="text" hide-details></v-select>
-                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                    <v-checkbox v-model="data.createData.useTemp" hide-details :label="$t('useTemplate')"></v-checkbox>
+                    <v-select v-if="data.createData.useTemp" v-model="data.createData.temp" :items="data.temps" item-title="text" hide-details></v-select>
+                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>
                     <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
                 </template>
             </v-card>
         </v-dialog>
-        <v-dialog width="500" v-model="editModal" class="text-white">
+        <v-dialog width="500" v-model="data.editModal" class="text-white">
             <v-card>
                 <v-card-title>
                     <v-icon>mdi-pencil</v-icon>
                     {{ $t('modal.modify-project') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field :error="titleError" v-model="createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-                    <v-text-field class="mt-3" v-model="createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
-                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                    <v-text-field :error="data.titleError" v-model="data.createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
+                    <v-text-field class="mt-3" v-model="data.createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
+                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>
                     <v-btn class="mt-3" color="primary" @click="confirmEdit">{{ $t('modify') }}</v-btn>
                 </template>
             </v-card>
         </v-dialog>
-        <v-dialog width="500" v-model="deleteModal" class="text-white">
+        <v-dialog width="500" v-model="data.deleteModal" class="text-white">
             <v-card>
                 <v-card-title>
                     <v-icon>mdi-pencil</v-icon>
@@ -342,12 +310,12 @@ onUnmounted(() => {
                 <v-card-text>
                     <p>{{ $t('modal.delete-project-confirm') }}</p>
                     <br />
-                    <p v-for="(p, i) in deleteData">
+                    <p v-for="(p, i) in data.deleteData">
                         {{ i }}. {{ p }}
                     </p>
                 </v-card-text>
                 <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
                     <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
                 </template>
             </v-card>
