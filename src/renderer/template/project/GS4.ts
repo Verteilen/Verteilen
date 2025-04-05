@@ -211,7 +211,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap'
+                expression: '(ck - 1) * iframe_gap + 1'
             }
         ],
         jobs: [
@@ -272,7 +272,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap'
+                expression: '(ck - 1) * iframe_gap + 1'
             },
             {
                 name: 'blend_value',
@@ -320,7 +320,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%", "ply_blend", "-t 0 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x 0"],
+        string_args: ["%output%", "ply_blend", "-t 0 -f %ck% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x 0"],
         number_args: [],
         boolean_args: []
     }
@@ -332,12 +332,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         cronjobKey: "frameCount",
         multi: false,
         multiKey: "",
-        properties: [
-            {
-                name: 'index',
-                expression: '(ck - 1)'
-            }
-        ],
+        properties: [],
         jobs: [
             transparentJob
         ]
@@ -352,7 +347,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%", "ply_blend", "-t 1 -f %index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/trans -o %output%/final"],
+        string_args: ["%output%", "ply_blend", "-t 1 -f %ck% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/trans -o %output%/final"],
         number_args: [],
         boolean_args: []
     }
@@ -364,12 +359,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
         cronjobKey: "frameCount",
         multi: false,
         multiKey: "",
-        properties: [
-            {
-                name: 'index',
-                expression: '(ck - 1)'
-            }
-        ],
+        properties: [],
         jobs: [
             mergeJob
         ]

@@ -36,9 +36,11 @@ export class ClientExecute {
             if (process.platform === 'win32') {
                 spawn("taskkill", ["/pid", x.pid!.toString(), '/f', '/t']);
             } else {
+                x.stdout?.destroy()
+                x.stdin?.destroy()
+                x.stderr?.destroy()
                 x.kill("SIGINT");
             }
-            x.kill(1)
         })
     }
     
