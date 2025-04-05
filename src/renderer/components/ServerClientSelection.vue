@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject } from 'vue';
-import { AppConfig, BusType, ToastData } from '../interface';
+import { AppConfig, BusType, Preference, ToastData } from '../interface';
 import { i18n } from './../plugins/i18n';
 
 interface PROPS {
     config: AppConfig
+    preference: Preference
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
-const props = defineProps<PROPS>()
+const propss = defineProps<PROPS>()
 const data = defineModel<number>()
 
 const serverClick = () => {
@@ -20,7 +21,7 @@ const serverClick = () => {
     }
     emitter?.emit('makeToast', d)
     data.value = 1
-    if (props.config.isElectron){
+    if (propss.config.isElectron){
         window.electronAPI.send('modeSelect', false)
     } 
 }
@@ -40,13 +41,17 @@ const clientClick = () => {
 
 <template>
     <div class="text-white bg-grey-darken-4" style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;">
-        <h3>{{ $t('modeselect.title') }}</h3>
+        <h3 :style="{ 'fontSize': (propss.preference.font + 6) + 'px' }">{{ $t('modeselect.title') }}</h3>
         <br />
         <v-row>
             <v-col>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn color="primary" v-bind="props" id="tooltip-server-1" class="w-100 mx-1" @click="serverClick()">{{ $t('server') }}</v-btn>
+                        <v-btn color="primary" v-bind="props" id="tooltip-server-1" class="w-100 mx-1" @click="serverClick()">
+                            <span :style="{ 'fontSize': propss.preference.font + 'px' }">
+                                {{ $t('server') }}
+                            </span>
+                        </v-btn>
                     </template>
                     <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-server') }}</p>
                 </v-tooltip>
@@ -54,7 +59,11 @@ const clientClick = () => {
             <v-col>
                 <v-tooltip location="bottom" text="Tooltip">
                     <template v-slot:activator="{ props }">
-                        <v-btn color="primary" v-bind="props" class="w-100 mx-1" @click="clientClick()">{{ $t('node') }}</v-btn>    
+                        <v-btn color="primary" v-bind="props" class="w-100 mx-1" @click="clientClick()">
+                            <span :style="{ 'fontSize': propss.preference.font + 'px' }">
+                                {{ $t('node') }}
+                            </span>
+                        </v-btn>    
                     </template>
                     <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-node') }}</p>
                 </v-tooltip>

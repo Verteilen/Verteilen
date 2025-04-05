@@ -16,7 +16,8 @@
         "delete": "Delete",
         "selectAll": "Select All",
         "language": "Language",
-        "log": "Log"
+        "log": "Log",
+        "font": "Font Size"
     },
     "toast": {
         "server": "Server Mode",

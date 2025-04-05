@@ -27,7 +27,8 @@ const current:Ref<number> = ref(-1)
 const selection:Ref<number> = ref(0)
 const panelValue:Ref<Array<number>> = ref([])
 
-const getselect = computed(() => logs.value.logs.length == 0 ? undefined : logs.value.logs[selection.value])
+const items = computed(() => logs.value.logs.filter(x => x.output))
+const getselect = computed(() => items.value.length == 0 ? undefined : items.value[selection.value])
 const getselectTask = computed(() => getselect.value == undefined || current.value == -1 ? undefined : getselect.value.logs[current.value])
 
 const getEnable = (r:number):Array<number> => {
@@ -59,7 +60,7 @@ const setEnable = (index:number) => {
 
 const slowUpdateHandle = () => {
     if(!props.config.isElectron) return
-    logs.value.logs.filter(x => x.dirty && x.output).forEach(x => {
+    items.value.filter(x => x.dirty).forEach(x => {
         x.dirty = false
         x.output = undefined
         window.electronAPI.send('save_log', x.filename, JSON.stringify(x))
@@ -350,7 +351,7 @@ onUnmounted(() => {
                     </v-list-item>
                 </v-list>
                 <v-list>
-                    <v-list-item v-for="(item, i) in logs.logs" :key="i" :value="i" :active="selection == i" @click="selection = i">
+                    <v-list-item v-for="(item, i) in items" :key="i" :value="i" :active="selection == i" @click="selection = i">
                         <template v-slot:prepend>
                             <v-icon color="primary">mdi-book</v-icon>
                         </template>
@@ -395,7 +396,7 @@ onUnmounted(() => {
                 <br /> <br />
             </v-col>
             <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 1 && getselect != undefined">
-                <ParameterPage v-model="getselect.parameter" />
+                <ParameterPage v-model="getselect.parameter" :preference="props.preference" />
             </v-col>
         </v-row>
     </v-container>

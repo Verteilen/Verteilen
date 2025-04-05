@@ -16,7 +16,8 @@
         "delete": "刪除",
         "selectAll": "全選",
         "language": "語言",
-        "log": "紀錄"
+        "log": "紀錄",
+        "font": "字型大小"
     },
     "toast": {
         "server": "伺服器模式",

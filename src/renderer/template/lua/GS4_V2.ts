@@ -28,7 +28,7 @@ env.setnumber("gop_negative", gap_n)
 
 function copy_to_positive(p_folder)
     local to = p_folder.."/"..tostring(p_count)
-    if o.exist('from') then
+    if o.exist(from) then
         o.copydir(from, to)
     end
     p_count = p_count + 1
@@ -36,7 +36,7 @@ end
 
 function copy_to_negative(n_folder)
     local to = n_folder.."/"..tostring(n_count)
-    if o.exist('from') then
+    if o.exist(from) then
         o.copydir(from, to)
     end
     n_count = n_count + 1
@@ -133,7 +133,9 @@ for i=1,iframe_size,1 do
     -- Positive detect
     to_foldername = tostring((recur * gap_p) + delta + 1 + (recur))
     to = root.."/"..after_folder.."/".."BLEND_"..tostring(step  * iframe_gap).."_IP/checkpoint/"..to_foldername
-    o.copydir(from, to)
+    if o.exist(from) then
+        o.copydir(from, to)
+    end
 
     if i <= blend then
         goto continue
@@ -143,7 +145,9 @@ for i=1,iframe_size,1 do
     -- N0, N1, N2
     to_foldername = "N"..tostring(recur - 1)
     to = root.."/"..after_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint/"..to_foldername
-    o.copydir(from, to)
+    if o.exist(from) then
+        o.copydir(from, to)
+    end
 
     ::continue::
 end

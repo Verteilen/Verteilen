@@ -420,7 +420,7 @@ onUnmounted(() => {
 <template>
     <div fluid class="ma-0 pa-0" v-if="data != undefined">
         <div class="py-3">
-            <v-toolbar density="compact" class="px-3">
+            <v-toolbar density="compact" class="px-3" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <p>{{ $t('execute') }}</p>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -492,7 +492,7 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 150px)" class="w-100">
             <v-col :cols="leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
-                <v-list v-model.number="tag" mandatory color="success">
+                <v-list v-model.number="tag" mandatory color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
                     <v-list-item @click="tag = 0" :value="0" :active="tag == 0">
                         {{ $t('console.list') }}
                     </v-list-item>
@@ -508,16 +508,16 @@ onUnmounted(() => {
                 </v-list>
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 0">
-                <List v-model="data" />
+                <List v-model="data" :preference="props.preference" />
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 1">
-                <Process v-model="data" :socket="props.socket" />
+                <Process v-model="data" :socket="props.socket" :preference="props.preference" />
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 2">
                 <DebugLog />
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 3">
-                <ParameterPage v-model="para" />
+                <ParameterPage v-model="para" :preference="props.preference" />
             </v-col>
         </v-row>
         <NumberDialog v-model="skipModal" 

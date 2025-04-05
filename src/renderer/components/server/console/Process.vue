@@ -2,10 +2,11 @@
 import { Emitter } from 'mitt';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { BusType, ExecuteRecord, ExecuteState, Task } from '../../../interface';
+import { BusType, ExecuteRecord, ExecuteState, Preference, Task } from '../../../interface';
 import { WebsocketManager } from '../../../script/socket_manager';
 
 interface PROPS {
+    preference: Preference
     socket: WebsocketManager | undefined
 }
 
@@ -17,10 +18,10 @@ const totalLength = ref(4)
 const panelValue:Ref<Array<number>> = ref([])
 
 const getStateColor = (state:number):string => {
-    if (state == ExecuteState.NONE) return colors.teal.base
-    else if (state == ExecuteState.RUNNING) return colors.indigo.darken3
-    else if (state == ExecuteState.FINISH) return colors.green.darken3
-    else return colors.red.darken4
+    if (state == ExecuteState.NONE) return colors.teal.lighten1
+    else if (state == ExecuteState.RUNNING) return colors.blue.lighten1
+    else if (state == ExecuteState.FINISH) return colors.green.lighten2
+    else return colors.red.lighten2
 }
 
 const getURL = (id: string) => {
@@ -83,15 +84,15 @@ onUnmounted(() => {
 <template>
     <v-container v-if="data != undefined" class="pt-4" style="max-height: calc(100vh - 150px); overflow-y: auto;">
         <v-card v-if="data.project_index >= 0">
-            <v-card-title>
+            <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }">
                 {{ $t('project') }}: {{ data.projects[data.project_index]?.title }}
             </v-card-title>
             <v-card-text>
-                <p>{{ $t('is-running') }}: 
+                <p :style="{ 'fontSize': props.preference.font + 'px' }">{{ $t('is-running') }}: 
                     <v-icon v-if="data.running" color="success" icon="mdi-checkbox-marked-circle" end ></v-icon>
                     <v-icon v-else color="danger" icon="mdi-cancel" end ></v-icon>
                 </p>
-                <p>{{ $t('is-stop') }}:
+                <p :style="{ 'fontSize': props.preference.font + 'px' }">{{ $t('is-stop') }}:
                     <v-icon v-if="data.stop" color="success" icon="mdi-checkbox-marked-circle" end ></v-icon>
                     <v-icon v-else color="danger" icon="mdi-cancel" end ></v-icon>
                 </p>
@@ -104,8 +105,8 @@ onUnmounted(() => {
                     <v-stepper-item 
                         class="px-4 py-3 my-1"
                         :disabled="true"
-                        style="background-color: transparent;"
-                        :style="{ 'color': getStateColor(data.task_state[getindex(r, i)]?.state ?? 0) }"
+                        style="background-color: transparent"
+                        :style="{ 'color': getStateColor(data.task_state[getindex(r, i)]?.state ?? 0), 'fontSize': props.preference.font + 'px' }"
                         :value="getindex(r, i)"
                         :title="data.projects[data.project_index]?.task[getindex(r, i)]?.title ?? ''"
                         :complete="data.task_state[getindex(r, i)]?.state == 2">

@@ -89,7 +89,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
 
     const t:Task = {
         uuid: uuidv6(),
-        title: "運算資料準備",
+        title: "運算資料準備 (COLMAP)",
         description: "利用 Colmap 工具生成 .bin 資料",
         cronjob: true,
         cronjobKey: "frameCount",
@@ -130,11 +130,11 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap'
+                expression: '(ck - 1) * iframe_gap + 1'
             },
             {
                 name: 'gap_value_end',
-                expression: '(ck - 1) * iframe_gap + 1'
+                expression: '(ck - 1) * iframe_gap + 2'
             }
         ],
         jobs: [
@@ -178,7 +178,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.RENAME,
         lua: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_7000/point_cloud.ply", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_7000/point_cloud_before.ply"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud.ply", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
     }
@@ -187,7 +187,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_7000", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply -r %denoise% -g %denoise% -b %denoise%"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply -r %denoise% -g %denoise% -b %denoise%"],
         number_args: [],
         boolean_args: []
     }
@@ -196,7 +196,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.DELETE_FILE,
         lua: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_7000/point_cloud_before.ply"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
     }
@@ -257,7 +257,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density% --start %gap_value% --end %frameCount% --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --group_size %group_size% --iteration %iteration_iframe% --dynamic %iteration_dynamic% %train_command%"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %frameCount% --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --group_size %group_size% --iteration %iteration_iframe% --dynamic %iteration_dynamic% %train_command%"],
         number_args: [],
         boolean_args: []
     }
@@ -389,7 +389,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "density", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "density_util", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_iteration", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "finetune_iteration", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
 

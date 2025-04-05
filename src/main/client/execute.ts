@@ -32,7 +32,14 @@ export class ClientExecute {
      */
     stop_job = () => {
         this.messager_log("[Execute] Stop All")
-        this.workers.forEach(x => x.kill(1))
+        this.workers.forEach(x => {
+            if (process.platform === 'win32') {
+                spawn("taskkill", ["/pid", x.pid!.toString(), '/f', '/t']);
+            } else {
+                x.kill("SIGINT");
+            }
+            x.kill(1)
+        })
     }
     
     /**

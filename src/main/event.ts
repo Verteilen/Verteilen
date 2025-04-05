@@ -22,7 +22,8 @@ export class BackendEvent {
 
     Destroy = () => {
         if(this.client == undefined) return
-        this.client?.Destroy()
+        this.client.Destroy()
+        this.client.Dispose()
         this.client = undefined
     }
 
@@ -112,6 +113,7 @@ export class BackendEvent {
                 const record:Preference = {
                     lan: 'en',
                     log: true,
+                    font: 18,
                 }
                 fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
                 i18n.global.locale = 'en'

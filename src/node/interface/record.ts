@@ -64,6 +64,7 @@ export interface Preference {
      * ![NOTICE] there will be no log to recover your works
      */
     log: boolean
+    font: number
 }
 
 export interface Library {

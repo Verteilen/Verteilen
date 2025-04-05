@@ -100,6 +100,9 @@ export class ClientAnalysis {
         this.exec.stop_job()
     }
 
+    step_all = () => {
+        this.exec.stop_job()
+    }
 
     private resource_require = () => {
         const shouldRun = this.resource_thread == undefined && (this.resource_cache == undefined || this.resource_wanter.length > 0)

@@ -17,7 +17,7 @@ const buffer:Ref<Preference | undefined> = ref(undefined)
 const lan:Ref<Array<string>> = ref(['en', 'zh_TW'])
 
 watch(() => modal.value, () => {
-    buffer.value = props.item
+    buffer.value = JSON.parse(JSON.stringify(props.item))
 })
 
 const confirm = () => {
@@ -34,7 +34,7 @@ const close = () => {
 
 <template>
     <v-dialog persistent width="600" v-model="modal" class="text-white">
-        <v-card>
+        <v-card :style="{ 'fontSize': props.item?.font + 'px' }">
             <v-card-title>
                 <v-icon>mdi-cog</v-icon>
                 {{ $t('toolbar.setting') }}
@@ -42,6 +42,7 @@ const close = () => {
             <v-card-text v-if="buffer">
                 <v-select hide-details :label="$t('menu.language')" v-model="buffer.lan" :items="lan"></v-select>
                 <v-checkbox hide-details :label="$t('menu.log')" v-model="buffer.log"></v-checkbox>
+                <v-slider :min="12" :max="36" :step="1" hide-details :label="$t('menu.font') + ' ' + buffer.font" v-model="buffer.font"></v-slider>
             </v-card-text>
             <template v-slot:actions>
                 <v-btn color="success" @click="confirm">

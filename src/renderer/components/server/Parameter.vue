@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, DataTypeText, Parameter, ParameterContainer, Project } from '../../interface';
+import { BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference, Project } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
 interface PROPS {
+    preference: Preference
     select: Project | undefined
 }
 
@@ -204,7 +205,7 @@ onUnmounted(() => {
     <div>
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
-                <v-text-field max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
+                <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
                 <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
@@ -267,7 +268,7 @@ onUnmounted(() => {
             <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
         </v-toolbar>
         <div class="py-3 px-5 text-left">
-            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="name">
+            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.detail="{ item }">
                     <v-btn flat icon @click="editParameter(item.name)" size="small">
                         <v-icon>mdi-pencil</v-icon>
