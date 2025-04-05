@@ -8,7 +8,6 @@ local before_folder = env.getstring("before")
 local after_folder = env.getstring("after")
 local output_folder = env.getstring("output")
 
-local start_at_zero = env.getboolean("start_at_0")
 local iframe_gap = env.getnumber("iframe_gap")
 local CAM = env.getstring("CAM")
 local images = env.getstring("images")
@@ -28,10 +27,6 @@ local cam_size = #(prepare_folders)
 m.messager("Get CAM count: "..cam_size)
 
 local minus = 0
-
-if start_at_zero then
-    minus = 1
-end
 
 local frame_size = 0
 if cam_size > 0 then
