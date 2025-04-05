@@ -99,9 +99,7 @@ const selectall = () => {
     data.value.selection = data.value.items.map(x => x.ID)
 }
 
-const execute = (keep:boolean) => {
-    emits('execute', selected_project_ids.value, keep)
-}
+const execute = (keep:boolean) => emits('execute', selected_project_ids.value, keep)
 
 const confirmCreate = () => {
     const buffer = util.confirmCreate()
@@ -139,9 +137,7 @@ const moveup = (uuid:string) => {
     })
 }
 
-const ProjectTemplateTranslate = (t:number):string => {
-    return i18n.global.t(ProjectTemplateText[t])
-}
+const ProjectTemplateTranslate = (t:number):string => { return i18n.global.t(ProjectTemplateText[t]) }
 
 const movedown = (uuid:string) => {
     emits('movedown', uuid)
