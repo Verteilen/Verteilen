@@ -395,7 +395,7 @@ onUnmounted(() => {
                 <br /> <br />
             </v-col>
             <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 1 && getselect != undefined">
-                <ParameterPage v-model="getselect.parameter" />
+                <ParameterPage v-model="getselect.parameter" :preference="props.preference" />
             </v-col>
         </v-row>
     </v-container>

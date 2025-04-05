@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, ref, Ref } from 'vue';
-import { BusType, IMessage, RENDER_UPDATETICK, ToastData } from '../interface';
+import { BusType, IMessage, Preference, RENDER_UPDATETICK, ToastData } from '../interface';
 import { GetColor } from '../plugins/vuetify';
 
+interface PROPS {
+    preference: Preference
+}
+
 const emitter:Emitter<BusType> | undefined = inject('emitter');
+const props = defineProps<PROPS>()
 const messages:Ref<Array<IMessage>> = ref([])
 
 const makeToast = (e:ToastData) => {
@@ -82,10 +87,10 @@ onUnmounted(() => {
                 color="transparent"
                 variant="flat">
                 <v-card class="pa-2 ma-0" variant="flat" elevation="16" :color="darken(m.variant)" style="border-width: 2px;">
-                    <v-card-title>
+                    <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }">
                         {{ m.title }}
                     </v-card-title>
-                    <v-card-text>
+                    <v-card-text :style="{ 'fontSize': props.preference.font + 'px' }">
                         {{ m.content }}
                     </v-card-text>
                 </v-card>

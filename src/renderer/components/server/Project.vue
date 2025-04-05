@@ -2,11 +2,12 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { AppConfig, BusType, Preference, Project, ProjectTable, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, Temp, Util_Project } from '../../util/project';
 
 interface PROPS {
+    preference: Preference
     projects: Array<Project>
     config: AppConfig
 }
@@ -221,7 +222,7 @@ onUnmounted(() => {
     <div>
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
-                <v-text-field max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
+                <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -274,7 +275,7 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="pt-3">
-            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
+            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>

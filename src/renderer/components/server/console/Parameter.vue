@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, DataTypeText, Parameter } from '../../../interface';
+import { BusType, DataType, DataTypeText, Parameter, Preference } from '../../../interface';
 import { i18n } from '../../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
+interface PROPS {
+    preference: Preference
+}
+
 const data = defineModel<Parameter>()
+const props = defineProps<PROPS>()
 const fields:Ref<Array<any>> = ref([
     { title: 'Name', align: 'center', key: 'name' },
     { title: 'Type', align: 'center', key: 'type' },
@@ -49,7 +54,7 @@ onUnmounted(() => {
 
 <template>
     <v-container v-if="d != undefined" class="pt-4" style="max-height: 90vh; overflow-y: auto;">
-        <v-data-table :items="d.containers" :headers="fields" item-key="name">
+        <v-data-table :items="d.containers" :headers="fields" item-key="name" :style="{ 'fontSize': props.preference.font + 'px' }">
             <template v-slot:item.type="item">
                 <v-chip>{{ DataTypeTranslate(item.value) }}</v-chip>
             </template>
