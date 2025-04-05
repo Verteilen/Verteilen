@@ -133,7 +133,9 @@ for i=1,iframe_size,1 do
     -- Positive detect
     to_foldername = tostring((recur * gap_p) + delta + 1 + (recur))
     to = root.."/"..after_folder.."/".."BLEND_"..tostring(step  * iframe_gap).."_IP/checkpoint/"..to_foldername
-    o.copydir(from, to)
+    if o.exist(from) then
+        o.copydir(from, to)
+    end
 
     if i <= blend then
         goto continue
@@ -143,7 +145,9 @@ for i=1,iframe_size,1 do
     -- N0, N1, N2
     to_foldername = "N"..tostring(recur - 1)
     to = root.."/"..after_folder.."/".."BLEND_"..tostring(step * iframe_gap).."_IN/checkpoint/"..to_foldername
-    o.copydir(from, to)
+    if o.exist(from) then
+        o.copydir(from, to)
+    end
 
     ::continue::
 end

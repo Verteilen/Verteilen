@@ -22,7 +22,8 @@ export class BackendEvent {
 
     Destroy = () => {
         if(this.client == undefined) return
-        this.client?.Destroy()
+        this.client.Destroy()
+        this.client.Dispose()
         this.client = undefined
     }
 
