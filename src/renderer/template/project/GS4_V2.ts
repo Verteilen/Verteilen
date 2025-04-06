@@ -63,7 +63,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Position = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap'
+                expression: '(ck - 1) * iframe_gap + 1'
             },
             {
                 name: 'blend_value',
@@ -107,7 +107,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Negative = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap'
+                expression: '(ck - 1) * iframe_gap + 1'
             },
             {
                 name: 'blend_value',
