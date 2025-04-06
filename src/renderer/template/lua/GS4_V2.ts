@@ -188,8 +188,8 @@ local iframe_gap = env.getnumber("iframe_gap")
 local gap_p = env.getnumber("gop_positive")
 local gap_n = env.getnumber("gop_negative")
 
-local iframe_iteration = env.getnumber(iframe_iteration)
-local finetune_iteration = env.getnumber(finetune_iteration)
+local iframe_iteration = env.getnumber("iframe_iteration")
+local finetune_iteration = env.getnumber("finetune_iteration")
 
 -- current value [1, 2, 3, 4]
 o.createdir(output_folder.."/final")
