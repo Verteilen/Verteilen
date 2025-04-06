@@ -71,7 +71,7 @@ if __name__ == '__main__':
         first_frame_iteration = args.dynamic
         first_frame_save_iterations = first_frame_iteration
         # rest frame
-        dynamic_command = f"python train_dynamic.py -s {data_root_path} -m {gaussian_output_path} --sh_degree {sh} -r {resolution_scale} --st {group_start} --ed {group_end} --interval {interval} --iterations {first_frame_iteration} --save_iterations {first_frame_save_iterations}"
+        dynamic_command = f"python train_dynamic.py -s {data_root_path} -m {gaussian_output_path} --sh_degree {sh} -r {resolution_scale} --st {group_start} --ed {group_end} --interval {interval} --iterations {first_frame_iteration}"
         os.system(dynamic_command)
 
         print(f"Finish {group_start} to {group_end}")
