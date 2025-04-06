@@ -23,17 +23,20 @@ export interface PROPS {
     config: AppConfig
 }
 
-export interface INPUT {
-    items:Ref<Array<ProjectTable>>
-    createModal:Ref<boolean>
-    createData:Ref<CreateField>
-    temps:Ref<Array<Temp>>
-    editModal:Ref<boolean>
-    editUUID:Ref<string>
-    deleteModal:Ref<boolean>
-    deleteData:Ref<Array<string>>
-    errorMessage:Ref<string>
-    titleError:Ref<boolean>
+export interface DATA {
+    items:Array<ProjectTable>
+    fields: Array<any>
+    createModal:boolean
+    createData:CreateField
+    temps:Array<Temp>
+    editModal:boolean
+    editUUID:string
+    deleteModal:boolean
+    deleteData:Array<string>
+    errorMessage:string
+    titleError:boolean
+    search:string
+    selection:Array<string>
 }
 
 type callbackFunc = (input:Project)=>Project
@@ -48,13 +51,13 @@ const projectTemp:{ [key:number]:callbackFunc } = {
 
 export class Util_Project {
     getproject:getproject
-    data:INPUT
+    data:Ref<DATA>
     
     public get projects() : Array<Project> {
         return this.getproject()
     }
 
-    constructor(_data:INPUT, _getproject:getproject){
+    constructor(_data:Ref<DATA>, _getproject:getproject){
         this.data = _data
         this.getproject = _getproject
     }
@@ -69,43 +72,67 @@ export class Util_Project {
         return index == this.projects.length - 1
     }
 
+    dataedit = (uuid:string) => {
+        const selectp = this.projects.find(x => x.uuid == uuid)
+        if(selectp == undefined) return;
+        this.data.value.createData = {title: selectp.title, description: selectp.description, useTemp: false, temp: 0};
+        this.data.value.editModal = true;
+        this.data.value.editUUID = uuid;
+        this.data.value.errorMessage = ''
+        this.data.value.titleError = false
+    }
+
+    updateProject = () => {
+        this.data.value.items = this.projects.map(x => {
+            return {
+                s: false,
+                ID: x.uuid,
+                title: x.title,
+                description: x.description,
+                taskCount: x.task.length
+            }
+        })
+        const allid = this.data.value.items.map(x => x.ID)
+        this.data.value.selection = this.data.value.selection.filter(x => allid.includes(x))
+    }
+
     createProject = () => {
-        this.data.createData.value = {title: "", description: "", useTemp: false, temp: 0};
-        this.data.createModal.value = true
-        this.data.errorMessage.value = ''
-        this.data.titleError.value = false
+        this.data.value.createData = {title: "", description: "", useTemp: false, temp: 0};
+        this.data.value.createModal = true
+        this.data.value.errorMessage = ''
+        this.data.value.titleError = false
     }
 
     confirmCreate = () => {
-        if(this.data.createData.value.title.length == 0){
-            this.data.errorMessage.value = i18n.global.t('error.title-needed')
-            this.data.titleError.value = true
+        if(this.data.value.createData.title.length == 0){
+            this.data.value.errorMessage = i18n.global.t('error.title-needed')
+            this.data.value.titleError = true
             return
         }
-        this.data.createModal.value = false
+        this.data.value.createModal = false
         let buffer:Project = { 
             uuid: uuidv6(),
-            title: this.data.createData.value.title, 
-            description: this.data.createData.value.description,
+            title: this.data.value.createData.title, 
+            description: this.data.value.createData.description,
             parameter: {
                 canWrite: true,
                 containers: []
             },
             task: []
         }
-        if (this.data.createData.value.useTemp){
-            buffer = projectTemp[this.data.createData.value.temp](buffer)
+        if (this.data.value.createData.useTemp){
+            buffer = projectTemp[this.data.value.createData.temp](buffer)
         }
         return buffer
     }
 
     confirmEdit = () => {
-        if(this.data.createData.value.title.length == 0){
-            this.data.errorMessage.value = i18n.global.t('error.title-needed')
-            this.data.titleError.value = true
-            return
+        if(this.data.value.createData.title.length == 0){
+            this.data.value.errorMessage = i18n.global.t('error.title-needed')
+            this.data.value.titleError = true
+            return undefined
         }
-        const selectp = this.projects.find(x => x.uuid == this.data.editUUID.value)
+        const selectp = this.projects.find(x => x.uuid == this.data.value.editUUID)
         return selectp
     }
 }

@@ -1,5 +1,6 @@
 import { ChildProcess, spawn } from 'child_process';
 import * as path from 'path';
+import kill from 'tree-kill';
 import { WebSocket } from 'ws';
 import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
@@ -33,12 +34,10 @@ export class ClientExecute {
     stop_job = () => {
         this.messager_log("[Execute] Stop All")
         this.workers.forEach(x => {
-            if (process.platform === 'win32') {
-                spawn("taskkill", ["/pid", x.pid!.toString(), '/f', '/t']);
-            } else {
-                x.kill("SIGINT");
-            }
-            x.kill(1)
+            x.stdout?.destroy()
+            x.stdin?.destroy()
+            x.stderr?.destroy()
+            kill(x.pid!)
         })
     }
     

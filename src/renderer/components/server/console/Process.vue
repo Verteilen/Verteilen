@@ -118,10 +118,10 @@ onUnmounted(() => {
         <v-expansion-panels v-if="data.project_index >= 0" v-model="panelValue" multiple>
             <v-expansion-panel v-for="(task, i) in data.task_detail" :key="i"
                 class="w-100 text-white mb-3 px-4">
-                <v-expansion-panel-title :style="{ 'color': getStateColor(task.state) }" style="background-color: transparent;">
+                <v-expansion-panel-title :style="{ 'color': getStateColor(task.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent;">
                     Index: {{ task.index }}, node: {{ getURL(task.node) }}
                 </v-expansion-panel-title>
-                <v-expansion-panel-text class="py-3" style="min-height: 50px;">
+                <v-expansion-panel-text class="py-3" style="min-height: 50px;" :style="{ 'fontSize': props.preference.font + 'px' }">
                     <p style="line-height: 15px; margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>    
                 </v-expansion-panel-text>
             </v-expansion-panel>
