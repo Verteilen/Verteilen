@@ -49,14 +49,14 @@ const getselect = (r:number):Array<number> => {
 
 const ExecuteSubtaskStart = (d:[Task, number, string]) => {
     nextTick(() => {
-        const v = !panelValue.value.includes(d[1] - 1)
-        if(v) panelValue.value.push(d[1] - 1)
+        const v = !panelValue.value.includes(d[1])
+        if(v) panelValue.value.push(d[1])
     })
 }
 
 const ExecuteSubtaskFinish = (d:[Task, number, string]) => {
     nextTick(() => {
-        const v = panelValue.value.findIndex(x => x == d[1] - 1)
+        const v = panelValue.value.findIndex(x => x == d[1])
         if(v != -1) panelValue.value.splice(v, 1)
     })
 }
