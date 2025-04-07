@@ -110,7 +110,7 @@ const saveJobs = () => {
 }
 
 const cloneSelect = () => {
-    const buffer = items.value.filter(x => x.s != undefined && x.s === true)
+    const buffer:JobTable[] = JSON.parse(JSON.stringify(items.value.filter(x => x.s != undefined && x.s === true)))
     buffer.forEach(x => x.uuid = uuidv6())
     items.value.push(...buffer)
 }
