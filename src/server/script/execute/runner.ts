@@ -224,10 +224,14 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             if(index == 0) this.proxy?.executeSubtaskStart([task, work.id - 1, ns.uuid ])
             if(index == -1) return
             work.work[index].state = ExecuteState.RUNNING
-            const job:Job = JSON.parse(JSON.stringify(task.jobs[index]))
-            job.index = work.id
-            job.runtime_uuid = work.work[index].runtime
-            this.ExecuteJob(project, task, job, ns, true)
+            try {
+                const job:Job = JSON.parse(JSON.stringify(task.jobs[index]))
+                job.index = work.id
+                job.runtime_uuid = work.work[index].runtime
+                this.ExecuteJob(project, task, job, ns, true)
+            }catch(err){
+                this.messager_log(`[ExecuteCronTask Error] UUID: ${task.uuid}, Job count: ${task.jobs.length}, index: ${index}`)
+            }
         }
     }
 
@@ -280,6 +284,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
 
     protected Init_CronContainer = (task:Task, taskCount:number) => {
         this.sync_local_para(this.localPara!)
+        this.current_cron = []
         // Create the cronjob instance here
         for(let i = 0; i < taskCount; i++){
             const d:CronJobState = {
@@ -295,7 +300,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             d.work.forEach((x, j) => x.runtime = uuidv6({}, undefined, i * taskCount + j))
             this.current_cron.push(d)
         }
-        console.log("Init cron container", this.current_cron)
+        console.log("Init cron container", this.current_cron, taskCount, task)
         this.proxy?.executeTaskStart([task, taskCount ])
     }
 }

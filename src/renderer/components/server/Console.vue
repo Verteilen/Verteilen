@@ -190,6 +190,9 @@ const execute_task_finish = (d:Task) => {
     useCron.value = false
     data.value!.task = ""
     data.value!.task_state[index].state = ExecuteState.FINISH
+    if(index + 1 < data.value!.task_state.length - 1){
+        data.value!.task_state[index + 1].state = ExecuteState.RUNNING
+    }
 }
 
 const execute_subtask_start = (d:[Task, number, string]) => {
