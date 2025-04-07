@@ -146,15 +146,6 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         number_args: [],
         boolean_args: []
     }
-    const command2:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COMMAND,
-        lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_end% --iframe 0 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval 1 --group_size %iframe_gap% --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
-        number_args: [],
-        boolean_args: []
-    }
     const t:Task = {
         uuid: uuidv6(),
         title: "生成 I Frame",
@@ -180,8 +171,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         jobs: [
             copy_1,
             copy_2,
-            command1,
-            command2
+            command1
         ]
     }
     return t
@@ -268,6 +258,15 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
 
 // 修正 iframe GTP 問題
 export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
+    const command2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COMMAND,
+        lua: "",
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_end% --iframe 0 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval 1 --group_size %iframe_gap% --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
+        number_args: [],
+        boolean_args: []
+    }
     const deleteJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -318,6 +317,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
             }
         ],
         jobs: [
+            command2,
             deleteJob,
             copyJob,
             deleteJob2
