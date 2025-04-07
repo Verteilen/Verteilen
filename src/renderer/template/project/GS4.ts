@@ -133,7 +133,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COPY_DIR,
         lua: "",
-        string_args: ["%root%/%before%/%gap_value_end%", "%root%/%after%/liar/%gap_value_end%"],
+        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value_end%"],
         number_args: [],
         boolean_args: []
     }
@@ -143,6 +143,15 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         type: JobType.COMMAND,
         lua: "",
         string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %gap_value_end% --iframe 1 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --dynamic %finetune_iteration% %train_command%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const command2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COMMAND,
+        lua: "",
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %gap_value_end% --iframe 0 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --dynamic %finetune_iteration% %train_command%"],
         number_args: [],
         boolean_args: []
     }
@@ -168,6 +177,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
             copy_1,
             copy_2,
             command1,
+            command2
         ]
     }
     return t

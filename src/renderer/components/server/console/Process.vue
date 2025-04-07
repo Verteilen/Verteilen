@@ -121,8 +121,8 @@ onUnmounted(() => {
                 <v-expansion-panel-title :style="{ 'color': getStateColor(task.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent;">
                     Index: {{ task.index }}, node: {{ getURL(task.node) }}
                 </v-expansion-panel-title>
-                <v-expansion-panel-text class="py-3" style="min-height: 50px;" :style="{ 'fontSize': props.preference.font + 'px' }">
-                    <p style="line-height: 15px; margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>    
+                <v-expansion-panel-text class="py-3" style="min-height: 50px;" :style="{ 'fontSize': props.preference.font + 'px', 'line-height': props.preference.font + 'px' }">
+                    <p style="margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>    
                 </v-expansion-panel-text>
             </v-expansion-panel>
         </v-expansion-panels>
