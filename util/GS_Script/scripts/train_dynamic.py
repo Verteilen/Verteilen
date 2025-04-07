@@ -379,7 +379,6 @@ if __name__ == "__main__":
     parser.add_argument("--st", type=int, default=0)
     parser.add_argument("--ed", type=int, default=0)
     parser.add_argument("--interval", type=int, default=0)
-    parser.add_argument("--iterations", type=int, default=500)
     parser.add_argument("--gtp", type=int, default=500)
 
     parser.add_argument("--quiet", action="store_true")
