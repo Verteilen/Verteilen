@@ -119,30 +119,12 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
 
 // 生成完整 I-Frame
 export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
-    const copy_1:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COPY_DIR,
-        lua: "",
-        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value%"],
-        number_args: [],
-        boolean_args: []
-    }
-    const copy_2:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COPY_DIR,
-        lua: "",
-        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value_two%"],
-        number_args: [],
-        boolean_args: []
-    }
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_end% --iframe 1 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_two% --iframe 1 --data %root%/%before% --output %root%/%after%/GOP_20_I --interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
         number_args: [],
         boolean_args: []
     }
@@ -169,8 +151,6 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
             }
         ],
         jobs: [
-            copy_1,
-            copy_2,
             command1
         ]
     }
@@ -212,8 +192,8 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         description: "把渣渣刪掉 !",
         cronjob: true,
         cronjobKey: "iframe_size",
-        multi: false,
-        multiKey: "",
+        multi: true,
+        multiKey: "core",
         properties: [
             {
                 name: 'gap_value',
@@ -258,6 +238,33 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
 
 // 修正 iframe GTP 問題
 export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
+    const copy_1:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        lua: "",
+        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const copy_2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        lua: "",
+        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value_two%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const command2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COMMAND,
+        lua: "",
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_end% --iframe 0 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval 1 --group_size %iframe_gap% --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
+        number_args: [],
+        boolean_args: []
+    }
     const deleteJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -270,7 +277,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
     const copyJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.DELETE_DIR,
+        type: JobType.COPY_DIR,
         lua: "",
         string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
         number_args: [],
@@ -308,6 +315,9 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
             }
         ],
         jobs: [
+            copy_1,
+            copy_2,
+            command2,
             deleteJob,
             copyJob,
             deleteJob2
@@ -413,7 +423,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%", "ply_blend", "-t 0 -f %frame_index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x 0"],
+        string_args: ["%output%", "ply_blend", "-t 0 -f %frame_index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans"],
         number_args: [],
         boolean_args: []
     }
@@ -474,7 +484,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "core", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "group_size", value: 15, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "blend", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "contribute", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 17, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "density_util", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },

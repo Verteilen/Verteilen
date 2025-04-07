@@ -165,7 +165,7 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
             { name: "core", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "group_size", value: 15, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "blend", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "contribute", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 17, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "gop_positive", value: 7, type: DataType.Number, runtimeOnly: false, hidden: false },
