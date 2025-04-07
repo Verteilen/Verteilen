@@ -300,7 +300,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             d.work.forEach((x, j) => x.runtime = uuidv6({}, undefined, i * taskCount + j))
             this.current_cron.push(d)
         }
-        console.log("Init cron container", this.current_cron)
+        console.log("Init cron container", this.current_cron, taskCount, task)
         this.proxy?.executeTaskStart([task, taskCount ])
     }
 }
