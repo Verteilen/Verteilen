@@ -119,24 +119,6 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
 
 // 生成完整 I-Frame
 export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
-    const copy_1:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COPY_DIR,
-        lua: "",
-        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value%"],
-        number_args: [],
-        boolean_args: []
-    }
-    const copy_2:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COPY_DIR,
-        lua: "",
-        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value_two%"],
-        number_args: [],
-        boolean_args: []
-    }
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -169,8 +151,6 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
             }
         ],
         jobs: [
-            copy_1,
-            copy_2,
             command1
         ]
     }
@@ -258,6 +238,24 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
 
 // 修正 iframe GTP 問題
 export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
+    const copy_1:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        lua: "",
+        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const copy_2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        lua: "",
+        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value_two%"],
+        number_args: [],
+        boolean_args: []
+    }
     const command2:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -317,6 +315,8 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
             }
         ],
         jobs: [
+            copy_1,
+            copy_2,
             command2,
             deleteJob,
             copyJob,
