@@ -24,6 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('--iteration', type=int, default=7000)
     parser.add_argument('--dynamic', type=int, default=500)
     parser.add_argument('--density', type=int, default=2000)
+    parser.add_argument('--gtp', type=int, default=500)
     args = parser.parse_args()
 
     print(args.start, args.end)
@@ -70,8 +71,9 @@ if __name__ == '__main__':
 
         first_frame_iteration = args.dynamic
         first_frame_save_iterations = first_frame_iteration
+        gtp_value = args.gtp
         # rest frame
-        dynamic_command = f"python train_dynamic.py -s {data_root_path} -m {gaussian_output_path} --sh_degree {sh} -r {resolution_scale} --st {group_start} --ed {group_end} --interval {interval} --iterations {first_frame_iteration}"
+        dynamic_command = f"python train_dynamic.py -s {data_root_path} -m {gaussian_output_path} --sh_degree {sh} -r {resolution_scale} --st {group_start} --ed {group_end} --interval {interval} --iterations {first_frame_iteration} --gtp {gtp_value}"
         os.system(dynamic_command)
 
         print(f"Finish {group_start} to {group_end}")
