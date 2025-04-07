@@ -277,7 +277,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
     const copyJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.DELETE_DIR,
+        type: JobType.COPY_DIR,
         lua: "",
         string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
         number_args: [],
