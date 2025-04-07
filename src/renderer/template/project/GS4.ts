@@ -349,7 +349,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%", "ply_blend", "-t 0 -f %ck% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x 0"],
+        string_args: ["%output%", "ply_blend", "-t 0 -f %frame_index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x 0"],
         number_args: [],
         boolean_args: []
     }
@@ -361,7 +361,12 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         cronjobKey: "frameCount",
         multi: false,
         multiKey: "",
-        properties: [],
+        properties: [
+            {
+                name: 'frame_index',
+                expression: "ck - 1"
+            }
+        ],
         jobs: [
             transparentJob
         ]
