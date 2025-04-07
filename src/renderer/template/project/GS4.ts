@@ -109,6 +109,33 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
 
 // 生成完整 I-Frame
 export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
+    const mkdir:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.CREATE_DIR,
+        lua: "",
+        string_args: ["%root%/%after%/liar"],
+        number_args: [],
+        boolean_args: []
+    }
+    const copy_1:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        lua: "",
+        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const copy_2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        lua: "",
+        string_args: ["%root%/%before%/%gap_value_end%", "%root%/%after%/liar/%gap_value_end%"],
+        number_args: [],
+        boolean_args: []
+    }
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -118,7 +145,6 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         number_args: [],
         boolean_args: []
     }
-    
     const t:Task = {
         uuid: uuidv6(),
         title: "生成 I Frame",
@@ -138,6 +164,9 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
             }
         ],
         jobs: [
+            mkdir,
+            copy_1,
+            copy_2,
             command1,
         ]
     }
