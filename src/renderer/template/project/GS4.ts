@@ -22,6 +22,15 @@ export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         number_args: [],
         boolean_args: []
     }
+    const createdir2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.CREATE_DIR,
+        lua: "",
+        string_args: ["%root%/%after%/liar"],
+        number_args: [],
+        boolean_args: []
+    }
     const t:Task = {
         uuid: uuidv6(),
         title: "整理階段",
@@ -33,7 +42,8 @@ export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         properties: [],
         jobs: [
             sortjob,
-            createdir
+            createdir,
+            createdir2
         ]
     }
     return t
@@ -109,15 +119,6 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
 
 // 生成完整 I-Frame
 export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
-    const mkdir:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.CREATE_DIR,
-        lua: "",
-        string_args: ["%root%/%after%/liar"],
-        number_args: [],
-        boolean_args: []
-    }
     const copy_1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -164,7 +165,6 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
             }
         ],
         jobs: [
-            mkdir,
             copy_1,
             copy_2,
             command1,
