@@ -423,7 +423,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%output%", "ply_blend", "-t 0 -f %frame_index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans -x 0"],
+        string_args: ["%output%", "ply_blend", "-t 0 -f %frame_index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans"],
         number_args: [],
         boolean_args: []
     }
@@ -484,7 +484,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "core", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "group_size", value: 15, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "blend", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "contribute", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_size", value: 17, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "density_util", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },
