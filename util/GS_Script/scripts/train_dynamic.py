@@ -262,7 +262,7 @@ def finetune(dataset, scene, opt, pipe, last_model_path, testing_iterations, sav
         save_pcd_path = os.path.join(dataset.model_path, "point_cloud/iteration_{}".format(iteration))
         gaussians.save_ply(os.path.join(save_pcd_path, "point_cloud.ply"))
 
-def dynamic_training(dataset, opt, pipe, testing_iterations, iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from, start_frame, end_frame, interval_frame):
+def dynamic_training(dataset, opt, pipe, testing_iterations, iterations, gtp, saving_iterations, checkpoint_iterations, checkpoint, debug_from, start_frame, end_frame, interval_frame):
 
     if not os.path.exists(dataset.model_path):
         os.makedirs(dataset.model_path)
@@ -274,7 +274,7 @@ def dynamic_training(dataset, opt, pipe, testing_iterations, iterations, saving_
         print("Keyframe model not find")
         return
     
-    gtp_iterations = iterations
+    gtp_iterations = gtp
     # gtp_iterations = 4000
     # finetune_iterations = 3500
     finetune_iterations = iterations
@@ -379,6 +379,8 @@ if __name__ == "__main__":
     parser.add_argument("--st", type=int, default=0)
     parser.add_argument("--ed", type=int, default=0)
     parser.add_argument("--interval", type=int, default=0)
+    parser.add_argument("--iterations", type=int, default=500)
+    parser.add_argument("--gtp", type=int, default=500)
 
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
@@ -395,7 +397,7 @@ if __name__ == "__main__":
 
     print(f"train with keyframe {args.st}")
     print(f"train from frame {args.st + args.interval} to frame {args.ed}")
-    dynamic_training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from, args.st, args.ed, args.interval)
+    dynamic_training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.gtp, args.iterations, args.save_iterations, args.checkpoint_iterations, args.start_checkpoint, args.debug_from, args.st, args.ed, args.interval)
 
     # All done
     print("\nTraining complete.")

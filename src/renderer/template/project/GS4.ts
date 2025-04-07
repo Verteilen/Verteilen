@@ -133,7 +133,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COPY_DIR,
         lua: "",
-        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value_end%"],
+        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value_two%"],
         number_args: [],
         boolean_args: []
     }
@@ -142,16 +142,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %gap_value_end% --iframe 1 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --dynamic %finetune_iteration% %train_command%"],
-        number_args: [],
-        boolean_args: []
-    }
-    const command2:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COMMAND,
-        lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %gap_value_end% --iframe 0 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --dynamic %finetune_iteration% %train_command%"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --start %gap_value% --end %gap_value_end% --iframe 1 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
         number_args: [],
         boolean_args: []
     }
@@ -169,42 +160,18 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
                 expression: '(ck - 1) * iframe_gap + 1'
             },
             {
-                name: 'gap_value_end',
+                name: 'gap_value_two',
                 expression: '(ck - 1) * iframe_gap + 2'
+            },
+            {
+                name: 'gap_value_end',
+                expression: '(ck - 1) * iframe_gap + 3'
             }
         ],
         jobs: [
             copy_1,
             copy_2,
-            command1,
-            command2
-        ]
-    }
-    return t
-}
-
-// 備份 I-Frame
-export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
-    const backup:Job = {
-        uuid: uuidv6(),
-        category: JobCategory.Execution,
-        type: JobType.COPY_DIR,
-        lua: "",
-        string_args: ["%root%/%after%/GOP_20_I", "%root%/%after%/GOP_20_I_Backup"],
-        number_args: [],
-        boolean_args: []
-    }
-    const t:Task = {
-        uuid: uuidv6(),
-        title: "備份 I Frame",
-        description: "將剛完成的 IFrame 進行備份處理",
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
-        properties: [],
-        jobs: [
-            backup
+            command1
         ]
     }
     return t
@@ -262,6 +229,93 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
     return t
 }
 
+// 備份 I-Frame
+export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
+    const backup:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        lua: "",
+        string_args: ["%root%/%after%/GOP_20_I", "%root%/%after%/GOP_20_I_Backup"],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "備份 I Frame",
+        description: "將剛完成的 IFrame 進行備份處理",
+        cronjob: false,
+        cronjobKey: "",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            backup
+        ]
+    }
+    return t
+}
+
+// 修正 iframe GTP 問題
+export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
+    const deleteJob:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.DELETE_DIR,
+        lua: "",
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const copyJob:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.DELETE_DIR,
+        lua: "",
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const deleteJob2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.DELETE_DIR,
+        lua: "",
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "GTP 修正",
+        description: "將剛完成的 IFrame GTP 進行修正",
+        cronjob: true,
+        cronjobKey: "iframe_size",
+        multi: false,
+        multiKey: "",
+        properties: [
+            {
+                name: 'gap_value',
+                expression: '(ck - 1) * iframe_gap + 1'
+            },
+            {
+                name: 'gap_value_two',
+                expression: '(ck - 1) * iframe_gap + 2'
+            },
+            {
+                name: 'gap_value_end',
+                expression: '(ck - 1) * iframe_gap + 3'
+            }
+        ],
+        jobs: [
+            deleteJob,
+            copyJob,
+            deleteJob2
+        ]
+    }
+    return t
+}
+
 // 排序改變 優化品質做的準備
 export const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
     const copyhelper:Job = {
@@ -296,7 +350,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         lua: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %frameCount% --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --group_size %group_size% --iteration %iteration_iframe% --dynamic %iteration_dynamic% %train_command% --interval 1"],
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %frameCount% --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --group_size %group_size% --iteration %iteration_iframe% --gtp %gtp% --dynamic %iteration_dynamic% %train_command% --interval 1"],
         number_args: [],
         boolean_args: []
     }
@@ -426,6 +480,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
             { name: "density_util", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "iframe_iteration", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
             { name: "finetune_iteration", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
+            { name: "gtp", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
 
             { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
             { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
@@ -445,8 +500,9 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
         GetFUNIQUE_GS4ProjectTemplate_Prepare(),
         GetFUNIQUE_GS4ProjectTemplate_Colmap(),
         GetFUNIQUE_GS4ProjectTemplate_IFrame(),
-        GetFUNIQUE_GS4ProjectTemplate_IFrameBackup(),
         GetFUNIQUE_GS4ProjectTemplate_Denoise(),
+        GetFUNIQUE_GS4ProjectTemplate_IFrameBackup(),
+        GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment(),
         GetFUNIQUE_GS4ProjectTemplate_BlendPrepare(),
         GetFUNIQUE_GS4ProjectTemplate_Checkpoint(),
         GetFUNIQUE_GS4ProjectTemplate_PlyList(),
