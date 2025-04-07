@@ -192,8 +192,8 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         description: "把渣渣刪掉 !",
         cronjob: true,
         cronjobKey: "iframe_size",
-        multi: false,
-        multiKey: "",
+        multi: true,
+        multiKey: "core",
         properties: [
             {
                 name: 'gap_value',
