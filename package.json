@@ -10,7 +10,7 @@
     "share": "node scripts/share.js",
     "build": "node scripts/build.js && electron-builder",
     "build:web": "node scripts/build.js",
-    "build:node": "node scripts/program_build.js && node scripts/node_builder.js",
+    "build:node": "node scripts/share.js && node scripts/program_build.js && node scripts/node_builder.js",
     "build:server": "node scripts/build.js && node scripts/program_build.js && node scripts/server_builder.js",
     "build:dir": "node scripts/build.js && node scripts/program_build.js && electron-builder --dir",
     "build:win": "node scripts/share.js && node scripts/build.js && node scripts/program_build.js && electron-builder --win",

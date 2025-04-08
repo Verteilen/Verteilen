@@ -4,7 +4,8 @@ import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { DATA, Util_Project } from '../../util/project';
+import { CreateField, DATA, IndexToValue, Util_Project, ValueToGroupName } from '../../util/project';
+import ProjectDialog from '../dialog/ProjectDialog.vue';
 
 interface PROPS {
     preference: Preference
@@ -32,10 +33,10 @@ const data:Ref<DATA> = ref({
         { title: 'TaskCount', align: 'center', key: 'taskCount' },
         { title: 'Detail', align: 'center', key: 'detail' },
     ],
-    createModal: false,
-    createData: {title: "", description: "", useTemp: false, temp: 0},
+    dialogModal: false,
+    isEdit: false,
+    editData: {title: "", description: "", useTemp: false, temp: 0},
     temps: [],
-    editModal: false,
     editUUID: '',
     deleteModal: false,
     deleteData: [],
@@ -47,7 +48,8 @@ const data:Ref<DATA> = ref({
 
 const util:Util_Project = new Util_Project(data, () => props.projects)
 
-const items_final = computed(() => { return data.value.search == null || data.value.search.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(data.value.search) || x.ID.includes(data.value.search)) })
+const realSearch = computed(() => data.value.search.trimStart().trimEnd())
+const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value)) })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_project_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
 
@@ -101,6 +103,12 @@ const selectall = () => {
 
 const execute = (keep:boolean) => emits('execute', selected_project_ids.value, keep)
 
+const DialogSubmit = (p:CreateField) => {
+    data.value.editData = p
+    if(data.value.isEdit) confirmEdit()
+    else confirmCreate()
+}
+
 const confirmCreate = () => {
     const buffer = util.confirmCreate()
     if(buffer == undefined) return
@@ -119,8 +127,8 @@ const confirmEdit = () => {
     data.value.editUUID,
         { 
             uuid: data.value.editUUID,
-            title: data.value.createData.title, 
-            description: data.value.createData.description,
+            title: data.value.editData.title, 
+            description: data.value.editData.description,
             parameter: selectp.parameter,
             task: selectp.task
         }
@@ -153,7 +161,8 @@ const updateLocate = () => {
     data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: ProjectTemplateTranslate(index as ProjectTemplate),
-            value: index
+            group: ValueToGroupName(index) ?? '',
+            value: IndexToValue(index)
         }
     })
 }
@@ -262,41 +271,13 @@ onUnmounted(() => {
                 </template>
             </v-data-table>
         </div>
-        <v-dialog width="500" v-model="data.createModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-hammer</v-icon>
-                    {{ $t('modal.new-project') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field :error="data.titleError" v-model="data.createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-                    <v-text-field class="mt-3" v-model="data.createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
-                    <br />
-                    <v-checkbox v-model="data.createData.useTemp" hide-details :label="$t('useTemplate')"></v-checkbox>
-                    <v-select v-if="data.createData.useTemp" v-model="data.createData.temp" :items="data.temps" item-title="text" hide-details></v-select>
-                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
-        <v-dialog width="500" v-model="data.editModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.modify-project') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field :error="data.titleError" v-model="data.createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-                    <v-text-field class="mt-3" v-model="data.createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
-                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmEdit">{{ $t('modify') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
+        <ProjectDialog v-model="data.dialogModal" 
+            :temps="data.temps"
+            :is-edit="data.isEdit" 
+            :error-message="data.errorMessage"
+            :title-error="data.titleError"
+            :edit-data="data.editData" 
+            @submit="DialogSubmit" />
         <v-dialog width="500" v-model="data.deleteModal" class="text-white">
             <v-card>
                 <v-card-title>

@@ -1,20 +1,33 @@
 import { v6 as uuidv6 } from 'uuid';
 import { AppConfig, Ref } from "vue";
-import { Project, ProjectTable } from "../interface";
+import { Project, ProjectTable, ProjectTemplate, TemplateGroup } from "../interface";
 import { i18n } from '../plugins/i18n';
 import { GetAfterEffectTemplate, GetBlenderTemplate, GetDefaultProjectTemplate, GetFFmpeg_Image2VideoProjectTemplate, GetFUNIQUE_GS4ProjectTemplate, GetFUNIQUE_GS4Project_V2_Template } from "../template/projectTemplate";
 
 type getproject = () => Array<Project>
 
+/**
+ * {@link ProjectTemplate}
+ */
+const groups:Array<TemplateGroup> = [
+    { group: "Default", value: 0, template: GetDefaultProjectTemplate },
+    { group: "GS4D", value: 10, template: GetFUNIQUE_GS4ProjectTemplate },
+    { group: "GS4D", value: 11, template: GetFUNIQUE_GS4Project_V2_Template },
+    { group: "FFmpeg", value: 20, template: GetFFmpeg_Image2VideoProjectTemplate },
+    { group: "Blender", value: 30, template: GetBlenderTemplate },
+    { group: "After Effect", value: 40, template: GetAfterEffectTemplate },
+]
+
 export interface CreateField {
     title: string
     description: string
     useTemp: boolean
-    temp: number
+    temp: number | null
 }
 
 export interface Temp {
     text: string
+    group: string
     value: number
 }
 
@@ -26,10 +39,10 @@ export interface PROPS {
 export interface DATA {
     items:Array<ProjectTable>
     fields: Array<any>
-    createModal:boolean
-    createData:CreateField
+    dialogModal:boolean
+    isEdit: boolean
+    editData:CreateField
     temps:Array<Temp>
-    editModal:boolean
     editUUID:string
     deleteModal:boolean
     deleteData:Array<string>
@@ -39,15 +52,16 @@ export interface DATA {
     selection:Array<string>
 }
 
-type callbackFunc = (input:Project)=>Project
-const projectTemp:{ [key:number]:callbackFunc } = {
-    0: GetDefaultProjectTemplate,
-    1: GetFUNIQUE_GS4ProjectTemplate,
-    2: GetFUNIQUE_GS4Project_V2_Template,
-    3: GetFFmpeg_Image2VideoProjectTemplate,
-    4: GetBlenderTemplate,
-    5: GetAfterEffectTemplate
+export interface DialogDATA {
+    isEdit: boolean
+    editData: CreateField
+    errorMessage: string
+    titleError: boolean
+    temps:Array<Temp>
 }
+
+export const ValueToGroupName = (v:number) => groups.find(x => x.value == v)?.group
+export const IndexToValue = (v:number) => groups[v].value
 
 export class Util_Project {
     getproject:getproject
@@ -73,10 +87,11 @@ export class Util_Project {
     }
 
     dataedit = (uuid:string) => {
+        this.data.value.isEdit = true
         const selectp = this.projects.find(x => x.uuid == uuid)
         if(selectp == undefined) return;
-        this.data.value.createData = {title: selectp.title, description: selectp.description, useTemp: false, temp: 0};
-        this.data.value.editModal = true;
+        this.data.value.editData = {title: selectp.title, description: selectp.description, useTemp: false, temp: 0};
+        this.data.value.dialogModal = true;
         this.data.value.editUUID = uuid;
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
@@ -97,37 +112,41 @@ export class Util_Project {
     }
 
     createProject = () => {
-        this.data.value.createData = {title: "", description: "", useTemp: false, temp: 0};
-        this.data.value.createModal = true
+        this.data.value.isEdit = false
+        this.data.value.editData = {title: "", description: "", useTemp: false, temp: 0};
+        this.data.value.dialogModal = true
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
     }
 
     confirmCreate = () => {
-        if(this.data.value.createData.title.length == 0){
+        if(this.data.value.editData.title.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
             return
         }
-        this.data.value.createModal = false
+        this.data.value.dialogModal = false
         let buffer:Project = { 
             uuid: uuidv6(),
-            title: this.data.value.createData.title, 
-            description: this.data.value.createData.description,
+            title: this.data.value.editData.title, 
+            description: this.data.value.editData.description,
             parameter: {
                 canWrite: true,
                 containers: []
             },
             task: []
         }
-        if (this.data.value.createData.useTemp){
-            buffer = projectTemp[this.data.value.createData.temp](buffer)
+        if (this.data.value.editData.useTemp){
+            const index = this.data.value.editData.temp
+            const p = groups.find(x => x.value == index)
+            if(p != undefined) buffer = p.template(buffer)
+            else console.error("Cannot find project template by id", index)
         }
         return buffer
     }
 
     confirmEdit = () => {
-        if(this.data.value.createData.title.length == 0){
+        if(this.data.value.editData.title.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
             return undefined
