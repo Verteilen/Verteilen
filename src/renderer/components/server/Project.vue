@@ -330,7 +330,3 @@ onUnmounted(() => {
         </v-dialog>
     </div>
 </template>
-
-<style>
-
-</style>
