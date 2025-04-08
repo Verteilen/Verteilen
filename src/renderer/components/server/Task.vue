@@ -4,6 +4,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, DataType, Preference, Project, Task, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
+import { DATA } from '../../util/Task';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -23,15 +24,21 @@ const emits = defineEmits<{
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
-const fields:Ref<Array<any>> = ref([
-    { title: 'ID', align: 'center', key: 'ID' },
-    { title: 'Title', align: 'center', key: 'title' },
-    { title: 'Description', align: 'center', key: 'description' },
-    { title: 'Cronjob', align: 'center', key: 'cronjob' },
-    { title: 'Multi', align: 'center', key: 'multi' },
-    { title: 'JobCount', align: 'center', key: 'jobCount' },
-    { title: 'Detail', align: 'center', key: 'detail' },
-])
+const data:Ref<DATA> = ref({
+    fields: [],
+    dialogModal: false,
+    isEdit: false,
+    createData: {cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""},
+    editUUID: '',
+    deleteModal: false,
+    deleteData: [],
+    items: [],
+    para_keys: [],
+    errorMessage: '',
+    titleError: false,
+    search: '',
+    selection: []
+})
 const createModal = ref(false)
 const createData = ref({cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""})
 const editModal = ref(false)
@@ -45,8 +52,9 @@ const titleError = ref(false)
 const search = ref('')
 const selection:Ref<Array<string>> = ref([])
 
+const realSearch = computed(() => data.value.search.trimStart().trimEnd())
 const items_final = computed(() => {
-    return search.value == null || search.value.length == 0 ? items.value : items.value.filter(x => x.title.includes(search.value) || x.ID.includes(search.value))
+    return realSearch.value == null || realSearch.value.length == 0 ? items.value : items.value.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value))
 })
 const hasSelect = computed(() => selection.value.length > 0)
 const selected_task_ids = computed(() => items.value.filter(x => selection.value.includes(x.ID)).map(x => x.ID))
@@ -219,15 +227,34 @@ const isLast = (uuid:string) => {
     return index == props.select.task.length - 1
 }
 
+const updateFields = () => {
+    data.value.fields = [
+        { title: 'ID', align: 'center', key: 'ID' },
+        { title: i18n.global.t('headers.title'), align: 'center', key: 'title' },
+        { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
+        { title: i18n.global.t('headers.cronjob'), align: 'center', key: 'cronjob' },
+        { title: i18n.global.t('headers.multi'), align: 'center', key: 'multi' },
+        { title: i18n.global.t('headers.job-count'), align: 'center', key: 'jobCount' },
+        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail' },
+    ]
+}
+
+const updateLocate = () => {
+    updateFields()
+}
+
 onMounted(() => {
+    updateFields()
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateParameter', updateParameter)
+    emitter?.on('updateLocate', updateLocate)
     para_keys.value = props.select?.parameter.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
 })
 
 onUnmounted(() => {
     emitter?.off('updateTask', updateTask)
     emitter?.off('updateParameter', updateParameter)
+    emitter?.off('updateLocate', updateLocate)
 })
 
 </script>
@@ -279,7 +306,7 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="py-3">
-            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table :headers="data.fields" :items="items_final" show-select v-model="selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>

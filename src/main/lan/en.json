@@ -162,6 +162,15 @@
         "title": "Title",
         "value": "Expression"
     },
+    "headers": {
+        "title": "Title",
+        "description": "Description",
+        "detail": "Action",
+        "multi": "Multi",
+        "cronjob": "Cronjob",
+        "task-count": "Task Count",
+        "job-count": "Job Count"
+    },
     "search": "Search",
     "selectall": "Select All",
     "unselectall": "Unselect All",

@@ -26,13 +26,7 @@ const emits = defineEmits<{
 }>()
 const data:Ref<DATA> = ref({
     items: [],
-    fields: [
-        { title: 'ID', align: 'center', key: 'ID' },
-        { title: 'Title', align: 'center', key: 'title' },
-        { title: 'Description', align: 'center', key: 'description' },
-        { title: 'TaskCount', align: 'center', key: 'taskCount' },
-        { title: 'Detail', align: 'center', key: 'detail' },
-    ],
+    fields: [],
     dialogModal: false,
     isEdit: false,
     editData: {title: "", description: "", useTemp: false, temp: 0},
@@ -157,6 +151,16 @@ const movedown = (uuid:string) => {
 const isFirst = (uuid:string) => util.isFirst(uuid)
 const isLast = (uuid:string) => util.isLast(uuid)
 
+const updateFields = () => {
+    data.value.fields = [
+        { title: 'ID', align: 'center', key: 'ID' },
+        { title: i18n.global.t('headers.title'), align: 'center', key: 'title' },
+        { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
+        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount' },
+        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail' },
+    ]
+}
+
 const updateLocate = () => {
     data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
@@ -165,11 +169,13 @@ const updateLocate = () => {
             value: IndexToValue(index)
         }
     })
+    updateFields()
 }
 
 onMounted(() => {
     updateLocate()
     updateProject()
+    updateFields()
     emitter?.on('updateProject', updateProject)
     emitter?.on('recoverProject', recoverProject)
     emitter?.on('createProject', createProject)
