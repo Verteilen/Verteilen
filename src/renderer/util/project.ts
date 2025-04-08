@@ -2,6 +2,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { AppConfig, Ref } from "vue";
 import { Project, ProjectTable, ProjectTemplate, TemplateGroup } from "../interface";
 import { i18n } from '../plugins/i18n';
+import { GetFUNIQUE_GS4LUTProjectTemplate } from '../template/project/GS4_Lut';
 import { GetAfterEffectTemplate, GetBlenderTemplate, GetDefaultProjectTemplate, GetFFmpeg_Image2VideoProjectTemplate, GetFUNIQUE_GS4ProjectTemplate, GetFUNIQUE_GS4Project_V2_Template } from "../template/projectTemplate";
 
 type getproject = () => Array<Project>
@@ -13,6 +14,7 @@ const groups:Array<TemplateGroup> = [
     { group: "Default", value: 0, template: GetDefaultProjectTemplate },
     { group: "GS4D", value: 10, template: GetFUNIQUE_GS4ProjectTemplate },
     { group: "GS4D", value: 11, template: GetFUNIQUE_GS4Project_V2_Template },
+    { group: "GS4D", value: 12, template: GetFUNIQUE_GS4LUTProjectTemplate },
     { group: "FFmpeg", value: 20, template: GetFFmpeg_Image2VideoProjectTemplate },
     { group: "Blender", value: 30, template: GetBlenderTemplate },
     { group: "After Effect", value: 40, template: GetAfterEffectTemplate },

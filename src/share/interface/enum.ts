@@ -40,6 +40,7 @@ export enum ProjectTemplate {
     DEFAULT,
     FUNIQUE_GS4,
     FUNIQUE_GS42,
+    FUNIQUE_LUT,
     FFmpeg_Concat,
     Blender,
     AfterEffect
