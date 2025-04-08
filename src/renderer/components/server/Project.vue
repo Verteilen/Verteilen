@@ -253,21 +253,46 @@ onUnmounted(() => {
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-btn variant="text" flat icon @click="datachoose(item.ID)" size="small">
-                        <v-icon>mdi-location-enter</v-icon>
-                    </v-btn>
-                    <v-btn variant="text" flat icon @click="dataedit(item.ID)" size="small">
-                        <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
-                    <v-btn variant="text" flat icon @click="dataexport(item.ID)" size="small">
-                        <v-icon>mdi-export</v-icon>
-                    </v-btn>
-                    <v-btn variant="text" flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
-                        <v-icon>mdi-arrow-up</v-icon>
-                    </v-btn>
-                    <v-btn variant="text" flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
-                        <v-icon>mdi-arrow-down</v-icon>
-                    </v-btn>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon @click="datachoose(item.ID)" size="small">
+                                <v-icon>mdi-location-enter</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('enter') }}
+                    </v-tooltip>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon @click="dataedit(item.ID)" size="small">
+                                <v-icon>mdi-pencil</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('edit') }}
+                    </v-tooltip>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon @click="dataexport(item.ID)" size="small">
+                                <v-icon>mdi-export</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('clone') }}
+                    </v-tooltip>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
+                                <v-icon>mdi-arrow-up</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('moveup') }}
+                    </v-tooltip>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
+                                <v-icon>mdi-arrow-down</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('movedown') }}
+                    </v-tooltip>
                 </template>
             </v-data-table>
         </div>

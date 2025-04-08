@@ -471,15 +471,60 @@ onUnmounted(() => {
 <template>
   <v-container fluid class="pa-0 ma-0">
     <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
-      <v-tab :style="{ 'fontSize': props.preference.font + 'px' }" :value="0">{{ $t('toolbar.project') }}</v-tab>
-      <v-tab :style="{ 'fontSize': props.preference.font + 'px' }" :value="1">{{ $t('toolbar.task') }}</v-tab>
-      <v-tab :style="{ 'fontSize': props.preference.font + 'px' }" :value="2">{{ $t('toolbar.job') }}</v-tab>
-      <v-tab :style="{ 'fontSize': props.preference.font + 'px' }" :value="3">{{ $t('toolbar.parameter') }}</v-tab>
-      <v-tab :style="{ 'fontSize': props.preference.font + 'px' }" :value="4">{{ $t('toolbar.node') }}</v-tab>
-      <v-tab :style="{ 'fontSize': props.preference.font + 'px' }" :value="5">{{ $t('toolbar.console') }}</v-tab>
-      <v-tab :style="{ 'fontSize': props.preference.font + 'px' }" :value="6">{{ $t('toolbar.log') }}</v-tab>
-      <v-tab :style="{ 'fontSize': props.preference.font + 'px' }" :value="7">{{ $t('toolbar.library') }}</v-tab>
-      <v-tab :style="{ 'fontSize': props.preference.font + 'px' }" :value="8">{{ $t('toolbar.client') }}</v-tab>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-tab v-bind="props" style="font-size: larger;" :value="0"><v-icon>mdi-package</v-icon></v-tab>
+        </template>
+        {{ $t('toolbar.project') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-tab v-bind="props" style="font-size: larger;" :value="1"><v-icon>mdi-calendar-check</v-icon></v-tab>
+        </template>
+        {{ $t('toolbar.task') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-tab v-bind="props" style="font-size: larger;" :value="2"><v-icon>mdi-hammer</v-icon></v-tab>
+        </template>
+        {{ $t('toolbar.job') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-tab v-bind="props" style="font-size: larger;" :value="3"><v-icon>mdi-database-arrow-up</v-icon></v-tab>
+        </template>
+        {{ $t('toolbar.parameter') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-tab v-bind="props" style="font-size: larger;" :value="4"><v-icon>mdi-server-network</v-icon></v-tab>
+        </template>
+        {{ $t('toolbar.node') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-tab v-bind="props" style="font-size: larger;" :value="5"><v-icon>mdi-console</v-icon></v-tab>
+        </template>
+        {{ $t('toolbar.console') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-tab v-bind="props" style="font-size: larger;" :value="6"><v-icon>mdi-post</v-icon></v-tab>
+        </template>
+        {{ $t('toolbar.log') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-tab v-bind="props" style="font-size: larger;" :value="7"><v-icon>mdi-toy-brick-plus</v-icon></v-tab>
+        </template>
+        {{ $t('toolbar.library') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+        <template v-slot:activator="{ props }">
+          <v-tab v-bind="props" style="font-size: larger;" :value="8"><v-icon>mdi-nodejs</v-icon></v-tab>
+        </template>
+        {{ $t('toolbar.client') }}
+      </v-tooltip>
     </v-tabs>
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="page == 0" 

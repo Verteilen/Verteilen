@@ -89,7 +89,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <v-container fluid class="ma-0 pa-0">
+  <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference.font + 'px' }">
     <ServerClientSelection v-model.number="mode" v-if="mode == -1" :preference="preference" :config="config"/>
     <ClientNode v-else-if="mode == 0" :preference="preference" :config="config"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :config="config"/>
