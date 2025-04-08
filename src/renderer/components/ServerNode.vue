@@ -473,13 +473,13 @@ onUnmounted(() => {
     <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
       <v-tooltip location="bottom">
         <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="0"><v-icon>mdi-package</v-icon></v-tab>
+          <v-tab v-bind="props" style="font-size: larger;" :value="0"><v-icon>mdi-cube</v-icon></v-tab>
         </template>
         {{ $t('toolbar.project') }}
       </v-tooltip>
       <v-tooltip location="bottom">
         <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="1"><v-icon>mdi-calendar-check</v-icon></v-tab>
+          <v-tab v-bind="props" style="font-size: larger;" :value="1"><v-icon>mdi-calendar</v-icon></v-tab>
         </template>
         {{ $t('toolbar.task') }}
       </v-tooltip>
@@ -491,31 +491,31 @@ onUnmounted(() => {
       </v-tooltip>
       <v-tooltip location="bottom">
         <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="3"><v-icon>mdi-database-arrow-up</v-icon></v-tab>
+          <v-tab v-bind="props" style="font-size: larger;" :value="3"><v-icon>mdi-database</v-icon></v-tab>
         </template>
         {{ $t('toolbar.parameter') }}
       </v-tooltip>
       <v-tooltip location="bottom">
         <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="4"><v-icon>mdi-server-network</v-icon></v-tab>
+          <v-tab v-bind="props" style="font-size: larger;" :value="4"><v-icon>mdi-network</v-icon></v-tab>
         </template>
         {{ $t('toolbar.node') }}
       </v-tooltip>
       <v-tooltip location="bottom">
         <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="5"><v-icon>mdi-console</v-icon></v-tab>
+          <v-tab v-bind="props" style="font-size: larger;" :value="5"><v-icon>mdi-console-line</v-icon></v-tab>
         </template>
         {{ $t('toolbar.console') }}
       </v-tooltip>
       <v-tooltip location="bottom">
         <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="6"><v-icon>mdi-post</v-icon></v-tab>
+          <v-tab v-bind="props" style="font-size: larger;" :value="6"><v-icon>mdi-text-box-outline</v-icon></v-tab>
         </template>
         {{ $t('toolbar.log') }}
       </v-tooltip>
       <v-tooltip location="bottom">
         <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="7"><v-icon>mdi-toy-brick-plus</v-icon></v-tab>
+          <v-tab v-bind="props" style="font-size: larger;" :value="7"><v-icon>mdi-puzzle</v-icon></v-tab>
         </template>
         {{ $t('toolbar.library') }}
       </v-tooltip>
