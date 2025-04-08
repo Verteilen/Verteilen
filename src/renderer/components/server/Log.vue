@@ -294,7 +294,10 @@ onMounted(() => {
     if(props.config.isElectron){
         window.electronAPI.invoke('load_all_log').then(x => {
             const stringlist:Array<string> = JSON.parse(x)
-            logs.value.logs = stringlist.map(x => JSON.parse(x))
+            const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
+            ll.forEach(x => x.output = true)
+            console.log("Logs", ll)
+            logs.value.logs = ll
         })
     }
 })
