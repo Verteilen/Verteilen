@@ -1,4 +1,4 @@
-import { Ref } from "vue"
+import { nextTick, Ref } from "vue"
 import { Task } from "../../interface"
 import { DATA, save_and_update } from "./server"
 
@@ -6,9 +6,11 @@ import { DATA, save_and_update } from "./server"
 export class Util_Server_Task {
     data:Ref<DATA>
     update:save_and_update
+    updateOnly:save_and_update
 
-    constructor (_data:Ref<DATA>, _update:save_and_update){
+    constructor (_data:Ref<DATA>, _updateOnly:save_and_update, _update:save_and_update){
         this.data = _data
+        this.updateOnly = _updateOnly
         this.update = _update
     }
 
@@ -44,7 +46,7 @@ export class Util_Server_Task {
     chooseTask = (uuid:string) => {
         this.data.value.selectTask = this.data.value.selectProject?.task.find(x => x.uuid == uuid)
         this.data.value.page = 2
-        this.update()
+        nextTick(this.updateOnly)
     }
     
     moveupTask = (uuid:string) => {

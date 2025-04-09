@@ -1,15 +1,17 @@
 import { Emitter } from "mitt";
-import { Ref } from "vue";
+import { nextTick, Ref } from "vue";
 import { BusType, Node, Project, Record } from "../../interface";
 import { DATA, save_and_update } from "./server";
 
 export class Util_Server_Project {
     data:Ref<DATA>
     update:save_and_update
+    updateOnly:save_and_update
     emitter:Emitter<BusType>
 
-    constructor (_data:Ref<DATA>, _update:save_and_update, _emitter:Emitter<BusType>){
+    constructor (_data:Ref<DATA>, _updateOnly:save_and_update, _update:save_and_update, _emitter:Emitter<BusType>){
         this.data = _data
+        this.updateOnly = _updateOnly
         this.update = _update
         this.emitter = _emitter
     }
@@ -51,7 +53,7 @@ export class Util_Server_Project {
     chooseProject = (uuid:string) => {
         this.data.value.selectProject = this.data.value.projects.find(x => x.uuid == uuid)
         this.data.value.page = 1
-        this.update()
+        nextTick(this.updateOnly)
     }
     
     moveupProject = (uuid:string) => {
