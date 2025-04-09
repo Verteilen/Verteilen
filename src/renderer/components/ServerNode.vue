@@ -4,12 +4,12 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { AppConfig, BusAnalysis, BusType, Job, JobCategory, JobType, JobType2, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
-import { DATA, execute_proxy, Util_Server } from '../util/server/server';
+import { DATA, Util_Server } from '../util/server/server';
 import { i18n } from './../plugins/i18n';
 import ConsolePage from './server/Console.vue';
 import JobPage from './server/Job.vue';
@@ -28,6 +28,22 @@ let slowUpdateHandle:any = undefined
 interface PROPS {
     preference: Preference
     config: AppConfig
+}
+
+const execute_proxy:ExecuteProxy = {
+    executeProjectStart: (data:Project):void => { emitter?.emit('executeProjectStart', data) },
+    executeProjectFinish: (data:Project):void => { emitter?.emit('executeProjectFinish', data) },
+    executeTaskStart: (data:[Task, number]):void => { emitter?.emit('executeTaskStart', data) },
+    executeTaskFinish: (data:Task):void => { emitter?.emit('executeTaskFinish', data) },
+    executeSubtaskStart: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskStart', data) },
+    executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { emitter?.emit('executeSubtaskUpdate', data) },
+    executeSubtaskFinish: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskFinish', data) },
+    executeJobStart: (data:[Job, number, string]):void => { emitter?.emit('executeJobStart', data) },
+    executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
+    feedbackMessage: (data:FeedBack):void => { emitter?.emit('feedbackMessage', data) },
+    updateParameter: (data:Parameter):void => { emitter?.emit('updateRuntimeParameter', data) },
+    shellReply: (data:Single):void => { emitter?.emit('shellReply', data) },
+    folderReply: (data:ShellFolder) => { emitter?.emit('folderReply', data) }
 }
 
 const props = defineProps<PROPS>()
@@ -58,9 +74,9 @@ const data:Ref<DATA> = ref({
     nodes: []
 })
 
-const util:Util_Server = new Util_Server(data, () => props.config)
+const util:Util_Server = new Util_Server(data, () => props.config, emitter!)
 
-const allUpdate = () => util.allUpdate()
+const allUpdate = () => nextTick(() => util.allUpdate()) 
 const saveRecord = ():Record => util.saveRecord()
 
 //#region Project
@@ -240,9 +256,7 @@ onMounted(() => {
         data.value.nodes.forEach(x => {
           data.value.websocket_manager?.server_start(x.url)
         })
-        nextTick(() => {
-          allUpdate()
-        })
+        nextTick(() => allUpdate())
       })
       
     }

@@ -197,7 +197,6 @@ const updateLocate = () => {
 
 onMounted(() => {
     updateLocate()
-    updateProject()
     updateFields()
     emitter?.on('updateProject', updateProject)
     emitter?.on('recoverProject', recoverProject)
