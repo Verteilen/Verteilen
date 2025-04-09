@@ -10,7 +10,7 @@ import ParameterPage from './console/Parameter.vue';
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
-    execute: ExecuteManager | undefined
+    execute: Array<ExecuteManager>
     preference: Preference
     config: AppConfig
 }
@@ -193,7 +193,7 @@ const execute_task_start = (d:[Task, number]) => {
 
     const p = data.value!.projects[data.value!.project_index]
     const t = p.task[task_index.value]
-    const count = props.execute!.get_task_state_count(t)
+    const count = props.execute[0].get_task_state_count(t)
     
     for(let i = 0; i < count; i++){
         logs.value.logs[0].logs[task_index.value].task_detail.push({

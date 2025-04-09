@@ -42,6 +42,8 @@ export interface DATA {
     items:Array<ProjectTable>
     fields: Array<any>
     dialogModal:boolean
+    importModal:boolean
+    importData: File[]
     isEdit: boolean
     editData:CreateField
     temps:Array<Temp>

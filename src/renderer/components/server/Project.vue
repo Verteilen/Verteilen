@@ -27,6 +27,8 @@ const emits = defineEmits<{
 const data:Ref<DATA> = ref({
     items: [],
     fields: [],
+    importModal: false,
+    importData: [],
     dialogModal: false,
     isEdit: false,
     editData: {title: "", description: "", useTemp: false, temp: 0},
@@ -52,11 +54,14 @@ const recoverProject = (p:Project) => emits('added', [p])
 const createProject = () => util.createProject()
 const datachoose = (uuid:string) => emits('select', uuid)
 const dataedit = (uuid:string) => util.dataedit(uuid)
+const dataimport = () => {
+    data.value.importModal = true
+}
 
 const dataexport = (uuid:string) => {
-    if(!props.config.isElectron) return
     const p = props.projects.find(x => x.uuid == uuid)
-    if(p != undefined)
+    if(p == undefined) return
+    if(!props.config.isElectron) return
     window.electronAPI.send('export_project', JSON.stringify(p))
 }
 
@@ -129,6 +134,24 @@ const confirmEdit = () => {
     )
     nextTick(() => {
         updateProject();
+    })
+}
+
+const ImportConfirm = () => {
+    data.value.importModal = false
+    if(!props.config.isElectron) return
+    Promise.all(data.value.importData.map(x => x.text())).then(texts => {
+        const a = texts.map(x => {
+            try {
+                const buffer:Project = JSON.parse(x)
+                buffer.uuid = uuidv6()
+                return buffer
+            }catch(err){
+                console.error("Convert text to project json format error")
+                return undefined
+            }
+        }).filter(x => x != undefined)
+        emits('added', a)
     })
 }
 
@@ -229,6 +252,14 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="dataimport">
+                            <v-icon>mdi-import</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('import') }}
+                </v-tooltip>   
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="selectall">
                             <v-icon>mdi-check-all</v-icon>
                         </v-btn>
@@ -281,7 +312,7 @@ onUnmounted(() => {
                                 <v-icon>mdi-export</v-icon>
                             </v-btn>
                         </template>
-                        {{ $t('clone') }}
+                        {{ $t('export') }}
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
@@ -325,6 +356,20 @@ onUnmounted(() => {
                 <template v-slot:actions>
                     <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
                     <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="800" v-model="data.importModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-import</v-icon>
+                    {{ $t('modal.import-project') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-file-upload v-model="data.importData" show-size clearable multiple density="default"></v-file-upload>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" :disabled="data.importData.length == 0" color="primary" @click="ImportConfirm">{{ $t('import') }}</v-btn>
                 </template>
             </v-card>
         </v-dialog>

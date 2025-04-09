@@ -4,11 +4,12 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, Libraries, Node, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
+import { AppConfig, BusAnalysis, BusType, Job, JobCategory, JobType, JobType2, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
 import { waitSetup } from '../platform';
 import { ConsoleManager } from '../script/console_manager';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
+import { DATA, execute_proxy, Util_Server } from '../util/server/server';
 import { i18n } from './../plugins/i18n';
 import ConsolePage from './server/Console.vue';
 import JobPage from './server/Job.vue';
@@ -20,10 +21,6 @@ import ProjectPage from './server/Project.vue';
 import SelfPage from './server/Self.vue';
 import TaskPage from './server/Task.vue';
 
-const websocket_manager:Ref<WebsocketManager | undefined> = ref(undefined)
-const execute_manager:Ref<ExecuteManager | undefined> = ref(undefined)
-const console_manager:Ref<ConsoleManager | undefined> = ref(undefined)
-
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
 let slowUpdateHandle:any = undefined
@@ -33,264 +30,75 @@ interface PROPS {
     config: AppConfig
 }
 
-const proxy:ExecuteProxy = {
-  executeProjectStart: (data:Project):void => { emitter?.emit('executeProjectStart', data) },
-  executeProjectFinish: (data:Project):void => { emitter?.emit('executeProjectFinish', data) },
-  executeTaskStart: (data:[Task, number]):void => { emitter?.emit('executeTaskStart', data) },
-  executeTaskFinish: (data:Task):void => { emitter?.emit('executeTaskFinish', data) },
-  executeSubtaskStart: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskStart', data) },
-  executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { emitter?.emit('executeSubtaskUpdate', data) },
-  executeSubtaskFinish: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskFinish', data) },
-  executeJobStart: (data:[Job, number, string]):void => { emitter?.emit('executeJobStart', data) },
-  executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
-  feedbackMessage: (data:FeedBack):void => { emitter?.emit('feedbackMessage', data) },
-  updateParameter: (data:Parameter):void => { emitter?.emit('updateRuntimeParameter', data) },
-  shellReply: (data:Single):void => { emitter?.emit('shellReply', data) },
-  folderReply: (data:ShellFolder) => { emitter?.emit('folderReply', data) }
-}
-
 const props = defineProps<PROPS>()
-const page:Ref<number> = ref(0)
-const lan = ref(['en', 'zh_tw'])
-const lanSelect = ref(i18n.global.locale as string)
+const data:Ref<DATA> = ref({
+    websocket_manager: undefined,
+    execute_manager: [],
+    console_manager: undefined,
 
-const projects:Ref<Array<Project>> = ref([])
-const projects_exe:Ref<ExecuteRecord>  = ref({
-  projects: [],
-  nodes: [],
-  running: false,
-  stop: true,
-  project: "",
-  task: "",
-  project_index: -1,
-  task_index: -1,
-  project_state: [],
-  task_state: [],
-  task_detail: [],
+    page: 0,
+    lanSelect: i18n.global.locale as string,
+    projects: [],
+    projects_exe: {
+      projects: [],
+      nodes: [],
+      running: false,
+      stop: true,
+      project: "",
+      task: "",
+      project_index: -1,
+      task_index: -1,
+      project_state: [],
+      task_state: [],
+      task_detail: [],
+    },
+    libs: {libs: []},
+    selectProject: undefined,
+    selectTask: undefined,
+    nodes: []
 })
-const libs:Ref<Libraries> = ref({libs: []})
-const selectProject:Ref<Project | undefined> = ref(undefined)
-const selectTask:Ref<Task | undefined> = ref(undefined)
-const nodes:Ref<Array<NodeTable>> = ref([])
 
-const allUpdate = () => {
-  nextTick(() => {
-    emitter?.emit('updateProject')
-    emitter?.emit('updateTask')
-    emitter?.emit('updateJob')
-    emitter?.emit('updateParameter')
-  })
-}
+const util:Util_Server = new Util_Server(data, () => props.config)
 
-const saveRecord = ():Record => {
-  const record:Record = {
-    projects: projects.value,
-    nodes: nodes.value as Array<Node>
-  }
-  const k = JSON.stringify(record, null, 4)
-  if(props.config.isElectron) window.electronAPI.send('save_record', k)
-  return record
-}
+const allUpdate = () => util.allUpdate()
+const saveRecord = ():Record => util.saveRecord()
 
 //#region Project
-const addProject = (v:Array<Project>) => {
-  projects.value.push(...v)
-  saveRecord()
-  allUpdate()
-  page.value = 0
-}
-
-const editProject = (id:string, v:Project) => {
-  const selectp = projects.value.findIndex(x => x.uuid == id)
-  if(selectp == -1) return
-  projects.value[selectp] = v
-  if(selectProject.value?.uuid == id){
-    selectProject.value = v
-  }
-  saveRecord()
-  allUpdate()
-}
-
-const deleteProject = (uuids:Array<string>) => {
-  uuids.forEach(id => {
-    const index = projects.value.findIndex(x => x.uuid == id)
-    if(index != -1) {
-      projects.value[index].task.forEach(tid => {
-        if(selectTask.value?.uuid == tid.uuid){
-          selectTask.value = undefined
-        }
-      })
-      projects.value.splice(index, 1)
-    }
-    if(selectProject.value?.uuid == id){
-      selectProject.value = undefined
-    }
-  })
-  saveRecord()
-  allUpdate()
-}
-
-const chooseProject = (uuid:string) => {
-  selectProject.value = projects.value.find(x => x.uuid == uuid)
-  page.value = 1
-  allUpdate()
-}
-
-const moveupProject = (uuid:string) => {
-  const index = projects.value.findIndex(x => x.uuid == uuid)
-  if(index == -1) return
-  const b = projects.value[index - 1]
-  projects.value[index - 1] = projects.value[index]
-  projects.value[index] = b
-  saveRecord()
-  allUpdate()
-}
-
-const movedownProject = (uuid:string) => {
-  const index = projects.value.findIndex(x => x.uuid == uuid)
-  if(index == -1) return
-  const b = projects.value[index + 1]
-  projects.value[index + 1] = projects.value[index]
-  projects.value[index] = b
-  saveRecord()
-  allUpdate()
-}
-
-const executeProjects = (uuids:Array<string>, keep:boolean) => {
-  const selection = projects.value.filter(x => uuids.includes(x.uuid))
-  if(!keep){
-    projects.value = projects.value.filter(x => !uuids.includes(x.uuid))
-    saveRecord()
-    allUpdate()
-  }
-  const record:Record = {
-    projects: selection,
-    nodes: nodes.value as Array<Node>
-  }
-  Object.assign(record, projects_exe.value.projects)
-  emitter?.emit('execute', record)
-  page.value = 5
-}
+const addProject = (v:Array<Project>) => util.project.addProject(v)
+const editProject = (id:string, v:Project) => util.project.editProject(id, v)
+const deleteProject = (uuids:Array<string>) => util.project.deleteProject(uuids)
+const chooseProject = (uuid:string) => util.project.chooseProject(uuid)
+const moveupProject = (uuid:string) => util.project.moveupProject(uuid)
+const movedownProject = (uuid:string) => util.project.movedownProject(uuid)
+const executeProjects = (uuids:Array<string>, keep:boolean) => util.project.executeProjects(uuids, keep)
 //#endregion
 
 //#region Task
-const addTask = (v:Array<Task>) => {
-  if(selectProject.value == undefined) return
-  selectProject.value.task.push(...v)
-  saveRecord()
-  allUpdate()
-}
-
-const editTask = (id:string, v:Task) => {
-  if(selectProject.value == undefined) return
-  const selectt = selectProject.value.task.findIndex(x => x.uuid == id)
-  if(selectt == -1) return
-  selectProject.value.task[selectt] = v
-  if(selectTask.value?.uuid == id){
-    selectTask.value = v
-  }
-  saveRecord()
-  allUpdate()
-}
-
-const deleteTask = (uuids:Array<string>) => {
-  uuids.forEach(id => {
-    if(selectProject.value == undefined) return
-    const index = selectProject.value.task.findIndex(x => x.uuid == id)
-    if(index != -1) selectProject.value.task.splice(index, 1)
-    if(selectTask.value?.uuid == id){
-      selectTask.value = undefined
-    }
-  })
-  saveRecord()
-  allUpdate()
-}
-
-const chooseTask = (uuid:string) => {
-  selectTask.value = selectProject.value?.task.find(x => x.uuid == uuid)
-  page.value = 2
-  allUpdate()
-}
-
-const moveupTask = (uuid:string) => {
-  if(selectProject.value == undefined) return
-  const index = selectProject.value.task.findIndex(x => x.uuid == uuid)
-  if(index == -1) return
-  const b = selectProject.value.task[index - 1]
-  selectProject.value.task[index - 1] = selectProject.value.task[index]
-  selectProject.value.task[index] = b
-  saveRecord()
-  allUpdate()
-}
-
-const movedownTask = (uuid:string) => {
-  if(selectProject.value == undefined) return
-  const index = selectProject.value.task.findIndex(x => x.uuid == uuid)
-  if(index == -1) return
-  const b = selectProject.value.task[index + 1]
-  selectProject.value.task[index + 1] = selectProject.value.task[index]
-  selectProject.value.task[index] = b
-  saveRecord()
-  allUpdate()
-}
+const addTask = (v:Array<Task>) => util.task.addTask(v)
+const editTask = (id:string, v:Task) => util.task.editTask(id, v)
+const deleteTask = (uuids:Array<string>) => util.task.deleteTask(uuids)
+const chooseTask = (uuid:string) => util.task.chooseTask(uuid)
+const moveupTask = (uuid:string) => util.task.moveupTask(uuid)
+const movedownTask = (uuid:string) => util.task.movedownTask(uuid)
 //#endregion
 
 //#region Job
-const addJob = (v:Array<Job>) => {
-  if(selectTask.value == undefined) return
-  selectTask.value.jobs.push(...v)
-  saveRecord()
-  allUpdate()
-}
-
-const editJob = (v:Array<Job>, v2:Array<Property>) => {
-  if(selectTask.value == undefined) return
-  selectTask.value.jobs = v
-  selectTask.value.properties = v2
-  saveRecord()
-  allUpdate()
-}
-
-const deleteJob = (uuids:Array<string>) => {
-  uuids.forEach(id => {
-    if(selectTask.value == undefined) return
-    const index = selectTask.value.jobs.findIndex(x => x.uuid == id)
-    if(index != -1) selectTask.value.jobs.splice(index, 1)
-    if(selectTask.value?.uuid == id){
-      selectTask.value = undefined
-    }
-  })
-  saveRecord()
-  allUpdate()
-}
+const addJob = (v:Array<Job>) => util.job.addJob(v)
+const editJob = (v:Array<Job>, v2:Array<Property>) => util.job.editJob(v, v2)
+const deleteJob = (uuids:Array<string>) => util.job.deleteJob(uuids)
 //#endregion
 
 //#region Node
-const server_clients_update = (v:Array<NodeTable>) => {
-    const old:Array<NodeTable> = JSON.parse(JSON.stringify(nodes.value))
-    nodes.value = v
-    old.filter(x => x.s).forEach(x => {
-        const index = nodes.value.findIndex(y => y.ID == x.ID)
-        if(index != -1){
-            nodes.value[index].s = true
-        }
-    })
-    saveRecord()
-}
+const server_clients_update = (v:Array<NodeTable>) => util.node.server_clients_update(v)
 //#endregion
 
 //#region Parameter
-const editParameter = (e:Parameter) => {
-  if(selectProject.value == undefined) return
-  selectProject.value.parameter = e
-  saveRecord()
-  allUpdate()
-}
+const editParameter = (e:Parameter) => util.parameter.editParameter(e)
 //#endregion
 
 //#region Lib
 const libRename = (d:Rename) => {
-  projects.value.forEach(x => {
+  data.value.projects.forEach(x => {
     x.task.forEach(y => {
       y.jobs.forEach(z => {
         if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
@@ -304,7 +112,7 @@ const libRename = (d:Rename) => {
 }
 
 const libDelete = (name:string) => {
-  projects.value.forEach(x => {
+  data.value.projects.forEach(x => {
     x.task.forEach(y => {
       y.jobs.forEach(z => {
         if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
@@ -325,11 +133,11 @@ const Cookie = () => {
 //#endregion
 
 const menuCreateProject = (e:IpcRendererEvent) => {
-  page.value = 0
+  data.value.page = 0
 }
 
 const menu_export_project = (e:IpcRendererEvent) => {
-  if(props.config.isElectron) window.electronAPI.send("export_project", JSON.stringify(projects.value))
+  if(props.config.isElectron) window.electronAPI.send("export_project", JSON.stringify(data.value.projects))
 }
 
 const import_project_feedback = (e:IpcRendererEvent, text:string) => {
@@ -343,25 +151,23 @@ const import_project_feedback = (e:IpcRendererEvent, text:string) => {
     }
     p.uuid = uuidv6()
   }
-  projects.value.push(...ps)
+  data.value.projects.push(...ps)
   saveRecord()
   allUpdate()
 }
 
 const run_all = (e:IpcRendererEvent) => {
-  executeProjects(projects.value.map(x => x.uuid), false)
+  executeProjects(data.value.projects.map(x => x.uuid), false)
 }
 
 const run_all_keep = (e:IpcRendererEvent) => {
-  executeProjects(projects.value.map(x => x.uuid), true)
+  executeProjects(data.value.projects.map(x => x.uuid), true)
 }
 
-const debug_feedback = (e:string) => {
-  emitter?.emit('debuglog', e)
-}
+const debug_feedback = (e:string) => emitter?.emit('debuglog', e)
 
 const onChangeLan = (e:string) => {
-  lanSelect.value = e
+  data.value.lanSelect = e
   // @ts-ignore
   i18n.global.locale = e
   if(!props.config.isElectron) return
@@ -374,7 +180,7 @@ const newConnect = (x:WebsocketPack) => {
     type: 'success',
     message: `建立新的連線: ${x.websocket.url} \n${x.uuid}`
   })
-  execute_manager.value!.NewConnection(x)
+  data.value.execute_manager[0].NewConnection(x)
 }
 
 const disconnect = (x:WebsocketPack) => {
@@ -383,11 +189,11 @@ const disconnect = (x:WebsocketPack) => {
     type: 'danger',
     message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
   })
-  execute_manager.value?.Disconnect(x)
+  data.value.execute_manager[0].Disconnect(x)
 }
 
 const analysis = (b:BusAnalysis) => {
-  execute_manager.value?.Analysis(b)
+  data.value.execute_manager[0]?.Analysis(b)
 }
 
 onMounted(() => {
@@ -400,13 +206,13 @@ onMounted(() => {
 
   waitSetup(props.config).then(x => {
     if(!x.isExpress){
-      websocket_manager.value = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
-      execute_manager.value = new ExecuteManager(websocket_manager.value, messager_log)
-      execute_manager.value.libs = libs.value
-      execute_manager.value.proxy = proxy
-      websocket_manager.value.newConnect = newConnect
-      websocket_manager.value.disconnect = disconnect
-      websocket_manager.value.onAnalysis = execute_manager.value.Analysis
+      data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
+      data.value.execute_manager.push(new ExecuteManager(data.value.websocket_manager, messager_log))
+      data.value.execute_manager[0].libs = data.value.libs
+      data.value.execute_manager[0].proxy = execute_proxy
+      data.value.websocket_manager.newConnect = newConnect
+      data.value.websocket_manager.disconnect = disconnect
+      data.value.websocket_manager.onAnalysis = data.value.execute_manager[0].Analysis
     }
 
     if(props.config.isElectron){
@@ -417,22 +223,22 @@ onMounted(() => {
       window.electronAPI.eventOn('run_all_keep', run_all_keep)
       window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
       window.electronAPI.invoke('load_lib').then(x => {
-        libs.value = JSON.parse(x)
-        console.log("Libs", libs.value)
+        data.value.libs = JSON.parse(x)
+        console.log("Libs", data.value.libs)
       })
       window.electronAPI.invoke('load_record').then(x => {
         const record:Record = JSON.parse(x)
         console.log("Records", record)
-        projects.value = record.projects
-        nodes.value = record.nodes.map(x => {
+        data.value.projects = record.projects
+        data.value.nodes = record.nodes.map(x => {
           return Object.assign(x, {
             s: false,
             state: 0,
             connection_rate: 0
           })
         })
-        nodes.value.forEach(x => {
-          websocket_manager.value?.server_start(x.url)
+        data.value.nodes.forEach(x => {
+          data.value.websocket_manager?.server_start(x.url)
         })
         nextTick(() => {
           allUpdate()
@@ -441,7 +247,7 @@ onMounted(() => {
       
     }
     
-    console_manager.value = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
+    data.value.console_manager = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
       on: emitter!.on,
       off: emitter!.off,
       emit: emitter!.emit
@@ -451,7 +257,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  execute_manager.value!.proxy = undefined
+  data.value.execute_manager = []
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
@@ -470,7 +276,7 @@ onUnmounted(() => {
 
 <template>
   <v-container fluid class="pa-0 ma-0">
-    <v-tabs v-model="page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
+    <v-tabs v-model="data.page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
       <v-tooltip location="bottom">
         <template v-slot:activator="{ props }">
           <v-tab v-bind="props" style="font-size: larger;" :value="0"><v-icon>mdi-cube</v-icon></v-tab>
@@ -527,8 +333,8 @@ onUnmounted(() => {
       </v-tooltip>
     </v-tabs>
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
-      <ProjectPage v-show="page == 0" 
-        :projects="projects" 
+      <ProjectPage v-show="data.page == 0" 
+        :projects="data.projects" 
         :config="props.config"
         :preference="props.preference"
         @added="e => addProject(e)" 
@@ -539,9 +345,9 @@ onUnmounted(() => {
         @movedown="e => movedownProject(e)" 
         @execute="(e, keep) => executeProjects(e, keep)"/>
 
-      <TaskPage v-show="page == 1" 
-        :projects="projects" 
-        :select="selectProject" 
+      <TaskPage v-show="data.page == 1" 
+        :projects="data.projects" 
+        :select="data.selectProject" 
         :preference="props.preference"
         @added="e => addTask(e)" 
         @edit="(id, e) => editTask(id, e)" 
@@ -549,46 +355,46 @@ onUnmounted(() => {
         @delete="e => deleteTask(e)"
         @moveup="e => moveupTask(e)"
         @movedown="e => movedownTask(e)"
-        @parameter="page = 3" />
+        @parameter="data.page = 3" />
 
-      <JobPage v-show="page == 2" 
-        :projects="projects" 
-        :select="selectTask"
-        :owner="selectProject"
-        :libs="libs"
+      <JobPage v-show="data.page == 2" 
+        :projects="data.projects" 
+        :select="data.selectTask"
+        :owner="data.selectProject"
+        :libs="data.libs"
         @added="e => addJob(e)" 
         @edit="(e, e2) => editJob(e, e2)" 
         @delete="e => deleteJob(e)" />
 
-      <ParameterPage v-show="page == 3" 
-        :select="selectProject"
+      <ParameterPage v-show="data.page == 3" 
+        :select="data.selectProject"
         :preference="props.preference"
         @edit="e => editParameter(e)" />
 
-      <NodePage v-show="page == 4" 
-        :manager="websocket_manager"
+      <NodePage v-show="data.page == 4" 
+        :manager="data.websocket_manager"
         :config="props.config"
-        :nodes="nodes" />
+        :nodes="data.nodes" />
 
-      <ConsolePage v-show="page == 5" 
+      <ConsolePage v-show="data.page == 5" 
         :config="props.config"
         :preference="props.preference"
-        :socket="websocket_manager"
-        :execute="execute_manager"
-        :libs="libs"
-        v-model="projects_exe"/>
+        :socket="data.websocket_manager"
+        :execute="data.execute_manager"
+        :libs="data.libs"
+        v-model="data.projects_exe"/>
         
-      <LogPage v-show="page == 6" 
+      <LogPage v-show="data.page == 6" 
         :config="props.config"
-        :execute="execute_manager"
+        :execute="data.execute_manager"
         :preference="props.preference"
-        v-model="projects_exe"/>
+        v-model="data.projects_exe"/>
 
-      <LibraryPage v-show="page == 7" 
+      <LibraryPage v-show="data.page == 7" 
         :config="props.config"
-        v-model="libs"/>
+        v-model="data.libs"/>
 
-      <SelfPage v-show="page == 8" 
+      <SelfPage v-show="data.page == 8" 
         :config="props.config"
         :preference="props.preference"/>
     </div>
