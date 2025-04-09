@@ -1,5 +1,5 @@
 import { Emitter } from "mitt";
-import { Ref } from "vue";
+import { nextTick, Ref } from "vue";
 import { AppConfig, BusType, ExecuteRecord, Libraries, Node, NodeTable, Project, Record, Task } from "../../interface";
 import { ConsoleManager } from "../../script/console_manager";
 import { ExecuteManager } from "../../script/execute_manager";
@@ -56,10 +56,12 @@ export class Util_Server {
     }
 
     allUpdate = () => {
-        this.emitter.emit('updateProject')
-        this.emitter.emit('updateTask')
-        this.emitter.emit('updateJob')
-        this.emitter.emit('updateParameter')
+        nextTick(() => {
+            this.emitter.emit('updateProject')
+            this.emitter.emit('updateTask')
+            this.emitter.emit('updateJob')
+            this.emitter.emit('updateParameter')
+        })
     }
     
     saveRecord = ():Record => {

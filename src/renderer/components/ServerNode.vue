@@ -76,7 +76,7 @@ const data:Ref<DATA> = ref({
 
 const util:Util_Server = new Util_Server(data, () => props.config, emitter!)
 
-const allUpdate = () => nextTick(() => util.allUpdate()) 
+const allUpdate = () => util.allUpdate()
 const saveRecord = ():Record => util.saveRecord()
 
 //#region Project
