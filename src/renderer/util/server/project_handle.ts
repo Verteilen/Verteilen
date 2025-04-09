@@ -1,18 +1,17 @@
 import { Emitter } from "mitt";
-import { inject, Ref } from "vue";
+import { Ref } from "vue";
 import { BusType, Node, Project, Record } from "../../interface";
 import { DATA, save_and_update } from "./server";
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-
 export class Util_Server_Project {
-
     data:Ref<DATA>
     update:save_and_update
+    emitter:Emitter<BusType>
 
-    constructor (_data:Ref<DATA>, _update:save_and_update){
+    constructor (_data:Ref<DATA>, _update:save_and_update, _emitter:Emitter<BusType>){
         this.data = _data
         this.update = _update
+        this.emitter = _emitter
     }
 
     addProject = (v:Array<Project>) => {
@@ -84,7 +83,7 @@ export class Util_Server_Project {
             nodes: this.data.value.nodes as Array<Node>
         }
         Object.assign(record, this.data.value.projects_exe.projects)
-        emitter?.emit('execute', record)
+        this.emitter.emit('execute', record)
         this.data.value.page = 5
     }
 }

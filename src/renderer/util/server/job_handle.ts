@@ -2,7 +2,6 @@ import { Ref } from "vue"
 import { Job, Property } from "../../interface"
 import { DATA, save_and_update } from "./server"
 
-
 export class Util_Server_Job {
     data:Ref<DATA>
     update:save_and_update

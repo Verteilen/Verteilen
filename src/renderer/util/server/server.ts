@@ -43,7 +43,7 @@ export class Util_Server {
         this.data = _data
         this.config = _config
         this.emitter = _emitter
-        this.project = new Util_Server_Project(this.data, this.update)
+        this.project = new Util_Server_Project(this.data, this.update, _emitter)
         this.task = new Util_Server_Task(this.data, this.update)
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
