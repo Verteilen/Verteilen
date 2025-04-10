@@ -23,7 +23,11 @@
         "server": "Server Mode",
         "node": "Node Mode",
         "server_d": "Select server mode, You can control node by using monitor",
-        "node_d": "Select node mode, You are waiting server to connect..."
+        "node_d": "Select node mode, You are waiting server to connect...",
+        "connection-create-title": "Connection Establish",
+        "connection-create-des": "Create new connection",
+        "connection-remove-title": "Disconnect",
+        "connection-remove-des": "Disconnect detected"
     },
     "modeselect": {
         "title": "Your role"

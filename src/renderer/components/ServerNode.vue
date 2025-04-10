@@ -192,18 +192,18 @@ const onChangeLan = (e:string) => {
 
 const newConnect = (x:WebsocketPack) => {
   emitter?.emit('makeToast', {
-    title: "連線建立",
+    title: i18n.global.t('toast.connection-create-title'),
     type: 'success',
-    message: `建立新的連線: ${x.websocket.url} \n${x.uuid}`
+    message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
   })
   data.value.execute_manager[0].NewConnection(x)
 }
 
 const disconnect = (x:WebsocketPack) => {
   emitter?.emit('makeToast', {
-    title: "連線中斷",
+    title: i18n.global.t('toast.connection-remove-title'),
     type: 'danger',
-    message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
+    message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
   })
   data.value.execute_manager[0].Disconnect(x)
 }

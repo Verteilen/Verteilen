@@ -23,7 +23,11 @@
         "server": "伺服器模式",
         "node": "節點模式",
         "server_d": "用戶選擇了伺服器模式, 主控台出現後, 控制其他節點進行工作",
-        "node_d": "用戶選擇了節點模式, 被動架構的情況下無法做任意事件, 將會等待伺服器連線..."
+        "node_d": "用戶選擇了節點模式, 被動架構的情況下無法做任意事件, 將會等待伺服器連線...",
+        "connection-create-title": "連線建立",
+        "connection-create-des": "建立新的連線",
+        "connection-remove-title": "連線中斷",
+        "connection-remove-des": "連線中斷偵測"
     },
     "modeselect": {
         "title": "你擔任的角色"
