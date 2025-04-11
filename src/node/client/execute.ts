@@ -1,6 +1,5 @@
 import { ChildProcess, spawn } from 'child_process';
 import * as path from 'path';
-import kill from 'tree-kill';
 import { WebSocket } from 'ws';
 import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
@@ -32,12 +31,13 @@ export class ClientExecute {
      * The stop signal, It will trying to kill the process if currently running
      */
     stop_job = () => {
-        this.messager_log("[Execute] Stop All")
+        this.messager_log(`[Execute] Stop All: ${this.workers.length}`)
         this.workers.forEach(x => {
             x.stdout?.destroy()
-            x.stdin?.destroy()
             x.stderr?.destroy()
-            kill(x.pid!)
+            x.stdin?.destroy()
+            x.unref()
+            x.kill('SIGTERM')
         })
     }
     
@@ -56,8 +56,8 @@ export class ClientExecute {
             { 
                 cwd: path.join('bin'),
                 stdio: ['inherit', 'pipe', 'pipe'],
-                shell: true,
                 windowsHide: true,
+                shell: true,
                 env: {
                     ...process.env,
                     type: "JOB",

@@ -87,7 +87,7 @@ export class Client {
         this.client.close((err) => {
             this.messager_log(`[Client] Close error ${err}`)
         })
-        this.analysis.step_all()
+        this.analysis.stop_all()
     }
 
     /**

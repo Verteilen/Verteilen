@@ -23,7 +23,11 @@
         "server": "伺服器模式",
         "node": "節點模式",
         "server_d": "用戶選擇了伺服器模式, 主控台出現後, 控制其他節點進行工作",
-        "node_d": "用戶選擇了節點模式, 被動架構的情況下無法做任意事件, 將會等待伺服器連線..."
+        "node_d": "用戶選擇了節點模式, 被動架構的情況下無法做任意事件, 將會等待伺服器連線...",
+        "connection-create-title": "連線建立",
+        "connection-create-des": "建立新的連線",
+        "connection-remove-title": "連線中斷",
+        "connection-remove-des": "連線中斷偵測"
     },
     "modeselect": {
         "title": "你擔任的角色"
@@ -42,6 +46,7 @@
         "new-project": "新增專案",
         "modify-project": "編輯專案",
         "delete-project": "刪除專案",
+        "import-project": "匯入專案",
         "delete-project-confirm": "確定刪除以下專案嗎?",
         "enter-project-name": "輸入專案名稱",
         "enter-project-description": "輸入專案敘述",
@@ -121,6 +126,7 @@
             "default": "範例",
             "gs4": "睿智 GS4",
             "gs4-2": "睿智 GS4 V2",
+            "gs4-lut": "睿智 Lut Ply",
             "concat": "FFmpeg 合成影片",
             "blender": "Blender 渲染",
             "aftereffect": "After Effect 渲染"
@@ -162,6 +168,15 @@
         "title": "標題",
         "value": "表達式"
     },
+    "headers": {
+        "title": "名稱",
+        "description": "敘述",
+        "detail": "動作",
+        "multi": "多核心",
+        "cronjob": "分散運算",
+        "task-count": "流程數",
+        "job-count": "工作數"
+    },
     "search": "搜尋",
     "selectall": "全選",
     "unselectall": "取消全選",
@@ -193,6 +208,7 @@
     "skip-1": "跳過流程",
     "stop": "停下",
     "export": "匯出",
+    "import": "匯入",
     "useTemplate": "使用樣板",
     "execute-keep": "執行 (保留)",
     "parameter-setting": "參數設定",
@@ -202,11 +218,12 @@
     "auto-scroll": "自動滑動",
     "close-all": "全部關閉",
     "clean": "清除",
-    "cronjob": "群集運算",
+    "cronjob": "分散運算",
     "multicore": "多核運算",
     "recover": "恢復",
     "cancel": "取消",
     "step": "步驟",
     "confirm": "確認",
-    "close": "關閉"
+    "close": "關閉",
+    "enter": "進入"
 }

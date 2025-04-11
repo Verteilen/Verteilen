@@ -16,7 +16,7 @@ interface PROPS {
     config: AppConfig
     preference: Preference
     socket: WebsocketManager | undefined
-    execute: ExecuteManager | undefined
+    execute: Array<ExecuteManager>
     libs: Libraries
 }
 const data = defineModel<ExecuteRecord>()
@@ -44,7 +44,7 @@ const process_type = ref(-1)
 const updateHandle = () => {
     if(data.value!.running && !data.value!.stop){
         try {
-            props.execute?.Update()
+            props.execute[0].Update()
         }catch(err:any){
             data.value!.stop = true
             const str = 'Execute Error: ' + err.name + '\n' + err.message
@@ -57,7 +57,7 @@ const updateHandle = () => {
         }
     }
     if(data.value!.stop){
-        if(props.execute!.jobstack == 0){
+        if(props.execute[0].jobstack == 0){
             data.value!.running = false
         }
     }
@@ -72,7 +72,7 @@ const update_runtime_parameter = (d:Parameter) => {
     para.value = d
 }
 const receivedPack = (record:Record) => {
-    const pass = props.execute!.Register(record.projects)
+    const pass = props.execute[0].Register(record.projects)
     if(pass == -1){
         data.value!.running = false
         data.value!.stop = true
@@ -168,7 +168,7 @@ const execute_task_start = (d:[Task, number]) => {
     data.value!.task_detail = []
     const p = data.value!.projects[data.value!.project_index]
     const t = p.task[data.value!.task_index]
-    const count = props.execute!.get_task_state_count(t)
+    const count = props.execute[0].get_task_state_count(t)
     for(let i = 0; i < count; i++){
         data.value!.task_detail.push({
             index: i,
@@ -277,7 +277,7 @@ const execute = (type:number) => {
     process_type.value = type
     data.value!.running = true
     data.value!.stop = false
-    props.execute!.first = true
+    props.execute[0].first = true
 }
 /**
  * Skip the project ahead, 
@@ -306,7 +306,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
             data.value!.task_detail = []
             const p = data.value!.projects[data.value!.project_index]
             const t = p.task[data.value!.task_index]
-            const count = props.execute!.get_task_state_count(t)
+            const count = props.execute[0].get_task_state_count(t)
             for(let i = 0; i < count; i++){
                 data.value!.task_detail.push({
                     index: i,
@@ -315,7 +315,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                     state: ExecuteState.NONE
                 })
             }
-            const index = props.execute!.SkipProject()
+            const index = props.execute[0].SkipProject()
             console.log("Skip project", index)
         }
     }else if (type == 1){
@@ -329,7 +329,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
             data.value!.task_detail = []
             const p = data.value!.projects[data.value!.project_index]
             const t = p.task[data.value!.task_index]
-            const count = props.execute!.get_task_state_count(t)
+            const count = props.execute[0].get_task_state_count(t)
             for(let i = 0; i < count; i++){
                 data.value!.task_detail.push({
                     index: i,
@@ -338,7 +338,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                     state: ExecuteState.NONE
                 })
             }
-            const index = props.execute!.SkipTask()
+            const index = props.execute[0].SkipTask()
             console.log("Skip task", index)
         }
     }else if (type == 2){
@@ -349,7 +349,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
  * When user click confirm on the skip step modal
  */
 const confirmSkip = (v:number) => {
-    const index = props.execute!.SkipSubTask(v)
+    const index = props.execute[0].SkipSubTask(v)
     if(index < 0) {
         console.error("Skip step failed: ", index)
         return
@@ -364,7 +364,7 @@ const confirmSkip = (v:number) => {
  * Destroy all state and reset
  */
 const clean = () => {
-    props.execute!.Clean()
+    props.execute[0].Clean()
     data.value!.projects = []
     data.value!.project = ""
     data.value!.task = ""
@@ -382,7 +382,7 @@ const clean = () => {
  */
 const stop = () => {
     data.value!.stop = true
-    props.execute!.Stop()
+    props.execute[0].Stop()
 }
 //#endregion
 

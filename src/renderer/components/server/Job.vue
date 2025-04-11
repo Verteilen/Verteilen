@@ -336,25 +336,26 @@ onUnmounted(() => {
             <br />
             <v-expansion-panels color="dark" class="px-6 text-white">
                 <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2" color="blue-darken-4">
-                    <v-expansion-panel-title>
-                        <v-row>
-                            <v-col cols="auto" class="mt-1">
-                                <v-checkbox type="checkbox" v-model="c.s" hide-details width="50" density="compact"></v-checkbox>
-                            </v-col>
-                            <v-col cols="auto" class="mt-2">
+                    <v-row>
+                        <v-col cols="auto" class="mt-2">
+                            <v-checkbox type="checkbox" v-model="c.s" hide-details width="25" density="compact"></v-checkbox>
+                        </v-col>
+                        <v-col cols="auto" class="mt-2">
+                            <v-btn size="small" icon flat :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">
+                                <v-icon>mdi-arrow-up</v-icon>
+                            </v-btn>
+                            <v-btn class="ml-2" size="small" icon flat :disabled="isLast(c.uuid)" @click="movedown(c.uuid)">
+                                <v-icon>mdi-arrow-down</v-icon>
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="10">
+                            <v-expansion-panel-title>
                                 <v-chip class="mr-1">{{ i }}. {{ c.category == 0 ? JobType2Translate(c.type) : JobTypeTranslate(c.type) }}</v-chip>
                                 <v-chip>{{ c.uuid }}</v-chip>
-                            </v-col>
-                            <v-col cols="auto">
-                                <v-btn size="small" icon flat :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">
-                                    <v-icon>mdi-arrow-up</v-icon>
-                                </v-btn>
-                                <v-btn class="ml-2" size="small" icon flat :disabled="isLast(c.uuid)" @click="movedown(c.uuid)">
-                                    <v-icon>mdi-arrow-down</v-icon>
-                                </v-btn>
-                            </v-col>
-                        </v-row>
-                    </v-expansion-panel-title>
+                            </v-expansion-panel-title>
+                        </v-col>
+                    </v-row>
+                    
                     <v-expansion-panel-text>
                         <v-card flat>
                             <v-card-text>

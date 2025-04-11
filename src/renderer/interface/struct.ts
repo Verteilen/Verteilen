@@ -1,3 +1,6 @@
+import { Project } from "./base"
+
+type ProjectCall = (p:Project) => Project
 
 /**
  * The websocket instance with extra information
@@ -159,4 +162,10 @@ export interface ShellFolder {
      * Folders list in the path
      */
     folders: Array<string>
+}
+
+export interface TemplateGroup {
+    value: number
+    group: string
+    template: ProjectCall
 }

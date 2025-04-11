@@ -36,7 +36,7 @@ export class ClientAnalysis {
     analysis = (h:Header | undefined, source:WebSocket) => {
         const typeMap = {
             'execute_job': this.exec.execute_job,
-            'stop_job': this.exec.stop_job,
+            'stop_job': this.stop_all,
             'set_parameter': this.exec.set_parameter,
             'set_libs': this.exec.set_libs,
             'shell_folder': this.shell.shell_folder,
@@ -55,7 +55,10 @@ export class ClientAnalysis {
         if (h.message != undefined && h.message.length > 0){
             this.messager_log(`[Source Analysis] ${h.message}`)
         }
-        if (h.data == undefined) return
+        if (h.data == undefined) {
+            this.messager_log('[Source Analysis] Analysis Failed, Data is undefined')
+            return
+        }
         if(typeMap.hasOwnProperty(h.name)){
             const castingFunc = typeMap[h.name]
             castingFunc(h.data, source)
@@ -100,7 +103,7 @@ export class ClientAnalysis {
         this.exec.stop_job()
     }
 
-    step_all = () => {
+    stop_all = () => {
         this.exec.stop_job()
     }
 

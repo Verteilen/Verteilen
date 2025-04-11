@@ -40,6 +40,7 @@ export enum ProjectTemplate {
     DEFAULT,
     FUNIQUE_GS4,
     FUNIQUE_GS42,
+    FUNIQUE_LUT,
     FFmpeg_Concat,
     Blender,
     AfterEffect
@@ -112,9 +113,10 @@ export const JobType2Text: { [key:number]:string } = {
 
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
-    1: 'enum.project.gs4',
-    2: 'enum.project.gs4-2',
-    3: 'enum.project.concat',
-    4: 'enum.project.blender',
-    5: 'enum.project.aftereffect',
+    10: 'enum.project.gs4',
+    11: 'enum.project.gs4-2',
+    12: 'enum.project.gs4-lut',
+    20: 'enum.project.concat',
+    30: 'enum.project.blender',
+    40: 'enum.project.aftereffect',
 }

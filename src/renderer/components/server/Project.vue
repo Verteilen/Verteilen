@@ -4,7 +4,8 @@ import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { DATA, Util_Project } from '../../util/project';
+import { CreateField, DATA, IndexToValue, Util_Project, ValueToGroupName } from '../../util/project';
+import ProjectDialog from '../dialog/ProjectDialog.vue';
 
 interface PROPS {
     preference: Preference
@@ -25,17 +26,13 @@ const emits = defineEmits<{
 }>()
 const data:Ref<DATA> = ref({
     items: [],
-    fields: [
-        { title: 'ID', align: 'center', key: 'ID' },
-        { title: 'Title', align: 'center', key: 'title' },
-        { title: 'Description', align: 'center', key: 'description' },
-        { title: 'TaskCount', align: 'center', key: 'taskCount' },
-        { title: 'Detail', align: 'center', key: 'detail' },
-    ],
-    createModal: false,
-    createData: {title: "", description: "", useTemp: false, temp: 0},
+    fields: [],
+    importModal: false,
+    importData: [],
+    dialogModal: false,
+    isEdit: false,
+    editData: {title: "", description: "", useTemp: false, temp: 0},
     temps: [],
-    editModal: false,
     editUUID: '',
     deleteModal: false,
     deleteData: [],
@@ -47,7 +44,8 @@ const data:Ref<DATA> = ref({
 
 const util:Util_Project = new Util_Project(data, () => props.projects)
 
-const items_final = computed(() => { return data.value.search == null || data.value.search.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(data.value.search) || x.ID.includes(data.value.search)) })
+const realSearch = computed(() => data.value.search.trimStart().trimEnd())
+const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value)) })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_project_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
 
@@ -56,11 +54,14 @@ const recoverProject = (p:Project) => emits('added', [p])
 const createProject = () => util.createProject()
 const datachoose = (uuid:string) => emits('select', uuid)
 const dataedit = (uuid:string) => util.dataedit(uuid)
+const dataimport = () => {
+    data.value.importModal = true
+}
 
 const dataexport = (uuid:string) => {
-    if(!props.config.isElectron) return
     const p = props.projects.find(x => x.uuid == uuid)
-    if(p != undefined)
+    if(p == undefined) return
+    if(!props.config.isElectron) return
     window.electronAPI.send('export_project', JSON.stringify(p))
 }
 
@@ -101,6 +102,12 @@ const selectall = () => {
 
 const execute = (keep:boolean) => emits('execute', selected_project_ids.value, keep)
 
+const DialogSubmit = (p:CreateField) => {
+    data.value.editData = p
+    if(data.value.isEdit) confirmEdit()
+    else confirmCreate()
+}
+
 const confirmCreate = () => {
     const buffer = util.confirmCreate()
     if(buffer == undefined) return
@@ -119,14 +126,32 @@ const confirmEdit = () => {
     data.value.editUUID,
         { 
             uuid: data.value.editUUID,
-            title: data.value.createData.title, 
-            description: data.value.createData.description,
+            title: data.value.editData.title, 
+            description: data.value.editData.description,
             parameter: selectp.parameter,
             task: selectp.task
         }
     )
     nextTick(() => {
         updateProject();
+    })
+}
+
+const ImportConfirm = () => {
+    data.value.importModal = false
+    if(!props.config.isElectron) return
+    Promise.all(data.value.importData.map(x => x.text())).then(texts => {
+        const a = texts.map(x => {
+            try {
+                const buffer:Project = JSON.parse(x)
+                buffer.uuid = uuidv6()
+                return buffer
+            }catch(err){
+                console.error("Convert text to project json format error")
+                return undefined
+            }
+        }).filter(x => x != undefined)
+        emits('added', a)
     })
 }
 
@@ -137,7 +162,7 @@ const moveup = (uuid:string) => {
     })
 }
 
-const ProjectTemplateTranslate = (t:number):string => { return i18n.global.t(ProjectTemplateText[t]) }
+const ProjectTemplateTranslate = (t:number):string => i18n.global.t(ProjectTemplateText[t])
 
 const movedown = (uuid:string) => {
     emits('movedown', uuid)
@@ -149,18 +174,30 @@ const movedown = (uuid:string) => {
 const isFirst = (uuid:string) => util.isFirst(uuid)
 const isLast = (uuid:string) => util.isLast(uuid)
 
+const updateFields = () => {
+    data.value.fields = [
+        { title: 'ID', align: 'center', key: 'ID' },
+        { title: i18n.global.t('headers.title'), align: 'center', key: 'title' },
+        { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
+        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount' },
+        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail' },
+    ]
+}
+
 const updateLocate = () => {
     data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
-            text: ProjectTemplateTranslate(index as ProjectTemplate),
-            value: index
+            text: ProjectTemplateTranslate(IndexToValue(index)),
+            group: ValueToGroupName(index) ?? '',
+            value: IndexToValue(index)
         }
     })
+    updateFields()
 }
 
 onMounted(() => {
     updateLocate()
-    updateProject()
+    updateFields()
     emitter?.on('updateProject', updateProject)
     emitter?.on('recoverProject', recoverProject)
     emitter?.on('createProject', createProject)
@@ -214,6 +251,14 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="dataimport">
+                            <v-icon>mdi-import</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('import') }}
+                </v-tooltip>   
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="selectall">
                             <v-icon>mdi-check-all</v-icon>
                         </v-btn>
@@ -244,59 +289,56 @@ onUnmounted(() => {
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-btn flat icon @click="datachoose(item.ID)" size="small">
-                        <v-icon>mdi-location-enter</v-icon>
-                    </v-btn>
-                    <v-btn flat icon @click="dataedit(item.ID)" size="small">
-                        <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
-                    <v-btn flat icon @click="dataexport(item.ID)" size="small">
-                        <v-icon>mdi-export</v-icon>
-                    </v-btn>
-                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
-                        <v-icon>mdi-arrow-up</v-icon>
-                    </v-btn>
-                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
-                        <v-icon>mdi-arrow-down</v-icon>
-                    </v-btn>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon @click="datachoose(item.ID)" size="small">
+                                <v-icon>mdi-location-enter</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('enter') }}
+                    </v-tooltip>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon @click="dataedit(item.ID)" size="small">
+                                <v-icon>mdi-pencil</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('edit') }}
+                    </v-tooltip>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon @click="dataexport(item.ID)" size="small">
+                                <v-icon>mdi-export</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('export') }}
+                    </v-tooltip>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
+                                <v-icon>mdi-arrow-up</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('moveup') }}
+                    </v-tooltip>
+                    <v-tooltip location="bottom">
+                        <template v-slot:activator="{ props }">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
+                                <v-icon>mdi-arrow-down</v-icon>
+                            </v-btn>
+                        </template>
+                        {{ $t('movedown') }}
+                    </v-tooltip>
                 </template>
             </v-data-table>
         </div>
-        <v-dialog width="500" v-model="data.createModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-hammer</v-icon>
-                    {{ $t('modal.new-project') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field :error="data.titleError" v-model="data.createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-                    <v-text-field class="mt-3" v-model="data.createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
-                    <br />
-                    <v-checkbox v-model="data.createData.useTemp" hide-details :label="$t('useTemplate')"></v-checkbox>
-                    <v-select v-if="data.createData.useTemp" v-model="data.createData.temp" :items="data.temps" item-title="text" hide-details></v-select>
-                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
-        <v-dialog width="500" v-model="data.editModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.modify-project') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field :error="data.titleError" v-model="data.createData.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-                    <v-text-field class="mt-3" v-model="data.createData.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
-                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmEdit">{{ $t('modify') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
+        <ProjectDialog v-model="data.dialogModal" 
+            :temps="data.temps"
+            :is-edit="data.isEdit" 
+            :error-message="data.errorMessage"
+            :title-error="data.titleError"
+            :edit-data="data.editData" 
+            @submit="DialogSubmit" />
         <v-dialog width="500" v-model="data.deleteModal" class="text-white">
             <v-card>
                 <v-card-title>
@@ -316,9 +358,19 @@ onUnmounted(() => {
                 </template>
             </v-card>
         </v-dialog>
+        <v-dialog width="800" v-model="data.importModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-import</v-icon>
+                    {{ $t('modal.import-project') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-file-upload v-model="data.importData" show-size clearable multiple density="default"></v-file-upload>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" :disabled="data.importData.length == 0" color="primary" @click="ImportConfirm">{{ $t('import') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
     </div>
 </template>
-
-<style>
-
-</style>

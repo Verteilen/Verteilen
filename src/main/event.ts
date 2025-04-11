@@ -237,8 +237,8 @@ export class BackendEvent {
             ]
         }).then(v => {
             if (v.canceled || v.filePath.length == 0) return
-            if(mainWindow == undefined) return;
-            const path = v.filePath[0]
+            const path = v.filePath
+            console.log("Export project to path: ", path)
             fs.writeFileSync(path, JSON.stringify(value, null, 4))
         })
     }
