@@ -36,7 +36,7 @@ export class ClientAnalysis {
     analysis = (h:Header | undefined, source:WebSocket) => {
         const typeMap = {
             'execute_job': this.exec.execute_job,
-            'stop_job': this.exec.stop_job,
+            'stop_job': this.stop_all,
             'set_parameter': this.exec.set_parameter,
             'set_libs': this.exec.set_libs,
             'shell_folder': this.shell.shell_folder,
@@ -100,7 +100,7 @@ export class ClientAnalysis {
         this.exec.stop_job()
     }
 
-    step_all = () => {
+    stop_all = () => {
         this.exec.stop_job()
     }
 

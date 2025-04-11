@@ -31,9 +31,13 @@ export class ClientExecute {
      * The stop signal, It will trying to kill the process if currently running
      */
     stop_job = () => {
-        this.messager_log("[Execute] Stop All")
+        this.messager_log(`[Execute] Stop All: ${this.workers.length}`)
         this.workers.forEach(x => {
-            x.kill()
+            x.stdout?.destroy()
+            x.stderr?.destroy()
+            x.stdin?.destroy()
+            x.unref()
+            x.kill('SIGTERM')
         })
     }
     
@@ -52,8 +56,8 @@ export class ClientExecute {
             { 
                 cwd: path.join('bin'),
                 stdio: ['inherit', 'pipe', 'pipe'],
-                shell: true,
                 windowsHide: true,
+                shell: true,
                 env: {
                     ...process.env,
                     type: "JOB",

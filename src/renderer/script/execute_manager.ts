@@ -30,7 +30,8 @@ export class ExecuteManager extends ExecuteManager_Runner {
         this.websocket_manager.targets.forEach(x => {
             const h:Header = {
                 name: 'stop_job',
-                message: 'Stop All Jobs'
+                message: 'Stop All Jobs',
+                data: {}
             }
             x.websocket.send(JSON.stringify(h))
         })
