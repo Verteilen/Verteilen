@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, MESSAGE_LIMIT } from '../../../interface';
+import { BusType, MESSAGE_LIMIT, Preference } from '../../../interface';
+
+interface PROPS {
+    preference: Preference
+}
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');    
 
+    const props = defineProps<PROPS>()
 const alllog:Ref<Array<string>> = ref([])
 
 const debuglog = (message:string) => {
@@ -36,7 +41,7 @@ onUnmounted(() => {
                 <v-btn color="primary" @click="clearMessage">{{ $t('clear') }}</v-btn>
             </v-btn-group>
         </div>
-        <p v-for="(msg, i) in alllog" :key="i">{{ msg }}</p>
+        <p :style="{ 'fontSize': props.preference.font + 'px', 'line-height': props.preference.font + 'px' }" v-for="(msg, i) in alllog" :key="i">{{ msg }}</p>
     </v-container>
 </template>
 
