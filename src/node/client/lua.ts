@@ -48,6 +48,9 @@ async function wait(time:number){
     const TIME = luainjs.utils.coerceArgToNumber(time, "wait", 1)
     return new Promise((resolve) => setTimeout(resolve, TIME * 1000))
 }
+async function sleep(n:number){
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, n*1000);
+}
 function hasboolean(key:string){
     const p = getpara?.() ?? undefined
     if(p == undefined) return false
@@ -196,6 +199,7 @@ export class ClientLua {
         messager = _messager
         messager_log = _messager_log
         this.os = new luainjs.Table({
+            "sleep": sleep,
             "copyfile": this.copyfile,
             "copydir": this.copydir,
             "deletefile": this.deletefile,
