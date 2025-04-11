@@ -55,7 +55,10 @@ export class ClientAnalysis {
         if (h.message != undefined && h.message.length > 0){
             this.messager_log(`[Source Analysis] ${h.message}`)
         }
-        if (h.data == undefined) return
+        if (h.data == undefined) {
+            this.messager_log('[Source Analysis] Analysis Failed, Data is undefined')
+            return
+        }
         if(typeMap.hasOwnProperty(h.name)){
             const castingFunc = typeMap[h.name]
             castingFunc(h.data, source)
