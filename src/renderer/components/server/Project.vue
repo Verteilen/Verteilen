@@ -120,6 +120,7 @@ const confirmCreate = () => {
 }
 
 const confirmEdit = () => {
+    data.value.importModal = false
     const selectp = util.confirmEdit()
     if(selectp == undefined) return
     emits('edit', 

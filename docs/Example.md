@@ -1,7 +1,7 @@
-# 範例 樣板說明
+# Example Template
 
-範例樣本的主要目的是讓用戶知道這個應用程式提供的功能
+The purpose of this template is to show all the features this application support
 
-## 流程說明
+## Task
 
-...待更新
+...to be continued

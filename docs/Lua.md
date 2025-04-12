@@ -35,6 +35,10 @@ end
 <summary>OS function</summary>
 <div style="padding-left:20px">
 
+## o.sleep(sec:number)
+
+sleep function
+
 ## o.copyfile(a1:string, a2:string)
 
 Copy the file from a1 path to a2 path

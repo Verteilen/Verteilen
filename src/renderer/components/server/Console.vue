@@ -517,7 +517,7 @@ onUnmounted(() => {
                 <Process v-model="data" :socket="props.socket" :preference="props.preference" />
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 2">
-                <DebugLog />
+                <DebugLog :preference="props.preference" />
             </v-col>
             <v-col :cols="rightSize" v-show="tag == 3">
                 <ParameterPage v-model="para" :preference="props.preference" />
