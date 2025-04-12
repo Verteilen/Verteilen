@@ -16,8 +16,8 @@ For Dev
 
 ||||
 |-|-|-|
-|![P](./docs/server.png)|![Flow](./docs/flow.png)|![Para](./docs/parameter.png)|
-|![Lua](./docs/luaJob.png)|![commandJob](./docs/commanJob.png)|![pipeline](./docs/execution.png)|
+|![P](./docs/static/server.jpg)|![Flow](./docs/static/flow.jpg)|![Para](./docs/static/parameter.jpg)|
+|![Lua](./docs/static/luaJob.jpg)|![commandJob](./docs/static/commanJob.jpg)|![pipeline](./docs/static/execution.jpg)|
 
 ## Installation
 
@@ -64,6 +64,9 @@ You can also define parameter and let job access to those veriables
 Top category, The most top container.\
 You can name your project and write down the description here.
 
+Create a proejct container and apply the template\
+![Project](./docs/static/project.gif)
+
 #### Task
 
 - Cron: Run by multiple nodes
@@ -75,6 +78,9 @@ If Cron is checked, Server will select multiple nodes to distributed to task
 
 > In the cron mode, Use 'ck' To access to current task id\
 > ck is start from 1 
+
+Task && Job && Paramter management\
+![Task](./docs/static/task.gif)
 
 #### Job
 
@@ -90,6 +96,11 @@ Click the link for more detail
 Project's parameter, Support boolean, string, number data type\
 This varaible can be change in runtime, you can use it as constant as well
 
+#### Node
+
+Added calculate node, you can include self\
+![Node](./docs/static/node.gif)
+
 #### Property
 
 The property is like macro, in the process, it will replace text value\
@@ -103,6 +114,12 @@ Lua has its function lib, more detail in [Here](./docs/Lua.md)
 ### Monitor
 
 You can monitor currently working tasks, Change the state in real-time
+
+Execute cronjob task\
+![Execute](./docs/static/execute.gif)
+
+Execute cronjob task with multithread enable\
+![Execute_Multiple](./docs/static/execute_multiple.gif)
 
 ## Project Template
 
