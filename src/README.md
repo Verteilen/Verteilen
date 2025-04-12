@@ -22,6 +22,16 @@ Use command below to build the result to build/node
 npm run build:node
 ```
 
+## program
+
+The worker.exe source code, use for multithread support purpose
+
+Use command below to build the result to bin
+
+```shell
+npm run pkg
+```
+
 ## renderer
 
 This codebase can be use in 
