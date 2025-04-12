@@ -23,7 +23,7 @@ For Dev
 
 > Desktop app installation
 
-In Release page, For windows user click .msi installation file
+In [Release](https://github.com/Elly2018/Compute-Tool/releases) page, For windows user click .msi installation file
 
 > Docker node installation\
 > You need Docker for this

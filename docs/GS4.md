@@ -123,10 +123,6 @@ I Frame 生成後的總數目
 <summary>流程說明</summary>
 <div style="padding-left:20px">
 
-## 檢查階段
-
-主要檢查準備資歷夾以及 videoGS Python 環境的存在
-
 ## 整理階段
 
 這裡會把原生資料 Prepare 丟到 before 資料夾並且排序好\
@@ -139,37 +135,61 @@ I Frame 生成後的總數目
   * 時間排序
     * 每個攝影機的角度 ID
 
-## 運算資料準備
+## 運算資料準備 (COLMAP)
 
-Colmap 會被呼叫, 會在 before/\[時間\]/sparse/0 生成資料庫
+Colmap 會被呼叫, 會在 before/\[時間\]/sparse/0 生成資料庫\
+生成完需要的 bin 後會刪除 database.db 優化空間跟運算時間
 
 ## 生成 I Frame
 
-這裡會在 after 生成 GOP_20_I 的資料夾 此為 IFrame
+這裡會在 after 生成 GOP_20_I 的資料夾 此為 IFrame\
+這個時候 videogs 會被呼叫
+
+## 降躁處理
+
+每個 I Frame 下的 ply 運算結果會被 ply_denoise.exe 給降躁\
+原理是把 r,g,b 零以下的值刪除掉 (參數: denoise)
 
 ## 備份 I Frame
 
 單純只是複製 GOP_20_I 到 GOP_20_I_Backup 而已
 
-## 降躁處理
+## GTP 修正
 
-每個 I Frame 下的 ply 運算結果會被 ply_denoise.exe 給降躁\
-原理是把 r,g,b 零以下的值刪除掉
+運算過程中發現 train.py 與 train_dynamic.py 之間的差異\
+* train: 單純 IFrame
+* train_dynamic: 中間張
+
+train_dynamic 出來的品質比較好 並且包含 gtp 的運算結果, Iframe 則沒有\
+修正這個問題就是複製 Iframe 的來源到新的 before 資料夾, 並且算中間張\
+然後覆蓋原本的 IFrame
 
 ## 排序改變
 
-這裡會生成 BLEND_\[Blend 數目\]_I 的資料夾在 after 中
-並且把 I Frame 資料夾依序複製進去
+這裡會生成
+* BLEND_\[Blend 數目\]_I\[P/N\]: Blend 序列資料夾, 交叉放 Iframe 進來
+* DATASET_\[P/N\]_\[Blend 數目\]: Data 來源, 從 before 複製過來
 
 ## Blend 資料準備
 
+在 BLEND_\[Blend 數目\]_I\[P/N\] 直接演算\
 把中間偵算出來
 
-## Blending
+## ply 輸出
 
-複製 Ply 序列到 Output 資料夾中的 Sequence_\[Blend 數目\] 中
+複製 Ply 序列到 Output 資料夾中的 (輸出資料夾)/raw/Sequence_\[Blend 數目\] 中
 
-## Lut
+## Blending 透明度
+
+raw 資料夾的偵 套用透明度設定, 並且輸出到 (輸出資料夾)/trans/Sequence_\[Blend 數目\] 中
+
+透明度會透過 sin 的 wave 進行調整, 然後根據加權得到 (參數: contribution) 總值\
+假設 contribution 為 3, 然後得到的 sin wave 分別為 [0.5, 1.0]\
+則輸出則會為 [1.0, 2.0]
+
+## Blending 合併
+
+trans 資料夾的偵 套用透明度設定. 並且輸出到 (輸出資料夾)/final 中
 
 </div>
 </details>
