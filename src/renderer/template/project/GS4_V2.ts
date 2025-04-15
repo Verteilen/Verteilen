@@ -15,6 +15,25 @@ const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
         number_args: [],
         boolean_args: []
     }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "排序改變",
+        description: "準備 PN Dataset",
+        cronjob: false,
+        cronjobKey: "",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            copyhelper,
+        ]
+    }
+    return t
+}
+
+// 排序改變 優化品質做的準備
+// Colmap 的結構複製一個負的出來
+const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare2 = ():Task => {
     const copyhelper2:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -26,15 +45,14 @@ const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "排序改變, 負向準備",
-        description: "優化品質複製, Colmap 結構準備負方向的",
+        title: "負向準備",
+        description: "準備 Blend PN 資料夾",
         cronjob: false,
         cronjobKey: "",
         multi: false,
         multiKey: "",
         properties: [],
         jobs: [
-            copyhelper,
             copyhelper2
         ]
     }
@@ -197,6 +215,7 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
         GetFUNIQUE_GS4ProjectTemplate_IFrameBackup(),
         GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment(),
         GetFUNIQUE_GS4ProjectTemplate_BlendPrepare(),
+        GetFUNIQUE_GS4ProjectTemplate_BlendPrepare2(),
         GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Position(),
         GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Negative(),
         GetFUNIQUE_GS4ProjectTemplate_PlyList(),
