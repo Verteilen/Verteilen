@@ -172,6 +172,7 @@ const updateLocate = () => {
 
 const import_parameter_feedback = (e:IpcRendererEvent, v:string) => {
     buffer.value = JSON.parse(v)
+    setdirty()
 }
 
 const moveup = (name:string) => {
