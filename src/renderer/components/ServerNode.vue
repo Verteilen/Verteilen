@@ -2,10 +2,10 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { AppConfig, BusAnalysis, BusType, ExecuteProxy, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
-import { waitSetup } from '../platform';
+import { BusAnalysis, BusType, ExecuteProxy, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
+import { BackendProxy } from '../proxy';
 import { ConsoleManager } from '../script/console_manager';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -27,7 +27,7 @@ let slowUpdateHandle:any = undefined
 
 interface PROPS {
     preference: Preference
-    config: AppConfig
+    backend: BackendProxy
 }
 
 const execute_proxy:ExecuteProxy = {
@@ -46,6 +46,7 @@ const execute_proxy:ExecuteProxy = {
     folderReply: (data:ShellFolder) => { emitter?.emit('folderReply', data) }
 }
 
+const config = computed(() => props.backend.config)
 const props = defineProps<PROPS>()
 const data:Ref<DATA> = ref({
     websocket_manager: undefined,
@@ -74,7 +75,7 @@ const data:Ref<DATA> = ref({
     nodes: []
 })
 
-const util:Util_Server = new Util_Server(data, () => props.config, emitter!)
+const util:Util_Server = new Util_Server(data, () => config.value, emitter!)
 
 const allUpdate = () => util.allUpdate()
 const saveRecord = ():Record => util.saveRecord()
@@ -153,7 +154,7 @@ const menuCreateProject = (e:IpcRendererEvent) => {
 }
 
 const menu_export_project = (e:IpcRendererEvent) => {
-  if(props.config.isElectron) window.electronAPI.send("export_project", JSON.stringify(data.value.projects))
+  if(config.value.isElectron) window.electronAPI.send("export_project", JSON.stringify(data.value.projects))
 }
 
 const import_project_feedback = (e:IpcRendererEvent, text:string) => {
@@ -186,7 +187,7 @@ const onChangeLan = (e:string) => {
   data.value.lanSelect = e
   // @ts-ignore
   i18n.global.locale = e
-  if(!props.config.isElectron) return
+  if(!config.value.isElectron) return
   window.electronAPI.send('save_preference', JSON.stringify(props.preference, null, 4))
 }
 
@@ -220,7 +221,8 @@ onMounted(() => {
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
 
-  waitSetup(props.config).then(x => {
+  props.backend.wait_init().then(() => {
+    const x = config.value
     if(!x.isExpress){
       data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
       data.value.execute_manager.push(new ExecuteManager(data.value.websocket_manager, messager_log))
@@ -231,7 +233,7 @@ onMounted(() => {
       data.value.websocket_manager.onAnalysis = data.value.execute_manager[0].Analysis
     }
 
-    if(props.config.isElectron){
+    if(config.value.isElectron){
       window.electronAPI.send('menu', true)
       window.electronAPI.eventOn('createProject', menuCreateProject)
       window.electronAPI.eventOn('menu_export_project', menu_export_project)
@@ -277,7 +279,7 @@ onUnmounted(() => {
   emitter?.off('deleteScript', libDelete)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
-  if(props.config.isElectron) {
+  if(config.value.isElectron) {
     window.electronAPI.eventOff('createProject', menuCreateProject)
     window.electronAPI.eventOff('menu_export_project', menu_export_project)
     window.electronAPI.eventOff('run_all', run_all)
@@ -349,7 +351,7 @@ onUnmounted(() => {
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="data.page == 0" 
         :projects="data.projects" 
-        :config="props.config"
+        :config="config"
         :preference="props.preference"
         @added="e => addProject(e)" 
         @edit="(id, e) => editProject(id, e)" 
@@ -381,18 +383,18 @@ onUnmounted(() => {
         @delete="e => deleteJob(e)" />
 
       <ParameterPage v-show="data.page == 3" 
-        :config="props.config"
+        :config="config"
         :select="data.selectProject"
         :preference="props.preference"
         @edit="e => editParameter(e)" />
 
       <NodePage v-show="data.page == 4" 
         :manager="data.websocket_manager"
-        :config="props.config"
+        :config="config"
         :nodes="data.nodes" />
 
       <ConsolePage v-show="data.page == 5" 
-        :config="props.config"
+        :config="config"
         :preference="props.preference"
         :socket="data.websocket_manager"
         :execute="data.execute_manager"
@@ -400,17 +402,17 @@ onUnmounted(() => {
         v-model="data.projects_exe"/>
         
       <LogPage v-show="data.page == 6" 
-        :config="props.config"
+        :config="config"
         :execute="data.execute_manager"
         :preference="props.preference"
         v-model="data.projects_exe"/>
 
       <LibraryPage v-show="data.page == 7" 
-        :config="props.config"
+        :config="config"
         v-model="data.libs"/>
 
       <SelfPage v-show="data.page == 8" 
-        :config="props.config"
+        :config="config"
         :preference="props.preference"/>
     </div>
   </v-container>

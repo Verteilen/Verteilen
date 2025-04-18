@@ -8,7 +8,7 @@ export const set_feedback = (_feedback:Function) => {
 }
 
 export const messager = (msg:string, tag?:string) => {
-    const text = tag != undefined ? `[${tag}] ${msg}` : `[後台訊息] ${msg}`
+    const text = tag != undefined ? `[${tag}] ${msg}` : `[Normal] ${msg}`
     console.log(text)
     if (feedback != undefined) feedback(text)
 }
