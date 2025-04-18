@@ -77,9 +77,9 @@ onMounted(() => {
     })
     
     if(config.value.isElectron){
-      window.electronAPI.eventOn('locate', locate)
-      window.electronAPI.eventOn('setting', setting)
-      window.electronAPI.invoke('load_preference').then(x => load_preference(x))
+      backend.value.eventOn('locate', locate)
+      backend.value.eventOn('setting', setting)
+      backend.value.invoke('load_preference').then(x => load_preference(x))
     }
   })
   
@@ -87,10 +87,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   emitter?.on('modeSelect', modeSelect)
-  if(config.value.isElectron){
-    window.electronAPI.eventOff('locate', locate)
-    window.electronAPI.eventOff('setting', setting)
-  }
+  backend.value.eventOff('locate', locate)
+  backend.value.eventOff('setting', setting)
 })
 
 </script>

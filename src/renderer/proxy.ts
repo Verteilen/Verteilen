@@ -2,11 +2,13 @@ import { AppConfig } from "./interface";
 import { checkifElectron, checkIfExpress } from "./platform";
 import { ConsoleManager } from "./script/console_manager";
 
-
+/**
+ * The proxy middleware that connect the function call to express backend or electron backend 
+ */
 export class BackendProxy {
     config:AppConfig
-    is_init: boolean
     consoleM: ConsoleManager | undefined
+    is_init: boolean
 
     constructor(){
         this.config = {
@@ -18,6 +20,9 @@ export class BackendProxy {
         this.consoleM = undefined
     }
 
+    /**
+     * Start init process, this will detect the mode and save it in the {@link config}
+     */
     init = () => {
         return new Promise<void>((resolve) => {
             checkIfExpress((e) => {
@@ -29,6 +34,9 @@ export class BackendProxy {
         })   
     }
 
+    /**
+     * Wait the init process to end
+     */
     wait_init = () => {
         return new Promise<void>((resolve) => {
             let timer:any
@@ -42,6 +50,11 @@ export class BackendProxy {
         
     }
 
+    /**
+     * Send info to backend
+     * @param key Header
+     * @param args Data 
+     */
     send = async (key:string, ...args:Array<any>) => {
         if(!this.config.haveBackend) return undefined
         if(this.config.isElectron){
@@ -52,6 +65,12 @@ export class BackendProxy {
         }
     }
 
+    /**
+     * Invoke a call to backend
+     * @param key Header
+     * @param args Data
+     * @returns Promise return
+     */
     invoke = async (key:string, ...args:Array<any>) => {
         if(!this.config.haveBackend) return undefined
         if(this.config.isElectron){
@@ -63,6 +82,11 @@ export class BackendProxy {
         }
     }
 
+    /**
+     * Register a event feedback
+     * @param channel Header name
+     * @param listener Feedback
+     */
     eventOn = (channel: string, listener: (...args: any[]) => void) => {
         if(!this.config.haveBackend) return
         if(this.config.isElectron){
@@ -70,6 +94,11 @@ export class BackendProxy {
         }
     }
 
+    /**
+     * UnRegister a event feedback
+     * @param channel Header name
+     * @param listener Feedback
+     */
     eventOff = (channel: string, listener: (...args: any[]) => void) => {
         if(!this.config.haveBackend) return
         if(this.config.isElectron){
