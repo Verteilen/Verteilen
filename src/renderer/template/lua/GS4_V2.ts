@@ -166,7 +166,8 @@ for i=1,blend,1 do
         local to_foldername = (rindex * gap_n) + delta + 1 + rindex
         local to = folder..to_foldername
 
-        o.rename(from, to)
+        o.copydir(from, to)
+        o.deletedir(from)
     end
 end
 `

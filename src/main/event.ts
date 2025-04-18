@@ -5,7 +5,7 @@ import { Client } from "./client/client";
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
-import { Job, Libraries, Preference, Project, Record } from "./interface";
+import { Job, Libraries, Parameter, Preference, Project, Record } from "./interface";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
@@ -124,16 +124,23 @@ export class BackendEvent {
                 return file.toString()
             }
         })
-        ipcMain.on('import_project', (event) => {
-            this.ImportProject()
-        })
         ipcMain.on('export_projects', (event, data:string) => {
             const p:Array<Project> = JSON.parse(data)
             this.ExportProjects(p)
         })
+        ipcMain.on('import_project', (event) => {
+            this.ImportProject()
+        })
         ipcMain.on('export_project', (event, data:string) => {
             const p:Project = JSON.parse(data)
             this.ExportProject(p)
+        })
+        ipcMain.on('import_parameter', (event) => {
+            this.ImportParameter()
+        })
+        ipcMain.on('export_parameter', (event, data:string) => {
+            const p:Parameter = JSON.parse(data)
+            this.ExportParameter(p)
         })
         ipcMain.on('locate', (event, data:string) => {
             // @ts-ignore
@@ -254,6 +261,41 @@ export class BackendEvent {
             for(var x of value){
                 fs.writeFileSync(`${path}/${x.title}.json`, JSON.stringify(x, null, 4))
             }
+        })
+    }
+
+    ImportParameter = () => {
+        if(mainWindow == undefined) return;
+        dialog.showOpenDialog(mainWindow, {
+            properties: ['openFile', 'multiSelections'],
+            filters: [
+                { name: 'JSON', extensions: ['json'] },
+            ]
+        }).then(v => {
+            if (v.canceled) return
+            if(mainWindow == undefined) return;
+            const p:Array<any> = []
+            for(const x of v.filePaths){
+                p.push(JSON.parse(fs.readFileSync(x).toString()))
+            }
+            mainWindow.webContents.send('import_parameter_feedback', JSON.stringify(p))
+        })
+    }
+
+    ExportParameter = (value:Parameter) => {
+        if(mainWindow == undefined) return;
+        dialog.showSaveDialog(mainWindow, {
+            filters: [
+                {
+                    name: "JSON",
+                    extensions: ['json']
+                }
+            ]
+        }).then(v => {
+            if (v.canceled || v.filePath.length == 0) return
+            const path = v.filePath
+            console.log("Export project to path: ", path)
+            fs.writeFileSync(path, JSON.stringify(value, null, 4))
         })
     }
 }

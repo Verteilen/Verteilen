@@ -107,6 +107,13 @@ const recover = () => {
     emitter?.emit('recoverProject', p)
 }
 
+const exporter = () => {
+    if(getselect.value == undefined) return
+    const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
+    if(!props.config.isElectron) return
+    window.electronAPI.send("export_parameter", JSON.stringify(p.parameter))
+}
+
 const receivedPack = async (record:Record) => {
     task_index.value = 0
     const target = record.projects[0]
@@ -332,6 +339,14 @@ onUnmounted(() => {
                         </v-btn>
                     </template>
                     {{ $t('recover') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
+                        <v-btn icon v-bind="pro.props" :disabled="getselect == undefined" @click="exporter">
+                            <v-icon>mdi-export</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('export') }}
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
