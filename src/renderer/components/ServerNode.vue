@@ -6,7 +6,6 @@ import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vu
 import { messager_log, set_feedback } from '../debugger';
 import { BusAnalysis, BusType, ExecuteProxy, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { BackendProxy } from '../proxy';
-import { ConsoleManager } from '../script/console_manager';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
 import { DATA, Util_Server } from '../util/server/server';
@@ -51,7 +50,6 @@ const props = defineProps<PROPS>()
 const data:Ref<DATA> = ref({
     websocket_manager: undefined,
     execute_manager: [],
-    console_manager: undefined,
 
     page: 0,
     lanSelect: i18n.global.locale as string,
@@ -260,15 +258,7 @@ onMounted(() => {
         })
         nextTick(() => allUpdate())
       })
-      
     }
-    
-    data.value.console_manager = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
-      on: emitter!.on,
-      off: emitter!.off,
-      emit: emitter!.emit
-    })
-    x.haveBackend = x.isElectron || x.isExpress!
   })
 })
 

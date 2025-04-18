@@ -7,9 +7,11 @@ import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
 import SettingDialog from './components/dialog/SettingDialog.vue';
+import { messager_log } from './debugger';
 import { BusType, Preference } from './interface';
 import { i18n } from './plugins/i18n';
 import { BackendProxy } from './proxy';
+import { ConsoleManager } from './script/console_manager';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const preference:Ref<Preference> = ref({
@@ -20,13 +22,12 @@ const preference:Ref<Preference> = ref({
 const backend:Ref<BackendProxy> = ref(new BackendProxy())
 const config = computed(() => backend.value.config)
 
-const isExpress:Ref<boolean | undefined> = ref(undefined)
 const mode = ref(config.value.isElectron ? -1 : 1)
 const settingModal = ref(false)
 
 backend.value.init().then(() => {
   console.log("isElectron", config.value.isElectron)
-  console.log("isExpress", isExpress.value)
+  console.log("isExpress", config.value.isExpress)
   if (config.value.isElectron) window.electronAPI.send('message', 'Welcome Compute Tool');
 })
 
@@ -68,11 +69,20 @@ const load_preference = (x:string) => {
 
 onMounted(() => {
   emitter?.on('modeSelect', modeSelect)
-  if(config.value.isElectron){
-    window.electronAPI.eventOn('locate', locate)
-    window.electronAPI.eventOn('setting', setting)
-    window.electronAPI.invoke('load_preference').then(x => load_preference(x))
-  }
+  backend.value.wait_init().then(() => {
+    backend.value.consoleM = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
+      on: emitter!.on,
+      off: emitter!.off,
+      emit: emitter!.emit
+    })
+    
+    if(config.value.isElectron){
+      window.electronAPI.eventOn('locate', locate)
+      window.electronAPI.eventOn('setting', setting)
+      window.electronAPI.invoke('load_preference').then(x => load_preference(x))
+    }
+  })
+  
 })
 
 onUnmounted(() => {

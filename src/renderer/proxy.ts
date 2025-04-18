@@ -1,10 +1,12 @@
 import { AppConfig } from "./interface";
 import { checkifElectron, checkIfExpress } from "./platform";
+import { ConsoleManager } from "./script/console_manager";
 
 
 export class BackendProxy {
     config:AppConfig
     is_init: boolean
+    consoleM: ConsoleManager | undefined
 
     constructor(){
         this.config = {
@@ -13,6 +15,7 @@ export class BackendProxy {
             haveBackend: false
         }
         this.is_init = false
+        this.consoleM = undefined
     }
 
     init = () => {

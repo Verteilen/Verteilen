@@ -37,7 +37,7 @@ export class ConsoleManager {
         this.ws.send(JSON.stringify(d))
     }
 
-    private received = (h:Header) => {
+    received = (h:Header) => {
         const typeMap:{ [key:string]:Function } = {
         }
         if (h == undefined){

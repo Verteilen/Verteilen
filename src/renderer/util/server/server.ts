@@ -1,7 +1,6 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
 import { AppConfig, BusType, ExecuteRecord, Libraries, Node, NodeTable, Project, Record, Task } from "../../interface";
-import { ConsoleManager } from "../../script/console_manager";
 import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
 import { Util_Server_Job } from "./job_handle";
@@ -16,7 +15,6 @@ type config_getter = () => AppConfig
 export interface DATA {
     websocket_manager: WebsocketManager | undefined
     execute_manager: Array<ExecuteManager>
-    console_manager: ConsoleManager | undefined
 
     page:number
     lanSelect: string
