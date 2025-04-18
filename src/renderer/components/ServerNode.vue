@@ -381,6 +381,7 @@ onUnmounted(() => {
         @delete="e => deleteJob(e)" />
 
       <ParameterPage v-show="data.page == 3" 
+        :config="props.config"
         :select="data.selectProject"
         :preference="props.preference"
         @edit="e => editParameter(e)" />
