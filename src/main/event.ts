@@ -48,7 +48,7 @@ export class BackendEvent {
             event.sender.send('lua-feedback', r?.toString() ?? '')
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {
-            console.log(`${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`);
+            console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
         })
         
         ipcMain.on('modeSelect', (event, isclient:boolean) => {

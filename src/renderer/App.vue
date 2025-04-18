@@ -30,7 +30,7 @@ checkIfExpress((e) => {
   isExpress.value = e
   console.log("isElectron", config.value.isElectron)
   console.log("isExpress", isExpress.value)
-  if (config.value.isElectron) window.electronAPI.send('message', '歡迎啟動自動化工廠');
+  if (config.value.isElectron) window.electronAPI.send('message', 'Welcome Compute Tool');
 })
 
 const modeSelect = (isclient:boolean) => {
