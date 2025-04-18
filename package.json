@@ -24,6 +24,7 @@
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
     "@iconify-json/mdi": "^1.2.3",
+    "@mdi/font": "^7.4.47",
     "@types/bcrypt": "^5.0.2",
     "@types/byte-size": "^8.1.2",
     "@types/express": "^5.0.0",
