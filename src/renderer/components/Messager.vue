@@ -76,7 +76,7 @@ onUnmounted(() => {
 
 <template>
     <div class="notificationContainer">
-        <v-slide-y-transition group>
+        <v-slide-y-transition group hide-on-leave>
             <v-alert vertical class="pa-2 ma-0" disabled
                 v-for="(m, i) in messages"  :key="i" 
                 location="start bottom"

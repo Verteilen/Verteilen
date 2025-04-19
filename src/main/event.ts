@@ -5,7 +5,7 @@ import { Client } from "./client/client";
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
-import { Job, Parameter, Preference, Project, Record } from "./interface";
+import { Job, Parameter, Preference, Project } from "./interface";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
@@ -65,25 +65,8 @@ export class BackendEvent {
             if(on) mainWindow.setMenu(menu_server!)
             else mainWindow.setMenu(menu_client!)
         })
-        //this.Loader('record', 'record')
-        ipcMain.on('save_record', (e, record:string) => {
-            fs.writeFileSync('record.json', record)
-        })
-        ipcMain.handle('load_record', (e) => {
-            const exist = fs.existsSync('record.json');
-            messager_log(`[Event] Read record.js, file exist: ${exist}`)
-            if(!exist){
-                const record:Record = {
-                    projects: [],
-                    nodes: []
-                }
-                fs.writeFileSync('record.json', JSON.stringify(record, null, 4))
-                return JSON.stringify(record)
-            } else {
-                const file = fs.readFileSync('record.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }
-        })
+        this.Loader('record', 'record')
+        this.Loader('node', 'node')
         this.Loader('log', 'log')
         this.Loader('lib', 'lib')
         

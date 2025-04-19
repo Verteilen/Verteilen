@@ -198,6 +198,14 @@ const newConnect = (x:WebsocketPack) => {
   data.value.execute_manager[0].NewConnection(x)
 }
 
+const testToast = () => {
+  emitter?.emit('makeToast', {
+    title: i18n.global.t('toast.connection-create-title'),
+    type: 'success',
+    message: `Hello World`
+  })
+}
+
 const disconnect = (x:WebsocketPack) => {
   emitter?.emit('makeToast', {
     title: i18n.global.t('toast.connection-remove-title'),
@@ -238,24 +246,30 @@ onMounted(() => {
       window.electronAPI.eventOn('run_all', run_all)
       window.electronAPI.eventOn('run_all_keep', run_all_keep)
       window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
-      window.electronAPI.invoke('load_lib').then(x => {
-        data.value.libs = JSON.parse(x)
-        console.log("Libs", data.value.libs)
-      })
-      window.electronAPI.invoke('load_record').then(x => {
-        const record:Record = JSON.parse(x)
-        console.log("Records", record)
-        data.value.projects = record.projects
-        data.value.nodes = record.nodes.map(x => {
-          return Object.assign(x, {
+      const p1 = window.electronAPI.invoke('load_all_node').then(x => {
+        const texts:Array<string> = JSON.parse(x)
+        data.value.nodes = texts.map(y => JSON.parse(y))
+        data.value.nodes = data.value.nodes.map(y => {
+          return Object.assign(y, {
             s: false,
             state: 0,
             connection_rate: 0
           })
         })
-        data.value.nodes.forEach(x => {
-          data.value.websocket_manager?.server_start(x.url)
+        data.value.nodes.forEach(y => {
+          data.value.websocket_manager?.server_start(y.url)
         })
+      })
+      const p2 = window.electronAPI.invoke('load_all_lib').then(x => {
+        const texts:Array<string> = JSON.parse(x)
+        data.value.libs = { libs: texts.map(y => JSON.parse(y)) }
+        console.log("Libs", data.value.libs)
+      })
+      const p3 = window.electronAPI.invoke('load_all_record').then(x => {
+        const texts:Array<string> = JSON.parse(x)
+        data.value.projects = texts.map(y => JSON.parse(y))
+      })
+      Promise.all([p1, p2, p3]).then(() => {
         nextTick(() => allUpdate())
       })
     }

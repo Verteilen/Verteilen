@@ -68,7 +68,16 @@ export class Util_Server {
             nodes: this.data.value.nodes as Array<Node>
         }
         const k = JSON.stringify(record, null, 4)
-        if(this.config().isElectron) window.electronAPI.send('save_record', k)
+        record.projects.forEach(x => {
+            if(!this.config().isElectron) return
+            const text = JSON.stringify(x)
+            window.electronAPI.send('save_record', x.title, text)
+        })
+        record.nodes.forEach(x => {
+            if(!this.config().isElectron) return
+            const text = JSON.stringify(x)
+            window.electronAPI.send('save_node', x.ID, text)
+        })
         return record
     }
 }

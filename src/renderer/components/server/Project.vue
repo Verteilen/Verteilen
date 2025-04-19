@@ -109,6 +109,7 @@ const DialogSubmit = (p:CreateField) => {
 }
 
 const confirmCreate = () => {
+    data.value.importModal = false
     const buffer = util.confirmCreate()
     if(buffer == undefined) return
     emits('added', 
