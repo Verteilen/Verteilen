@@ -37,8 +37,6 @@ export class Util_Server_Project {
             const index = this.data.value.projects.findIndex(x => x.uuid == id)
             if(index != -1) {
                 const target = this.data.value.projects[index]
-                window.electronAPI.send('delete_record', target.title)
-
                 target.task.forEach(tid => {
                     if(this.data.value.selectTask?.uuid == tid.uuid){
                         this.data.value.selectTask = undefined
@@ -49,6 +47,7 @@ export class Util_Server_Project {
             if(this.data.value.selectProject?.uuid == id){
                 this.data.value.selectProject = undefined
             }
+            window.electronAPI.send('delete_record', id)
         })
         this.update()
     }

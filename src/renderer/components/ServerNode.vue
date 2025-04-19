@@ -47,6 +47,17 @@ const execute_proxy:ExecuteProxy = {
 
 const config = computed(() => props.backend.config)
 const props = defineProps<PROPS>()
+const tabs:Ref<Array<[string, string, number]>> = ref([
+  ["mdi-cube", "toolbar.project", 0],
+  ["mdi-calendar", "toolbar.task", 1],
+  ["mdi-hammer", "toolbar.job", 2],
+  ["mdi-database", "toolbar.parameter", 3],
+  ["mdi-network", "toolbar.node", 4],
+  ["mdi-console-line", "toolbar.console", 5],
+  ["mdi-text-box-outline", "toolbar.log", 6],
+  ["mdi-puzzle", "toolbar.library", 7],
+  ["mdi-nodejs", "toolbar.client", 8]
+])
 const data:Ref<DATA> = ref({
     websocket_manager: undefined,
     execute_manager: [],
@@ -288,61 +299,11 @@ onUnmounted(() => {
 
 <template>
   <v-container fluid class="pa-0 ma-0">
-    <v-tabs v-model="data.page" tabs style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
-      <v-tooltip location="bottom" :open-delay="500">
-        <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="0"><v-icon>mdi-cube</v-icon></v-tab>
-        </template>
-        {{ $t('toolbar.project') }}
-      </v-tooltip>
-      <v-tooltip location="bottom" :open-delay="500">
-        <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="1"><v-icon>mdi-calendar</v-icon></v-tab>
-        </template>
-        {{ $t('toolbar.task') }}
-      </v-tooltip>
-      <v-tooltip location="bottom" :open-delay="500">
-        <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="2"><v-icon>mdi-hammer</v-icon></v-tab>
-        </template>
-        {{ $t('toolbar.job') }}
-      </v-tooltip>
-      <v-tooltip location="bottom" :open-delay="500">
-        <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="3"><v-icon>mdi-database</v-icon></v-tab>
-        </template>
-        {{ $t('toolbar.parameter') }}
-      </v-tooltip>
-      <v-tooltip location="bottom" :open-delay="500">
-        <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="4"><v-icon>mdi-network</v-icon></v-tab>
-        </template>
-        {{ $t('toolbar.node') }}
-      </v-tooltip>
-      <v-tooltip location="bottom" :open-delay="500">
-        <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="5"><v-icon>mdi-console-line</v-icon></v-tab>
-        </template>
-        {{ $t('toolbar.console') }}
-      </v-tooltip>
-      <v-tooltip location="bottom" :open-delay="500">
-        <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="6"><v-icon>mdi-text-box-outline</v-icon></v-tab>
-        </template>
-        {{ $t('toolbar.log') }}
-      </v-tooltip>
-      <v-tooltip location="bottom" :open-delay="500">
-        <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="7"><v-icon>mdi-puzzle</v-icon></v-tab>
-        </template>
-        {{ $t('toolbar.library') }}
-      </v-tooltip>
-      <v-tooltip location="bottom" :open-delay="500">
-        <template v-slot:activator="{ props }">
-          <v-tab v-bind="props" style="font-size: larger;" :value="8"><v-icon>mdi-nodejs</v-icon></v-tab>
-        </template>
-        {{ $t('toolbar.client') }}
-      </v-tooltip>
+    <v-tabs v-model="data.page" tabs show-arrows style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
+      <v-tab v-for="(tab, index) in tabs" :style="{ 'fontSize': (props.preference.font - 2) + 'px' }" :value="tab[2]" :key="index">
+        <v-icon>{{ tab[0] }}</v-icon>
+        <span>{{ $t(tab[1]) }}</span>
+      </v-tab>
     </v-tabs>
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="data.page == 0" 
