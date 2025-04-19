@@ -198,14 +198,6 @@ const newConnect = (x:WebsocketPack) => {
   data.value.execute_manager[0].NewConnection(x)
 }
 
-const testToast = () => {
-  emitter?.emit('makeToast', {
-    title: i18n.global.t('toast.connection-create-title'),
-    type: 'success',
-    message: `Hello World`
-  })
-}
-
 const disconnect = (x:WebsocketPack) => {
   emitter?.emit('makeToast', {
     title: i18n.global.t('toast.connection-remove-title'),
@@ -257,7 +249,7 @@ onMounted(() => {
           })
         })
         data.value.nodes.forEach(y => {
-          data.value.websocket_manager?.server_start(y.url)
+          data.value.websocket_manager?.server_start(y.url, y.ID)
         })
       })
       const p2 = window.electronAPI.invoke('load_all_lib').then(x => {
@@ -351,7 +343,6 @@ onUnmounted(() => {
         </template>
         {{ $t('toolbar.client') }}
       </v-tooltip>
-      <v-tab @click="testToast"><v-icon>mdi-pen</v-icon></v-tab>
     </v-tabs>
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="data.page == 0" 

@@ -28,7 +28,7 @@ export class WebsocketManager {
      * @param url target url
      * @returns The connection package
      */
-    server_start = (url:string) => this.serverconnect(url)
+    server_start = (url:string, id:string) => this.serverconnect(url, id)
     /**
      * Remove the package by UUID
      * @param uuid Key

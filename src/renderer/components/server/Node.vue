@@ -71,6 +71,7 @@ const deleteConfirm = () => {
         props.manager?.server_stop(x, 'Manually disconnect')
         if(!props.config.isElectron) return
         window.electronAPI.send('server_stop', x, 'Manually disconnect')
+        window.electronAPI.send('delete_node', x)
     })
 }
 
