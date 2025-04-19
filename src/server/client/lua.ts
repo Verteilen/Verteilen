@@ -308,6 +308,7 @@ export class ClientLua {
     private getLuaEnv(flags:LuaLib = LuaLib.ALL){
         const isbin = process.cwd().endsWith('bin')
         const root = isbin ? path.join(process.cwd(), 'lua') : path.join(process.cwd(), 'bin', 'lua')
+        if (!fs.existsSync(root)) fs.mkdirSync(root)
         const luaEnv = luainjs.createEnv({
             LUA_PATH: root,
             fileExists: p => fs.existsSync(path.join(root, p)),
