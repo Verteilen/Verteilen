@@ -1,4 +1,4 @@
-import luaparse from 'luaparse'
+import * as luaparse from 'luaparse'
 
 type Block =
     | luaparse.IfClause
@@ -752,3 +752,4 @@ const parse = (data: string): string => {
 }
 
 export { parse }
+
