@@ -351,6 +351,7 @@ onUnmounted(() => {
         </template>
         {{ $t('toolbar.client') }}
       </v-tooltip>
+      <v-tab @click="testToast"><v-icon>mdi-pen</v-icon></v-tab>
     </v-tabs>
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <ProjectPage v-show="data.page == 0" 
