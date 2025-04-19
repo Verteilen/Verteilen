@@ -1,4 +1,4 @@
-import { app, BrowserWindow, session } from 'electron';
+import { app, BrowserWindow, powerSaveBlocker, session } from 'electron';
 import { join } from 'path';
 import './client/client';
 import { backendEvent } from './event';
@@ -6,6 +6,11 @@ import { menu_client } from './menu';
 import './plugins/i18n';
 
 export let mainWindow:BrowserWindow | undefined = undefined
+
+const id1 = powerSaveBlocker.start('prevent-display-sleep')
+const id2 = powerSaveBlocker.start('prevent-app-suspension')
+console.log("prevent-display-sleep: ", powerSaveBlocker.isStarted(id1))
+console.log("prevent-app-suspension: ", powerSaveBlocker.isStarted(id2))
 
 function createWindow () {
     mainWindow = new BrowserWindow({
@@ -19,7 +24,8 @@ function createWindow () {
             preload: join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
-            devTools: true
+            devTools: true,
+            backgroundThrottling: false
         }
     });
 
