@@ -1,0 +1,36 @@
+{
+    "name": "@types/luaparse",
+    "version": "0.2.12",
+    "description": "TypeScript definitions for luaparse",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/luaparse",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Sam Saint-Pettersen",
+            "githubUsername": "stpettersens",
+            "url": "https://github.com/stpettersens"
+        },
+        {
+            "name": "thomasfn",
+            "githubUsername": "thomasfn",
+            "url": "https://github.com/thomasfn"
+        },
+        {
+            "name": "Zaoqi",
+            "githubUsername": "zaoqi",
+            "url": "https://github.com/zaoqi"
+        }
+    ],
+    "main": "",
+    "type": "module",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/luaparse"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "2919e78d2f5f4c235d5676347ffc8a4c3dbc1d3154c71420f619ca3c8df12e89",
+    "typeScriptVersion": "4.5"
+}
