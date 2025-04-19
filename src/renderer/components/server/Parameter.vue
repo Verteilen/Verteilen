@@ -171,7 +171,8 @@ const updateLocate = () => {
 }
 
 const import_parameter_feedback = (e:IpcRendererEvent, v:string) => {
-    buffer.value = JSON.parse(v)
+    const d = JSON.parse(v)
+    buffer.value = d
     setdirty()
 }
 

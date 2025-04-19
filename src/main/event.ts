@@ -254,10 +254,8 @@ export class BackendEvent {
         }).then(v => {
             if (v.canceled) return
             if(mainWindow == undefined) return;
-            const p:Array<any> = []
-            for(const x of v.filePaths){
-                p.push(JSON.parse(fs.readFileSync(x).toString()))
-            }
+            if(v.filePaths.length < 1) return;
+            const p = JSON.parse(fs.readFileSync(v.filePaths[0]).toString())
             mainWindow.webContents.send('import_parameter_feedback', JSON.stringify(p))
         })
     }
