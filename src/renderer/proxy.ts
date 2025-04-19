@@ -1,6 +1,6 @@
 import { AppConfig } from "./interface";
 import { checkifElectron, checkIfExpress } from "./platform";
-import { ConsoleManager } from "./script/console_manager";
+import { ConsoleManager, Listener } from "./script/console_manager";
 
 /**
  * The proxy middleware that connect the function call to express backend or electron backend 
@@ -47,7 +47,6 @@ export class BackendProxy {
                 }
             }, 5);
         })
-        
     }
 
     /**
@@ -87,10 +86,13 @@ export class BackendProxy {
      * @param channel Header name
      * @param listener Feedback
      */
-    eventOn = (channel: string, listener: (...args: any[]) => void) => {
+    eventOn = (channel: string, listener: Listener) => {
         if(!this.config.haveBackend) return
         if(this.config.isElectron){
             window.electronAPI.eventOn(channel, (e, ...aargs) => listener(...aargs))
+        }
+        if(this.config.isExpress){
+            this.consoleM?.on(channel, listener)
         }
     }
 
@@ -99,10 +101,13 @@ export class BackendProxy {
      * @param channel Header name
      * @param listener Feedback
      */
-    eventOff = (channel: string, listener: (...args: any[]) => void) => {
+    eventOff = (channel: string, listener: Listener) => {
         if(!this.config.haveBackend) return
         if(this.config.isElectron){
             window.electronAPI.eventOn(channel, (e, ...aargs) => listener(...aargs))
+        }
+        if(this.config.isExpress){
+            this.consoleM?.off(channel, listener)
         }
     }
 }

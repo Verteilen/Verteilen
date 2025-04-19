@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import ClientNode from './components/ClientNode.vue';
@@ -35,10 +34,7 @@ const modeSelect = (isclient:boolean) => {
   mode.value = isclient ? 0 : 1
 }
 
-const locate = (e:IpcRendererEvent, v:string) => {
-  _locate(v)
-}
-const _locate = (v:string) => {
+const locate = (v:string) => {
   const t = i18n.global
   // @ts-ignore
   t.locale = v
@@ -49,13 +45,13 @@ const _locate = (v:string) => {
   }
 }
 
-const setting = (e:IpcRendererEvent) => {
+const setting = () => {
   settingModal.value = true
 }
 
 const preferenceUpdate = (data:Preference) => {
   preference.value = data
-  _locate(preference.value.lan)
+  locate(preference.value.lan)
 }
 
 const load_preference = (x:string) => {
@@ -96,7 +92,7 @@ onUnmounted(() => {
 <template>
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference.font + 'px' }">
     <ServerClientSelection v-model.number="mode" v-if="mode == -1" :preference="preference" :config="config"/>
-    <ClientNode v-else-if="mode == 0" :preference="preference" :config="config"/>
+    <ClientNode v-else-if="mode == 0" :preference="preference" :backend="backend"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>
     <Messager :preference="preference" />
     <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
