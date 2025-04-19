@@ -69,6 +69,13 @@ export class BackendEvent {
         this.Loader('node', 'node')
         this.Loader('log', 'log')
         this.Loader('lib', 'lib')
+
+        ipcMain.handle('load_record_obsolete', (e) => {
+            if(!fs.existsSync('record.json')) return undefined
+            const data = fs.readFileSync('record.json').toString()
+            fs.rmSync('record.json')
+            return data
+        })
         
         ipcMain.on('save_preference', (e, preference:string) => {
             fs.writeFileSync('preference.json', preference)

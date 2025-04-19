@@ -251,7 +251,31 @@ onMounted(() => {
       window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
       const p1 = window.electronAPI.invoke('load_all_node').then(x => {
         const texts:Array<string> = JSON.parse(x)
-        data.value.nodes = texts.map(y => JSON.parse(y))
+        data.value.nodes.push(...texts.map(y => JSON.parse(y)))
+      })
+      const p2 = window.electronAPI.invoke('load_all_lib').then(x => {
+        const texts:Array<string> = JSON.parse(x)
+        data.value.libs = { libs: texts.map(y => JSON.parse(y)) }
+        console.log("Libs", data.value.libs)
+      })
+      const p3 = window.electronAPI.invoke('load_all_record').then(x => {
+        const texts:Array<string> = JSON.parse(x)
+        data.value.projects.push(...texts.map(y => JSON.parse(y)))
+      })
+      const p4 = window.electronAPI.invoke('load_record_obsolete').then(x => {
+        if(x == undefined) return
+        const texts:Record = JSON.parse(x)
+        const n:Array<NodeTable> = texts.nodes.map(y => {
+          return Object.assign(y, {
+            s: false,
+            state: 0,
+            connection_rate: 0
+          })
+        })
+        data.value.nodes.push(...n)
+        data.value.projects.push(...texts.projects)
+      })
+      Promise.all([p1, p2, p3, p4]).then(() => {
         data.value.nodes = data.value.nodes.map(y => {
           return Object.assign(y, {
             s: false,
@@ -262,17 +286,6 @@ onMounted(() => {
         data.value.nodes.forEach(y => {
           data.value.websocket_manager?.server_start(y.url, y.ID)
         })
-      })
-      const p2 = window.electronAPI.invoke('load_all_lib').then(x => {
-        const texts:Array<string> = JSON.parse(x)
-        data.value.libs = { libs: texts.map(y => JSON.parse(y)) }
-        console.log("Libs", data.value.libs)
-      })
-      const p3 = window.electronAPI.invoke('load_all_record').then(x => {
-        const texts:Array<string> = JSON.parse(x)
-        data.value.projects = texts.map(y => JSON.parse(y))
-      })
-      Promise.all([p1, p2, p3]).then(() => {
         nextTick(() => allUpdate())
       })
     }
