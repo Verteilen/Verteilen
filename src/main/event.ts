@@ -5,7 +5,7 @@ import { Client } from "./client/client";
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
-import { Job, Libraries, Parameter, Preference, Project, Record } from "./interface";
+import { Job, Parameter, Preference, Project, Record } from "./interface";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
@@ -85,24 +85,8 @@ export class BackendEvent {
             }
         })
         this.Loader('log', 'log')
-        //this.Loader('lib', 'lib')
-        ipcMain.on('save_lib', (e, log:string) => {
-            fs.writeFileSync('lib.json', log)
-        })
-        ipcMain.handle('load_lib', (e) => {
-            const exist = fs.existsSync('log.json');
-            messager_log(`[Event] Read lib.js, file exist: ${exist}`)
-            if(!exist){
-                const record:Libraries = {
-                    libs: []
-                }
-                fs.writeFileSync('lib.json', JSON.stringify(record, null, 4))
-                return JSON.stringify(record)
-            } else {
-                const file = fs.readFileSync('lib.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }
-        })
+        this.Loader('lib', 'lib')
+        
         ipcMain.on('save_preference', (e, preference:string) => {
             fs.writeFileSync('preference.json', preference)
         })
@@ -180,12 +164,18 @@ export class BackendEvent {
                 }
             })
         })
-        ipcMain.on(`save_${key}`, (e, name:string, log:string) => {
+        ipcMain.on(`save_${key}`, (e, name:string, data:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             let filename = name + ".json"
             let p = path.join(root, filename)
-            fs.writeFileSync(p, log)
+            fs.writeFileSync(p, data)
+        })
+        ipcMain.on(`rename_${key}`, (e, name:string, newname:string) => {
+            const root = path.join("data", folder)
+            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+            fs.cpSync(path.join(root, `${name}.json`), path.join(root, `${newname}.json`), { recursive: true })
+            fs.rmdirSync(path.join(root, `${name}.json`))
         })
         ipcMain.on(`delete_${key}`, (e, name:string) => {
             const root = path.join("data", folder)
