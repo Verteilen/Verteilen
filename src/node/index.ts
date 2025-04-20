@@ -1,6 +1,4 @@
-import cluster from 'cluster';
 import { Client } from './client/client';
-import { RUN } from './client/cluster';
 import { Header, Single } from './interface';
 
 let client:Client | undefined = undefined
@@ -22,9 +20,5 @@ const messager_log = (msg:string, tag?:string) => {
     }
 }
 
-if (cluster.isPrimary){
-    client = new Client(messager, messager_log)
-    client.Init()
-}else{
-    RUN()
-}
+client = new Client(messager, messager_log)
+client.Init()
