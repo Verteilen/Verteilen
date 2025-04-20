@@ -1,17 +1,15 @@
-import cluster from 'cluster';
 import { Client } from './client/client';
-import { RUN } from './client/cluster';
 import { Header, Single } from './interface';
 
 let client:Client | undefined = undefined
 
 const messager = (msg:string, tag?:string) => {
-    const str = tag != undefined ? `[${tag}] ${msg}` : `[節點訊息] ${msg}`
+    const str = tag != undefined ? `[${tag}] ${msg}` : `[Node Info] ${msg}`
     console.log(str);
 }
 
 const messager_log = (msg:string, tag?:string) => {
-    const str = tag != undefined ? `[${tag}] ${msg}` : `[節點訊息] ${msg}`
+    const str = tag != undefined ? `[${tag}] ${msg}` : `[Node Info] ${msg}`
     console.log(str);
     if(client == undefined) return
     if(client.clients.length > 0) {
@@ -22,9 +20,5 @@ const messager_log = (msg:string, tag?:string) => {
     }
 }
 
-if (cluster.isPrimary){
-    client = new Client(messager, messager_log)
-    client.Init()
-}else{
-    RUN()
-}
+client = new Client(messager, messager_log)
+client.Init()
