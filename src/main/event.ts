@@ -34,6 +34,20 @@ export class BackendEvent {
         ipcMain.on('client_stop', (event, content:string) => {
             this.Destroy()
         })
+        ipcMain.on('modeSelect', (event, isclient:boolean) => {
+            console.log("[Backend] Mode select: " + (isclient ? "Node" : "Server"))
+            if(isclient) event.sender.send('msgAppend', "Client mode activate")
+        })
+        ipcMain.handle('exist', (event, d:string) => {
+            return fs.existsSync(d)
+        })
+        ipcMain.on('menu', (event, on:boolean):void => {
+            if(mainWindow == undefined) return;
+            console.log(`[Backend] Menu Display: ${on}`)
+            this.menu_state = on
+            if(on) mainWindow.setMenu(menu_server!)
+            else mainWindow.setMenu(menu_client!)
+        })
         ipcMain.on('lua', (event, content:string) => {
             const lua_messager_feedback = (msg:string, tag?:string) => {
                 messager(msg, tag)
@@ -49,21 +63,6 @@ export class BackendEvent {
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {
             console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
-        })
-        
-        ipcMain.on('modeSelect', (event, isclient:boolean) => {
-            console.log("[Backend] Mode select: " + (isclient ? "Node" : "Server"))
-            if(isclient) event.sender.send('msgAppend', "Client mode activate")
-        })
-        ipcMain.handle('exist', (event, d:string) => {
-            return fs.existsSync(d)
-        })
-        ipcMain.on('menu', (event, on:boolean):void => {
-            if(mainWindow == undefined) return;
-            console.log(`[Backend] Menu Display: ${on}`)
-            this.menu_state = on
-            if(on) mainWindow.setMenu(menu_server!)
-            else mainWindow.setMenu(menu_client!)
         })
         this.Loader('record', 'record')
         this.Loader('node', 'node')
@@ -192,7 +191,6 @@ export class BackendEvent {
                 return undefined
             }
         })
-        
     }
 
     ImportProject = () => {
