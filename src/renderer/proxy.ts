@@ -1,4 +1,4 @@
-import { AppConfig } from "./interface";
+import { AppConfig, RawSend } from "./interface";
 import { checkifElectron, checkIfExpress } from "./platform";
 import { ConsoleManager, Listener } from "./script/console_manager";
 
@@ -60,7 +60,11 @@ export class BackendProxy {
             window.electronAPI.send(key, ...args)
         }
         if(this.config.isExpress){
-            fetch(key, { body: JSON.stringify([...args]) })
+            const d:RawSend = {
+                name: key,
+                data: args
+            }
+            this.consoleM?.send(d)
         }
     }
 
@@ -76,8 +80,16 @@ export class BackendProxy {
             return window.electronAPI.invoke(key, ...args)
         }
         if(this.config.isExpress){
-            const p = await fetch(key, { body: JSON.stringify([...args]) })
-            return p.text()
+            const d:RawSend = {
+                name: key,
+                data: args
+            }
+            this.consoleM?.send(d)
+            return new Promise<Array<any>>((resolve) => {
+                this.consoleM?.once(`${key}-feedback`, (...args:Array<any>) => {
+                    resolve(args)
+                })
+            })
         }
     }
 

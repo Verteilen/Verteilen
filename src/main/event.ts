@@ -152,6 +152,7 @@ export class BackendEvent {
                     time: stat.ctime
                 }
             })
+            return JSON.stringify(ps)
         })
         ipcMain.on(`save_${key}`, (e, name:string, data:string) => {
             const root = path.join("data", folder)

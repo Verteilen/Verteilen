@@ -65,7 +65,7 @@ export class BackendEvent {
     }
 
     Loader = (typeMap:TypeMap, key:string, folder:string) => {
-        typeMap[`load_all_${key}`] = () => {
+        typeMap[`load_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
             const root = path.join("data", folder)
             if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             const r:Array<string> = []
@@ -75,14 +75,18 @@ export class BackendEvent {
                 const file = fs.readFileSync(path.join(root, x.name), { encoding: 'utf8', flag: 'r' })
                 r.push(file)
             })
-            return JSON.stringify(r)
+            const d:Header = {
+                name: `load_all_${key}-feedback`,
+                data: JSON.stringify(r)
+            }
+            socket.send(JSON.stringify(d))
         }
-        typeMap[`delete_all_${key}`] = () => {
+        typeMap[`delete_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.rmSync(root, {recursive: true})
             fs.mkdirSync(root, {recursive: true})
         }
-        typeMap[`delete_all_${key}`] = () => {
+        typeMap[`list_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             const ps = fs.readdirSync(root, { withFileTypes: false })
@@ -94,43 +98,56 @@ export class BackendEvent {
                     time: stat.ctime
                 }
             })
+            const d:Header = {
+                name: `list_all_${key}-feedback`,
+                data: JSON.stringify(ps)
+            }
+            socket.send(JSON.stringify(d))
         }
-        typeMap[`save_${key}`] = (d:{name:string, data:string}) => {
+        typeMap[`save_${key}`] = (d:{name:string, data:string}, socket:ws.WebSocket) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             let filename = d.name + ".json"
             let p = path.join(root, filename)
             fs.writeFileSync(p, d.data)
         }
-        typeMap[`rename_${key}`] = (d:{name:string, newname:string}) => {
+        typeMap[`rename_${key}`] = (d:{name:string, newname:string}, socket:ws.WebSocket) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             fs.cpSync(path.join(root, `${d.name}.json`), path.join(root, `${d.newname}.json`), { recursive: true })
             fs.rmdirSync(path.join(root, `${d.name}.json`))
         }
-        typeMap[`delete_${key}`] = (name:string) => {
+        typeMap[`delete_${key}`] = (name:string, socket:ws.WebSocket) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             const filename = name + ".json"
             const p = path.join(root, filename)
             if (fs.existsSync(p)) fs.rmSync(p)
         }
-        typeMap[`delete_all_${key}`] = (name:string) => {
+        typeMap[`delete_all_${key}`] = (name:string, socket:ws.WebSocket) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             const ps = fs.readdirSync(root, { withFileTypes: false })
             ps.forEach(x => fs.rmSync(path.join(root, x)))
         }
-        typeMap[`load_${key}`] = (name:string) => {
+        typeMap[`load_${key}`] = (name:string, socket:ws.WebSocket) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             const filename = name + ".json"
             const p = path.join(root, filename)
             if (fs.existsSync(p)){
                 const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
+                const d:Header = {
+                    name: `load_${key}-feedback`,
+                    data: file.toString()
+                }
+                socket.send(JSON.stringify(d))
             }else{
-                return undefined
+                const d:Header = {
+                    name: `load_${key}-feedback`,
+                    data: undefined
+                }
+                socket.send(JSON.stringify(d))
             }
         }
     }
@@ -181,16 +198,20 @@ export class BackendEvent {
     private message = (d:{message:string, tag?:string}, socket:ws.WebSocket) => {
         console.log(`${ d.tag == undefined ? '[Electron Backend]' : '[' + d.tag + ']' } ${d.message}`);
     }
-    private load_record_obsolete = (socket:ws.WebSocket) => {
+    private load_record_obsolete = (dummy: number, socket:ws.WebSocket) => {
         if(!fs.existsSync('record.json')) return undefined
         const data = fs.readFileSync('record.json').toString()
         fs.rmSync('record.json')
-        return data
+        const d:Header = {
+            name: "load_record_obsolete-feedback",
+            data: data
+        }
+        socket.send(JSON.stringify(d))
     }
     private save_preference = (preference:string, socket:ws.WebSocket) => {
         fs.writeFileSync('preference.json', preference)
     }
-    private load_preference = () => {
+    private load_preference = (dummy: number, socket:ws.WebSocket) => {
         const exist = fs.existsSync('preference.json');
         messager_log(`[Event] Read preference.js, file exist: ${exist}`)
         if(!exist){
@@ -201,10 +222,18 @@ export class BackendEvent {
             }
             fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
             i18n.global.locale = 'en'
-            return JSON.stringify(record)
+            const d:Header = {
+                name: "load_preference-feedback",
+                data: JSON.stringify(record)
+            }
+            socket.send(JSON.stringify(d))
         } else {
             const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
-            return file.toString()
+            const d:Header = {
+                name: "load_preference-feedback",
+                data: file
+            }
+            socket.send(JSON.stringify(d))
         }
     }
 

@@ -28,7 +28,7 @@ export class ConsoleServerManager {
         if (h.data == undefined) return
         if(this.typeMap.hasOwnProperty(h.name)){
             const castingFunc = this.typeMap[h.name]
-            castingFunc(h.data, this.ws)
+            castingFunc(this.ws, h.data)
         }else{
             this.messager_log(`[來源資料解析] 解析失敗, 不明的來源標頭, name: ${h.name}, meta: ${h.meta}`)
         }
