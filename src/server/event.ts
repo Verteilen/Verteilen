@@ -3,7 +3,7 @@ import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
-import { BusAnalysis, BusJobFinish, BusJobStart, BusProjectFinish, BusProjectStart, BusSubTaskFinish, BusSubTaskStart, BusTaskFinish, BusTaskStart, ExecuteProxy, Header, Libraries, Log, Preference, Project, Record, Setter, WebsocketPack } from "./interface";
+import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, Header, Job, Libraries, Log, Parameter, Preference, Project, Record, ShellFolder, Single, Task, WebsocketPack } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { ExecuteManager } from "./script/execute_manager";
@@ -18,18 +18,22 @@ export class BackendEvent {
     libs:Libraries = {libs: []}
     
     constructor(){
-        this.lubCall = new ClientLua(messager, messager_log)
+        this.lubCall = new ClientLua(messager, messager_log, () => undefined)
 
         const proxy:ExecuteProxy = {
-            executeProjectStart: (data:BusProjectStart):void => { this.Boradcasting('executeProjectStart', data) },
-            executeProjectFinish: (data:BusProjectFinish):void => { this.Boradcasting('executeProjectFinish', data) },
-            executeTaskStart: (data:BusTaskStart):void => { this.Boradcasting('executeTaskStart', data) },
-            executeTaskFinish: (data:BusTaskFinish):void => { this.Boradcasting('executeTaskFinish', data) },
-            executeSubtaskStart: (data:BusSubTaskStart):void => { this.Boradcasting('executeSubtaskStart', data) },
-            executeSubtaskFinish: (data:BusSubTaskFinish):void => { this.Boradcasting('executeSubtaskFinish', data) },
-            executeJobStart: (data:BusJobStart):void => { this.Boradcasting('executeJobStart', data) },
-            executeJobFinish: (data:BusJobFinish):void => { this.Boradcasting('executeJobFinish', data) },
-            feedbackMessage: (data:Setter):void => { this.Boradcasting('feedbackMessage', data) },
+            executeProjectStart: (data:Project):void => { this.Boradcasting('executeProjectStart', data) },
+            executeProjectFinish: (data:Project):void => { this.Boradcasting('executeProjectFinish', data) },
+            executeTaskStart: (data:[Task, number]):void => { this.Boradcasting('executeTaskStart', data) },
+            executeTaskFinish: (data:Task):void => { this.Boradcasting('executeTaskFinish', data) },
+            executeSubtaskStart: (data:[Task, number, string]):void => { this.Boradcasting('executeSubtaskStart', data) },
+            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]) => {},
+            executeSubtaskFinish: (data:[Task, number, string]):void => { this.Boradcasting('executeSubtaskFinish', data) },
+            executeJobStart: (data:[Job, number, string]):void => { this.Boradcasting('executeJobStart', data) },
+            executeJobFinish: (data:[Job, number, string, number]):void => { this.Boradcasting('executeJobFinish', data) },
+            feedbackMessage: (data:FeedBack):void => { this.Boradcasting('feedbackMessage', data) },
+            updateParameter: (data:Parameter) => {},
+            shellReply: (data:Single) => {},
+            folderReply: (data:ShellFolder) => {},
         }
 
         this.websocket_manager = new WebsocketManager(this.newConnect, this.disconnect, this.analysis, messager_log)
@@ -165,7 +169,9 @@ export class BackendEvent {
         messager_log(`[事件] 讀取 preference.js, 檔案存在: ${exist}`)
         if(!exist){
             const record:Preference = {
-                lan: 'en'
+                lan: 'en',
+                log: true,
+                font: 18,
             }
             fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
             i18n.global.locale = 'en'
