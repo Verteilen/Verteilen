@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference, Project } from '../../interface';
+import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference, Project } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
 interface PROPS {
+    config: AppConfig
     preference: Preference
     select: Project | undefined
 }
@@ -91,6 +93,16 @@ const saveParameter = () => {
     emits('edit', buffer.value)
 }
 
+const importPara = () => {
+    if(!props.config.isElectron) return
+    window.electronAPI.send("import_parameter")
+}
+
+const exportPara = () => {
+    if(!props.config.isElectron) return
+    window.electronAPI.send("export_parameter", JSON.stringify(buffer.value))
+}
+
 const selectall = (s:boolean) => {
     selection.value = buffer.value.containers.map(x => x.name)
 }
@@ -158,6 +170,12 @@ const updateLocate = () => {
     options.value.push({ title: "All", value: -1 })
 }
 
+const import_parameter_feedback = (e:IpcRendererEvent, v:string) => {
+    const d = JSON.parse(v)
+    buffer.value = d
+    setdirty()
+}
+
 const moveup = (name:string) => {
     const index = buffer.value.containers.findIndex(x => x.name == name)
     const bb = buffer.value.containers[index]
@@ -192,11 +210,17 @@ onMounted(() => {
     nextTick(() => {
         updateParameter()
     })
+    if(props.config.isElectron){
+        window.electronAPI.eventOn("import_parameter_feedback", import_parameter_feedback)
+    }
 })
 
 onUnmounted(() => {
     emitter?.off('updateLocate', updateLocate)
     emitter?.off('updateParameter', updateParameter)
+    if(props.config.isElectron){
+        window.electronAPI.eventOff("import_parameter_feedback", import_parameter_feedback)
+    }
 })
 
 </script>
@@ -225,6 +249,22 @@ onUnmounted(() => {
                         </v-btn>
                     </template>
                     {{ $t('save') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="importPara">
+                            <v-icon>mdi-import</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('import') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="exportPara">
+                            <v-icon>mdi-export</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('export') }}
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">

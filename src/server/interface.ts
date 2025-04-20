@@ -10,7 +10,7 @@ export const WebPORT = 11080
 /**
  * The upper limit for each message box can hold
  */
-export const MESSAGE_LIMIT = 1000
+export const MESSAGE_LIMIT = 500
 /**
  * The client node update tick, this will have effect on resource query.
  */

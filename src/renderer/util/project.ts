@@ -113,7 +113,6 @@ export class Util_Project {
         })
         const allid = this.data.value.items.map(x => x.ID)
         this.data.value.selection = this.data.value.selection.filter(x => allid.includes(x))
-        console.trace("Update Project: ", this.projects)
     }
 
     createProject = () => {

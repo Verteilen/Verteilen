@@ -103,9 +103,12 @@ const selectall = () => {
 const execute = (keep:boolean) => emits('execute', selected_project_ids.value, keep)
 
 const DialogSubmit = (p:CreateField) => {
+    data.value.importModal = false
     data.value.editData = p
-    if(data.value.isEdit) confirmEdit()
-    else confirmCreate()
+    nextTick(() => {
+        if(data.value.isEdit) confirmEdit()
+        else confirmCreate()
+    }) 
 }
 
 const confirmCreate = () => {
@@ -120,7 +123,6 @@ const confirmCreate = () => {
 }
 
 const confirmEdit = () => {
-    data.value.importModal = false
     const selectp = util.confirmEdit()
     if(selectp == undefined) return
     emits('edit', 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, ref, Ref } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref, Ref } from 'vue';
 import { BusType, IMessage, Preference, RENDER_UPDATETICK, ToastData } from '../interface';
 import { GetColor } from '../plugins/vuetify';
 
@@ -54,8 +54,10 @@ const update = () => {
         x.timer -= RENDER_UPDATETICK
         x.ison = x.timer > 0
     })
-    messages.value = messages.value.filter(x => x.ison)
+    //messages.value = messages.value.filter(x => x.ison)
 }
+
+const real_message = computed(() => messages.value.filter(x => x.ison))
 
 const darken = (color: string) => {
     const e = GetColor(color)
@@ -76,26 +78,23 @@ onUnmounted(() => {
 
 <template>
     <div class="notificationContainer">
-        <v-slide-y-transition group>
-            <v-alert vertical class="pa-2 ma-0" disabled
-                v-for="(m, i) in messages"  :key="i" 
-                location="start bottom"
-                absolute
-                offset="500"
-                v-model="m.ison" 
-                :timeout="m.timer" 
-                color="transparent"
-                variant="flat">
-                <v-card class="pa-2 ma-0" variant="flat" elevation="16" :color="darken(m.variant)" style="border-width: 2px;">
-                    <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }">
-                        {{ m.title }}
-                    </v-card-title>
-                    <v-card-text :style="{ 'fontSize': props.preference.font + 'px' }">
-                        {{ m.content }}
-                    </v-card-text>
-                </v-card>
-            </v-alert>
-        </v-slide-y-transition>
+        <v-alert vertical class="pa-2 ma-0" disabled
+            v-for="(m, i) in real_message" :key="i" 
+            location="start bottom"
+            absolute
+            offset="500"
+            v-model="m.ison" 
+            :timeout="m.timer" 
+            color="transparent">
+            <v-card class="pa-2 ma-0" variant="flat" elevation="16" :color="darken(m.variant)" style="border-width: 2px;">
+                <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }">
+                    {{ m.title }}
+                </v-card-title>
+                <v-card-text :style="{ 'fontSize': props.preference.font + 'px' }">
+                    {{ m.content }}
+                </v-card-text>
+            </v-card>
+        </v-alert>
     </div>
     
 </template>

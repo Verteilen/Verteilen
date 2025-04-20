@@ -59,26 +59,6 @@ const template_edit = ():Array<(Electron.MenuItemConstructorOptions) | (Electron
     }
 ]
 
-const template_execute = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
-    {
-        label: i18n.global.t('menu.execute'),
-        submenu: [
-            {
-                label: 'Run All',
-                click: () => {
-                    mainWindow?.webContents.send('run_all')
-                }
-            },
-            {
-                label: 'Run All (Keep)',
-                click: () => {
-                    mainWindow?.webContents.send('run_all_keep')
-                }
-            }
-        ]
-    }
-]
-
 const template_helper = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
     {
         label: i18n.global.t('menu.help'),
@@ -96,7 +76,6 @@ const template_helper = ():Array<(Electron.MenuItemConstructorOptions) | (Electr
 const template_server = ():Array<(Electron.MenuItemConstructorOptions) | (Electron.MenuItem)> => [
     ...template_file(),
     ...template_edit(),
-    ...template_execute(),
     ...template_helper()
 ]
 

@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ClientLog, MESSAGE_LIMIT, Preference, RENDER_UPDATETICK } from '../interface';
+import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { BusType, ClientLog, MESSAGE_LIMIT, Preference, RENDER_UPDATETICK } from '../interface';
+import { BackendProxy } from '../proxy';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
 
 interface PROPS {
-    config: AppConfig
+    backend: BackendProxy
     preference: Preference
 }
 
@@ -20,6 +21,7 @@ const messages:Ref<Array<ClientLog>> = ref([
       text: []
   }
 ])
+const config = computed(() => props.backend.config)
 const props = defineProps<PROPS>()
 const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const panel:Ref<Array<number>> = ref([0])
@@ -69,18 +71,18 @@ const clearMessage = () => {
 
 onMounted(() => {
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
-  if(props.config.isElectron){
-    window.electronAPI.eventOn('msgAppend', msgAppend);
-    window.electronAPI.send('menu', false)
-    window.electronAPI.send('client_start');
-  }
+  props.backend.wait_init().then(() => {
+    if(config.value.isElectron){
+      props.backend.eventOn('msgAppend', msgAppend);
+      props.backend.send('menu', false)
+      props.backend.send('client_start');
+    }
+  })
 })
 
 onUnmounted(() => {
-  if(props.config.isElectron){
-    window.electronAPI.eventOff('msgAppend', msgAppend);
-    window.electronAPI.send('client_stop');
-  }
+  props.backend.eventOff('msgAppend', msgAppend);
+  props.backend.send('client_stop');
 })
 
 </script>

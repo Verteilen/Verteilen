@@ -1,4 +1,4 @@
-import { app, BrowserWindow, session } from 'electron';
+import { app, BrowserWindow, powerSaveBlocker, session } from 'electron';
 import { join } from 'path';
 import './client/client';
 import { backendEvent } from './event';
@@ -6,6 +6,15 @@ import { menu_client } from './menu';
 import './plugins/i18n';
 
 export let mainWindow:BrowserWindow | undefined = undefined
+
+const id1 = powerSaveBlocker.start('prevent-display-sleep')
+const id2 = powerSaveBlocker.start('prevent-app-suspension')
+console.log("prevent-display-sleep: ", powerSaveBlocker.isStarted(id1))
+console.log("prevent-app-suspension: ", powerSaveBlocker.isStarted(id2))
+
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
 
 function createWindow () {
     mainWindow = new BrowserWindow({
@@ -19,12 +28,35 @@ function createWindow () {
             preload: join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
-            devTools: true
+            devTools: true,
+            backgroundThrottling: false
         }
     });
 
+    
+    mainWindow.on('minimize', () => {
+        mainWindow?.webContents.setBackgroundThrottling(false)
+    })
+    mainWindow.on('maximize', () => {
+        mainWindow?.webContents.setBackgroundThrottling(false)
+    })
+    mainWindow.on('hide', () => {
+        mainWindow?.webContents.setBackgroundThrottling(false)
+    })
+    mainWindow.on('show', () => {
+        mainWindow?.webContents.setBackgroundThrottling(false)
+    })
+    mainWindow.on('move', () => {
+        mainWindow?.webContents.setBackgroundThrottling(false)
+    })
+    mainWindow.on('blur', () => {
+        mainWindow?.webContents.setBackgroundThrottling(false)
+    })
     mainWindow.on('focus', () => {
-        mainWindow!.setTitle(`Compute Tool ${process.env.NODE_ENV === 'development' ? process.env.npm_package_version : app.getVersion()}`)
+        mainWindow?.webContents.setBackgroundThrottling(false)
+        setTimeout(() => {
+            mainWindow?.setTitle(`Compute Tool ${process.env.NODE_ENV === 'development' ? process.env.npm_package_version : app.getVersion()}`)    
+        }, 1000);
     })
 
     backendEvent.EventInit()

@@ -5,7 +5,7 @@ import { Client } from "./client/client";
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
-import { Job, Libraries, Preference, Project, Record } from "./interface";
+import { Job, Parameter, Preference, Project } from "./interface";
 import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
@@ -48,7 +48,7 @@ export class BackendEvent {
             event.sender.send('lua-feedback', r?.toString() ?? '')
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {
-            console.log(`${ tag == undefined ? '[後台訊息]' : '[' + tag + ']' } ${message}`);
+            console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
         })
         
         ipcMain.on('modeSelect', (event, isclient:boolean) => {
@@ -65,44 +65,18 @@ export class BackendEvent {
             if(on) mainWindow.setMenu(menu_server!)
             else mainWindow.setMenu(menu_client!)
         })
-        //this.Loader('record', 'record')
-        ipcMain.on('save_record', (e, record:string) => {
-            fs.writeFileSync('record.json', record)
-        })
-        ipcMain.handle('load_record', (e) => {
-            const exist = fs.existsSync('record.json');
-            messager_log(`[Event] Read record.js, file exist: ${exist}`)
-            if(!exist){
-                const record:Record = {
-                    projects: [],
-                    nodes: []
-                }
-                fs.writeFileSync('record.json', JSON.stringify(record, null, 4))
-                return JSON.stringify(record)
-            } else {
-                const file = fs.readFileSync('record.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }
-        })
+        this.Loader('record', 'record')
+        this.Loader('node', 'node')
         this.Loader('log', 'log')
-        //this.Loader('lib', 'lib')
-        ipcMain.on('save_lib', (e, log:string) => {
-            fs.writeFileSync('lib.json', log)
+        this.Loader('lib', 'lib')
+
+        ipcMain.handle('load_record_obsolete', (e) => {
+            if(!fs.existsSync('record.json')) return undefined
+            const data = fs.readFileSync('record.json').toString()
+            fs.rmSync('record.json')
+            return data
         })
-        ipcMain.handle('load_lib', (e) => {
-            const exist = fs.existsSync('log.json');
-            messager_log(`[Event] Read lib.js, file exist: ${exist}`)
-            if(!exist){
-                const record:Libraries = {
-                    libs: []
-                }
-                fs.writeFileSync('lib.json', JSON.stringify(record, null, 4))
-                return JSON.stringify(record)
-            } else {
-                const file = fs.readFileSync('lib.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }
-        })
+        
         ipcMain.on('save_preference', (e, preference:string) => {
             fs.writeFileSync('preference.json', preference)
         })
@@ -124,16 +98,23 @@ export class BackendEvent {
                 return file.toString()
             }
         })
-        ipcMain.on('import_project', (event) => {
-            this.ImportProject()
-        })
         ipcMain.on('export_projects', (event, data:string) => {
             const p:Array<Project> = JSON.parse(data)
             this.ExportProjects(p)
         })
+        ipcMain.on('import_project', (event) => {
+            this.ImportProject()
+        })
         ipcMain.on('export_project', (event, data:string) => {
             const p:Project = JSON.parse(data)
             this.ExportProject(p)
+        })
+        ipcMain.on('import_parameter', (event) => {
+            this.ImportParameter()
+        })
+        ipcMain.on('export_parameter', (event, data:string) => {
+            const p:Parameter = JSON.parse(data)
+            this.ExportParameter(p)
         })
         ipcMain.on('locate', (event, data:string) => {
             // @ts-ignore
@@ -173,12 +154,18 @@ export class BackendEvent {
                 }
             })
         })
-        ipcMain.on(`save_${key}`, (e, name:string, log:string) => {
+        ipcMain.on(`save_${key}`, (e, name:string, data:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             let filename = name + ".json"
             let p = path.join(root, filename)
-            fs.writeFileSync(p, log)
+            fs.writeFileSync(p, data)
+        })
+        ipcMain.on(`rename_${key}`, (e, name:string, newname:string) => {
+            const root = path.join("data", folder)
+            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+            fs.cpSync(path.join(root, `${name}.json`), path.join(root, `${newname}.json`), { recursive: true })
+            fs.rmdirSync(path.join(root, `${name}.json`))
         })
         ipcMain.on(`delete_${key}`, (e, name:string) => {
             const root = path.join("data", folder)
@@ -254,6 +241,39 @@ export class BackendEvent {
             for(var x of value){
                 fs.writeFileSync(`${path}/${x.title}.json`, JSON.stringify(x, null, 4))
             }
+        })
+    }
+
+    ImportParameter = () => {
+        if(mainWindow == undefined) return;
+        dialog.showOpenDialog(mainWindow, {
+            properties: ['openFile', 'multiSelections'],
+            filters: [
+                { name: 'JSON', extensions: ['json'] },
+            ]
+        }).then(v => {
+            if (v.canceled) return
+            if(mainWindow == undefined) return;
+            if(v.filePaths.length < 1) return;
+            const p = JSON.parse(fs.readFileSync(v.filePaths[0]).toString())
+            mainWindow.webContents.send('import_parameter_feedback', JSON.stringify(p))
+        })
+    }
+
+    ExportParameter = (value:Parameter) => {
+        if(mainWindow == undefined) return;
+        dialog.showSaveDialog(mainWindow, {
+            filters: [
+                {
+                    name: "JSON",
+                    extensions: ['json']
+                }
+            ]
+        }).then(v => {
+            if (v.canceled || v.filePath.length == 0) return
+            const path = v.filePath
+            console.log("Export project to path: ", path)
+            fs.writeFileSync(path, JSON.stringify(value, null, 4))
         })
     }
 }

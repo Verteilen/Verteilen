@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
+import { v6 as uuid6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { AppConfig, BusType, ConnectionText, Header, NodeTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
@@ -71,6 +72,7 @@ const deleteConfirm = () => {
         props.manager?.server_stop(x, 'Manually disconnect')
         if(!props.config.isElectron) return
         window.electronAPI.send('server_stop', x, 'Manually disconnect')
+        window.electronAPI.send('delete_node', x)
     })
 }
 
@@ -85,7 +87,7 @@ const selectall = () => {
 
 const confirmConnection = () => {
     connectionModal.value = false
-    props.manager?.server_start(`ws://${connectionData.value.url}`)
+    props.manager?.server_start(`ws://${connectionData.value.url}`, uuid6())
     connectionData.value = { url: '' }
 }
 

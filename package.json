@@ -1,6 +1,6 @@
 {
   "name": "compute_tool",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
@@ -24,6 +24,7 @@
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
     "@iconify-json/mdi": "^1.2.3",
+    "@mdi/font": "^7.4.47",
     "@types/bcrypt": "^5.0.2",
     "@types/byte-size": "^8.1.2",
     "@types/express": "^5.0.0",
@@ -59,7 +60,7 @@
     "jest": "^29.7.0",
     "jsonwebtoken": "^9.0.2",
     "keypair": "^1.0.4",
-    "lua-in-js": "^2.2.5",
+    "lua-in-js": "file:plugins/lua-in-js",
     "mitt": "^3.0.1",
     "pkg": "^5.8.1",
     "redis": "^4.7.0",

@@ -105,7 +105,10 @@ const createScript = () => {
 const save = () => {
     dirty.value = false
     if(!props.config.isElectron) return
-    window.electronAPI.send('save_lib', JSON.stringify(data.value!, null, 4))
+    data.value?.libs.forEach(x => {
+        window.electronAPI.send('save_lib', x.name, JSON.stringify(x, null, 4))
+    })
+    
 }
 
 onMounted(() => {

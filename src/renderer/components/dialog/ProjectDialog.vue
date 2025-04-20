@@ -21,7 +21,10 @@ watch(() => data.value, () => {
     else buffer.value = {title: "", description: "", useTemp: false, temp: null}
 })
 
-const confirm = () => emits('submit', convert.value)
+const confirm = () => {
+    data.value = false
+    emits('submit', convert.value)
+}
 
 </script>
 

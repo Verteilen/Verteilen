@@ -16,6 +16,7 @@ interface PROPS {
 }
 
 const tag = ref(0)
+const exportDialog = ref(false)
 const data = defineModel<ExecuteRecord>()
 const props = defineProps<PROPS>()
 const logs:Ref<Log> = ref({logs: []})
@@ -105,6 +106,19 @@ const recover = () => {
         })
     })
     emitter?.emit('recoverProject', p)
+}
+
+const exporter = () => {
+    exportDialog.value = true
+    
+}
+
+const exportConfirm = (mode:number) => {
+    if(getselect.value == undefined) return
+    const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
+    if(!props.config.isElectron) return
+    window.electronAPI.send("export_parameter", mode == 0 ? JSON.stringify(p) : JSON.stringify(p.parameter))
+    exportDialog.value = false
 }
 
 const receivedPack = async (record:Record) => {
@@ -335,6 +349,14 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
+                        <v-btn icon v-bind="pro.props" :disabled="getselect == undefined" @click="exporter">
+                            <v-icon>mdi-export</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('export') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="pro">
                         <v-btn icon color="error" v-bind="pro.props" @click="clean">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
@@ -402,6 +424,35 @@ onUnmounted(() => {
                 <ParameterPage v-model="getselect.parameter" :preference="props.preference" />
             </v-col>
         </v-row>
+        <v-dialog width="500" v-model="exportDialog">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-export</v-icon>
+                    {{ $t('export') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-row style="height: 100px;">
+                        <v-col cols="6">
+                            <v-btn color="primary" class="w-100 h-100" @click="exportConfirm(0)">
+                                <span :style="{ 'fontSize': props.preference.font + 'px' }">
+                                    {{ $t('project') }}
+                                </span>
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="6">
+                            <v-btn color="secondary" class="w-100 h-100" @click="exportConfirm(1)">
+                                <span :style="{ 'fontSize': props.preference.font + 'px' }">
+                                    {{ $t('parameter') }}
+                                </span>
+                            </v-btn>
+                        </v-col>
+                    </v-row>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="error" @click="exportDialog = false">{{ $t('cancel') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
     </v-container>
 </template>
 

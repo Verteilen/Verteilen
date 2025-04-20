@@ -1,7 +1,6 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
 import { AppConfig, BusType, ExecuteRecord, Libraries, Node, NodeTable, Project, Record, Task } from "../../interface";
-import { ConsoleManager } from "../../script/console_manager";
 import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
 import { Util_Server_Job } from "./job_handle";
@@ -16,7 +15,6 @@ type config_getter = () => AppConfig
 export interface DATA {
     websocket_manager: WebsocketManager | undefined
     execute_manager: Array<ExecuteManager>
-    console_manager: ConsoleManager | undefined
 
     page:number
     lanSelect: string
@@ -69,8 +67,16 @@ export class Util_Server {
             projects: this.data.value.projects,
             nodes: this.data.value.nodes as Array<Node>
         }
-        const k = JSON.stringify(record, null, 4)
-        if(this.config().isElectron) window.electronAPI.send('save_record', k)
+        record.projects.forEach(x => {
+            if(!this.config().isElectron) return
+            const text = JSON.stringify(x)
+            window.electronAPI.send('save_record', x.uuid, text)
+        })
+        record.nodes.forEach(x => {
+            if(!this.config().isElectron) return
+            const text = JSON.stringify(x)
+            window.electronAPI.send('save_node', x.ID, text)
+        })
         return record
     }
 }

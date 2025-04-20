@@ -1,4 +1,3 @@
-import { AppConfig } from "./interface";
 
 export const checkifElectron = ():boolean => {
     // Renderer process
@@ -30,31 +29,5 @@ export const checkIfExpress = (feedback:(e:boolean)=>void) => {
         feedback(x)
     }).catch(err => {
         feedback(false)
-    })
-}
-
-export const waitSetup = async (config:AppConfig):Promise<AppConfig> => {
-    return new Promise<AppConfig>((resolve, reject) => {
-        if(config.isExpress != undefined){
-            resolve(config)
-            return
-        }
-        let count = 0
-        let max = 1500
-        let timer:any
-
-        timer = setInterval(() => {
-            count += 100
-            if(config.isExpress != undefined){
-                clearInterval(timer)
-                resolve(config)
-                return
-            }
-            if(count > max){
-                clearInterval(timer)
-                reject()
-                return
-            }
-        }, 100);
     })
 }
