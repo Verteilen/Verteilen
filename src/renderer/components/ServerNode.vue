@@ -402,7 +402,3 @@ onUnmounted(() => {
     </div>
   </v-container>
 </template>
-
-<style scoped>
-
-</style>
