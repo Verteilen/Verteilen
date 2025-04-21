@@ -29,14 +29,14 @@ export class BackendEvent {
             executeTaskStart: (data:[Task, number]):void => { this.Boradcasting('executeTaskStart', data) },
             executeTaskFinish: (data:Task):void => { this.Boradcasting('executeTaskFinish', data) },
             executeSubtaskStart: (data:[Task, number, string]):void => { this.Boradcasting('executeSubtaskStart', data) },
-            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]) => {},
+            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]) => { this.Boradcasting('executeSubtaskUpdate', data) },
             executeSubtaskFinish: (data:[Task, number, string]):void => { this.Boradcasting('executeSubtaskFinish', data) },
             executeJobStart: (data:[Job, number, string]):void => { this.Boradcasting('executeJobStart', data) },
             executeJobFinish: (data:[Job, number, string, number]):void => { this.Boradcasting('executeJobFinish', data) },
             feedbackMessage: (data:FeedBack):void => { this.Boradcasting('feedbackMessage', data) },
-            updateParameter: (data:Parameter) => {},
-            shellReply: (data:Single) => {},
-            folderReply: (data:ShellFolder) => {},
+            updateParameter: (data:Parameter) => { this.Boradcasting('updateParameter', data) },
+            shellReply: (data:Single) => { this.Boradcasting('shellReply', data) },
+            folderReply: (data:ShellFolder) => { this.Boradcasting('folderReply', data) },
         }
 
         this.websocket_manager = new WebsocketManager(this.newConnect, this.disconnect, this.analysis, messager_log)

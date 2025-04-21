@@ -1,0 +1,105 @@
+import { existsSync, mkdirSync, rmdirSync } from 'fs';
+import { copyFile, cp } from 'fs/promises';
+import Path from 'path';
+import * as pkg from 'pkg';
+import * as electron from './build';
+import compileTs from './private/tsc';
+import * as share from './share';
+
+export async function Share_Call() {
+    return share.main()
+}
+
+export async function Build_Electron(){
+    return electron.main()
+}
+
+export async function Build_Program(){
+    const programPath = Path.join(__dirname, '..', 'src', 'program');
+    return compileTs(programPath);
+}
+
+export async function Build_Node() {
+    const nodePath = Path.join(__dirname, '..', 'src', 'node');
+    return compileTs(nodePath);
+}
+
+export async function Build_Server(){
+    const nodePath = Path.join(__dirname, '..', 'src', 'server');
+    return compileTs(nodePath);
+}
+
+export async function PKG_Program(){
+    const exePath = Path.join(__dirname, '..', 'bin', 'worker.exe');
+    const programPath = Path.join(__dirname, '..', 'build', 'program', 'worker.js');
+    return pkg.exec(["-d", "-t", "node16-x64", "-o", exePath, "--public-packages", "*", programPath])
+}
+
+export async function PKG_Node(){
+    const exePath = Path.join(__dirname, '..', 'build', 'node-build', 'app.exe');
+    const programPath = Path.join(__dirname, '..', 'build', 'node', 'index.js');
+    return pkg.exec(["-d", "-t", "node16-x64", "-o", exePath, "--public-packages", "*", programPath])
+}
+
+export async function Copy_PackageJson2Node() {
+    const from = Path.join(__dirname, '..', 'node_package.json');
+    const to = Path.join(__dirname, '..', 'build', 'node', 'package.json');
+    return copyFile(from, to)
+}
+
+export async function Copy_PackageJson2Server() {
+    const from = Path.join(__dirname, '..', 'server_package.json');
+    const to = Path.join(__dirname, '..', 'build', 'server', 'package.json');
+    return copyFile(from, to)
+}
+
+export async function Copy_Plugins2Node() {
+    const from = Path.join(__dirname, '..', 'plugins', 'lua-in-js');
+    const from2 = Path.join(__dirname, '..', 'plugins', 'luaparse');
+    const to = Path.join(__dirname, '..', 'build', 'node', 'plugins', 'lua-in-js');
+    const to2 = Path.join(__dirname, '..', 'build', 'node', 'plugins', 'luaparse');
+    const cp1 = cp(from, to, {recursive: true})
+    const cp2 = cp(from2, to2, {recursive: true})
+    return Promise.all([cp1, cp2])
+}
+
+export async function Copy_Render2Server() {
+    const source = Path.join(__dirname, '..', 'build', 'renderer')
+    const p = Path.join(__dirname, '..', 'build', 'server', 'public')
+    return cp(source, p, { recursive: true })
+}
+
+export async function Copy_Render2Server_DEV() {
+    const source = Path.join(__dirname, '..', 'build', 'renderer')
+    const p = Path.join(__dirname, '..', 'src', 'server', 'public')
+    return cp(source, p, { recursive: true })
+}
+
+export async function Copy_Worker2Node(){
+    const exePath = Path.join(__dirname, '..', 'bin', 'worker.exe');
+    const endProgramFolderPath = Path.join(__dirname, '..', 'build', 'node', 'bin');
+    const endProgramPath = Path.join(endProgramFolderPath, 'worker.exe');
+    if(!existsSync(endProgramFolderPath)) mkdirSync(endProgramFolderPath)
+    return copyFile(exePath, endProgramPath)
+}
+
+export async function Copy_Worker2NodeBuild(){
+    const exePath = Path.join(__dirname, '..', 'bin', 'worker.exe');
+    const endProgramFolderPath = Path.join(__dirname, '..', 'build', 'node-build', 'bin');
+    const endProgramPath = Path.join(endProgramFolderPath, 'worker.exe');
+    if(!existsSync(endProgramFolderPath)) mkdirSync(endProgramFolderPath)
+    return copyFile(exePath, endProgramPath)
+}
+
+export function Clean_Node(){
+    if(existsSync(Path.join(__dirname, '..', 'build', 'node'))){
+        rmdirSync(Path.join(__dirname, '..', 'build', 'node'), {recursive: true})
+    }
+}
+
+export function Clean_Node_Build(){
+    if(existsSync(Path.join(__dirname, '..', 'build', 'node-build'))){
+        rmdirSync(Path.join(__dirname, '..', 'build', 'node-build'), {recursive: true})
+    }
+    mkdirSync(Path.join(__dirname, '..', 'build', 'node-build'))
+}
