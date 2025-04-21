@@ -322,71 +322,83 @@ onUnmounted(() => {
       </v-tab>
     </v-tabs>
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
-      <ProjectPage v-show="data.page == 0" 
-        :projects="data.projects" 
-        :config="config"
-        :preference="props.preference"
-        @added="e => addProject(e)" 
-        @edit="(id, e) => editProject(id, e)" 
-        @select="e => chooseProject(e)" 
-        @delete="e => deleteProject(e)"
-        @moveup="e => moveupProject(e)"
-        @movedown="e => movedownProject(e)" 
-        @execute="(e, keep) => executeProjects(e, keep)"/>
-
-      <TaskPage v-show="data.page == 1" 
-        :projects="data.projects" 
-        :select="data.selectProject" 
-        :preference="props.preference"
-        @added="e => addTask(e)" 
-        @edit="(id, e) => editTask(id, e)" 
-        @select="e => chooseTask(e)"
-        @delete="e => deleteTask(e)"
-        @moveup="e => moveupTask(e)"
-        @movedown="e => movedownTask(e)"
-        @parameter="data.page = 3" />
-
-      <JobPage v-show="data.page == 2" 
-        :projects="data.projects" 
-        :select="data.selectTask"
-        :owner="data.selectProject"
-        :libs="data.libs"
-        @added="e => addJob(e)" 
-        @edit="(e, e2) => editJob(e, e2)" 
-        @delete="e => deleteJob(e)" />
-
-      <ParameterPage v-show="data.page == 3" 
-        :config="config"
-        :select="data.selectProject"
-        :preference="props.preference"
-        @edit="e => editParameter(e)" />
-
-      <NodePage v-show="data.page == 4" 
-        :manager="data.websocket_manager"
-        :config="config"
-        :nodes="data.nodes" />
-
-      <ConsolePage v-show="data.page == 5" 
-        :config="config"
-        :preference="props.preference"
-        :socket="data.websocket_manager"
-        :execute="data.execute_manager"
-        :libs="data.libs"
-        v-model="data.projects_exe"/>
-        
-      <LogPage v-if="config.haveBackend" v-show="data.page == 6" 
-        :config="config"
-        :execute="data.execute_manager"
-        :preference="props.preference"
-        v-model="data.projects_exe"/>
-
-      <LibraryPage v-if="config.haveBackend" v-show="data.page == 7" 
-        :config="config"
-        v-model="data.libs"/>
-
-      <SelfPage v-if="config.haveBackend" v-show="data.page == 8" 
-        :config="config"
-        :preference="props.preference"/>
+      <v-tabs-window v-model="data.page">
+        <v-tabs-window-item :value="0">
+          <ProjectPage
+            :projects="data.projects" 
+            :config="config"
+            :preference="props.preference"
+            @added="e => addProject(e)" 
+            @edit="(id, e) => editProject(id, e)" 
+            @select="e => chooseProject(e)" 
+            @delete="e => deleteProject(e)"
+            @moveup="e => moveupProject(e)"
+            @movedown="e => movedownProject(e)" 
+            @execute="(e, keep) => executeProjects(e, keep)"/>
+        </v-tabs-window-item>
+        <v-tabs-window-item :value="1">
+          <TaskPage
+            :projects="data.projects" 
+            :select="data.selectProject" 
+            :preference="props.preference"
+            @added="e => addTask(e)" 
+            @edit="(id, e) => editTask(id, e)" 
+            @select="e => chooseTask(e)"
+            @delete="e => deleteTask(e)"
+            @moveup="e => moveupTask(e)"
+            @movedown="e => movedownTask(e)"
+            @parameter="data.page = 3" />
+        </v-tabs-window-item>
+        <v-tabs-window-item :value="2">
+          <JobPage
+            :projects="data.projects" 
+            :select="data.selectTask"
+            :owner="data.selectProject"
+            :libs="data.libs"
+            @added="e => addJob(e)" 
+            @edit="(e, e2) => editJob(e, e2)" 
+            @delete="e => deleteJob(e)" />
+        </v-tabs-window-item>
+        <v-tabs-window-item :value="3">
+          <ParameterPage
+            :config="config"
+            :select="data.selectProject"
+            :preference="props.preference"
+            @edit="e => editParameter(e)" />
+        </v-tabs-window-item>
+        <v-tabs-window-item :value="4">
+          <NodePage
+            :manager="data.websocket_manager"
+            :config="config"
+            :nodes="data.nodes" />
+        </v-tabs-window-item>
+        <v-tabs-window-item :value="5">
+          <ConsolePage
+            :config="config"
+            :preference="props.preference"
+            :socket="data.websocket_manager"
+            :execute="data.execute_manager"
+            :libs="data.libs"
+            v-model="data.projects_exe"/>
+        </v-tabs-window-item>
+        <v-tabs-window-item v-if="config.haveBackend" :value="6">
+          <LogPage 
+            :config="config"
+            :execute="data.execute_manager"
+            :preference="props.preference"
+            v-model="data.projects_exe"/>
+        </v-tabs-window-item>
+        <v-tabs-window-item v-if="config.haveBackend" :value="7">
+          <LibraryPage
+            :config="config"
+            v-model="data.libs"/>
+        </v-tabs-window-item>
+        <v-tabs-window-item v-if="config.haveBackend" :value="8">
+          <SelfPage
+            :config="config"
+            :preference="props.preference"/>
+        </v-tabs-window-item>
+      </v-tabs-window>
     </div>
   </v-container>
 </template>
