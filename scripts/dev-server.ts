@@ -1,19 +1,19 @@
 process.env.NODE_ENV = 'development';
 
-const Vite = require('vite');
-const ChildProcess = require('child_process');
-const Path = require('path');
-const Chalk = require('chalk');
-const Chokidar = require('chokidar');
-const Electron = require('electron');
-const compileTs = require('./private/tsc');
-const FileSystem = require('fs');
-const { EOL } = require('os');
+import Chalk from 'chalk';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import Chokidar from 'chokidar';
+import * as FileSystem from 'fs';
+import { EOL } from 'os';
+import Path from 'path';
+import Vite from 'vite';
+import compileTs from './private/tsc';
+import * as util from './utility';
 
-let viteServer = null;
-let electronProcess = null;
+let viteServer:Vite.ViteDevServer | null = null;
+let electronProcess:ChildProcessWithoutNullStreams | null = null;
 let electronProcessLocker = false;
-let rendererPort = 0;
+let rendererPort:number | undefined = 0;
 
 async function startRenderer() {
     viteServer = await Vite.createServer({
@@ -37,14 +37,14 @@ async function startElectron() {
         return;
     }
 
-    const args = [
+    const args:Array<string> = [
         Path.join(__dirname, '..', 'build', 'main', 'main.js'),
-        rendererPort,
+        rendererPort!.toString(),
     ];
-    electronProcess = ChildProcess.spawn(Electron, args);
+    electronProcess = spawn('electron.exe', args);
     electronProcessLocker = false;
 
-    electronProcess.stdout.on('data', data => {
+    electronProcess?.stdout.on('data', data => {
         if (data == EOL) {
             return;
         }
@@ -52,11 +52,11 @@ async function startElectron() {
         process.stdout.write(Chalk.blueBright(`[electron] `) + Chalk.white(data.toString()))
     });
 
-    electronProcess.stderr.on('data', data => 
+    electronProcess?.stderr.on('data', data => 
         process.stderr.write(Chalk.blueBright(`[electron] `) + Chalk.white(data.toString()))
     );
 
-    electronProcess.on('exit', () => stop());
+    electronProcess?.on('exit', () => stop());
 }
 
 function restartElectron() {
@@ -89,11 +89,13 @@ function copy(path) {
 }
 
 function stop() {
-    viteServer.close();
+    viteServer?.close();
     process.exit();
 }
 
-async function start() {
+async function main() {
+    await util.Share_Call()
+    
     console.log(`${Chalk.greenBright('=======================================')}`);
     console.log(`${Chalk.greenBright('Starting Electron + Vite Dev Server...')}`);
     console.log(`${Chalk.greenBright('=======================================')}`);
@@ -118,4 +120,6 @@ async function start() {
     });
 }
 
-start();
+if (require.main === module) {
+    main();
+}
