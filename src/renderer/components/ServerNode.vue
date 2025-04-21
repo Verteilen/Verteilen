@@ -47,17 +47,7 @@ const execute_proxy:ExecuteProxy = {
 
 const config = computed(() => props.backend.config)
 const props = defineProps<PROPS>()
-const tabs:Ref<Array<[string, string, number]>> = ref([
-  ["mdi-cube", "toolbar.project", 0],
-  ["mdi-calendar", "toolbar.task", 1],
-  ["mdi-hammer", "toolbar.job", 2],
-  ["mdi-database", "toolbar.parameter", 3],
-  ["mdi-network", "toolbar.node", 4],
-  ["mdi-console-line", "toolbar.console", 5],
-  ["mdi-text-box-outline", "toolbar.log", 6],
-  ["mdi-puzzle", "toolbar.library", 7],
-  ["mdi-nodejs", "toolbar.client", 8]
-])
+const tabs:Ref<Array<[string, string, number]>> = ref([])
 const data:Ref<DATA> = ref({
     websocket_manager: undefined,
     execute_manager: [],
@@ -231,6 +221,19 @@ onMounted(() => {
   emitter?.on('deleteScript', libDelete)
 
   props.backend.wait_init().then(() => {
+    tabs.value = [
+      ["mdi-cube", "toolbar.project", 0],
+      ["mdi-calendar", "toolbar.task", 1],
+      ["mdi-hammer", "toolbar.job", 2],
+      ["mdi-database", "toolbar.parameter", 3],
+      ["mdi-network", "toolbar.node", 4],
+      ["mdi-console-line", "toolbar.console", 5],
+    ]
+    if(config.value.haveBackend){
+      tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
+      tabs.value.push(["mdi-puzzle", "toolbar.library", 7])
+      tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
+    }
     const x = config.value
     if(!x.isExpress){
       data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
@@ -371,17 +374,17 @@ onUnmounted(() => {
         :libs="data.libs"
         v-model="data.projects_exe"/>
         
-      <LogPage v-show="data.page == 6" 
+      <LogPage v-if="config.haveBackend" v-show="data.page == 6" 
         :config="config"
         :execute="data.execute_manager"
         :preference="props.preference"
         v-model="data.projects_exe"/>
 
-      <LibraryPage v-show="data.page == 7" 
+      <LibraryPage v-if="config.haveBackend" v-show="data.page == 7" 
         :config="config"
         v-model="data.libs"/>
 
-      <SelfPage v-show="data.page == 8" 
+      <SelfPage v-if="config.haveBackend" v-show="data.page == 8" 
         :config="config"
         :preference="props.preference"/>
     </div>
