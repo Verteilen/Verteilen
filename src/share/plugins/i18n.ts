@@ -3,7 +3,7 @@ import en from './../lan/en.json'
 import zh_TW from './../lan/zh_TW.json'
 
 export const i18nData = {
-    locale: 'zh_TW',
+    locale: 'en',
     globalInjection: true,
     fallbackFormat: 'en',
     messages: {

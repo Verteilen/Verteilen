@@ -5,7 +5,7 @@
     "main": "index.js",
     "repository": "https://github.com/deluze/electron-vue-template",
     "dependencies": {
-        "lua-in-js": "^2.2.5",
+        "lua-in-js": "file:plugins/lua-in-js",
         "tcp-port-used": "^1.0.2",
         "ws": "^8.18.0",
         "vue-i18n": "^10.0.5"
