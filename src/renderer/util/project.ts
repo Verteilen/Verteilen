@@ -134,7 +134,9 @@ export class Util_Project {
             uuid: uuidv6(),
             title: this.data.value.editData.title, 
             description: this.data.value.editData.description,
+            parameter_uuid: '',
             parameter: {
+                uuid: '',
                 canWrite: true,
                 containers: []
             },

@@ -2,13 +2,14 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference, Project } from '../../interface';
+import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
 interface PROPS {
     config: AppConfig
     preference: Preference
-    select: Project | undefined
+    parameters: Array<Parameter>
+    select: Parameter | undefined
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');

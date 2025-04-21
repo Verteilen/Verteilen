@@ -16,6 +16,7 @@ export interface CreateField {
 
 export interface DATA {
     fields: Array<any>
+    paraModal:boolean
     dialogModal:boolean
     isEdit: boolean
     editData: CreateField

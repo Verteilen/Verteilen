@@ -131,6 +131,7 @@ const confirmEdit = () => {
             uuid: data.value.editUUID,
             title: data.value.editData.title, 
             description: data.value.editData.description,
+            parameter_uuid: selectp.parameter_uuid,
             parameter: selectp.parameter,
             task: selectp.task
         }

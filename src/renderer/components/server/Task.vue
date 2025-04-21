@@ -26,6 +26,7 @@ const emits = defineEmits<{
 }>()
 const data:Ref<DATA> = ref({
     fields: [],
+    paraModal: false,
     dialogModal: false,
     isEdit: false,
     editData: {cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""},
@@ -42,6 +43,7 @@ const data:Ref<DATA> = ref({
 
 const util:Util_Task = new Util_Task(data, () => props.select)
 
+const hasPara = computed(() => props.select == undefined ? false : props.select.parameter_uuid.length > 0)
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
 const items_final = computed(() => {
     return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value))
@@ -53,6 +55,10 @@ const updateTask = () => util.updateTask()
 const updateParameter = () => util.updateParameter()
 const createProject = () => util.createProject()
 const detailOpen = () => emits('parameter')
+
+const detailSelect = () => {
+    data.value.paraModal = true
+}
 
 const cloneSelect = () => {
     const ts = util.cloneSelect()
@@ -161,7 +167,7 @@ onMounted(() => {
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateParameter', updateParameter)
     emitter?.on('updateLocate', updateLocate)
-    data.value.para_keys = props.select?.parameter.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
+    data.value.para_keys = props.select?.parameter?.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
 })
 
 onUnmounted(() => {
@@ -180,8 +186,11 @@ onUnmounted(() => {
                 <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
-                <v-chip v-if="props.select != undefined" prepend-icon="mdi-pen" @click="detailOpen" color="success">
+                <v-chip v-if="hasPara" prepend-icon="mdi-pen" @click="detailOpen" color="success">
                     {{ $t('parameter-setting') }}
+                </v-chip>
+                <v-chip v-if="hasPara" prepend-icon="mdi-pen" @click="detailSelect" color="success">
+                    {{ $t('parameter-select') }}
                 </v-chip>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">

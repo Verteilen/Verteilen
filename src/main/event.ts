@@ -65,6 +65,7 @@ export class BackendEvent {
             console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
         })
         this.Loader('record', 'record')
+        this.Loader('parameter', 'parameter')
         this.Loader('node', 'node')
         this.Loader('log', 'log')
         this.Loader('lib', 'lib')

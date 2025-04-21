@@ -1,6 +1,6 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { AppConfig, BusType, ExecuteRecord, Libraries, Node, NodeTable, Project, Record, Task } from "../../interface";
+import { AppConfig, BusType, ExecuteRecord, Libraries, Node, NodeTable, Parameter, Project, Record, Task } from "../../interface";
 import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
 import { Util_Server_Job } from "./job_handle";
@@ -18,11 +18,13 @@ export interface DATA {
 
     page:number
     lanSelect: string
+    parameters: Array<Parameter>
     projects: Array<Project>
     projects_exe: ExecuteRecord
     libs: Libraries
     selectProject: Project | undefined
     selectTask: Task | undefined
+    selectParameter: Parameter | undefined
     nodes: Array<NodeTable>
 }
 

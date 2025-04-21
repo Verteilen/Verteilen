@@ -54,6 +54,7 @@ const data:Ref<DATA> = ref({
 
     page: 0,
     lanSelect: i18n.global.locale as string,
+    parameters: [],
     projects: [],
     projects_exe: {
       projects: [],
@@ -71,6 +72,7 @@ const data:Ref<DATA> = ref({
     libs: {libs: []},
     selectProject: undefined,
     selectTask: undefined,
+    selectParameter: undefined,
     nodes: []
 })
 
@@ -278,7 +280,12 @@ onMounted(() => {
         data.value.nodes.push(...n)
         data.value.projects.push(...texts.projects)
       })
-      Promise.all([p1, p2, p3, p4]).then(() => {
+      const p5 = window.electronAPI.invoke('load_all_parameter').then(x => {
+        const texts:Array<string> = JSON.parse(x)
+        data.value.parameters = texts.map(y => JSON.parse(y))
+        console.log("Parameters", data.value.libs)
+      })
+      Promise.all([p1, p2, p3, p4, p5]).then(() => {
         data.value.nodes = data.value.nodes.map(y => {
           return Object.assign(y, {
             s: false,
@@ -362,7 +369,8 @@ onUnmounted(() => {
         <v-tabs-window-item :value="3">
           <ParameterPage
             :config="config"
-            :select="data.selectProject"
+            :parameters="data.parameters"
+            :select="data.selectParameter"
             :preference="props.preference"
             @edit="e => editParameter(e)" />
         </v-tabs-window-item>
