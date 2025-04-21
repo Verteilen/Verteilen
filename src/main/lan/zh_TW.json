@@ -212,6 +212,7 @@
     "useTemplate": "使用樣板",
     "execute-keep": "執行 (保留)",
     "parameter-setting": "參數設定",
+    "parameter-select": "參數選擇",
     "is-running": "是否執行中",
     "is-stop": "是否停止",
     "clear": "清除",

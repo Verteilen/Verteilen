@@ -1,6 +1,7 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { AppConfig, BusType, ExecuteRecord, Libraries, Node, NodeTable, Parameter, Project, Record, Task } from "../../interface";
+import { BusType, ExecuteRecord, Libraries, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
+import { BackendProxy } from "../../proxy";
 import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
 import { Util_Server_Job } from "./job_handle";
@@ -10,7 +11,7 @@ import { Util_Server_Project } from "./project_handle";
 import { Util_Server_Task } from "./task_handle";
 
 export type save_and_update = () => void
-type config_getter = () => AppConfig
+type config_getter = () => BackendProxy
 
 export interface DATA {
     websocket_manager: WebsocketManager | undefined
@@ -60,25 +61,30 @@ export class Util_Server {
             this.emitter.emit('updateProject')
             this.emitter.emit('updateTask')
             this.emitter.emit('updateJob')
-            this.emitter.emit('updateParameter')
         })
     }
     
-    saveRecord = ():Record => {
-        const record:Record = {
-            projects: this.data.value.projects,
-            nodes: this.data.value.nodes as Array<Node>
+    saveRecord = (type:RenderUpdateType = RenderUpdateType.All) => {
+        if((type & RenderUpdateType.Project) == RenderUpdateType.Project){
+            this.data.value.projects.forEach(x => {
+                if(!this.config().config.isElectron) return
+                const text = JSON.stringify(x)
+                window.electronAPI.send('save_record', x.uuid, text)
+            })
         }
-        record.projects.forEach(x => {
-            if(!this.config().isElectron) return
-            const text = JSON.stringify(x)
-            window.electronAPI.send('save_record', x.uuid, text)
-        })
-        record.nodes.forEach(x => {
-            if(!this.config().isElectron) return
-            const text = JSON.stringify(x)
-            window.electronAPI.send('save_node', x.ID, text)
-        })
-        return record
+        if((type & RenderUpdateType.Node) == RenderUpdateType.Project){
+            this.data.value.nodes.forEach(x => {
+                if(!this.config().config.isElectron) return
+                const text = JSON.stringify(x)
+                window.electronAPI.send('save_node', x.ID, text)
+            })
+        }
+        if((type & RenderUpdateType.Parameter) == RenderUpdateType.Project){
+            this.data.value.parameters.forEach(x => {
+                if(!this.config().config.isElectron) return
+                const text = JSON.stringify(x)
+                window.electronAPI.send('save_parameter', x.uuid, text)
+            })
+        }
     }
 }

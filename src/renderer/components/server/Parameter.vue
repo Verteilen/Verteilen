@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
@@ -9,7 +9,6 @@ interface PROPS {
     config: AppConfig
     preference: Preference
     parameters: Array<Parameter>
-    select: Parameter | undefined
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -33,7 +32,8 @@ const editData = ref({ name: '', type: 0 })
 const filter = ref({ showhidden: false, showruntime: false, type: -1 })
 const options:Ref<Array<{ title: string, value:number }>> = ref([])
 const dirty = ref(false)
-const buffer:Ref<Parameter> = ref({ canWrite: true, containers: [] })
+const select: Ref<Parameter | undefined> = ref(undefined)
+const buffer:Ref<Parameter> = ref({ uuid: '', canWrite: true, containers: [] })
 const errorMessage = ref('')
 const titleError = ref(false)
 const selection:Ref<Array<string>> = ref([])
@@ -57,10 +57,8 @@ const items_final = computed(() => buffer.value.containers
         return filter.value.type == x.type
     }))
 
-const updateParameter = () => {
-    if( props.select == undefined) return
-    buffer.value = JSON.parse(JSON.stringify(props.select.parameter))
-    dirty.value = false
+const selectParameter = (uuid:string) => {
+    select.value = props.parameters.find(x => x.uuid == uuid)
 }
 
 const createParameter = () => {
@@ -207,10 +205,7 @@ const isLast = (name:string) => {
 onMounted(() => {
     updateLocate()
     emitter?.on('updateLocate', updateLocate)
-    emitter?.on('updateParameter', updateParameter)
-    nextTick(() => {
-        updateParameter()
-    })
+    emitter?.on('selectParameter', selectParameter)
     if(props.config.isElectron){
         window.electronAPI.eventOn("import_parameter_feedback", import_parameter_feedback)
     }
@@ -218,7 +213,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     emitter?.off('updateLocate', updateLocate)
-    emitter?.off('updateParameter', updateParameter)
+    emitter?.off('selectParameter', selectParameter)
     if(props.config.isElectron){
         window.electronAPI.eventOff("import_parameter_feedback", import_parameter_feedback)
     }
@@ -231,9 +226,6 @@ onUnmounted(() => {
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
-                <p v-if="props.select != undefined" class="mr-4">
-                    {{ $t('project') }}: {{ props.select.title }}
-                </p>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">

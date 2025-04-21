@@ -76,10 +76,10 @@ const data:Ref<DATA> = ref({
     nodes: []
 })
 
-const util:Util_Server = new Util_Server(data, () => config.value, emitter!)
+const util:Util_Server = new Util_Server(data, () => props.backend, emitter!)
 
 const allUpdate = () => util.allUpdate()
-const saveRecord = ():Record => util.saveRecord()
+const saveRecord = () => util.saveRecord()
 
 //#region Project
 const addProject = (v:Array<Project>) => util.project.addProject(v)
@@ -112,6 +112,10 @@ const server_clients_update = (v:Array<NodeTable>) => util.node.server_clients_u
 
 //#region Parameter
 const editParameter = (e:Parameter) => util.parameter.editParameter(e)
+const goParameter = (e:string) => {
+  data.value.page = 3
+  emitter?.emit('selectParameter', e)
+}
 //#endregion
 
 //#region Lib
@@ -354,7 +358,7 @@ onUnmounted(() => {
             @delete="e => deleteTask(e)"
             @moveup="e => moveupTask(e)"
             @movedown="e => movedownTask(e)"
-            @parameter="data.page = 3" />
+            @parameter="e => goParameter(e)" />
         </v-tabs-window-item>
         <v-tabs-window-item :value="2">
           <JobPage

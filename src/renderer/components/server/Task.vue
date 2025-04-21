@@ -20,7 +20,7 @@ const emits = defineEmits<{
     (e: 'edit', uuid:string, task:Task): void
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
-    (e: 'parameter'):void
+    (e: 'parameter', uuid:string):void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
@@ -54,7 +54,7 @@ const selected_task_ids = computed(() => data.value.items.filter(x => data.value
 const updateTask = () => util.updateTask()
 const updateParameter = () => util.updateParameter()
 const createProject = () => util.createProject()
-const detailOpen = () => emits('parameter')
+const detailOpen = () => emits('parameter', props.select!.parameter_uuid)
 
 const detailSelect = () => {
     data.value.paraModal = true
@@ -165,14 +165,12 @@ const updateLocate = () => {
 onMounted(() => {
     updateFields()
     emitter?.on('updateTask', updateTask)
-    emitter?.on('updateParameter', updateParameter)
     emitter?.on('updateLocate', updateLocate)
     data.value.para_keys = props.select?.parameter?.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
 })
 
 onUnmounted(() => {
     emitter?.off('updateTask', updateTask)
-    emitter?.off('updateParameter', updateParameter)
     emitter?.off('updateLocate', updateLocate)
 })
 
@@ -187,9 +185,9 @@ onUnmounted(() => {
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
                 <v-chip v-if="hasPara" prepend-icon="mdi-pen" @click="detailOpen" color="success">
-                    {{ $t('parameter-setting') }}
+                    {{ $t('parameter-setting') }}: {{ props.select?.parameter_uuid }}
                 </v-chip>
-                <v-chip v-if="hasPara" prepend-icon="mdi-pen" @click="detailSelect" color="success">
+                <v-chip v-else prepend-icon="mdi-pen" @click="detailSelect" color="warning">
                     {{ $t('parameter-select') }}
                 </v-chip>
                 <v-spacer></v-spacer>

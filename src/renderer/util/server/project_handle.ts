@@ -19,6 +19,7 @@ export class Util_Server_Project {
     addProject = (v:Array<Project>) => {
         v.forEach(x => {
             if(x.parameter == undefined){
+                x.parameter_uuid = ''
                 this.data.value.projects.push(x)
             }else{
                 this.data.value.parameters.push(x.parameter)

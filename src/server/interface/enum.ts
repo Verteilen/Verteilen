@@ -50,6 +50,13 @@ export enum ExecuteState {
     NONE, RUNNING, FINISH, ERROR, SKIP
 }
 
+export enum RenderUpdateType {
+    All= ~(~0 << 7),
+    Project = 1 << 0, 
+    Node = 1 << 1, 
+    Parameter = 1 << 2
+}
+
 export enum LuaLib {
     ALL = ~(~0 << 7),
     OS = 1 << 0, 

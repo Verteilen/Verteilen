@@ -212,6 +212,7 @@
     "useTemplate": "Use Template",
     "execute-keep": "Execute (Keep)",
     "parameter-setting": "Parameter Setting",
+    "parameter-select": "Parameter Select",
     "is-running": "Is Running",
     "is-stop": "Is Stop",
     "clear": "Clear",
