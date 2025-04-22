@@ -349,8 +349,7 @@ onUnmounted(() => {
             @select="e => chooseProject(e)" 
             @delete="(e, e2) => deleteProject(e, e2)"
             @moveup="e => moveupProject(e)"
-            @movedown="e => movedownProject(e)" 
-            @execute="(e, keep) => executeProjects(e, keep)"/>
+            @movedown="e => movedownProject(e)" />
         </v-tabs-window-item>
         <v-tabs-window-item :value="1">
           <TaskPage

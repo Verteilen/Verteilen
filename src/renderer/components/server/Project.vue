@@ -21,7 +21,6 @@ const emits = defineEmits<{
     (e: 'edit', uuid:string, project:Project): void
     (e: 'delete', uuids:Array<string>, bind:boolean): void
     (e: 'select', uuids:string): void
-    (e: 'execute', uuids:Array<string>, force:boolean): void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
@@ -101,8 +100,6 @@ const cloneSelect = () => {
 const selectall = () => {
     data.value.selection = data.value.items.map(x => x.ID)
 }
-
-const execute = (keep:boolean) => emits('execute', selected_project_ids.value, keep)
 
 const DialogSubmit = (p:CreateField) => {
     data.value.editData = p
@@ -232,22 +229,6 @@ onUnmounted(() => {
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <v-spacer></v-spacer>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="execute(true)" :disabled="!hasSelect">
-                            <v-icon>mdi-play-outline</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('execute-keep') }}
-                </v-tooltip>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="execute(false)" :disabled="!hasSelect">
-                            <v-icon>mdi-play</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('execute') }}
-                </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="createProject">
