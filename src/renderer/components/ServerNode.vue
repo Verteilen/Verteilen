@@ -286,7 +286,15 @@ onMounted(() => {
           })
         })
         data.value.nodes.push(...n)
-        data.value.projects.push(...texts.projects)
+        texts.projects.forEach(y => {
+          const p:Parameter = JSON.parse(JSON.stringify(y.parameter))
+          p.title = y.title
+          p.uuid = uuidv6()
+          data.value.parameters.push(p)
+          y.parameter = undefined
+          y.parameter_uuid = p.uuid
+          data.value.projects.push(y)
+        })
       })
       const p5 = window.electronAPI.invoke('load_all_parameter').then(x => {
         const texts:Array<string> = JSON.parse(x)
