@@ -26,7 +26,7 @@ const cancel = () => [
                 {{ label }}
             </v-card-title>
             <v-card-text>
-                <v-row style="height: 100px;">
+                <v-row style="height: 80px;">
                     <v-col cols="6">
                         <v-btn color="primary" class="w-100 h-100" @click="emit('project')">
                             <span :style="{ 'fontSize': props.preference.font + 'px' }">

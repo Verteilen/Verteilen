@@ -62,6 +62,7 @@ export type BusType = {
     createProject: void
     updateProject: void
     recoverProject: Project
+    recoverParameter: Parameter
     updateTask: void
     updateJob: void
     updateParameter: void

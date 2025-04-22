@@ -16,11 +16,11 @@ interface PROPS {
     config: AppConfig
 }
 
+const data = defineModel<ExecuteRecord>()
+const props = defineProps<PROPS>()
 const tag = ref(0)
 const recoverDialog = ref(false)
 const exportDialog = ref(false)
-const data = defineModel<ExecuteRecord>()
-const props = defineProps<PROPS>()
 const logs:Ref<Log> = ref({logs: []})
 const task_index = ref(0)
 const leftSize = ref(3)
@@ -105,17 +105,24 @@ const exporter = () => {
 
 const recoverConfirm = (mode:number) => {
     if(getselect.value == undefined) return
-    const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
-    p.uuid = uuidv6()
-    p.title = p.title + " (恢復)"
-    p.parameter = getselect.value.parameter
-    p.task.forEach(x => {
-        x.uuid = uuidv6()
-        x.jobs.forEach(y => {
-            y.uuid = uuidv6()
+    if(mode == 0){
+        const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
+        p.uuid = uuidv6()
+        p.title = p.title + " (恢復)"
+        p.parameter = getselect.value.parameter
+        p.task.forEach(x => {
+            x.uuid = uuidv6()
+            x.jobs.forEach(y => {
+                y.uuid = uuidv6()
+            })
         })
-    })
-    emitter?.emit('recoverProject', p)
+        emitter?.emit('recoverProject', p)
+    }else{
+        const p:Parameter = JSON.parse(JSON.stringify(getselect.value.project.parameter))
+        p.uuid = uuidv6()
+        p.title = p.title + " (恢復)"
+        emitter?.emit('recoverParameter', p)
+    }
 }
 
 const exportConfirm = (mode:number) => {

@@ -77,6 +77,7 @@ const only_options = computed(() => {
 
 const updateParameter = () => util.updateParameter()
 const selectParameter = (uuid:string) => { emits('select', uuid) }
+const recoverParameter = (p:Parameter) => { emits('added', p) }
 const createParameter = () => util.createParameter()
 const editParameter = (oldname:string) => util.editParameter(oldname)
 const saveParameter = () => { emits('edit', data.value.buffer) }
@@ -168,6 +169,7 @@ onMounted(() => {
     updateLocate()
     emitter?.on('updateLocate', updateLocate)
     emitter?.on('updateParameter', updateParameter)
+    emitter?.on('recoverParameter', recoverParameter)
     emitter?.on('selectParameter', selectParameter)
     if(props.config.isElectron){
         window.electronAPI.eventOn("import_parameter_feedback", import_parameter_feedback)
@@ -177,6 +179,7 @@ onMounted(() => {
 onUnmounted(() => {
     emitter?.off('updateLocate', updateLocate)
     emitter?.off('updateParameter', updateParameter)
+    emitter?.off('recoverParameter', recoverParameter)
     emitter?.off('selectParameter', selectParameter)
     if(props.config.isElectron){
         window.electronAPI.eventOff("import_parameter_feedback", import_parameter_feedback)

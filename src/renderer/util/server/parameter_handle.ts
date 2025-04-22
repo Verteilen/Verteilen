@@ -14,6 +14,7 @@ export class Util_Server_Parameter {
     }
 
     addParameter = (e:Parameter) => {
+        this.data.value.page = 3
         const b = JSON.parse(JSON.stringify(e))
         this.data.value.parameters.push(b)
         this.data.value.selectParameter = b
