@@ -3,8 +3,6 @@ import { nextTick, Ref } from "vue";
 import { BusType, Node, Project, Record } from "../../interface";
 import { config_getter, DATA, save_and_update } from "./server";
 
-
-
 export class Util_Server_Project {
     data:Ref<DATA>
     config:config_getter

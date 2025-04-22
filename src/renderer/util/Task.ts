@@ -27,7 +27,8 @@ export interface DATA {
     para_keys:Array<string>
     errorMessage: string
     titleError: boolean
-    search: string,
+    search: string | undefined
+    selectSearch: string | undefined
     selection:Array<string>
 }
 
@@ -71,7 +72,7 @@ export class Util_Task {
 
     updateParameter = () => {
         const p = this.select_props
-        this.data.value.para_keys = p?.parameter.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
+        this.data.value.para_keys = p?.parameter?.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
     }
 
     createProject = () => {

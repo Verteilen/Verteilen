@@ -48,6 +48,16 @@ export class Util_Server_Task {
         this.data.value.page = 2
         nextTick(this.updateOnly)
     }
+
+    bindingTask = (uuid:string) => {
+        if(this.data.value.selectProject == undefined) return
+        this.data.value.selectProject.parameter_uuid = uuid
+        const index = this.data.value.projects.findIndex(x => x.uuid == uuid)
+        if(index != -1) {
+            this.data.value.projects[index].parameter_uuid = uuid
+        }
+        this.update()
+    }
     
     moveupTask = (uuid:string) => {
         if(this.data.value.selectProject == undefined) return

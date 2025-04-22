@@ -96,6 +96,7 @@ const addTask = (v:Array<Task>) => util.task.addTask(v)
 const editTask = (id:string, v:Task) => util.task.editTask(id, v)
 const deleteTask = (uuids:Array<string>) => util.task.deleteTask(uuids)
 const chooseTask = (uuid:string) => util.task.chooseTask(uuid)
+const bindingTask = (uuid:string) => util.task.bindingTask(uuid)
 const moveupTask = (uuid:string) => util.task.moveupTask(uuid)
 const movedownTask = (uuid:string) => util.task.movedownTask(uuid)
 //#endregion
@@ -339,6 +340,7 @@ onUnmounted(() => {
         <v-tabs-window-item :value="0">
           <ProjectPage
             :projects="data.projects" 
+            :parameters="data.parameters"
             :config="config"
             :preference="props.preference"
             @added="e => addProject(e)" 
@@ -358,6 +360,7 @@ onUnmounted(() => {
             @added="e => addTask(e)" 
             @edit="(id, e) => editTask(id, e)" 
             @select="e => chooseTask(e)"
+            @bind="e => bindingTask(e)"
             @delete="e => deleteTask(e)"
             @moveup="e => moveupTask(e)"
             @movedown="e => movedownTask(e)"

@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { AppConfig, Ref } from "vue";
-import { Project, ProjectTable, ProjectTemplate, TemplateGroup } from "../interface";
+import { Parameter, Project, ProjectTable, ProjectTemplate, TemplateGroup } from "../interface";
 import { i18n } from '../plugins/i18n';
 import { GetFUNIQUE_GS4LUTProjectTemplate } from '../template/project/GS4_Lut';
 import { GetAfterEffectTemplate, GetBlenderTemplate, GetDefaultProjectTemplate, GetFFmpeg_Image2VideoProjectTemplate, GetFUNIQUE_GS4ProjectTemplate, GetFUNIQUE_GS4Project_V2_Template } from "../template/projectTemplate";
@@ -24,6 +24,8 @@ export interface CreateField {
     title: string
     description: string
     useTemp: boolean
+    usePara: boolean
+    parameter?: string
     temp: number | null
 }
 
@@ -59,6 +61,7 @@ export interface DATA {
 
 export interface DialogDATA {
     isEdit: boolean
+    parameters: Array<Parameter>
     editData: CreateField
     errorMessage: string
     titleError: boolean
@@ -95,7 +98,7 @@ export class Util_Project {
         this.data.value.isEdit = true
         const selectp = this.projects.find(x => x.uuid == uuid)
         if(selectp == undefined) return;
-        this.data.value.editData = {title: selectp.title, description: selectp.description, useTemp: false, temp: 0};
+        this.data.value.editData = {title: selectp.title, usePara: false, description: selectp.description, useTemp: false, temp: 0};
         this.data.value.dialogModal = true;
         this.data.value.editUUID = uuid;
         this.data.value.errorMessage = ''
@@ -118,7 +121,7 @@ export class Util_Project {
 
     createProject = () => {
         this.data.value.isEdit = false
-        this.data.value.editData = {title: "", description: "", useTemp: false, temp: 0};
+        this.data.value.editData = {title: "", description: "", usePara: false, useTemp: false, temp: 0};
         this.data.value.dialogModal = true
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
@@ -128,7 +131,7 @@ export class Util_Project {
         if(this.data.value.editData.title.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
-            return
+            return undefined
         }
         this.data.value.dialogModal = false
         let buffer:Project = { 
@@ -136,11 +139,7 @@ export class Util_Project {
             title: this.data.value.editData.title, 
             description: this.data.value.editData.description,
             parameter_uuid: '',
-            parameter: {
-                uuid: '',
-                canWrite: true,
-                containers: []
-            },
+            parameter: undefined,
             task: []
         }
         if (this.data.value.editData.useTemp){

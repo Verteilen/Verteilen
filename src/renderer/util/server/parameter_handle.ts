@@ -1,15 +1,15 @@
 import { Ref } from "vue"
 import { Parameter } from "../../interface"
-import { DATA, save_and_update } from "./server"
-
-
+import { config_getter, DATA, save_and_update } from "./server"
 
 export class Util_Server_Parameter {
     data:Ref<DATA>
     update:save_and_update
+    config:config_getter
 
-    constructor (_data:Ref<DATA>, _update:save_and_update){
+    constructor (_data:Ref<DATA>, _config:config_getter, _update:save_and_update){
         this.data = _data
+        this.config = _config
         this.update = _update
     }
 
@@ -36,6 +36,9 @@ export class Util_Server_Parameter {
         }
         if(this.data.value.selectParameter?.uuid == e){
             this.data.value.selectParameter = undefined
+        }
+        if(this.config().config.isElectron){
+            window.electronAPI.send('delete_parameter', e)
         }
         this.update()
     }

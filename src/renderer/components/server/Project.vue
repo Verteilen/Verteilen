@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { AppConfig, BusType, Parameter, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, IndexToValue, Util_Project, ValueToGroupName } from '../../util/project';
 import ProjectDialog from '../dialog/ProjectDialog.vue';
@@ -10,6 +10,7 @@ import ProjectDialog from '../dialog/ProjectDialog.vue';
 interface PROPS {
     preference: Preference
     projects: Array<Project>
+    parameters: Array<Parameter>
     config: AppConfig
 }
 
@@ -104,7 +105,6 @@ const selectall = () => {
 const execute = (keep:boolean) => emits('execute', selected_project_ids.value, keep)
 
 const DialogSubmit = (p:CreateField) => {
-    data.value.importModal = false
     data.value.editData = p
     nextTick(() => {
         if(data.value.isEdit) confirmEdit()
@@ -115,6 +115,7 @@ const DialogSubmit = (p:CreateField) => {
 const confirmCreate = () => {
     const buffer = util.confirmCreate()
     if(buffer == undefined) return
+    data.value.importModal = false
     emits('added', 
         [buffer]
     )
@@ -126,6 +127,7 @@ const confirmCreate = () => {
 const confirmEdit = () => {
     const selectp = util.confirmEdit()
     if(selectp == undefined) return
+    data.value.importModal = false
     emits('edit', 
     data.value.editUUID,
         { 
@@ -339,6 +341,7 @@ onUnmounted(() => {
         </div>
         <ProjectDialog v-model="data.dialogModal" 
             :temps="data.temps"
+            :parameters="props.parameters"
             :is-edit="data.isEdit" 
             :error-message="data.errorMessage"
             :title-error="data.titleError"

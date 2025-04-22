@@ -48,7 +48,7 @@ export class Util_Server {
         this.task = new Util_Server_Task(this.data, this.allUpdate, this.update)
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
-        this.parameter = new Util_Server_Parameter(this.data, this.update)
+        this.parameter = new Util_Server_Parameter(this.data, this.config, this.update)
     }
 
     private update = () => {

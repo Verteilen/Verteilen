@@ -22,6 +22,7 @@ const emits = defineEmits<{
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
     (e: 'parameter', uuid:string):void
+    (e: 'bind', uuid:string):void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
@@ -39,13 +40,17 @@ const data:Ref<DATA> = ref({
     errorMessage: '',
     titleError: false,
     search: '',
+    selectSearch: '',
     selection: []
 })
 
 const util:Util_Task = new Util_Task(data, () => props.select)
 
-const hasPara = computed(() => props.select != undefined && props.select.parameter_uuid != undefined ? props.select.parameter_uuid.length > 0 : false)
-const realSearch = computed(() => data.value.search.trimStart().trimEnd())
+const hasPara = computed(() => {
+    if(props.select == undefined || props.select.parameter_uuid.length == 0) return false
+    return props.parameters.find(x => x.uuid == props.select!.parameter_uuid) != undefined
+})
+const realSearch = computed(() => data.value.search?.trimStart().trimEnd() ?? '')
 const items_final = computed(() => {
     return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value))
 })
@@ -104,6 +109,10 @@ const dataedit = (uuid:string) => {
     data.value.editUUID = uuid;
     data.value.errorMessage = ''
     data.value.titleError = false
+}
+
+const selectParameter = (uuid:string) => {
+    emits('bind', uuid)
 }
 
 const DialogSubmit = (p:CreateField) => {
@@ -188,7 +197,7 @@ onUnmounted(() => {
                 <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailOpen" color="success">
                     {{ $t('parameter-setting') }}: {{ props.select?.parameter_uuid }}
                 </v-chip>
-                <v-btn v-if="hasPara && props.select != undefined" variant="text" icon="mdi-select" @click="detailSelect" color="warning"></v-btn>
+                <v-btn v-if="hasPara && props.select != undefined" variant="text" icon="mdi-select" @click="detailSelect"></v-btn>
                 <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailSelect" color="warning">
                     {{ $t('parameter-select') }}
                 </v-chip>
@@ -278,6 +287,32 @@ onUnmounted(() => {
                     <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
                     <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
                 </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="data.paraModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('parameter-select') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
+                    </v-text-field>
+                    <v-list>
+                        <v-list-item v-for="(p, i) in [{ title: 'None', uuid: '' }, ...props.parameters]" :key="i">
+                            <v-list-item-title>
+                                {{ p.title }}
+                            </v-list-item-title>
+                            <v-list-item-subtitle>
+                                {{ p.uuid }}
+                            </v-list-item-subtitle>
+                            <template v-slot:append>
+                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); data.paraModal = false"
+                                ></v-btn>
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                </v-card-text>
             </v-card>
         </v-dialog>
     </div>

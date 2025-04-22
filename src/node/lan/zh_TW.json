@@ -59,6 +59,11 @@
         "new-parameter": "新增參數",
         "edit-parameter": "編輯參數",
         "enter-parameter-name": "輸入參數名稱",
+        "new-parameter-set": "新增參數組",
+        "edit-parameter-set": "編輯參數組",
+        "enter-parameter-set-name": "輸入參數組名稱",
+        "import-parameter": "刪除參數",
+        "delete-parameter-confirm": "確認刪除選擇參數嗎?",
         "parameter-datatype": "資料型態",
         "new-node": "新增節點",
         "enter-node-address": "輸入節點位址",
@@ -211,6 +216,7 @@
     "export": "匯出",
     "import": "匯入",
     "useTemplate": "使用樣板",
+    "useExistParameter": "使用參數組",
     "execute-keep": "執行 (保留)",
     "parameter-setting": "參數設定",
     "parameter-select": "參數選擇",
@@ -227,5 +233,6 @@
     "step": "步驟",
     "confirm": "確認",
     "close": "關閉",
-    "enter": "進入"
+    "enter": "進入",
+    "filters": "篩選"
 }

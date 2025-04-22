@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
+import { v6 as uuid6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference } from '../../interface';
+import { AppConfig, BusType, DataType, DataTypeText, Parameter, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
+import { DATA, Util_Parameter } from '../../util/parameter';
 
 interface PROPS {
     config: AppConfig
@@ -16,6 +18,7 @@ const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
+    (e: 'added', data:Parameter): void
     (e: 'edit', data:Parameter): void
     (e: 'select', uuid:string): void
     (e: 'delete', uuid:string): void
@@ -28,70 +31,56 @@ const fields:Ref<Array<any>> = ref([
     { title: 'Value', align: 'center', key: 'value' },
     { title: 'Detail', align: 'center', key: 'detail' },
 ])
-const selectModal = ref(false)
-const selectSearch = ref('')
-const createModal = ref(false)
-const editMode = ref(false)
-const createData:Ref<ParameterContainer> = ref({ name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number })
-const editData = ref({ name: '', type: 0 })
-const filter = ref({ showhidden: false, showruntime: false, type: -1 })
-const options:Ref<Array<{ title: string, value:number }>> = ref([])
-const dirty = ref(false)
-const buffer:Ref<Parameter> = ref({ uuid: '', title: '', canWrite: true, containers: [] })
-const errorMessage = ref('')
-const titleError = ref(false)
-const search = ref('')
 
-const items_final = computed(() => buffer.value.containers
+const data:Ref<DATA> = ref({
+    selectModal: false,
+    selectSearch: '',
+    createModal: false,
+    createParameterModal: false,
+    editMode: false,
+    filterModal: false,
+    deleteModal: false,
+    createData: { name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number },
+    editData: { name: '', type: 0 },
+    filter: { showhidden: false, showruntime: false, type: -1 },
+    buffer_filter: { showhidden: false, showruntime: false, type: -1 },
+    options: [],
+    dirty: false,
+    buffer: { uuid: '', title: '', canWrite: true, containers: [] },
+    errorMessage: '',
+    titleError: false,
+    search: '',
+    search_para: ''
+})
+
+const util:Util_Parameter = new Util_Parameter(data, () => props.parameters, () => props.select)
+
+const items_final = computed(() => data.value.buffer.containers
     .filter(x => {
-        if (!filter.value.showruntime && x.runtimeOnly) return false
+        if (!data.value.filter.showruntime && x.runtimeOnly) return false
         return true
     })
     .filter(x => {
-        if (!filter.value.showhidden && x.hidden) return false
+        if (!data.value.filter.showhidden && x.hidden) return false
         return true
     })
     .filter(x => {
-        return search.value == null || search.value.length == 0 ? true : x.name.includes(search.value)
+        return data.value.search == null || data.value.search.length == 0 ? true : x.name.includes(data.value.search)
     })
     .filter(x => {
-        if(filter.value.type == -1) return true
-        return filter.value.type == x.type
+        if(data.value.filter.type == -1) return true
+        return data.value.filter.type == x.type
     })
 )
+const only_options = computed(() => {
+    return data.value.options.filter(x => x.title != "All")
+})
 
-const updateParameter = () => {
-    dirty.value = false
-    buffer.value = props.select ? JSON.parse(JSON.stringify(props.select)) : { uuid: '', title: '', canWrite: true, containers: [] }
-}
-
-const selectParameter = (uuid:string) => {
-    emits('select', uuid)
-}
-
-const createParameter = () => {
-    createData.value = { name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number }
-    createModal.value = true
-    editMode.value = false
-    errorMessage.value = ''
-    titleError.value = false
-}
-
-const editParameter = (oldname:string) => {
-    const p = buffer.value.containers.find(x => x.name == oldname)
-    if(p == undefined) return
-    createData.value = JSON.parse(JSON.stringify(p))
-    editData.value.name = p.name
-    editData.value.type = p.type
-    createModal.value = true
-    editMode.value = true
-    errorMessage.value = ''
-    titleError.value = false
-}
-
-const saveParameter = () => {
-    emits('edit', buffer.value)
-}
+const updateParameter = () => util.updateParameter()
+const selectParameter = (uuid:string) => { emits('select', uuid) }
+const createParameter = () => util.createParameter()
+const editParameter = (oldname:string) => util.editParameter(oldname)
+const saveParameter = () => { emits('edit', data.value.buffer) }
 
 const importPara = () => {
     if(!props.config.isElectron) return
@@ -100,110 +89,169 @@ const importPara = () => {
 
 const exportPara = () => {
     if(!props.config.isElectron) return
-    window.electronAPI.send("export_parameter", JSON.stringify(buffer.value))
+    window.electronAPI.send("export_parameter", JSON.stringify(data.value.buffer))
+}
+
+const confirmFilter = () => {
+    data.value.filterModal = false
+    data.value.filter = JSON.parse(JSON.stringify(data.value.buffer_filter))
 }
 
 const confirmCreate = () => {
-    if(createData.value.name.length == 0){
-        errorMessage.value = i18n.global.t('error.title-needed')
-        titleError.value = true
+    if(data.value.createData.name.length == 0){
+        data.value.errorMessage = i18n.global.t('error.title-needed')
+        data.value.titleError = true
         return
     }
-    if(buffer.value.containers.findIndex(x => x.name == createData.value.name) != -1){
-        errorMessage.value = i18n.global.t('error.title-repeat')
-        titleError.value = true
+    if(data.value.buffer.containers.findIndex(x => x.name == data.value.createData.name) != -1){
+        data.value.errorMessage = i18n.global.t('error.title-repeat')
+        data.value.titleError = true
         return
     }
-    buffer.value.containers.push(createData.value)
-    createModal.value = false
-    dirty.value = true
+    data.value.buffer.containers.push(data.value.createData)
+    data.value.createModal = false
+    data.value.dirty = true
 }
 
 const confirmEdit = () => {
-    if(createData.value.name.length == 0){
-        errorMessage.value = i18n.global.t('error.title-needed')
-        titleError.value = true
+    if(data.value.createData.name.length == 0){
+        data.value.errorMessage = i18n.global.t('error.title-needed')
+        data.value.titleError = true
         return
     }
-    if(editData.value.name != createData.value.name){
-        if(buffer.value.containers.findIndex(x => x.name == createData.value.name) != -1){
-            errorMessage.value = i18n.global.t('error.title-repeat')
-            titleError.value = true
+    if(data.value.editData.name != data.value.createData.name){
+        if(data.value.buffer.containers.findIndex(x => x.name == data.value.createData.name) != -1){
+            data.value.errorMessage = i18n.global.t('error.title-repeat')
+            data.value.titleError = true
             return
         }
     }
-    if(createData.value.type != editData.value.type){
-        if(createData.value.type = DataType.Boolean) createData.value.value = false
-        else if(createData.value.type = DataType.Expression) createData.value.value = ''
-        else if(createData.value.type = DataType.Number) createData.value.value = 0
-        else if(createData.value.type = DataType.String) createData.value.value = ''
+    if(data.value.createData.type != data.value.editData.type){
+        if(data.value.createData.type = DataType.Boolean) data.value.createData.value = false
+        else if(data.value.createData.type = DataType.Expression) data.value.createData.value = ''
+        else if(data.value.createData.type = DataType.Number) data.value.createData.value = 0
+        else if(data.value.createData.type = DataType.String) data.value.createData.value = ''
     }
-    const index = buffer.value.containers.findIndex(x => x.name == editData.value.name)
-    buffer.value.containers[index] = createData.value
-    createModal.value = false
-    dirty.value = true
+    const index = data.value.buffer.containers.findIndex(x => x.name == data.value.editData.name)
+    data.value.buffer.containers[index] = data.value.createData
+    data.value.createModal = false
+    data.value.dirty = true
+}
+
+const confirmCreateSet = () => {
+    if(data.value.editData.name.length == 0){
+        data.value.errorMessage = i18n.global.t('error.title-needed')
+        data.value.titleError = true
+        return
+    }
+    const d:Parameter = {
+        title: data.value.editData.name,
+        uuid: uuid6(),
+        canWrite: true,
+        containers: []
+    }
+    emits('added', d)
+}
+
+const confirmEditSet = () => {
+    if(props.select == undefined) return
+    if(data.value.editData.name.length == 0){
+        data.value.errorMessage = i18n.global.t('error.title-needed')
+        data.value.titleError = true
+        return
+    }
+    const d:Parameter = {
+        title: data.value.editData.name,
+        uuid: props.select.uuid,
+        canWrite: props.select.canWrite,
+        containers: props.select.containers
+    }
+    emits('edit', d)
+    
 }
 
 const deleteSelect = () => {
-    emits('delete', buffer.value.uuid)
+    data.value.deleteModal = true
+}
+
+const deleteConfirm = () => {
+    data.value.deleteModal = false
+    emits('delete', data.value.buffer.uuid)
 }
 
 const deleteitem = (name:string) => {
-    buffer.value.containers = buffer.value.containers.filter(x => x.name != name)
-    dirty.value = true
+    data.value.buffer.containers = data.value.buffer.containers.filter(x => x.name != name)
+    data.value.dirty = true
 }
 
-const setdirty = () => dirty.value = true
+const setdirty = () => data.value.dirty = true
+
+const filterOpen = () => {
+    data.value.buffer_filter = JSON.parse(JSON.stringify(data.value.filter))
+    data.value.filterModal = true
+}
 
 const DataTypeTranslate = (t:number):string => {
     return i18n.global.t(DataTypeText[t])
 }
 
 const updateLocate = () => {
-    options.value = Object.keys(DataType).filter(key => isNaN(Number(key))).map((x, index) => {
+    data.value.options = Object.keys(DataType).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             title: DataTypeTranslate(index),
             value: index
         }
     })
-    options.value.push({ title: "All", value: -1 })
+    data.value.options.push({ title: "All", value: -1 })
 }
 
 const import_parameter_feedback = (e:IpcRendererEvent, v:string) => {
     const d = JSON.parse(v)
-    buffer.value = d
+    data.value.buffer = d
     setdirty()
 }
 
 const paraSelect = () => {
-    selectModal.value = true
+    data.value.selectModal = true
+}
+
+const paraCreate = () => {
+    data.value.createParameterModal = true
+    data.value.editData.name = ''
+}
+
+const paraEdit = () => {
+    if(props.select == undefined) return
+    data.value.createParameterModal = true
+    data.value.editMode = true
+    data.value.editData.name = props.select.title
 }
 
 const moveup = (name:string) => {
-    const index = buffer.value.containers.findIndex(x => x.name == name)
-    const bb = buffer.value.containers[index]
-    buffer.value.containers[index] = buffer.value.containers[index - 1]
-    buffer.value.containers[index - 1] = bb
-    dirty.value = true
+    const index = data.value.buffer.containers.findIndex(x => x.name == name)
+    const bb = data.value.buffer.containers[index]
+    data.value.buffer.containers[index] = data.value.buffer.containers[index - 1]
+    data.value.buffer.containers[index - 1] = bb
+    data.value.dirty = true
 }
 
 const movedown = (name:string) => {
-    const index = buffer.value.containers.findIndex(x => x.name == name)
-    const bb = buffer.value.containers[index]
-    buffer.value.containers[index] = buffer.value.containers[index + 1]
-    buffer.value.containers[index + 1] = bb
-    dirty.value = true
+    const index = data.value.buffer.containers.findIndex(x => x.name == name)
+    const bb = data.value.buffer.containers[index]
+    data.value.buffer.containers[index] = data.value.buffer.containers[index + 1]
+    data.value.buffer.containers[index + 1] = bb
+    data.value.dirty = true
 }
 
 const isFirst = (name:string) => {
-    const index = buffer.value.containers.findIndex(x => x.name == name)
+    const index = data.value.buffer.containers.findIndex(x => x.name == name)
     return index <= 0
 }
 
 const isLast = (name:string) => {
-    const index = buffer.value.containers.findIndex(x => x.name == name)
+    const index = data.value.buffer.containers.findIndex(x => x.name == name)
     if(index == -1) return true
-    return index == buffer.value.containers.length - 1
+    return index == data.value.buffer.containers.length - 1
 }
 
 onMounted(() => {
@@ -231,19 +279,27 @@ onUnmounted(() => {
     <div>
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
-                <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
+                <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
+                <v-chip class="ml-3" v-if="select == undefined" prepend-icon="mdi-pen" @click="paraSelect" color="warning">
+                    {{ $t('parameter-select') }}
+                </v-chip>
+                <v-chip class="ml-3" v-else prepend-icon="mdi-pen" @click="paraSelect" color="success">
+                    {{ select.title }}
+                </v-chip>
+                <v-btn variant="text" density="comfortable" icon="mdi-plus" @click="paraCreate"></v-btn>
+                <v-btn variant="text" density="comfortable" icon="mdi-pencil" @click="paraEdit"></v-btn>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="createParameter" :disabled="select == undefined">
-                            <v-icon>mdi-plus</v-icon>
+                            <v-icon>mdi-tag-plus</v-icon>
                         </v-btn>
                     </template>
                     {{ $t('create') }}
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" color="success" @click="saveParameter" :disabled="select == undefined || !dirty">
+                        <v-btn icon v-bind="props" color="success" @click="saveParameter" :disabled="select == undefined || !data.dirty">
                             <v-icon>mdi-content-save</v-icon>
                         </v-btn>
                     </template>
@@ -259,7 +315,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="exportPara">
+                        <v-btn icon v-bind="props" :disabled="select == undefined" @click="exportPara">
                             <v-icon>mdi-export</v-icon>
                         </v-btn>
                     </template>
@@ -273,22 +329,18 @@ onUnmounted(() => {
                     </template>
                     {{ $t('delete') }}
                 </v-tooltip> 
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="filterOpen">
+                            <v-icon>mdi-filter</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('filter') }}
+                </v-tooltip> 
             </v-toolbar>
         </div>
-        <v-toolbar>
-            <v-checkbox class="pl-3" :label="$t('filter.show-hidden')" v-model="filter.showhidden" hide-details></v-checkbox>
-            <v-checkbox class="pl-3" :label="$t('filter.show-runtime')" v-model="filter.showruntime" hide-details></v-checkbox>
-            <v-select class="pl-3" density="compact" :label="$t('filter.type')" v-model="filter.type" :items="options" item-text="text" hide-details max-width="300px"></v-select>
-            <v-chip class="ml-3" v-if="select == undefined" prepend-icon="mdi-pen" @click="paraSelect" color="warning">
-                {{ $t('parameter-select') }}
-            </v-chip>
-            <v-chip class="ml-3" v-else prepend-icon="mdi-pen" @click="paraSelect" color="success">
-                {{ select.title }}
-            </v-chip>
-            <v-spacer></v-spacer>
-            <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
-        </v-toolbar>
         <div class="py-3 px-5 text-left">
+            <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
             <v-data-table :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.detail="{ item }">
                     <v-btn flat icon @click="editParameter(item.name)" size="small">
@@ -321,9 +373,9 @@ onUnmounted(() => {
                 </template>
             </v-data-table>
         </div>
-        <v-dialog width="500" v-model="createModal" class="text-white">
+        <v-dialog width="500" v-model="data.createModal" class="text-white">
             <v-card>
-                <v-card-title v-if="!editMode">
+                <v-card-title v-if="!data.editMode">
                     <v-icon>mdi-hammer</v-icon>
                     {{ $t('modal.new-parameter') }}
                 </v-card-title>
@@ -332,26 +384,45 @@ onUnmounted(() => {
                     {{ $t('modal.edit-parameter') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field :error="titleError" v-model="createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-                    <v-select class="mt-3" v-model="createData.type" :items="options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
-                    <v-checkbox :label="$t('filter.show-hidden')" v-model="createData.hidden" hide-details></v-checkbox>
-                    <v-checkbox :label="$t('filter.show-runtime')" v-model="createData.runtimeOnly" hide-details></v-checkbox>
-                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                    <v-text-field :error="data.titleError" v-model="data.createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                    <v-select class="mt-3" v-model="data.createData.type" :items="only_options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
+                    <v-checkbox :label="$t('filter.show-hidden')" v-model="data.createData.hidden" hide-details></v-checkbox>
+                    <v-checkbox :label="$t('filter.show-runtime')" v-model="data.createData.runtimeOnly" hide-details></v-checkbox>
+                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" v-if="!editMode" @click="confirmCreate">{{ $t('create') }}</v-btn>
+                    <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreate">{{ $t('create') }}</v-btn>
                     <v-btn class="mt-3" color="primary" v-else @click="confirmEdit">{{ $t('modify') }}</v-btn>
                 </template>
             </v-card>
         </v-dialog>
-        <v-dialog width="500" v-model="selectModal" class="text-white">
+        <v-dialog width="500" v-model="data.createParameterModal" class="text-white">
+            <v-card>
+                <v-card-title v-if="!data.editMode">
+                    <v-icon>mdi-hammer</v-icon>
+                    {{ $t('modal.new-parameter-set') }}
+                </v-card-title>
+                <v-card-title v-else>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.edit-parameter-set') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreateSet">{{ $t('create') }}</v-btn>
+                    <v-btn class="mt-3" color="primary" v-else @click="confirmEditSet">{{ $t('modify') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="data.selectModal" class="text-white">
             <v-card>
                 <v-card-title>
                     <v-icon>mdi-pen</v-icon>
                     {{ $t('parameter-select') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="selectSearch">
+                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
                     </v-text-field>
                     <v-list>
                         <v-list-item v-for="(p, i) in props.parameters" :key="i">
@@ -362,12 +433,43 @@ onUnmounted(() => {
                                 {{ p.uuid }}
                             </v-list-item-subtitle>
                             <template v-slot:append>
-                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); selectModal = false"
+                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); data.selectModal = false"
                                 ></v-btn>
                             </template>
                         </v-list-item>
                     </v-list>
                 </v-card-text>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="data.filterModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('search') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-checkbox class="pl-3" :label="$t('filter.show-hidden')" v-model="data.buffer_filter.showhidden" hide-details></v-checkbox>
+                    <v-checkbox class="pl-3" :label="$t('filter.show-runtime')" v-model="data.buffer_filter.showruntime" hide-details></v-checkbox>
+                    <v-select class="pl-3" :label="$t('filter.type')" v-model="data.buffer_filter.type" :items="data.options" item-text="text" hide-details></v-select>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="confirmFilter">{{ $t('confirm') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="data.deleteModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.delete-parameter') }}
+                </v-card-title>
+                <v-card-text>
+                    <p>{{ $t('modal.delete-parameter-confirm') }}</p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+                </template>
             </v-card>
         </v-dialog>
     </div>

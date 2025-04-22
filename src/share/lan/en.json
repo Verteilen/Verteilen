@@ -59,6 +59,11 @@
         "new-parameter": "New Parameter",
         "edit-parameter": "Modify Parameter",
         "enter-parameter-name": "Enter Parameter Name",
+        "new-parameter-set": "New Parameter Set",
+        "edit-parameter-set": "Modify Parameter Set",
+        "enter-parameter-set-name": "Enter Parameter Set Name",
+        "import-parameter": "Delete Parameter",
+        "delete-parameter-confirm": "Are you sure delete parameter you selected",
         "parameter-datatype": "Datatype",
         "new-node": "New Node",
         "enter-node-address": "Enter Node Address",
@@ -211,6 +216,7 @@
     "export": "Export",
     "import": "Import",
     "useTemplate": "Use Template",
+    "useExistParameter": "Use Exist Parameter",
     "execute-keep": "Execute (Keep)",
     "parameter-setting": "Parameter Setting",
     "parameter-select": "Parameter Select",
@@ -227,5 +233,6 @@
     "step": "Step",
     "confirm": "Confirm",
     "close": "Close",
-    "enter": "Enter"
+    "enter": "Enter",
+    "filters": "Filters"
 }
