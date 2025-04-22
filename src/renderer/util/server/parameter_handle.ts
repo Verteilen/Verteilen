@@ -13,6 +13,13 @@ export class Util_Server_Parameter {
         this.update = _update
     }
 
+    addParameter = (e:Parameter) => {
+        const b = JSON.parse(JSON.stringify(e))
+        this.data.value.parameters.push(b)
+        this.data.value.selectParameter = b
+        this.update()
+    }
+
     selectParameter = (e:string) => {
         const index = this.data.value.parameters.findIndex(x => x.uuid == e)
         if(index != -1){

@@ -151,6 +151,7 @@ const confirmCreateSet = () => {
         containers: []
     }
     emits('added', d)
+    data.value.createParameterModal = false
 }
 
 const confirmEditSet = () => {
@@ -167,7 +168,7 @@ const confirmEditSet = () => {
         containers: props.select.containers
     }
     emits('edit', d)
-    
+    data.value.createParameterModal = false
 }
 
 const deleteSelect = () => {
@@ -287,7 +288,7 @@ onUnmounted(() => {
                     {{ select.title }}
                 </v-chip>
                 <v-btn variant="text" density="comfortable" icon="mdi-plus" @click="paraCreate"></v-btn>
-                <v-btn variant="text" density="comfortable" icon="mdi-pencil" @click="paraEdit"></v-btn>
+                <v-btn variant="text" density="comfortable" :disabled="props.select == undefined" icon="mdi-pencil" @click="paraEdit"></v-btn>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -335,7 +336,7 @@ onUnmounted(() => {
                             <v-icon>mdi-filter</v-icon>
                         </v-btn>
                     </template>
-                    {{ $t('filter') }}
+                    {{ $t('filters') }}
                 </v-tooltip> 
             </v-toolbar>
         </div>

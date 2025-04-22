@@ -6,6 +6,7 @@ import { GetFUNIQUE_GS4LUTProjectTemplate } from '../template/project/GS4_Lut';
 import { GetAfterEffectTemplate, GetBlenderTemplate, GetDefaultProjectTemplate, GetFFmpeg_Image2VideoProjectTemplate, GetFUNIQUE_GS4ProjectTemplate, GetFUNIQUE_GS4Project_V2_Template } from "../template/projectTemplate";
 
 type getproject = () => Array<Project>
+type getparameters = () => Array<Parameter>
 
 /**
  * {@link ProjectTemplate}
@@ -25,7 +26,7 @@ export interface CreateField {
     description: string
     useTemp: boolean
     usePara: boolean
-    parameter?: string
+    parameter: string | null
     temp: number | null
 }
 
@@ -73,15 +74,17 @@ export const IndexToValue = (v:number) => groups[v].value
 
 export class Util_Project {
     getproject:getproject
+    getparameters: getparameters
     data:Ref<DATA>
     
     public get projects() : Array<Project> {
         return this.getproject()
     }
 
-    constructor(_data:Ref<DATA>, _getproject:getproject){
+    constructor(_data:Ref<DATA>, _getproject:getproject, _getparameters:getparameters){
         this.data = _data
         this.getproject = _getproject
+        this.getparameters = _getparameters
     }
 
     isFirst = (uuid:string) => {
@@ -98,7 +101,7 @@ export class Util_Project {
         this.data.value.isEdit = true
         const selectp = this.projects.find(x => x.uuid == uuid)
         if(selectp == undefined) return;
-        this.data.value.editData = {title: selectp.title, usePara: false, description: selectp.description, useTemp: false, temp: 0};
+        this.data.value.editData = {title: selectp.title, usePara: false, description: selectp.description, useTemp: false, temp: 0, parameter: null};
         this.data.value.dialogModal = true;
         this.data.value.editUUID = uuid;
         this.data.value.errorMessage = ''
@@ -121,7 +124,7 @@ export class Util_Project {
 
     createProject = () => {
         this.data.value.isEdit = false
-        this.data.value.editData = {title: "", description: "", usePara: false, useTemp: false, temp: 0};
+        this.data.value.editData = {title: "", description: "", usePara: false, useTemp: false, temp: 0, parameter: null};
         this.data.value.dialogModal = true
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
@@ -138,16 +141,26 @@ export class Util_Project {
             uuid: uuidv6(),
             title: this.data.value.editData.title, 
             description: this.data.value.editData.description,
-            parameter_uuid: '',
+            parameter_uuid: this.data.value.editData.parameter ?? '',
             parameter: undefined,
             task: []
         }
         if (this.data.value.editData.useTemp){
             const index = this.data.value.editData.temp
             const p = groups.find(x => x.value == index)
-            if(p != undefined) buffer = p.template(buffer)
+            if(p != undefined) {
+                buffer = JSON.parse(JSON.stringify(p.template(buffer)))
+            }
             else console.error("Cannot find project template by id", index)
         }
+        if(this.data.value.editData.usePara){
+            const target = this.getparameters().find(x => x.uuid == this.data.value.editData.parameter)
+            if(target != undefined){
+                buffer.parameter_uuid = target.uuid
+                buffer.parameter = undefined
+            } else console.error("Cannot find parameter template by id", this.data.value.editData.parameter)
+        }
+        console.log(buffer)
         return buffer
     }
 

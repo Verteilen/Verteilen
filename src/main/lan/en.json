@@ -58,6 +58,7 @@
         "new-job": "New Job",
         "new-parameter": "New Parameter",
         "edit-parameter": "Modify Parameter",
+        "delete-parameter": "Delete Parameter",
         "enter-parameter-name": "Enter Parameter Name",
         "new-parameter-set": "New Parameter Set",
         "edit-parameter-set": "Modify Parameter Set",

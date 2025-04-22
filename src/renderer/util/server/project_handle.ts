@@ -21,7 +21,6 @@ export class Util_Server_Project {
     addProject = (v:Array<Project>) => {
         v.forEach(x => {
             if(x.parameter == undefined){
-                x.parameter_uuid = ''
                 this.data.value.projects.push(x)
             }else{
                 this.data.value.parameters.push(x.parameter)
@@ -62,6 +61,9 @@ export class Util_Server_Project {
                         this.data.value.selectParameter = undefined
                     }
                     this.data.value.parameters.splice(index2, 1)
+                    if(this.config().config.isElectron){
+                        window.electronAPI.send('delete_parameter', target2.uuid)
+                    }
                 }
             }
             if(this.data.value.selectProject?.uuid == id){

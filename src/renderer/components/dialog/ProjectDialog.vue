@@ -8,23 +8,24 @@ const props = defineProps<DialogDATA>()
 const emits = defineEmits<{
     (e: 'submit', d:CreateField): void
 }>()
-const buffer:Ref<CreateField> = ref({title: "", description: "", usePara: false, useTemp: false, temp: null})
-
-const convert = computed(() => {
-    return {
-        ...buffer.value,
-        useTemp: buffer.value.temp != null
-    }
-})
+const buffer:Ref<CreateField> = ref({title: "", description: "", usePara: false, useTemp: false, temp: null, parameter: null})
 
 const paras = computed(() => {
     return props.parameters.map((x, index) => {
         return {
-            value: index,
+            value: x.uuid,
             title: x.title,
             uuid: x.uuid
         }
     })
+})
+
+const convert = computed(() => {
+    return {
+        ...buffer.value,
+        useTemp: buffer.value.temp != null,
+        usePara: buffer.value.parameter != null
+    }
 })
 
 const itemProps = (item:any) => {
@@ -36,7 +37,7 @@ const itemProps = (item:any) => {
 
 watch(() => data.value, () => {
     if(props.isEdit) buffer.value = props.editData
-    else buffer.value = {title: "", description: "", useTemp: false, usePara: false, temp: null}
+    else buffer.value = {title: "", description: "", useTemp: false, usePara: false, temp: null, parameter: null}
 })
 
 const confirm = () => {
@@ -65,7 +66,7 @@ const confirm = () => {
                 <v-autocomplete clearable v-model="buffer.temp" :items="props.temps" item-title="text" :label="$t('useTemplate')" hide-details></v-autocomplete>
                 <br />
                 <v-checkbox v-model="buffer.usePara" :label="$t('useExistParameter')" hide-details></v-checkbox>
-                <v-autocomplete v-if="buffer.usePara" :item-props="itemProps" v-model="buffer.parameter" clearable :items="paras" item-title="text" :label="$t('Parameter')" hide-details></v-autocomplete>
+                <v-autocomplete v-if="buffer.usePara" :item-props="itemProps" v-model="buffer.parameter" clearable :items="paras" item-title="text" :label="$t('parameter')" hide-details></v-autocomplete>
             </div>
             <p v-if="props.errorMessage.length > 0" class="mt-3 text-red">{{ props.errorMessage }}</p>
         </template>

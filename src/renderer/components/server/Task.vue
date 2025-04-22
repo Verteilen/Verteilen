@@ -56,6 +56,7 @@ const items_final = computed(() => {
 })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_task_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
+const para_title = computed(() => props.parameters.find(x => x.uuid == props.select?.parameter_uuid)?.title)
 
 const updateTask = () => util.updateTask()
 const updateParameter = () => util.updateParameter()
@@ -195,7 +196,7 @@ onUnmounted(() => {
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
                 <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailOpen" color="success">
-                    {{ $t('parameter-setting') }}: {{ props.select?.parameter_uuid }}
+                    {{ $t('parameter-setting') }}: {{ para_title }}
                 </v-chip>
                 <v-btn v-if="hasPara && props.select != undefined" variant="text" icon="mdi-select" @click="detailSelect"></v-btn>
                 <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailSelect" color="warning">

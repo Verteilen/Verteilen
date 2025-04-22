@@ -32,7 +32,7 @@ const data:Ref<DATA> = ref({
     importData: [],
     dialogModal: false,
     isEdit: false,
-    editData: {title: "", description: "", useTemp: false, temp: 0},
+    editData: {title: "", description: "", useTemp: false, temp: 0, parameter: null, usePara: false},
     temps: [],
     editUUID: '',
     deleteModal: false,
@@ -44,7 +44,7 @@ const data:Ref<DATA> = ref({
     selection: []
 })
 
-const util:Util_Project = new Util_Project(data, () => props.projects)
+const util:Util_Project = new Util_Project(data, () => props.projects, () => props.parameters)
 
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
 const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value)) })

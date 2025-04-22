@@ -112,12 +112,13 @@ const server_clients_update = (v:Array<NodeTable>) => util.node.server_clients_u
 //#endregion
 
 //#region Parameter
+const addParameter = (e:Parameter) => util.parameter.addParameter(e)
 const selectParameter = (e:string) => util.parameter.selectParameter(e)
 const editParameter = (e:Parameter) => util.parameter.editParameter(e)
 const deleteParameter = (e:string) => util.parameter.deleteParameter(e)
 const goParameter = (e:string) => {
   data.value.page = 3
-  emitter?.emit('selectParameter', e)
+  nextTick(() => emitter?.emit('selectParameter', e))
 }
 //#endregion
 
@@ -382,6 +383,7 @@ onUnmounted(() => {
             :parameters="data.parameters"
             :select="data.selectParameter"
             :preference="props.preference"
+            @added="e => addParameter(e)"
             @select="e => selectParameter(e)"
             @edit="e => editParameter(e)" 
             @delete="e => deleteParameter(e)"/>
