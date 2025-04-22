@@ -478,6 +478,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
 export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
         uuid: uuidv6(),
+        title: "GS4_V1 Parameter",
         canWrite: true,
         containers: [
             { name: "frameCount", value: 50, type: DataType.Number, runtimeOnly: false, hidden: false },

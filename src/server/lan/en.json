@@ -48,6 +48,7 @@
         "delete-project": "Delete Project",
         "import-project": "Import Project",
         "delete-project-confirm": "Are you sure delete projects below",
+        "delete-project-binding": "Delete the binding parameter set as well",
         "enter-project-name": "Enter Project Name",
         "enter-project-description": "Enter Project Description",
         "new-task": "New Task",

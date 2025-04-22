@@ -8,6 +8,7 @@ import { i18n } from '../../plugins/i18n';
 interface PROPS {
     config: AppConfig
     preference: Preference
+    select: Parameter | undefined
     parameters: Array<Parameter>
 }
 
@@ -16,6 +17,8 @@ const emitter:Emitter<BusType> | undefined = inject('emitter');
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'edit', data:Parameter): void
+    (e: 'select', uuid:string): void
+    (e: 'delete', uuid:string): void
 }>()
 const fields:Ref<Array<any>> = ref([
     { title: 'Name', align: 'center', key: 'name' },
@@ -25,6 +28,8 @@ const fields:Ref<Array<any>> = ref([
     { title: 'Value', align: 'center', key: 'value' },
     { title: 'Detail', align: 'center', key: 'detail' },
 ])
+const selectModal = ref(false)
+const selectSearch = ref('')
 const createModal = ref(false)
 const editMode = ref(false)
 const createData:Ref<ParameterContainer> = ref({ name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number })
@@ -32,14 +37,11 @@ const editData = ref({ name: '', type: 0 })
 const filter = ref({ showhidden: false, showruntime: false, type: -1 })
 const options:Ref<Array<{ title: string, value:number }>> = ref([])
 const dirty = ref(false)
-const select: Ref<Parameter | undefined> = ref(undefined)
-const buffer:Ref<Parameter> = ref({ uuid: '', canWrite: true, containers: [] })
+const buffer:Ref<Parameter> = ref({ uuid: '', title: '', canWrite: true, containers: [] })
 const errorMessage = ref('')
 const titleError = ref(false)
-const selection:Ref<Array<string>> = ref([])
 const search = ref('')
 
-const hasSelect = computed(() => selection.value.length > 0)
 const items_final = computed(() => buffer.value.containers
     .filter(x => {
         if (!filter.value.showruntime && x.runtimeOnly) return false
@@ -55,10 +57,16 @@ const items_final = computed(() => buffer.value.containers
     .filter(x => {
         if(filter.value.type == -1) return true
         return filter.value.type == x.type
-    }))
+    })
+)
+
+const updateParameter = () => {
+    dirty.value = false
+    buffer.value = props.select ? JSON.parse(JSON.stringify(props.select)) : { uuid: '', title: '', canWrite: true, containers: [] }
+}
 
 const selectParameter = (uuid:string) => {
-    select.value = props.parameters.find(x => x.uuid == uuid)
+    emits('select', uuid)
 }
 
 const createParameter = () => {
@@ -81,13 +89,6 @@ const editParameter = (oldname:string) => {
     titleError.value = false
 }
 
-const cloneSelect = () => {
-    const ps = buffer.value.containers.filter(x => selection.value.includes(x.name))
-    ps.forEach(x => x.name += ` (${i18n.global.t('clone')})`)
-    buffer.value.containers.push(...ps)
-    dirty.value = true
-}
-
 const saveParameter = () => {
     emits('edit', buffer.value)
 }
@@ -100,10 +101,6 @@ const importPara = () => {
 const exportPara = () => {
     if(!props.config.isElectron) return
     window.electronAPI.send("export_parameter", JSON.stringify(buffer.value))
-}
-
-const selectall = (s:boolean) => {
-    selection.value = buffer.value.containers.map(x => x.name)
 }
 
 const confirmCreate = () => {
@@ -148,8 +145,11 @@ const confirmEdit = () => {
 }
 
 const deleteSelect = () => {
-    buffer.value.containers = buffer.value.containers.filter(x => !selection.value.includes(x.name))
-    selection.value = []
+    emits('delete', buffer.value.uuid)
+}
+
+const deleteitem = (name:string) => {
+    buffer.value.containers = buffer.value.containers.filter(x => x.name != name)
     dirty.value = true
 }
 
@@ -173,6 +173,10 @@ const import_parameter_feedback = (e:IpcRendererEvent, v:string) => {
     const d = JSON.parse(v)
     buffer.value = d
     setdirty()
+}
+
+const paraSelect = () => {
+    selectModal.value = true
 }
 
 const moveup = (name:string) => {
@@ -205,6 +209,7 @@ const isLast = (name:string) => {
 onMounted(() => {
     updateLocate()
     emitter?.on('updateLocate', updateLocate)
+    emitter?.on('updateParameter', updateParameter)
     emitter?.on('selectParameter', selectParameter)
     if(props.config.isElectron){
         window.electronAPI.eventOn("import_parameter_feedback", import_parameter_feedback)
@@ -213,6 +218,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     emitter?.off('updateLocate', updateLocate)
+    emitter?.off('updateParameter', updateParameter)
     emitter?.off('selectParameter', selectParameter)
     if(props.config.isElectron){
         window.electronAPI.eventOff("import_parameter_feedback", import_parameter_feedback)
@@ -258,34 +264,10 @@ onUnmounted(() => {
                         </v-btn>
                     </template>
                     {{ $t('export') }}
-                </v-tooltip>
+                </v-tooltip>          
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="selectall(true)">
-                            <v-icon>mdi-check-bold</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('selectall') }}
-                </v-tooltip>    
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="selectall(false)">
-                            <v-icon>mdi-check-outline</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('unselectall') }}
-                </v-tooltip>    
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="cloneSelect" :disabled="!hasSelect || select == undefined">
-                            <v-icon>mdi-content-paste</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('clone') }}
-                </v-tooltip>         
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
+                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="select == undefined">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>
@@ -297,11 +279,17 @@ onUnmounted(() => {
             <v-checkbox class="pl-3" :label="$t('filter.show-hidden')" v-model="filter.showhidden" hide-details></v-checkbox>
             <v-checkbox class="pl-3" :label="$t('filter.show-runtime')" v-model="filter.showruntime" hide-details></v-checkbox>
             <v-select class="pl-3" density="compact" :label="$t('filter.type')" v-model="filter.type" :items="options" item-text="text" hide-details max-width="300px"></v-select>
+            <v-chip class="ml-3" v-if="select == undefined" prepend-icon="mdi-pen" @click="paraSelect" color="warning">
+                {{ $t('parameter-select') }}
+            </v-chip>
+            <v-chip class="ml-3" v-else prepend-icon="mdi-pen" @click="paraSelect" color="success">
+                {{ select.title }}
+            </v-chip>
             <v-spacer></v-spacer>
             <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
         </v-toolbar>
         <div class="py-3 px-5 text-left">
-            <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.detail="{ item }">
                     <v-btn flat icon @click="editParameter(item.name)" size="small">
                         <v-icon>mdi-pencil</v-icon>
@@ -312,10 +300,13 @@ onUnmounted(() => {
                     <v-btn flat icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
+                    <v-btn flat icon :disabled="isLast(item.name)" @click="deleteitem(item.name)" size="small">
+                        <v-icon>mdi-delete</v-icon>
+                    </v-btn>
                 </template>
                 <template v-slot:item.value="{ item }">
                     <v-checkbox density="compact" hide-details v-if="item.type == 0" v-model="item.value" @input="setdirty"></v-checkbox>
-                    <v-text-field density="compact" hide-details v-if="item.type == 1" type="number" v-model="item.value" @input="setdirty"></v-text-field>
+                    <v-text-field density="compact" hide-details v-if="item.type == 1" type="number" v-model.number="item.value" @input="setdirty"></v-text-field>
                     <v-text-field density="compact" hide-details v-if="item.type == 2" v-model="item.value" @input="setdirty"></v-text-field>
                     <v-text-field density="compact" hide-details v-if="item.type == 3" v-model="item.meta" @input="setdirty"></v-text-field>
                 </template>
@@ -351,6 +342,32 @@ onUnmounted(() => {
                     <v-btn class="mt-3" color="primary" v-if="!editMode" @click="confirmCreate">{{ $t('create') }}</v-btn>
                     <v-btn class="mt-3" color="primary" v-else @click="confirmEdit">{{ $t('modify') }}</v-btn>
                 </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="selectModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('parameter-select') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="selectSearch">
+                    </v-text-field>
+                    <v-list>
+                        <v-list-item v-for="(p, i) in props.parameters" :key="i">
+                            <v-list-item-title>
+                                {{ p.title }}
+                            </v-list-item-title>
+                            <v-list-item-subtitle>
+                                {{ p.uuid }}
+                            </v-list-item-subtitle>
+                            <template v-slot:append>
+                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); selectModal = false"
+                                ></v-btn>
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                </v-card-text>
             </v-card>
         </v-dialog>
     </div>

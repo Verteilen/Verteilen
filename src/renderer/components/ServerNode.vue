@@ -84,7 +84,7 @@ const saveRecord = () => util.saveRecord()
 //#region Project
 const addProject = (v:Array<Project>) => util.project.addProject(v)
 const editProject = (id:string, v:Project) => util.project.editProject(id, v)
-const deleteProject = (uuids:Array<string>) => util.project.deleteProject(uuids)
+const deleteProject = (uuids:Array<string>, bind:boolean) => util.project.deleteProject(uuids, bind)
 const chooseProject = (uuid:string) => util.project.chooseProject(uuid)
 const moveupProject = (uuid:string) => util.project.moveupProject(uuid)
 const movedownProject = (uuid:string) => util.project.movedownProject(uuid)
@@ -111,7 +111,9 @@ const server_clients_update = (v:Array<NodeTable>) => util.node.server_clients_u
 //#endregion
 
 //#region Parameter
+const selectParameter = (e:string) => util.parameter.selectParameter(e)
 const editParameter = (e:Parameter) => util.parameter.editParameter(e)
+const deleteParameter = (e:string) => util.parameter.deleteParameter(e)
 const goParameter = (e:string) => {
   data.value.page = 3
   emitter?.emit('selectParameter', e)
@@ -342,7 +344,7 @@ onUnmounted(() => {
             @added="e => addProject(e)" 
             @edit="(id, e) => editProject(id, e)" 
             @select="e => chooseProject(e)" 
-            @delete="e => deleteProject(e)"
+            @delete="(e, e2) => deleteProject(e, e2)"
             @moveup="e => moveupProject(e)"
             @movedown="e => movedownProject(e)" 
             @execute="(e, keep) => executeProjects(e, keep)"/>
@@ -352,6 +354,7 @@ onUnmounted(() => {
             :projects="data.projects" 
             :select="data.selectProject" 
             :preference="props.preference"
+            :parameters="data.parameters"
             @added="e => addTask(e)" 
             @edit="(id, e) => editTask(id, e)" 
             @select="e => chooseTask(e)"
@@ -376,7 +379,9 @@ onUnmounted(() => {
             :parameters="data.parameters"
             :select="data.selectParameter"
             :preference="props.preference"
-            @edit="e => editParameter(e)" />
+            @select="e => selectParameter(e)"
+            @edit="e => editParameter(e)" 
+            @delete="e => deleteParameter(e)"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="4">
           <NodePage

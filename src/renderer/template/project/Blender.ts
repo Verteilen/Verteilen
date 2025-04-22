@@ -29,6 +29,7 @@ const GetBlenderTemplate_Render = ():Task => {
 
 export const GetBlenderTemplate = (r:Project):Project => {
     const para:Parameter = {
+        title: "Blender Parameter",
         uuid: uuidv6(),
         canWrite: true,
         containers: [

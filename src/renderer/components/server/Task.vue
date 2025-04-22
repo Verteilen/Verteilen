@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, Preference, Project, Task } from '../../interface';
+import { BusType, DataType, Parameter, Preference, Project, Task } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, Util_Task } from '../../util/Task';
 import TaskDialog from '../dialog/TaskDialog.vue';
@@ -12,6 +12,7 @@ interface PROPS {
     preference: Preference
     projects: Array<Project>
     select: Project | undefined
+    parameters: Array<Parameter>
 }
 
 const props = defineProps<PROPS>()
@@ -43,7 +44,7 @@ const data:Ref<DATA> = ref({
 
 const util:Util_Task = new Util_Task(data, () => props.select)
 
-const hasPara = computed(() => props.select == undefined ? false : props.select.parameter_uuid.length > 0)
+const hasPara = computed(() => props.select != undefined && props.select.parameter_uuid != undefined ? props.select.parameter_uuid.length > 0 : false)
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
 const items_final = computed(() => {
     return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value))
@@ -184,10 +185,11 @@ onUnmounted(() => {
                 <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
-                <v-chip v-if="hasPara" prepend-icon="mdi-pen" @click="detailOpen" color="success">
+                <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailOpen" color="success">
                     {{ $t('parameter-setting') }}: {{ props.select?.parameter_uuid }}
                 </v-chip>
-                <v-chip v-else prepend-icon="mdi-pen" @click="detailSelect" color="warning">
+                <v-btn v-if="hasPara && props.select != undefined" variant="text" icon="mdi-select" @click="detailSelect" color="warning"></v-btn>
+                <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailSelect" color="warning">
                     {{ $t('parameter-select') }}
                 </v-chip>
                 <v-spacer></v-spacer>

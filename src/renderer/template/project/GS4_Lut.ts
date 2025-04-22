@@ -30,6 +30,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
 
 export const GetFUNIQUE_GS4LUTProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
+        title: "GS4_Lut Parameter",
         uuid: uuidv6(),
         canWrite: true,
         containers: [

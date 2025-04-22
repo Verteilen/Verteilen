@@ -55,6 +55,7 @@ const GetFFmpeg_Image2VideoProjectTemplate_Concat = ():Task => {
 
 export const GetFFmpeg_Image2VideoProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
+        title: "FFmpeg Parameter",
         uuid: uuidv6(),
         canWrite: true,
         containers: [

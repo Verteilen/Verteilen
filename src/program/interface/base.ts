@@ -17,6 +17,7 @@ export interface Property {
 
 export interface Parameter {
     uuid: string
+    title: string
     canWrite: boolean
     containers: Array<ParameterContainer>
 }

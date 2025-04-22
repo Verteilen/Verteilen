@@ -64,6 +64,7 @@ export type BusType = {
     recoverProject: Project
     updateTask: void
     updateJob: void
+    updateParameter: void
     selectParameter: string
     updateLocate: void
     updateNode: Array<NodeTable>

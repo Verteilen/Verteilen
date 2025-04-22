@@ -18,7 +18,7 @@ const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', project:Project[]): void
     (e: 'edit', uuid:string, project:Project): void
-    (e: 'delete', uuids:Array<string>): void
+    (e: 'delete', uuids:Array<string>, bind:boolean): void
     (e: 'select', uuids:string): void
     (e: 'execute', uuids:Array<string>, force:boolean): void
     (e: 'moveup', uuids:string): void
@@ -35,6 +35,7 @@ const data:Ref<DATA> = ref({
     temps: [],
     editUUID: '',
     deleteModal: false,
+    deleteBind: false,
     deleteData: [],
     errorMessage: '',
     titleError: false,
@@ -72,7 +73,7 @@ const deleteSelect = () => {
 
 const deleteConfirm = () => {
     data.value.deleteModal = false
-    emits('delete', data.value.deleteData)
+    emits('delete', data.value.deleteData, data.value.deleteBind)
     nextTick(() => {
         updateProject()
     })
@@ -355,6 +356,7 @@ onUnmounted(() => {
                     <p v-for="(p, i) in data.deleteData">
                         {{ i }}. {{ p }}
                     </p>
+                    <v-checkbox v-model="data.deleteBind" :label="$t('modal.delete-project-binding')"></v-checkbox>
                 </v-card-text>
                 <template v-slot:actions>
                     <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>

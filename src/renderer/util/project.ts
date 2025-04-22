@@ -49,6 +49,7 @@ export interface DATA {
     temps:Array<Temp>
     editUUID:string
     deleteModal:boolean
+    deleteBind: boolean
     deleteData:Array<string>
     errorMessage:string
     titleError:boolean

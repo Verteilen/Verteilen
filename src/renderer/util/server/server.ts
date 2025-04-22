@@ -11,7 +11,7 @@ import { Util_Server_Project } from "./project_handle";
 import { Util_Server_Task } from "./task_handle";
 
 export type save_and_update = () => void
-type config_getter = () => BackendProxy
+export type config_getter = () => BackendProxy
 
 export interface DATA {
     websocket_manager: WebsocketManager | undefined
@@ -44,7 +44,7 @@ export class Util_Server {
         this.data = _data
         this.config = _config
         this.emitter = _emitter
-        this.project = new Util_Server_Project(this.data, this.allUpdate, this.update, _emitter)
+        this.project = new Util_Server_Project(this.data, this.config, this.allUpdate, this.update, _emitter)
         this.task = new Util_Server_Task(this.data, this.allUpdate, this.update)
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
@@ -61,6 +61,7 @@ export class Util_Server {
             this.emitter.emit('updateProject')
             this.emitter.emit('updateTask')
             this.emitter.emit('updateJob')
+            this.emitter.emit('updateParameter')
         })
     }
     
@@ -72,14 +73,14 @@ export class Util_Server {
                 window.electronAPI.send('save_record', x.uuid, text)
             })
         }
-        if((type & RenderUpdateType.Node) == RenderUpdateType.Project){
+        if((type & RenderUpdateType.Node) == RenderUpdateType.Node){
             this.data.value.nodes.forEach(x => {
                 if(!this.config().config.isElectron) return
                 const text = JSON.stringify(x)
                 window.electronAPI.send('save_node', x.ID, text)
             })
         }
-        if((type & RenderUpdateType.Parameter) == RenderUpdateType.Project){
+        if((type & RenderUpdateType.Parameter) == RenderUpdateType.Parameter){
             this.data.value.parameters.forEach(x => {
                 if(!this.config().config.isElectron) return
                 const text = JSON.stringify(x)
