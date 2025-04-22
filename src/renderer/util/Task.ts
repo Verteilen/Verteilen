@@ -141,6 +141,25 @@ export class Util_Task {
         }
     }
 
+    dataedit = (uuid:string) => {
+        if(this.select() == undefined) return
+        const selectp = this.select()!.task.find(x => x.uuid == uuid)
+        if(selectp == undefined) return;
+        this.data.value.editData = {
+            cronjob: selectp.cronjob, 
+            cronjobKey: selectp.cronjobKey, 
+            title: selectp.title, 
+            description: selectp.description, 
+            multi: selectp.multi, 
+            multiKey: selectp.multiKey
+        };
+        this.data.value.dialogModal = true;
+        this.data.value.isEdit = true
+        this.data.value.editUUID = uuid;
+        this.data.value.errorMessage = ''
+        this.data.value.titleError = false
+    }
+
     isFirst = (uuid:string) => {
         if(this.select_props == undefined) return
         const index = this.select_props.task.findIndex(x => x.uuid == uuid)

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { v6 as uuid6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, DataType, DataTypeText, Parameter, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
@@ -82,6 +81,12 @@ const createParameter = () => util.createParameter()
 const editParameter = (oldname:string) => util.editParameter(oldname)
 const saveParameter = () => { emits('edit', data.value.buffer) }
 
+const confirmFilter = () => util.confirmFilter()
+const confirmCreate = () => util.confirmCreate()
+const confirmEdit = () => util.confirmEdit()
+const setdirty = () => data.value.dirty = true
+const filterOpen = () => util.filterOpen()
+
 const importPara = () => {
     if(!props.config.isElectron) return
     window.electronAPI.send("import_parameter")
@@ -92,81 +97,16 @@ const exportPara = () => {
     window.electronAPI.send("export_parameter", JSON.stringify(data.value.buffer))
 }
 
-const confirmFilter = () => {
-    data.value.filterModal = false
-    data.value.filter = JSON.parse(JSON.stringify(data.value.buffer_filter))
-}
-
-const confirmCreate = () => {
-    if(data.value.createData.name.length == 0){
-        data.value.errorMessage = i18n.global.t('error.title-needed')
-        data.value.titleError = true
-        return
-    }
-    if(data.value.buffer.containers.findIndex(x => x.name == data.value.createData.name) != -1){
-        data.value.errorMessage = i18n.global.t('error.title-repeat')
-        data.value.titleError = true
-        return
-    }
-    data.value.buffer.containers.push(data.value.createData)
-    data.value.createModal = false
-    data.value.dirty = true
-}
-
-const confirmEdit = () => {
-    if(data.value.createData.name.length == 0){
-        data.value.errorMessage = i18n.global.t('error.title-needed')
-        data.value.titleError = true
-        return
-    }
-    if(data.value.editData.name != data.value.createData.name){
-        if(data.value.buffer.containers.findIndex(x => x.name == data.value.createData.name) != -1){
-            data.value.errorMessage = i18n.global.t('error.title-repeat')
-            data.value.titleError = true
-            return
-        }
-    }
-    if(data.value.createData.type != data.value.editData.type){
-        if(data.value.createData.type = DataType.Boolean) data.value.createData.value = false
-        else if(data.value.createData.type = DataType.Expression) data.value.createData.value = ''
-        else if(data.value.createData.type = DataType.Number) data.value.createData.value = 0
-        else if(data.value.createData.type = DataType.String) data.value.createData.value = ''
-    }
-    const index = data.value.buffer.containers.findIndex(x => x.name == data.value.editData.name)
-    data.value.buffer.containers[index] = data.value.createData
-    data.value.createModal = false
-    data.value.dirty = true
-}
-
 const confirmCreateSet = () => {
-    if(data.value.editData.name.length == 0){
-        data.value.errorMessage = i18n.global.t('error.title-needed')
-        data.value.titleError = true
-        return
-    }
-    const d:Parameter = {
-        title: data.value.editData.name,
-        uuid: uuid6(),
-        canWrite: true,
-        containers: []
-    }
+    const d = util.confirmCreateSet()
+    if(d == undefined) return
     emits('added', d)
     data.value.createParameterModal = false
 }
 
 const confirmEditSet = () => {
-    if(props.select == undefined) return
-    if(data.value.editData.name.length == 0){
-        data.value.errorMessage = i18n.global.t('error.title-needed')
-        data.value.titleError = true
-        return
-    }
-    const d:Parameter = {
-        title: data.value.editData.name,
-        uuid: props.select.uuid,
-        canWrite: props.select.canWrite,
-        containers: props.select.containers
-    }
+    const d = util.confirmEditSet()
+    if(d == undefined) return
     emits('edit', d)
     data.value.createParameterModal = false
 }
@@ -183,13 +123,6 @@ const deleteConfirm = () => {
 const deleteitem = (name:string) => {
     data.value.buffer.containers = data.value.buffer.containers.filter(x => x.name != name)
     data.value.dirty = true
-}
-
-const setdirty = () => data.value.dirty = true
-
-const filterOpen = () => {
-    data.value.buffer_filter = JSON.parse(JSON.stringify(data.value.filter))
-    data.value.filterModal = true
 }
 
 const DataTypeTranslate = (t:number):string => {
@@ -212,9 +145,7 @@ const import_parameter_feedback = (e:IpcRendererEvent, v:string) => {
     setdirty()
 }
 
-const paraSelect = () => {
-    data.value.selectModal = true
-}
+const paraSelect = () => { data.value.selectModal = true }
 
 const paraCreate = () => {
     data.value.createParameterModal = true
@@ -228,32 +159,10 @@ const paraEdit = () => {
     data.value.editData.name = props.select.title
 }
 
-const moveup = (name:string) => {
-    const index = data.value.buffer.containers.findIndex(x => x.name == name)
-    const bb = data.value.buffer.containers[index]
-    data.value.buffer.containers[index] = data.value.buffer.containers[index - 1]
-    data.value.buffer.containers[index - 1] = bb
-    data.value.dirty = true
-}
-
-const movedown = (name:string) => {
-    const index = data.value.buffer.containers.findIndex(x => x.name == name)
-    const bb = data.value.buffer.containers[index]
-    data.value.buffer.containers[index] = data.value.buffer.containers[index + 1]
-    data.value.buffer.containers[index + 1] = bb
-    data.value.dirty = true
-}
-
-const isFirst = (name:string) => {
-    const index = data.value.buffer.containers.findIndex(x => x.name == name)
-    return index <= 0
-}
-
-const isLast = (name:string) => {
-    const index = data.value.buffer.containers.findIndex(x => x.name == name)
-    if(index == -1) return true
-    return index == data.value.buffer.containers.length - 1
-}
+const moveup = (name:string) => util.moveup(name)
+const movedown = (name:string) => util.movedown(name)
+const isFirst = (name:string) => util.isFirst(name)
+const isLast = (name:string) => util.isLast(name)
 
 onMounted(() => {
     updateLocate()

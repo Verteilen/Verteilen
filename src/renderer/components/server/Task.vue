@@ -63,6 +63,9 @@ const updateParameter = () => util.updateParameter()
 const createProject = () => util.createProject()
 const detailOpen = () => emits('parameter', props.select!.parameter_uuid)
 
+const datachoose = (uuid:string) => emits('select', uuid)
+const dataedit = (uuid:string) => util.dataedit(uuid)
+
 const detailSelect = () => {
     data.value.paraModal = true
 }
@@ -89,27 +92,6 @@ const deleteConfirm = () => {
     nextTick(() => {
         updateTask()
     })
-}
-
-const datachoose = (uuid:string) => emits('select', uuid)
-
-const dataedit = (uuid:string) => {
-    if(props.select == undefined) return
-    const selectp = props.select.task.find(x => x.uuid == uuid)
-    if(selectp == undefined) return;
-    data.value.editData = {
-        cronjob: selectp.cronjob, 
-        cronjobKey: selectp.cronjobKey, 
-        title: selectp.title, 
-        description: selectp.description, 
-        multi: selectp.multi, 
-        multiKey: selectp.multiKey
-    };
-    data.value.dialogModal = true;
-    data.value.isEdit = true
-    data.value.editUUID = uuid;
-    data.value.errorMessage = ''
-    data.value.titleError = false
 }
 
 const selectParameter = (uuid:string) => {

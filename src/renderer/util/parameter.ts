@@ -1,5 +1,7 @@
-import { Ref } from "vue"
-import { DataType, Parameter, ParameterContainer } from "../interface"
+import { v6 as uuid6 } from 'uuid';
+import { Ref } from "vue";
+import { DataType, Parameter, ParameterContainer } from "../interface";
+import { i18n } from "../plugins/i18n";
 
 type getparameters = () => Array<Parameter>
 type getparameter = () => Parameter | undefined
@@ -88,5 +90,114 @@ export class Util_Parameter {
         this.data.value.editMode = true
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
+    }
+
+    confirmFilter = () => {
+        this.data.value.filterModal = false
+        this.data.value.filter = JSON.parse(JSON.stringify(this.data.value.buffer_filter))
+    }
+
+    confirmCreate = () => {
+        if(this.data.value.createData.name.length == 0){
+            this.data.value.errorMessage = i18n.global.t('error.title-needed')
+            this.data.value.titleError = true
+            return
+        }
+        if(this.data.value.buffer.containers.findIndex(x => x.name == this.data.value.createData.name) != -1){
+            this.data.value.errorMessage = i18n.global.t('error.title-repeat')
+            this.data.value.titleError = true
+            return
+        }
+        this.data.value.buffer.containers.push(this.data.value.createData)
+        this.data.value.createModal = false
+        this.data.value.dirty = true
+    }
+
+    confirmEdit = () => {
+        if(this.data.value.createData.name.length == 0){
+            this.data.value.errorMessage = i18n.global.t('error.title-needed')
+            this.data.value.titleError = true
+            return
+        }
+        if(this.data.value.editData.name != this.data.value.createData.name){
+            if(this.data.value.buffer.containers.findIndex(x => x.name == this.data.value.createData.name) != -1){
+                this.data.value.errorMessage = i18n.global.t('error.title-repeat')
+                this.data.value.titleError = true
+                return
+            }
+        }
+        if(this.data.value.createData.type != this.data.value.editData.type){
+            if(this.data.value.createData.type = DataType.Boolean) this.data.value.createData.value = false
+            else if(this.data.value.createData.type = DataType.Expression) this.data.value.createData.value = ''
+            else if(this.data.value.createData.type = DataType.Number) this.data.value.createData.value = 0
+            else if(this.data.value.createData.type = DataType.String) this.data.value.createData.value = ''
+        }
+        const index = this.data.value.buffer.containers.findIndex(x => x.name == this.data.value.editData.name)
+        this.data.value.buffer.containers[index] = this.data.value.createData
+        this.data.value.createModal = false
+        this.data.value.dirty = true
+    }
+
+    confirmCreateSet = () => {
+        if(this.data.value.editData.name.length == 0){
+            this.data.value.errorMessage = i18n.global.t('error.title-needed')
+            this.data.value.titleError = true
+            return undefined
+        }
+        const d:Parameter = {
+            title: this.data.value.editData.name,
+            uuid: uuid6(),
+            canWrite: true,
+            containers: []
+        }
+        return d
+    }
+
+    confirmEditSet = () => {
+        if(this.parameter() == undefined) return
+        if(this.data.value.editData.name.length == 0){
+            this.data.value.errorMessage = i18n.global.t('error.title-needed')
+            this.data.value.titleError = true
+            return
+        }
+        const d:Parameter = {
+            title: this.data.value.editData.name,
+            uuid: this.parameter()!.uuid,
+            canWrite: this.parameter()!.canWrite,
+            containers: this.parameter()!.containers
+        }
+        return d
+    }
+
+    filterOpen = () => {
+        this.data.value.buffer_filter = JSON.parse(JSON.stringify(this.data.value.filter))
+        this.data.value.filterModal = true
+    }
+
+    moveup = (name:string) => {
+        const index = this.data.value.buffer.containers.findIndex(x => x.name == name)
+        const bb = this.data.value.buffer.containers[index]
+        this.data.value.buffer.containers[index] = this.data.value.buffer.containers[index - 1]
+        this.data.value.buffer.containers[index - 1] = bb
+        this.data.value.dirty = true
+    }
+
+    movedown = (name:string) => {
+        const index = this.data.value.buffer.containers.findIndex(x => x.name == name)
+        const bb = this.data.value.buffer.containers[index]
+        this.data.value.buffer.containers[index] = this.data.value.buffer.containers[index + 1]
+        this.data.value.buffer.containers[index + 1] = bb
+        this.data.value.dirty = true
+    }
+
+    isFirst = (name:string) => {
+        const index = this.data.value.buffer.containers.findIndex(x => x.name == name)
+        return index <= 0
+    }
+
+    isLast = (name:string) => {
+        const index = this.data.value.buffer.containers.findIndex(x => x.name == name)
+        if(index == -1) return true
+        return index == this.data.value.buffer.containers.length - 1
     }
 }

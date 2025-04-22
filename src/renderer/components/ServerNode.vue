@@ -403,19 +403,19 @@ onUnmounted(() => {
             :libs="data.libs"
             v-model="data.projects_exe"/>
         </v-tabs-window-item>
-        <v-tabs-window-item v-if="config.haveBackend" :value="6">
+        <v-tabs-window-item v-shoe="config.haveBackend" :value="6">
           <LogPage 
             :config="config"
             :execute="data.execute_manager"
             :preference="props.preference"
             v-model="data.projects_exe"/>
         </v-tabs-window-item>
-        <v-tabs-window-item v-if="config.haveBackend" :value="7">
+        <v-tabs-window-item v-shoe="config.haveBackend" :value="7">
           <LibraryPage
             :config="config"
             v-model="data.libs"/>
         </v-tabs-window-item>
-        <v-tabs-window-item v-if="config.haveBackend" :value="8">
+        <v-tabs-window-item v-shoe="config.haveBackend" :value="8">
           <SelfPage
             :config="config"
             :preference="props.preference"/>

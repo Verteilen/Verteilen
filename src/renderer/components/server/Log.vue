@@ -5,6 +5,7 @@ import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
 import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
+import LogMenuDialog from './../dialog/LogMenuDialog.vue';
 import ParameterPage from './console/Parameter.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -16,6 +17,7 @@ interface PROPS {
 }
 
 const tag = ref(0)
+const recoverDialog = ref(false)
 const exportDialog = ref(false)
 const data = defineModel<ExecuteRecord>()
 const props = defineProps<PROPS>()
@@ -94,6 +96,14 @@ const clean = () => {
 }
 
 const recover = () => {
+    recoverDialog.value = true
+}
+
+const exporter = () => {
+    exportDialog.value = true
+}
+
+const recoverConfirm = (mode:number) => {
     if(getselect.value == undefined) return
     const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
     p.uuid = uuidv6()
@@ -106,11 +116,6 @@ const recover = () => {
         })
     })
     emitter?.emit('recoverProject', p)
-}
-
-const exporter = () => {
-    exportDialog.value = true
-    
 }
 
 const exportConfirm = (mode:number) => {
@@ -130,7 +135,7 @@ const receivedPack = async (record:Record) => {
         dirty: true,
         output: props.preference.log,
         project: target,
-        parameter: target.parameter,
+        parameter: target.parameter!,
         state: ExecuteState.NONE,
         start_timer: Date.now(),
         end_timer: 0,
@@ -172,7 +177,7 @@ const execute_project_start = async (d:Project) => {
         project: target,
         state: ExecuteState.RUNNING,
         start_timer: Date.now(),
-        parameter: d.parameter,
+        parameter: d.parameter!,
         end_timer: 0,
         logs: target.task.map(x => {
             return {
@@ -424,35 +429,20 @@ onUnmounted(() => {
                 <ParameterPage v-model="getselect.parameter" :preference="props.preference" />
             </v-col>
         </v-row>
-        <v-dialog width="500" v-model="exportDialog">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-export</v-icon>
-                    {{ $t('export') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-row style="height: 100px;">
-                        <v-col cols="6">
-                            <v-btn color="primary" class="w-100 h-100" @click="exportConfirm(0)">
-                                <span :style="{ 'fontSize': props.preference.font + 'px' }">
-                                    {{ $t('project') }}
-                                </span>
-                            </v-btn>
-                        </v-col>
-                        <v-col cols="6">
-                            <v-btn color="secondary" class="w-100 h-100" @click="exportConfirm(1)">
-                                <span :style="{ 'fontSize': props.preference.font + 'px' }">
-                                    {{ $t('parameter') }}
-                                </span>
-                            </v-btn>
-                        </v-col>
-                    </v-row>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="error" @click="exportDialog = false">{{ $t('cancel') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
+        <LogMenuDialog 
+            v-model="recoverDialog" 
+            icon="mdi-recycle"
+            :label="$t('recover')"
+            :preference="props.preference"
+            @project="recoverConfirm(0)"
+            @parameter="recoverConfirm(1)" />
+        <LogMenuDialog 
+            v-model="exportDialog" 
+            icon="mdi-export"
+            :label="$t('export')"
+            :preference="props.preference"
+            @project="exportConfirm(0)"
+            @parameter="exportConfirm(1)" />
     </v-container>
 </template>
 
