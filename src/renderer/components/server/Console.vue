@@ -18,7 +18,7 @@ interface PROPS {
     config: AppConfig
     preference: Preference
     socket: WebsocketManager | undefined
-    execute: Array<ExecuteManager>
+    execute: Array<[ExecuteManager, ExecuteRecord]>
     libs: Libraries
     projects: Array<Project>
     nodes: Array<Node>
@@ -58,25 +58,28 @@ const consoleAdded = (name:string, data:Record) => {
  * This will response for the main update for the process worker
  */
 const updateHandle = () => {
-    if(model.value![1].running && !model.value![1].stop){
-        try {
-            props.execute[0].Update()
-        }catch(err:any){
-            model.value![1].stop = true
-            const str = 'Execute Error: ' + err.name + '\n' + err.message
-            emitter?.emit('makeToast', {
-                title: 'Error Interrupt',
-                message: str,
-                type: 'danger'
-            })
-            console.error(err)
+    props.execute.forEach(x => {
+        if(x[1].running && x[1].stop){
+            try {
+                x[0].Update()
+            }catch(err:any){
+                model.value![1].stop = true
+                const str = 'Execute Error: ' + err.name + '\n' + err.message
+                emitter?.emit('makeToast', {
+                    title: 'Error Interrupt',
+                    message: str,
+                    type: 'danger'
+                })
+                console.error(err)
+            }
         }
-    }
-    if(model.value![1].stop){
-        if(props.execute[0].jobstack == 0){
-            model.value![1].running = false
+        if(model.value![1].stop){
+            if(x[0].jobstack == 0){
+                model.value![1].running = false
+            }
         }
-    }
+    })
+    
 }
 
 const createConsole = () => {
@@ -510,6 +513,7 @@ onUnmounted(() => {
             :projects="props.projects"
             :nodes="props.nodes"
             :parameters="props.parameters"
+            :preference="props.preference"
             @confirm="(e, e1) => consoleAdded(e, e1)"
         />
         <NumberDialog v-model="data.skipModal" 

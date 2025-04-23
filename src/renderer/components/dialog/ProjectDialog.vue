@@ -47,7 +47,7 @@ const confirm = () => {
 </script>
 
 <template>
-    <DialogBase :width="500" v-model="data">
+    <DialogBase width="500" v-model="data">
         <template #title>
             <div v-if="props.isEdit">
                 <v-icon>mdi-pencil</v-icon>

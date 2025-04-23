@@ -70,7 +70,9 @@
         "enter-node-address": "輸入節點位址",
         "skip-step": "跳過步驟",
         "delete-node": "刪除節點",
-        "delete-node-confirm": "確定刪除以下節點嗎?"
+        "delete-node-confirm": "確定刪除以下節點嗎?",
+        "log-recover-project-title": "新專案名稱",
+        "log-recover-parameter-title": "新參數名稱"
     },
     "toolbar": {
         "project": "專案管理",

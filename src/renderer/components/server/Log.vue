@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
 import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Record, Task } from '../../interface';
+import { i18n } from '../../plugins/i18n';
 import { ExecuteManager } from '../../script/execute_manager';
 import LogMenuDialog from './../dialog/LogMenuDialog.vue';
 import ParameterPage from './console/Parameter.vue';
@@ -26,6 +27,7 @@ const task_index = ref(0)
 const leftSize = ref(3)
 const rightSize = ref(9)
 const totalLength = ref(4)
+const holder:Ref<Array<string>> = ref([])
 const current:Ref<number> = ref(-1)
 const selection:Ref<number> = ref(0)
 const panelValue:Ref<Array<number>> = ref([])
@@ -96,19 +98,26 @@ const clean = () => {
 }
 
 const recover = () => {
-    recoverDialog.value = true
+    if(getselect.value == undefined) return
+    const p = getselect.value.project.parameter!.title == undefined ? `${getselect.value.project.title} ${i18n.global.t('parameter')}` : getselect.value.project.parameter!.title
+    holder.value = [
+        `${getselect.value.project.title} ${i18n.global.t('recover')}`,
+        `${p} ${i18n.global.t('recover')}`
+    ]
+    nextTick(() => recoverDialog.value = true)
 }
 
 const exporter = () => {
     exportDialog.value = true
 }
 
-const recoverConfirm = (mode:number) => {
+const recoverConfirm = (mode:number, _names?:Array<string>) => {
     if(getselect.value == undefined) return
+    const names:Array<string> = _names!
     if(mode == 0){
         const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
         p.uuid = uuidv6()
-        p.title = p.title + " (恢復)"
+        p.title = names[0]
         p.parameter = getselect.value.parameter
         p.task.forEach(x => {
             x.uuid = uuidv6()
@@ -120,7 +129,7 @@ const recoverConfirm = (mode:number) => {
     }else{
         const p:Parameter = JSON.parse(JSON.stringify(getselect.value.project.parameter))
         p.uuid = uuidv6()
-        p.title = p.title + " (恢復)"
+        p.title = names[1]
         emitter?.emit('recoverParameter', p)
     }
 }
@@ -439,13 +448,17 @@ onUnmounted(() => {
             icon="mdi-recycle"
             :label="$t('recover')"
             :preference="props.preference"
-            @project="recoverConfirm(0)"
-            @parameter="recoverConfirm(1)" />
+            :recover="true"
+            :holder="holder"
+            @project="e => recoverConfirm(0, e)"
+            @parameter="e => recoverConfirm(1, e)" />
         <LogMenuDialog 
             v-model="exportDialog" 
             icon="mdi-export"
             :label="$t('export')"
             :preference="props.preference"
+            :recover="false"
+            :holder="holder"
             @project="exportConfirm(0)"
             @parameter="exportConfirm(1)" />
     </v-container>

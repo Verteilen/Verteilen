@@ -70,7 +70,9 @@
         "enter-node-address": "Enter Node Address",
         "skip-step": "Skip Step",
         "delete-node": "Delete Node",
-        "delete-node-confirm": "Are you sure delete nodes below"
+        "delete-node-confirm": "Are you sure delete nodes below",
+        "log-recover-project-title": "New Project Title",
+        "log-recover-parameter-title": "New Parameter Title"
     },
     "toolbar": {
         "project": "Project",

@@ -196,6 +196,26 @@ const Cookie = () => {
 }
 //#endregion
 
+const updateLocate = () => {
+  updateTab()
+}
+
+const updateTab = () => {
+  tabs.value = [
+    ["mdi-cube", "toolbar.project", 0],
+    ["mdi-calendar", "toolbar.task", 1],
+    ["mdi-hammer", "toolbar.job", 2],
+    ["mdi-database", "toolbar.parameter", 3],
+    ["mdi-network", "toolbar.node", 4],
+    ["mdi-console-line", "toolbar.console", 5],
+  ]
+  if(config.value.haveBackend){
+    tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
+    tabs.value.push(["mdi-puzzle", "toolbar.library", 7])
+    tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
+  }
+}
+
 const menuCreateProject = (e:IpcRendererEvent) => {
   data.value.page = 0
 }
@@ -263,21 +283,10 @@ onMounted(() => {
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
+  emitter?.on('updateLocate', updateLocate)
 
   props.backend.wait_init().then(() => {
-    tabs.value = [
-      ["mdi-cube", "toolbar.project", 0],
-      ["mdi-calendar", "toolbar.task", 1],
-      ["mdi-hammer", "toolbar.job", 2],
-      ["mdi-database", "toolbar.parameter", 3],
-      ["mdi-network", "toolbar.node", 4],
-      ["mdi-console-line", "toolbar.console", 5],
-    ]
-    if(config.value.haveBackend){
-      tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
-      tabs.value.push(["mdi-puzzle", "toolbar.library", 7])
-      tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
-    }
+    updateTab()
     const x = config.value
     if(!x.isExpress){
       data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
@@ -352,6 +361,7 @@ onUnmounted(() => {
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
+  emitter?.off('updateLocate', updateLocate)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   if(config.value.isElectron) {
@@ -433,7 +443,7 @@ onUnmounted(() => {
             :config="config"
             :preference="props.preference"
             :socket="data.websocket_manager"
-            :execute="data.execute_manager.map(x => x[0])"
+            :execute="data.execute_manager"
             :libs="data.libs"
             :projects="data.projects"
             :nodes="data.nodes"
