@@ -245,7 +245,9 @@ const newConnect = (x:WebsocketPack) => {
     type: 'success',
     message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
   })
-  data.value.execute_manager[0][0].NewConnection(x)
+  data.value.execute_manager.forEach(y => {
+    y[0].NewConnection(x)
+  })
 }
 
 const disconnect = (x:WebsocketPack) => {
@@ -254,7 +256,9 @@ const disconnect = (x:WebsocketPack) => {
     type: 'danger',
     message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
   })
-  data.value.execute_manager[0][0].Disconnect(x)
+  data.value.execute_manager.forEach(y => {
+    y[0].Disconnect(x)
+  })
 }
 
 const onAnalysis = (d:BusAnalysis) => {
@@ -262,7 +266,9 @@ const onAnalysis = (d:BusAnalysis) => {
 }
 
 const analysis = (b:BusAnalysis) => {
-  data.value.execute_manager[0][0]?.Analysis(b)
+  data.value.execute_manager.forEach(y => {
+    y[0].Analysis(b)
+  })
 }
 
 onMounted(() => {
