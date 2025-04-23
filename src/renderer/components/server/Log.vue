@@ -11,12 +11,12 @@ import ParameterPage from './console/Parameter.vue';
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
-    execute: Array<ExecuteManager>
+    execute: Array<[ExecuteManager, ExecuteRecord]>
     preference: Preference
     config: AppConfig
 }
 
-const data = defineModel<ExecuteRecord>()
+const data = defineModel<[ExecuteManager, ExecuteRecord]>()
 const props = defineProps<PROPS>()
 const tag = ref(0)
 const recoverDialog = ref(false)
@@ -175,7 +175,7 @@ const feedback_message = (d:FeedBack) => {
 
 const execute_project_start = async (d:Project) => {
     if(!props.preference.log) return
-    const target = data.value!.projects[data.value!.project_index]
+    const target = data.value![1].projects[data.value![1].project_index]
     const title = await getnewname(target.title)
     const newlog:ExecutionLog = {
         filename: title,
@@ -217,9 +217,9 @@ const execute_task_start = (d:[Task, number]) => {
     task_index.value = index
     logs.value.logs[0].logs[task_index.value].task_detail = []
 
-    const p = data.value!.projects[data.value!.project_index]
+    const p = data.value![1].projects[data.value![1].project_index]
     const t = p.task[task_index.value]
-    const count = props.execute[0].get_task_state_count(t)
+    const count = data.value![0].get_task_state_count(t)
     
     for(let i = 0; i < count; i++){
         logs.value.logs[0].logs[task_index.value].task_detail.push({
@@ -304,7 +304,6 @@ const update_runtime_parameter = (d:Parameter) => {
 
 onMounted(() => {
     emitter?.on('slowUpdateHandle', slowUpdateHandle)
-    emitter?.on('execute', receivedPack)
     emitter?.on('feedbackMessage', feedback_message)
     emitter?.on('executeProjectStart', execute_project_start)
     emitter?.on('executeProjectFinish', execute_project_finish)
@@ -330,7 +329,6 @@ onMounted(() => {
 
 onUnmounted(() => {
     emitter?.off('slowUpdateHandle', slowUpdateHandle)
-    emitter?.off('execute', receivedPack)
     emitter?.off('feedbackMessage', feedback_message)
     emitter?.off('executeProjectStart', execute_project_start)
     emitter?.off('executeProjectFinish', execute_project_finish)

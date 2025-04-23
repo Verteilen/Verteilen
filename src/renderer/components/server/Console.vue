@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, Libraries, MESSAGE_LIMIT, Parameter, Preference, Project, Record, Task } from '../../interface';
+import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, Libraries, MESSAGE_LIMIT, Node, Parameter, Preference, Project, Record, Task } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 import { DATA, Util_Console } from '../../util/console';
+import ConsoleDialog from '../dialog/ConsoleDialog.vue';
 import NumberDialog from '../dialog/NumberDialog.vue';
 import DebugLog from './console/DebugLog.vue';
 import List from './console/List.vue';
@@ -19,15 +20,22 @@ interface PROPS {
     socket: WebsocketManager | undefined
     execute: Array<ExecuteManager>
     libs: Libraries
+    projects: Array<Project>
+    nodes: Array<Node>
+    parameters: Array<Parameter>
 }
-const model = defineModel<ExecuteRecord>()
+const model = defineModel<[ExecuteManager, ExecuteRecord]>()
 const props = defineProps<PROPS>()
+const emits = defineEmits<{
+    (e: 'added', name:string, record:Record):void
+}>()
 const data:Ref<DATA> = ref({
     leftSize: 3,
     rightSize: 9,
     tag: 1,
     para: undefined,
     useCron: false,
+    createModal: false,
     skipModal: false,
     /**
      * The speicifed the process step type
@@ -38,7 +46,11 @@ const data:Ref<DATA> = ref({
     process_type: -1,
 })
 
-const util:Util_Console = new Util_Console(data)
+const util:Util_Console = new Util_Console(data, () => model.value)
+
+const consoleAdded = (name:string, data:Record) => {
+    emits('added', name, data)
+}
 
 //#region Bus Events
 /**
@@ -46,11 +58,11 @@ const util:Util_Console = new Util_Console(data)
  * This will response for the main update for the process worker
  */
 const updateHandle = () => {
-    if(model.value!.running && !model.value!.stop){
+    if(model.value![1].running && !model.value![1].stop){
         try {
             props.execute[0].Update()
         }catch(err:any){
-            model.value!.stop = true
+            model.value![1].stop = true
             const str = 'Execute Error: ' + err.name + '\n' + err.message
             emitter?.emit('makeToast', {
                 title: 'Error Interrupt',
@@ -60,70 +72,27 @@ const updateHandle = () => {
             console.error(err)
         }
     }
-    if(model.value!.stop){
+    if(model.value![1].stop){
         if(props.execute[0].jobstack == 0){
-            model.value!.running = false
+            model.value![1].running = false
         }
     }
-    
 }
+
+const createConsole = () => {
+    data.value.createModal = true
+}
+
 /**
  * When parameter getting change by the process steps\
  * This get called
  * @param d The whole container for the parameters
  */
-const update_runtime_parameter = (d:Parameter) => {
-    data.value.para = d
-}
-const createConsole = () => {
-
-}
-const receivedPack = (record:Record) => {
-    const pass = props.execute[0].Register(record.projects)
-    if(pass == -1){
-        model.value!.running = false
-        model.value!.stop = true
-        emitter?.emit('makeToast', {
-            title: '執行失敗',
-            message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
-            type: 'warning'
-        })
-        return
-    }
-    
-    model.value!.projects = record.projects
-    model.value!.nodes = record.nodes
-    model.value!.project_state = model.value!.projects.map(x => {
-        return {
-            uuid: x.uuid,
-            state: ExecuteState.NONE
-        }
-    })
-    model.value!.project_index = pass
-    model.value!.project = record.projects[pass].uuid
-    model.value!.task_index = 0
-    model.value!.task_state = model.value!.projects[0].task.map(x => {
-        return {
-            uuid: x.uuid,
-            state: ExecuteState.NONE
-        }
-    })
-    model.value!.task_state[0].state = ExecuteState.RUNNING
-    model.value!.task_detail = []
-    const count = model.value?.projects[model.value!.project_index]?.task[model.value!.task_index]?.jobs.length ?? 0
-    for(let i = 0; i < count; i++){
-        model.value!.task_detail.push({
-            index: i,
-            node: "",
-            message: [],
-            state: ExecuteState.NONE
-        })
-    }
-}
+const update_runtime_parameter = (d:Parameter) => util.update_runtime_parameter(d)
 
 const feedback_message = (d:FeedBack) => {
     if(d.index == undefined || d.index == -1) return
-    const container = model.value!.task_detail[d.index]
+    const container = model.value![1].task_detail[d.index]
     if(container != undefined){
         container.message.push(d.message)
         if(container.message.length > MESSAGE_LIMIT){
@@ -133,12 +102,12 @@ const feedback_message = (d:FeedBack) => {
 }
 
 const execute_project_start = (d:Project) => {
-    const index = model.value!.projects.findIndex(x => x.uuid == d.uuid)
+    const index = model.value![1].projects.findIndex(x => x.uuid == d.uuid)
     if(index == -1) return
-    model.value!.project = d.uuid
-    model.value!.project_index = index
-    model.value!.project_state[index].state = ExecuteState.RUNNING
-    model.value!.task_state = model.value!.projects[index].task.map(x => {
+    model.value![1].project = d.uuid
+    model.value![1].project_index = index
+    model.value![1].project_state[index].state = ExecuteState.RUNNING
+    model.value![1].task_state = model.value![1].projects[index].task.map(x => {
         return {
             uuid: x.uuid,
             state: ExecuteState.NONE
@@ -148,36 +117,36 @@ const execute_project_start = (d:Project) => {
 
 const execute_project_finish = (d:Project) => {
     if(data.value.process_type == 1) {
-        model.value!.running = false
-        model.value!.stop = true
+        model.value![1].running = false
+        model.value![1].stop = true
     }
-    const index = model.value!.projects.findIndex(x => x.uuid == d.uuid)
+    const index = model.value![1].projects.findIndex(x => x.uuid == d.uuid)
     if(index == -1) return
-    model.value!.project = ""
-    model.value!.project_state[index].state = ExecuteState.FINISH
+    model.value![1].project = ""
+    model.value![1].project_state[index].state = ExecuteState.FINISH
 
-    if(model.value!.projects.length - 1 == index){
+    if(model.value![1].projects.length - 1 == index){
         clean()
-        model.value!.running = false
-        model.value!.stop = true
+        model.value![1].running = false
+        model.value![1].stop = true
     }
     data.value.para = undefined
 }
 
 const execute_task_start = (d:[Task, number]) => {
-    if (model.value!.project_index == -1) return
-    const index = model.value!.projects[model.value!.project_index].task.findIndex(x => x.uuid == d[0].uuid)
+    if (model.value![1].project_index == -1) return
+    const index = model.value![1].projects[model.value![1].project_index].task.findIndex(x => x.uuid == d[0].uuid)
     if(index == -1) return
     data.value.useCron = d[0].cronjob
-    model.value!.task = d[0].uuid
-    model.value!.task_index = index
-    model.value!.task_state[index].state = ExecuteState.RUNNING
-    model.value!.task_detail = []
-    const p = model.value!.projects[model.value!.project_index]
-    const t = p.task[model.value!.task_index]
+    model.value![1].task = d[0].uuid
+    model.value![1].task_index = index
+    model.value![1].task_state[index].state = ExecuteState.RUNNING
+    model.value![1].task_detail = []
+    const p = model.value![1].projects[model.value![1].project_index]
+    const t = p.task[model.value![1].task_index]
     const count = props.execute[0].get_task_state_count(t)
     for(let i = 0; i < count; i++){
-        model.value!.task_detail.push({
+        model.value![1].task_detail.push({
             index: i,
             node: "",
             message: [],
@@ -188,52 +157,52 @@ const execute_task_start = (d:[Task, number]) => {
 
 const execute_task_finish = (d:Task) => {
     if(data.value.process_type == 2) {
-        model.value!.running = false
-        model.value!.stop = true
+        model.value![1].running = false
+        model.value![1].stop = true
     }
-    if (model.value!.project_index == -1) return
-    const index = model.value!.projects[model.value!.project_index].task.findIndex(x => x.uuid == d.uuid)
+    if (model.value![1].project_index == -1) return
+    const index = model.value![1].projects[model.value![1].project_index].task.findIndex(x => x.uuid == d.uuid)
     if(index == -1) return
     data.value.useCron = false
-    model.value!.task = ""
-    model.value!.task_state[index].state = ExecuteState.FINISH
-    if(index + 1 < model.value!.task_state.length - 1){
-        model.value!.task_state[index + 1].state = ExecuteState.RUNNING
+    model.value![1].task = ""
+    model.value![1].task_state[index].state = ExecuteState.FINISH
+    if(index + 1 < model.value![1].task_state.length - 1){
+        model.value![1].task_state[index + 1].state = ExecuteState.RUNNING
     }
 }
 
 const execute_subtask_start = (d:[Task, number, string]) => {
-    if(model.value!.task_detail.length > d[1]){
-        model.value!.task_detail[d[1]].node = d[2]
-        model.value!.task_detail[d[1]].state = ExecuteState.RUNNING
+    if(model.value![1].task_detail.length > d[1]){
+        model.value![1].task_detail[d[1]].node = d[2]
+        model.value![1].task_detail[d[1]].state = ExecuteState.RUNNING
     }else{
-        console.error(`subtask_start ${d[1]} is out of range: ${model.value!.task_detail.length}`)
+        console.error(`subtask_start ${d[1]} is out of range: ${model.value![1].task_detail.length}`)
     }
 }
 const execute_subtask_update = (d:[Task, number, string, ExecuteState]) => {
-    if(model.value!.task_detail.length > d[1]){
-        model.value!.task_detail[d[1]].node = d[2]
-        model.value!.task_detail[d[1]].state = d[3]
+    if(model.value![1].task_detail.length > d[1]){
+        model.value![1].task_detail[d[1]].node = d[2]
+        model.value![1].task_detail[d[1]].state = d[3]
     }else{
-        console.error(`subtask_start ${d[1]} is out of range: ${model.value!.task_detail.length}`)
+        console.error(`subtask_start ${d[1]} is out of range: ${model.value![1].task_detail.length}`)
     }
 }
 const execute_subtask_end = (d:[Task, number, string]) => {
-    if(model.value!.task_detail.length > d[1]){
-        //model.value!.task_detail[d[1]].node = ""
-        model.value!.task_detail[d[1]].state = ExecuteState.FINISH
+    if(model.value![1].task_detail.length > d[1]){
+        //model.value![1].task_detail[d[1]].node = ""
+        model.value![1].task_detail[d[1]].state = ExecuteState.FINISH
     }else{
-        console.error(`subtask_start ${d[1]} is out of range: ${model.value!.task_detail.length}`)
+        console.error(`subtask_start ${d[1]} is out of range: ${model.value![1].task_detail.length}`)
     }
 }
 
 const execute_job_start = (d:[Job, number, string]) => {
-    //model.value!.task_detail[index].node = node
+    //model.value![1].task_detail[index].node = node
 }
 
 const execute_job_finish = (d:[Job, number, string, number]) => {
     if (d[3] == 1){
-        const task = model.value!.projects[model.value!.project_index].task[model.value!.task_index]
+        const task = model.value![1].projects[model.value![1].project_index].task[model.value![1].task_index]
         const index = task.jobs.findIndex(x => x.uuid == d[0].uuid)
         if(index != -1 && task.jobs[index].category == JobCategory.Condition){
             const cr:ConditionResult = task.jobs[index].number_args[0] as ConditionResult
@@ -242,15 +211,15 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
             stop()
             let timer:any
             timer = setInterval(() => {
-                if(model.value!.running == false){
+                if(model.value![1].running == false){
                     clearInterval(timer)
                     const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                    model.value!.task_state[model.value!.task_index].state = state
-                    model.value!.task_detail[d[1]].state = state
+                    model.value![1].task_state[model.value![1].task_index].state = state
+                    model.value![1].task_detail[d[1]].state = state
                     if (cr == ConditionResult.Pause) return
                     if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
                         skip(0, state)
-                        if(model.value!.project.length > 0){
+                        if(model.value![1].project.length > 0){
                             if(data.value.process_type == 0){
                                 execute(data.value.process_type)
                             }
@@ -258,7 +227,7 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
                     }
                     else if (cr == ConditionResult.SkipTask || cr == ConditionResult.ThrowTask){
                         skip(1, state)
-                        if(model.value!.project.length > 0){
+                        if(model.value![1].project.length > 0){
                             if(data.value.process_type == 0){
                                 execute(data.value.process_type)
                             }
@@ -268,7 +237,7 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
             }, 1000);
         }
     }
-    //model.value!.task_detail[index].node = ""
+    //model.value![1].task_detail[index].node = ""
 }
 //#endregion
 
@@ -282,8 +251,8 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
  */
 const execute = (type:number) => {
     data.value.process_type = type
-    model.value!.running = true
-    model.value!.stop = false
+    model.value![1].running = true
+    model.value![1].stop = false
     props.execute[0].first = true
 }
 /**
@@ -297,25 +266,25 @@ const execute = (type:number) => {
 const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
     if(type == 0){
         // Project
-        model.value!.project_state[model.value!.project_index].state = state != undefined ? state : ExecuteState.FINISH
-        model.value!.project_index += 1
-        if(model.value!.project_index == model.value!.projects.length) {
-            model.value!.project_index = -1
+        model.value![1].project_state[model.value![1].project_index].state = state != undefined ? state : ExecuteState.FINISH
+        model.value![1].project_index += 1
+        if(model.value![1].project_index == model.value![1].projects.length) {
+            model.value![1].project_index = -1
             clean()
         }
         else {
-            model.value!.task_state = model.value!.projects[model.value!.project_index].task.map(x => {
+            model.value![1].task_state = model.value![1].projects[model.value![1].project_index].task.map(x => {
                 return {
                     uuid: x.uuid,
                     state: ExecuteState.NONE
                 }
             })
-            model.value!.task_detail = []
-            const p = model.value!.projects[model.value!.project_index]
-            const t = p.task[model.value!.task_index]
+            model.value![1].task_detail = []
+            const p = model.value![1].projects[model.value![1].project_index]
+            const t = p.task[model.value![1].task_index]
             const count = props.execute[0].get_task_state_count(t)
             for(let i = 0; i < count; i++){
-                model.value!.task_detail.push({
+                model.value![1].task_detail.push({
                     index: i,
                     node: "",
                     message: [],
@@ -327,18 +296,18 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
         }
     }else if (type == 1){
         // Task
-        model.value!.task_state[model.value!.task_index].state = state != undefined ? state : ExecuteState.FINISH
-        model.value!.task_index += 1
-        if(model.value!.task_index == model.value!.task_state.length) {
+        model.value![1].task_state[model.value![1].task_index].state = state != undefined ? state : ExecuteState.FINISH
+        model.value![1].task_index += 1
+        if(model.value![1].task_index == model.value![1].task_state.length) {
             skip(0)
         }else{
-            model.value!.task_state[model.value!.task_index].state = state != undefined ? state : ExecuteState.FINISH
-            model.value!.task_detail = []
-            const p = model.value!.projects[model.value!.project_index]
-            const t = p.task[model.value!.task_index]
+            model.value![1].task_state[model.value![1].task_index].state = state != undefined ? state : ExecuteState.FINISH
+            model.value![1].task_detail = []
+            const p = model.value![1].projects[model.value![1].project_index]
+            const t = p.task[model.value![1].task_index]
             const count = props.execute[0].get_task_state_count(t)
             for(let i = 0; i < count; i++){
-                model.value!.task_detail.push({
+                model.value![1].task_detail.push({
                     index: i,
                     node: "",
                     message: [],
@@ -362,7 +331,7 @@ const confirmSkip = (v:number) => {
         return
     }
     for(let i = 0; i < index; i++){
-        model.value!.task_detail[i].state = ExecuteState.FINISH
+        model.value![1].task_detail[i].state = ExecuteState.FINISH
     }
     console.log("Skip task", index)
     data.value.skipModal = false
@@ -372,14 +341,14 @@ const confirmSkip = (v:number) => {
  */
 const clean = () => {
     props.execute[0].Clean()
-    model.value!.projects = []
-    model.value!.project = ""
-    model.value!.task = ""
-    model.value!.project_index = -1
-    model.value!.task_index = -1
-    model.value!.project_state = []
-    model.value!.task_state = []
-    model.value!.task_detail = []
+    model.value![1].projects = []
+    model.value![1].project = ""
+    model.value![1].task = ""
+    model.value![1].project_index = -1
+    model.value![1].task_index = -1
+    model.value![1].project_state = []
+    model.value![1].task_state = []
+    model.value![1].task_detail = []
     data.value.para = undefined
 }
 /**
@@ -388,13 +357,12 @@ const clean = () => {
  * If you want to destroy and reset all state, you should call {@link clean()} function instead
  */
 const stop = () => {
-    model.value!.stop = true
+    model.value![1].stop = true
     props.execute[0].Stop()
 }
 //#endregion
 
 onMounted(() => {
-    emitter?.on('execute', receivedPack)
     emitter?.on('updateHandle', updateHandle)
     emitter?.on('feedbackMessage', feedback_message)
     emitter?.on('executeProjectStart', execute_project_start)
@@ -410,7 +378,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-    emitter?.off('execute', receivedPack)
     emitter?.off('updateHandle', updateHandle)
     emitter?.off('feedbackMessage', feedback_message)
     emitter?.off('executeProjectStart', execute_project_start)
@@ -434,7 +401,7 @@ onUnmounted(() => {
                 <p>{{ $t('execute') }}</p>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="execute(0)" :disabled="model.projects.length == 0 || model.running" color="success">
+                        <v-btn icon v-bind="props" @click="execute(0)" :disabled="model[1].projects.length == 0 || model[1].running" color="success">
                             <v-icon>mdi-step-forward-2</v-icon>
                         </v-btn>
                     </template>
@@ -442,7 +409,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="execute(1)" :disabled="model.projects.length == 0 || model.running" color="success">
+                        <v-btn icon v-bind="props" @click="execute(1)" :disabled="model[1].projects.length == 0 || model[1].running" color="success">
                             <v-icon>mdi-step-forward</v-icon>
                         </v-btn>
                     </template>
@@ -450,7 +417,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="execute(2)" :disabled="model.projects.length == 0 || model.running" color="success">
+                        <v-btn icon v-bind="props" @click="execute(2)" :disabled="model[1].projects.length == 0 || model[1].running" color="success">
                             <v-icon>mdi-play</v-icon>
                         </v-btn>
                     </template>
@@ -459,7 +426,7 @@ onUnmounted(() => {
                 <p>{{ $t('skip') }}</p>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(0)" :disabled="model.projects.length == 0 || model.running" color="info">
+                        <v-btn icon v-bind="props" @click="skip(0)" :disabled="model[1].projects.length == 0 || model[1].running" color="info">
                             <v-icon>mdi-skip-forward</v-icon>
                         </v-btn>
                     </template>
@@ -467,7 +434,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(1)" :disabled="model.projects.length == 0 || model.running" color="info">
+                        <v-btn icon v-bind="props" @click="skip(1)" :disabled="model[1].projects.length == 0 || model[1].running" color="info">
                             <v-icon>mdi-skip-next</v-icon>
                         </v-btn>
                     </template>
@@ -475,7 +442,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(2)" :disabled="model.projects.length == 0 || model.running" color="info">
+                        <v-btn icon v-bind="props" @click="skip(2)" :disabled="model[1].projects.length == 0 || model[1].running" color="info">
                             <v-icon>mdi-debug-step-over</v-icon>
                         </v-btn>
                     </template>
@@ -484,7 +451,7 @@ onUnmounted(() => {
                 <p>{{ $t('action') }}</p>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="clean" :disabled="model.projects.length == 0 || model.running" color="error">
+                        <v-btn icon v-bind="props" @click="clean" :disabled="model[1].projects.length == 0 || model[1].running" color="error">
                             <v-icon>mdi-stop</v-icon>
                         </v-btn>
                     </template>
@@ -492,7 +459,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="stop" :disabled="model.projects.length == 0 || model.stop" color="error">
+                        <v-btn icon v-bind="props" @click="stop" :disabled="model[1].projects.length == 0 || model[1].stop" color="error">
                             <v-icon>mdi-pause</v-icon>
                         </v-btn>
                     </template>
@@ -527,10 +494,10 @@ onUnmounted(() => {
                 </v-list>
             </v-col>
             <v-col :cols="data.rightSize" v-show="data.tag == 0">
-                <List v-model="model" :preference="props.preference" />
+                <List v-model="model[1]" :preference="props.preference" />
             </v-col>
             <v-col :cols="data.rightSize" v-show="data.tag == 1">
-                <Process v-model="model" :socket="props.socket" :preference="props.preference" />
+                <Process v-model="model[1]" :socket="props.socket" :preference="props.preference" />
             </v-col>
             <v-col :cols="data.rightSize" v-show="data.tag == 2">
                 <DebugLog :preference="props.preference" />
@@ -539,6 +506,12 @@ onUnmounted(() => {
                 <ParameterPage v-model="data.para" :preference="props.preference" />
             </v-col>
         </v-row>
+        <ConsoleDialog v-model="data.createModal"
+            :projects="props.projects"
+            :nodes="props.nodes"
+            :parameters="props.parameters"
+            @confirm="(e, e1) => consoleAdded(e, e1)"
+        />
         <NumberDialog v-model="data.skipModal" 
             :default-value="0" 
             @submit="confirmSkip" 

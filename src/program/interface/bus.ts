@@ -1,6 +1,6 @@
 import { Job, Parameter, Project, Task } from "./base"
 import { ExecuteState } from "./enum"
-import { ExecutionLog, Log, Record } from "./record"
+import { ExecutionLog, Log } from "./record"
 import { FeedBack, Header, Setter, ShellFolder, Single, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
@@ -69,7 +69,6 @@ export type BusType = {
     selectParameter: string
     updateLocate: void
     updateNode: Array<NodeTable>
-    execute: Record
     updateCurrent: ExecutionLog,
     updateLog: Log
     updateHandle: void

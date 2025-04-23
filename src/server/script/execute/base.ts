@@ -1,10 +1,12 @@
 import { v6 as uuid6 } from 'uuid';
-import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, Libraries, Messager, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 import { Util_Parser } from './util_parser';
 
 export class ExecuteManager_Base {
     uuid: string
+    name: string
+    record: Record
     current_t:Task | undefined = undefined
     current_p:Project | undefined = undefined
     current_projects:Array<Project> = []
@@ -28,8 +30,10 @@ export class ExecuteManager_Base {
     websocket_manager:WebsocketManager
     messager_log:Messager
 
-    constructor(_websocket_manager:WebsocketManager, _messager_log:Messager) {
+    constructor(_name:string, _websocket_manager:WebsocketManager, _messager_log:Messager, _record:Record) {
+        this.name = _name
         this.uuid = uuid6()
+        this.record = _record
         this.websocket_manager = _websocket_manager
         this.messager_log = _messager_log
     }

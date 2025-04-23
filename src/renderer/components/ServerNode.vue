@@ -4,7 +4,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, BusType, ExecuteProxy, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
+import { BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -53,6 +53,7 @@ const data:Ref<DATA> = ref({
     execute_manager: [],
 
     page: 0,
+    select_manager: 0,
     lanSelect: i18n.global.locale as string,
     parameters: [],
     projects: [],
@@ -78,6 +79,8 @@ const data:Ref<DATA> = ref({
 
 const util:Util_Server = new Util_Server(data, () => props.backend, emitter!)
 
+const selectExecute = computed(() => data.value.execute_manager[data.value.select_manager])
+
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
 
@@ -88,7 +91,6 @@ const deleteProject = (uuids:Array<string>, bind:boolean) => util.project.delete
 const chooseProject = (uuid:string) => util.project.chooseProject(uuid)
 const moveupProject = (uuid:string) => util.project.moveupProject(uuid)
 const movedownProject = (uuid:string) => util.project.movedownProject(uuid)
-const executeProjects = (uuids:Array<string>, keep:boolean) => util.project.executeProjects(uuids, keep)
 //#endregion
 
 //#region Task
@@ -152,6 +154,42 @@ const libDelete = (name:string) => {
 }
 //#endregion
 
+//#region Console
+const consoleAdded = (name:string, record:Record) => {
+  const em:ExecuteManager = new ExecuteManager(
+    name,
+    data.value.websocket_manager!, 
+    messager_log, 
+    JSON.parse(JSON.stringify(record))
+  )
+  const er:ExecuteRecord = {
+    ...record,
+    running: false,
+    stop: true,
+    project: '',
+    task: '',
+    project_index: -1,
+    task_index: -1,
+    project_state: [],
+    task_state: [],
+    task_detail: [],
+  }
+  em.libs = data.value.libs
+  em.proxy = execute_proxy
+  const p:[ExecuteManager, ExecuteRecord] = [em, er]
+  const r = util.console.receivedPack(p, record)
+  if(!r){
+    emitter?.emit('makeToast', {
+        title: '執行失敗',
+        message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
+        type: 'warning'
+    })
+    return
+  }
+  data.value.execute_manager.push(p)
+}
+//#endregion
+
 //#region Web
 const Cookie = () => {
   
@@ -182,14 +220,6 @@ const import_project_feedback = (e:IpcRendererEvent, text:string) => {
   allUpdate()
 }
 
-const run_all = (e:IpcRendererEvent) => {
-  executeProjects(data.value.projects.map(x => x.uuid), false)
-}
-
-const run_all_keep = (e:IpcRendererEvent) => {
-  executeProjects(data.value.projects.map(x => x.uuid), true)
-}
-
 const debug_feedback = (e:string) => emitter?.emit('debuglog', e)
 
 const onChangeLan = (e:string) => {
@@ -206,7 +236,7 @@ const newConnect = (x:WebsocketPack) => {
     type: 'success',
     message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
   })
-  data.value.execute_manager[0].NewConnection(x)
+  data.value.execute_manager[0][0].NewConnection(x)
 }
 
 const disconnect = (x:WebsocketPack) => {
@@ -215,11 +245,15 @@ const disconnect = (x:WebsocketPack) => {
     type: 'danger',
     message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
   })
-  data.value.execute_manager[0].Disconnect(x)
+  data.value.execute_manager[0][0].Disconnect(x)
+}
+
+const onAnalysis = (d:BusAnalysis) => {
+  data.value.execute_manager.forEach(x => x[0].Analysis(d))
 }
 
 const analysis = (b:BusAnalysis) => {
-  data.value.execute_manager[0]?.Analysis(b)
+  data.value.execute_manager[0][0]?.Analysis(b)
 }
 
 onMounted(() => {
@@ -247,20 +281,15 @@ onMounted(() => {
     const x = config.value
     if(!x.isExpress){
       data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
-      data.value.execute_manager.push(new ExecuteManager(data.value.websocket_manager, messager_log))
-      data.value.execute_manager[0].libs = data.value.libs
-      data.value.execute_manager[0].proxy = execute_proxy
       data.value.websocket_manager.newConnect = newConnect
       data.value.websocket_manager.disconnect = disconnect
-      data.value.websocket_manager.onAnalysis = data.value.execute_manager[0].Analysis
+      data.value.websocket_manager.onAnalysis = onAnalysis
     }
 
     if(config.value.isElectron){
       window.electronAPI.send('menu', true)
       window.electronAPI.eventOn('createProject', menuCreateProject)
       window.electronAPI.eventOn('menu_export_project', menu_export_project)
-      window.electronAPI.eventOn('run_all', run_all)
-      window.electronAPI.eventOn('run_all_keep', run_all_keep)
       window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
       const p1 = window.electronAPI.invoke('load_all_node').then(x => {
         const texts:Array<string> = JSON.parse(x)
@@ -328,8 +357,6 @@ onUnmounted(() => {
   if(config.value.isElectron) {
     window.electronAPI.eventOff('createProject', menuCreateProject)
     window.electronAPI.eventOff('menu_export_project', menu_export_project)
-    window.electronAPI.eventOff('run_all', run_all)
-    window.electronAPI.eventOff('run_all_keep', run_all_keep)
     window.electronAPI.eventOff('import_project_feedback', import_project_feedback)
   }
 })
@@ -406,16 +433,20 @@ onUnmounted(() => {
             :config="config"
             :preference="props.preference"
             :socket="data.websocket_manager"
-            :execute="data.execute_manager"
+            :execute="data.execute_manager.map(x => x[0])"
             :libs="data.libs"
-            v-model="data.projects_exe"/>
+            :projects="data.projects"
+            :nodes="data.nodes"
+            :parameters="data.parameters"
+            v-model="selectExecute"
+            @added="(e, e1) => consoleAdded(e, e1)"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-shoe="config.haveBackend" :value="6">
           <LogPage 
             :config="config"
             :execute="data.execute_manager"
             :preference="props.preference"
-            v-model="data.projects_exe"/>
+            v-model="selectExecute"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-shoe="config.haveBackend" :value="7">
           <LibraryPage

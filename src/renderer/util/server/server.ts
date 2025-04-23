@@ -4,6 +4,7 @@ import { BusType, ExecuteRecord, Libraries, NodeTable, Parameter, Project, Rende
 import { BackendProxy } from "../../proxy";
 import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
+import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Node } from "./node_handle";
 import { Util_Server_Parameter } from "./parameter_handle";
@@ -15,9 +16,10 @@ export type config_getter = () => BackendProxy
 
 export interface DATA {
     websocket_manager: WebsocketManager | undefined
-    execute_manager: Array<ExecuteManager>
+    execute_manager: Array<[ExecuteManager, ExecuteRecord]>
 
     page:number
+    select_manager: number
     lanSelect: string
     parameters: Array<Parameter>
     projects: Array<Project>
@@ -39,6 +41,7 @@ export class Util_Server {
     job:Util_Server_Job
     node:Util_Server_Node
     parameter:Util_Server_Parameter
+    console:Util_Server_Console
 
     constructor(_data:Ref<DATA>, _config:config_getter, _emitter:Emitter<BusType>){
         this.data = _data
@@ -49,6 +52,7 @@ export class Util_Server {
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
         this.parameter = new Util_Server_Parameter(this.data, this.config, this.update)
+        this.console = new Util_Server_Console(this.data, this.update)
     }
 
     private update = () => {
