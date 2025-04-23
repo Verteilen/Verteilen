@@ -169,10 +169,10 @@ const consoleAdded = (name:string, record:Record) => {
   data.value.execute_manager.push(p)
   data.value.select_manager = data.value.execute_manager.length - 1
 }
-
 const consoleStop = () => {
   nextTick(() => data.value.execute_manager.splice(data.value.select_manager, 1))
 }
+const consoleSelect = (e:number) => { data.value.select_manager = e }
 //#endregion
 
 //#region Log
@@ -462,7 +462,8 @@ onUnmounted(() => {
             :parameters="data.parameters"
             v-model="selectExecute"
             @added="(e, e1) => consoleAdded(e, e1)"
-            @stop="consoleStop()"/>
+            @stop="consoleStop()"
+            @select="e => consoleSelect(e)"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-shoe="config.haveBackend" :value="6">
           <LogPage 

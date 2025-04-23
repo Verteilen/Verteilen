@@ -322,6 +322,18 @@ onUnmounted(() => {
                         Debug Log
                     </v-list-item>
                 </v-list>
+                <v-list mandatory v-if="model != undefined" color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
+                    <v-list-item v-for="(exe, i) in props.execute" :key="i" 
+                        :active="exe[0].uuid == model[0].uuid"
+                        @click="emits('select', i)">
+                        <v-list-item-title>
+                            {{ exe[0].name }}
+                        </v-list-item-title>
+                        <v-list-item-subtitle>
+                            {{ exe[0].uuid }}
+                        </v-list-item-subtitle>
+                    </v-list-item>
+                </v-list>
             </v-col>
             <v-col v-if="model != undefined" :cols="data.rightSize" v-show="data.tag == 0">
                 <List v-model="model" :preference="props.preference" />
