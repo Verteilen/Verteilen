@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, Libraries, MESSAGE_LIMIT, Node, Parameter, Preference, Project, Record, Task } from '../../interface';
+import { AppConfig, BusType, ExecuteRecord, ExecuteState, Libraries, Node, Parameter, Preference, Project, Record } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 import { DATA, Util_Console } from '../../util/console';
@@ -27,23 +27,16 @@ interface PROPS {
 const model = defineModel<[ExecuteManager, ExecuteRecord]>()
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
-    (e: 'added', name:string, record:Record):void
+    (e: 'added', name:string, record:Record):void,
+    (e: 'select', index:number):void
 }>()
 const data:Ref<DATA> = ref({
     leftSize: 3,
     rightSize: 9,
     tag: 1,
     para: undefined,
-    useCron: false,
     createModal: false,
     skipModal: false,
-    /**
-     * The speicifed the process step type
-     * * 0: All Projects through
-     * * 1: Single project through
-     * * 2: SIngle task through
-     */
-    process_type: -1,
 })
 
 const util:Util_Console = new Util_Console(data, () => model.value)
@@ -78,169 +71,20 @@ const updateHandle = () => {
                 model.value![1].running = false
             }
         }
+        if(x[1].command.length > 0){
+            const p:Array<any> = x[1].command.shift()!
+            if(p[0] == 'clean') clean()
+            else if (p[0] == 'stop') stop()
+            else if (p[0] == 'skip') skip(p[1], p[2])
+            else if (p[0] == 'execute') execute(p[1])
+        }
+        
     })
     
 }
 
 const createConsole = () => {
     data.value.createModal = true
-}
-
-/**
- * When parameter getting change by the process steps\
- * This get called
- * @param d The whole container for the parameters
- */
-const update_runtime_parameter = (d:Parameter) => util.update_runtime_parameter(d)
-
-const feedback_message = (d:FeedBack) => {
-    if(d.index == undefined || d.index == -1) return
-    const container = model.value![1].task_detail[d.index]
-    if(container != undefined){
-        container.message.push(d.message)
-        if(container.message.length > MESSAGE_LIMIT){
-            container.message.shift()
-        }
-    }
-}
-
-const execute_project_start = (d:Project) => {
-    const index = model.value![1].projects.findIndex(x => x.uuid == d.uuid)
-    if(index == -1) return
-    model.value![1].project = d.uuid
-    model.value![1].project_index = index
-    model.value![1].project_state[index].state = ExecuteState.RUNNING
-    model.value![1].task_state = model.value![1].projects[index].task.map(x => {
-        return {
-            uuid: x.uuid,
-            state: ExecuteState.NONE
-        }
-    })
-}
-
-const execute_project_finish = (d:Project) => {
-    if(data.value.process_type == 1) {
-        model.value![1].running = false
-        model.value![1].stop = true
-    }
-    const index = model.value![1].projects.findIndex(x => x.uuid == d.uuid)
-    if(index == -1) return
-    model.value![1].project = ""
-    model.value![1].project_state[index].state = ExecuteState.FINISH
-
-    if(model.value![1].projects.length - 1 == index){
-        clean()
-        model.value![1].running = false
-        model.value![1].stop = true
-    }
-    data.value.para = undefined
-}
-
-const execute_task_start = (d:[Task, number]) => {
-    if (model.value![1].project_index == -1) return
-    const index = model.value![1].projects[model.value![1].project_index].task.findIndex(x => x.uuid == d[0].uuid)
-    if(index == -1) return
-    data.value.useCron = d[0].cronjob
-    model.value![1].task = d[0].uuid
-    model.value![1].task_index = index
-    model.value![1].task_state[index].state = ExecuteState.RUNNING
-    model.value![1].task_detail = []
-    const p = model.value![1].projects[model.value![1].project_index]
-    const t = p.task[model.value![1].task_index]
-    const count = props.execute[0].get_task_state_count(t)
-    for(let i = 0; i < count; i++){
-        model.value![1].task_detail.push({
-            index: i,
-            node: "",
-            message: [],
-            state: ExecuteState.NONE
-        })
-    }
-}
-
-const execute_task_finish = (d:Task) => {
-    if(data.value.process_type == 2) {
-        model.value![1].running = false
-        model.value![1].stop = true
-    }
-    if (model.value![1].project_index == -1) return
-    const index = model.value![1].projects[model.value![1].project_index].task.findIndex(x => x.uuid == d.uuid)
-    if(index == -1) return
-    data.value.useCron = false
-    model.value![1].task = ""
-    model.value![1].task_state[index].state = ExecuteState.FINISH
-    if(index + 1 < model.value![1].task_state.length - 1){
-        model.value![1].task_state[index + 1].state = ExecuteState.RUNNING
-    }
-}
-
-const execute_subtask_start = (d:[Task, number, string]) => {
-    if(model.value![1].task_detail.length > d[1]){
-        model.value![1].task_detail[d[1]].node = d[2]
-        model.value![1].task_detail[d[1]].state = ExecuteState.RUNNING
-    }else{
-        console.error(`subtask_start ${d[1]} is out of range: ${model.value![1].task_detail.length}`)
-    }
-}
-const execute_subtask_update = (d:[Task, number, string, ExecuteState]) => {
-    if(model.value![1].task_detail.length > d[1]){
-        model.value![1].task_detail[d[1]].node = d[2]
-        model.value![1].task_detail[d[1]].state = d[3]
-    }else{
-        console.error(`subtask_start ${d[1]} is out of range: ${model.value![1].task_detail.length}`)
-    }
-}
-const execute_subtask_end = (d:[Task, number, string]) => {
-    if(model.value![1].task_detail.length > d[1]){
-        //model.value![1].task_detail[d[1]].node = ""
-        model.value![1].task_detail[d[1]].state = ExecuteState.FINISH
-    }else{
-        console.error(`subtask_start ${d[1]} is out of range: ${model.value![1].task_detail.length}`)
-    }
-}
-
-const execute_job_start = (d:[Job, number, string]) => {
-    //model.value![1].task_detail[index].node = node
-}
-
-const execute_job_finish = (d:[Job, number, string, number]) => {
-    if (d[3] == 1){
-        const task = model.value![1].projects[model.value![1].project_index].task[model.value![1].task_index]
-        const index = task.jobs.findIndex(x => x.uuid == d[0].uuid)
-        if(index != -1 && task.jobs[index].category == JobCategory.Condition){
-            const cr:ConditionResult = task.jobs[index].number_args[0] as ConditionResult
-            if(cr == ConditionResult.None) return
-            
-            stop()
-            let timer:any
-            timer = setInterval(() => {
-                if(model.value![1].running == false){
-                    clearInterval(timer)
-                    const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                    model.value![1].task_state[model.value![1].task_index].state = state
-                    model.value![1].task_detail[d[1]].state = state
-                    if (cr == ConditionResult.Pause) return
-                    if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
-                        skip(0, state)
-                        if(model.value![1].project.length > 0){
-                            if(data.value.process_type == 0){
-                                execute(data.value.process_type)
-                            }
-                        }
-                    }
-                    else if (cr == ConditionResult.SkipTask || cr == ConditionResult.ThrowTask){
-                        skip(1, state)
-                        if(model.value![1].project.length > 0){
-                            if(data.value.process_type == 0){
-                                execute(data.value.process_type)
-                            }
-                        }
-                    }
-                }
-            }, 1000);
-        }
-    }
-    //model.value![1].task_detail[index].node = ""
 }
 //#endregion
 
@@ -253,10 +97,10 @@ const execute_job_finish = (d:[Job, number, string, number]) => {
  * * 2: SIngle task through
  */
 const execute = (type:number) => {
-    data.value.process_type = type
+    model.value![1].process_type = type
     model.value![1].running = true
     model.value![1].stop = false
-    props.execute[0].first = true
+    model.value![0].first = true
 }
 /**
  * Skip the project ahead, 
@@ -285,7 +129,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
             model.value![1].task_detail = []
             const p = model.value![1].projects[model.value![1].project_index]
             const t = p.task[model.value![1].task_index]
-            const count = props.execute[0].get_task_state_count(t)
+            const count = model.value![0].get_task_state_count(t)
             for(let i = 0; i < count; i++){
                 model.value![1].task_detail.push({
                     index: i,
@@ -294,7 +138,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                     state: ExecuteState.NONE
                 })
             }
-            const index = props.execute[0].SkipProject()
+            const index = model.value![0].SkipProject()
             console.log("Skip project", index)
         }
     }else if (type == 1){
@@ -308,7 +152,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
             model.value![1].task_detail = []
             const p = model.value![1].projects[model.value![1].project_index]
             const t = p.task[model.value![1].task_index]
-            const count = props.execute[0].get_task_state_count(t)
+            const count = model.value![0].get_task_state_count(t)
             for(let i = 0; i < count; i++){
                 model.value![1].task_detail.push({
                     index: i,
@@ -317,7 +161,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                     state: ExecuteState.NONE
                 })
             }
-            const index = props.execute[0].SkipTask()
+            const index = model.value![0].SkipTask()
             console.log("Skip task", index)
         }
     }else if (type == 2){
@@ -328,7 +172,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
  * When user click confirm on the skip step modal
  */
 const confirmSkip = (v:number) => {
-    const index = props.execute[0].SkipSubTask(v)
+    const index = model.value![0].SkipSubTask(v)
     if(index < 0) {
         console.error("Skip step failed: ", index)
         return
@@ -343,7 +187,7 @@ const confirmSkip = (v:number) => {
  * Destroy all state and reset
  */
 const clean = () => {
-    props.execute[0].Clean()
+    model.value![0].Clean()
     model.value![1].projects = []
     model.value![1].project = ""
     model.value![1].task = ""
@@ -361,38 +205,16 @@ const clean = () => {
  */
 const stop = () => {
     model.value![1].stop = true
-    props.execute[0].Stop()
+    model.value![0].Stop()
 }
 //#endregion
 
 onMounted(() => {
     emitter?.on('updateHandle', updateHandle)
-    emitter?.on('feedbackMessage', feedback_message)
-    emitter?.on('executeProjectStart', execute_project_start)
-    emitter?.on('executeProjectFinish', execute_project_finish)
-    emitter?.on('executeTaskStart', execute_task_start)
-    emitter?.on('executeTaskFinish', execute_task_finish)
-    emitter?.on('executeSubtaskStart', execute_subtask_start)
-    emitter?.on('executeSubtaskUpdate', execute_subtask_update)
-    emitter?.on('executeSubtaskFinish', execute_subtask_end)
-    emitter?.on('executeJobStart', execute_job_start)
-    emitter?.on('executeJobFinish', execute_job_finish)
-    emitter?.on('updateRuntimeParameter', update_runtime_parameter)
 })
 
 onUnmounted(() => {
     emitter?.off('updateHandle', updateHandle)
-    emitter?.off('feedbackMessage', feedback_message)
-    emitter?.off('executeProjectStart', execute_project_start)
-    emitter?.off('executeProjectFinish', execute_project_finish)
-    emitter?.off('executeTaskStart', execute_task_start)
-    emitter?.off('executeTaskFinish', execute_task_finish)
-    emitter?.off('executeSubtaskStart', execute_subtask_start)
-    emitter?.off('executeSubtaskUpdate', execute_subtask_update)
-    emitter?.off('executeSubtaskFinish', execute_subtask_end)
-    emitter?.off('executeJobStart', execute_job_start)
-    emitter?.off('executeJobFinish', execute_job_finish)
-    emitter?.off('updateRuntimeParameter', update_runtime_parameter)
 })
 
 </script>

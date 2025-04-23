@@ -4,10 +4,12 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, JobType, JobType2, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, ShellFolder, Single, Task, WebsocketPack } from '../interface';
+import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
+import { Util_Server_Console_Proxy } from '../util/server/console_handle';
+import { Util_Server_Log_Proxy } from '../util/server/log_handle';
 import { DATA, Util_Server } from '../util/server/server';
 import { i18n } from './../plugins/i18n';
 import ConsolePage from './server/Console.vue';
@@ -29,22 +31,6 @@ interface PROPS {
     backend: BackendProxy
 }
 
-const execute_proxy:ExecuteProxy = {
-    executeProjectStart: (data:Project):void => { emitter?.emit('executeProjectStart', data) },
-    executeProjectFinish: (data:Project):void => { emitter?.emit('executeProjectFinish', data) },
-    executeTaskStart: (data:[Task, number]):void => { emitter?.emit('executeTaskStart', data) },
-    executeTaskFinish: (data:Task):void => { emitter?.emit('executeTaskFinish', data) },
-    executeSubtaskStart: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskStart', data) },
-    executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { emitter?.emit('executeSubtaskUpdate', data) },
-    executeSubtaskFinish: (data:[Task, number, string]):void => { emitter?.emit('executeSubtaskFinish', data) },
-    executeJobStart: (data:[Job, number, string]):void => { emitter?.emit('executeJobStart', data) },
-    executeJobFinish: (data:[Job, number, string, number]):void => { emitter?.emit('executeJobFinish', data) },
-    feedbackMessage: (data:FeedBack):void => { emitter?.emit('feedbackMessage', data) },
-    updateParameter: (data:Parameter):void => { emitter?.emit('updateRuntimeParameter', data) },
-    shellReply: (data:Single):void => { emitter?.emit('shellReply', data) },
-    folderReply: (data:ShellFolder) => { emitter?.emit('folderReply', data) }
-}
-
 const config = computed(() => props.backend.config)
 const props = defineProps<PROPS>()
 const tabs:Ref<Array<[string, string, number]>> = ref([])
@@ -57,20 +43,8 @@ const data:Ref<DATA> = ref({
     lanSelect: i18n.global.locale as string,
     parameters: [],
     projects: [],
-    projects_exe: {
-      projects: [],
-      nodes: [],
-      running: false,
-      stop: true,
-      project: "",
-      task: "",
-      project_index: -1,
-      task_index: -1,
-      project_state: [],
-      task_state: [],
-      task_detail: [],
-    },
     libs: {libs: []},
+    logs: {logs: []},
     selectProject: undefined,
     selectTask: undefined,
     selectParameter: undefined,
@@ -166,6 +140,10 @@ const consoleAdded = (name:string, record:Record) => {
     ...record,
     running: false,
     stop: true,
+    process_type: -1,
+    cronjob: false,
+    para: undefined,
+    command: [],
     project: '',
     task: '',
     project_index: -1,
@@ -175,18 +153,29 @@ const consoleAdded = (name:string, record:Record) => {
     task_detail: [],
   }
   em.libs = data.value.libs
-  em.proxy = execute_proxy
   const p:[ExecuteManager, ExecuteRecord] = [em, er]
+  const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
+  const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference, config.value)
+  em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
   const r = util.console.receivedPack(p, record)
   if(!r){
     emitter?.emit('makeToast', {
-        title: '執行失敗',
-        message: '專案執行失敗 !\n你可以在 控制台/DebugLog 找到詳細訊息',
+        title: 'Execute Failed',
+        message: 'Project execute failed !\nYou can see detail in Console/DebugLog',
         type: 'warning'
     })
     return
   }
   data.value.execute_manager.push(p)
+  data.value.select_manager = data.value.execute_manager.length - 1
+}
+//#endregion
+
+//#region Log
+const LogClean = () => {
+  if(!config.value.isElectron) return
+  window.electronAPI.send('delete_all_log')
+  data.value.logs.logs = []
 }
 //#endregion
 
@@ -289,7 +278,11 @@ onMounted(() => {
     updateTab()
     const x = config.value
     if(!x.isExpress){
-      data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, analysis, messager_log)
+      const nodeproxy:NodeProxy = {
+        shellReply: data => { emitter?.emit('shellReply', data) },
+        folderReply: data => { emitter?.emit('folderReply', data) },
+      }
+      data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, analysis, messager_log, nodeproxy)
       data.value.websocket_manager.newConnect = newConnect
       data.value.websocket_manager.disconnect = disconnect
       data.value.websocket_manager.onAnalysis = onAnalysis
@@ -339,7 +332,14 @@ onMounted(() => {
         data.value.parameters = texts.map(y => JSON.parse(y))
         console.log("Parameters", data.value.libs)
       })
-      Promise.all([p1, p2, p3, p4, p5]).then(() => {
+      const p6 = window.electronAPI.invoke('load_all_log').then(x => {
+          const stringlist:Array<string> = JSON.parse(x)
+          const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
+          ll.forEach(x => x.output = true)
+          console.log("Logs", ll)
+          data.value.logs.logs = ll
+      })
+      Promise.all([p1, p2, p3, p4, p5, p6]).then(() => {
         data.value.nodes = data.value.nodes.map(y => {
           return Object.assign(y, {
             s: false,
@@ -456,6 +456,8 @@ onUnmounted(() => {
             :config="config"
             :execute="data.execute_manager"
             :preference="props.preference"
+            :logs="data.logs"
+            @clean="LogClean"
             v-model="selectExecute"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-shoe="config.haveBackend" :value="7">

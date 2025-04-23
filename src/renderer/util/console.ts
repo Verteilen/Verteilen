@@ -9,10 +9,8 @@ export interface DATA {
     rightSize: number
     tag: number
     para: Parameter | undefined
-    useCron: boolean
     skipModal: boolean
     createModal: boolean
-    process_type: number
 }
 
 export class Util_Console {

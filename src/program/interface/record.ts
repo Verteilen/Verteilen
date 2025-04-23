@@ -44,6 +44,16 @@ export interface Record {
 export interface ExecuteRecord extends Record {
     running: boolean
     stop: boolean
+    /**
+     * The speicifed the process step type
+     * * 0: All Projects through
+     * * 1: Single project through
+     * * 2: SIngle task through
+     */
+    process_type: number
+    cronjob: boolean
+    para: Parameter | undefined
+    command: Array<Array<any>>
     project: string
     task: string
     project_index: number

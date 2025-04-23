@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { Header, Node, NodeTable, WebsocketPack } from "../interface";
+import { BusAnalysis, Header, Node, NodeProxy, NodeTable, ShellFolder, Single, WebsocketPack } from "../interface";
 
 /**
  * The node connection instance manager, Use by the cluster server
@@ -9,18 +9,35 @@ export class WebsocketManager {
     newConnect:Function
     disconnect:Function
     onAnalysis:Function
+    proxy:NodeProxy
     private messager_log:Function
 
     constructor(
         _newConnect:Function,
         _disconnect:Function,
         _onAnalysis:Function,
-        _messager_log:Function,){
+        _messager_log:Function,
+        _proxy:NodeProxy){
         this.newConnect = _newConnect
         this.disconnect = _disconnect
         this.onAnalysis = _onAnalysis
         this.messager_log = _messager_log
+        this.proxy = _proxy
         setInterval(this.update, 1000)
+    }
+
+    private socket_analysis = (d:BusAnalysis) => {
+        const typeMap:{ [key:string]:Function } = {
+            'shell_reply': this.shell_reply,
+            'shell_folder_reply': this.shell_folder_reply,
+        }
+        if(typeMap.hasOwnProperty(d.name)){
+            const castingFunc = typeMap[d.h.name]
+            castingFunc(d.h.data, d.c, d.h.meta)
+            return true
+        }else{
+            return false
+        }
     }
 
     /**
@@ -150,7 +167,10 @@ export class WebsocketManager {
             this.messager_log(`[Source Analysis] ${h.message}`)
         }
         if (h.data == undefined) return
-        this.onAnalysis({name: h.name, h: h, c: c})
+
+        const d:BusAnalysis = {name: h.name, h: h, c: c}
+        const pass = this.socket_analysis(d)
+        if (!pass) this.onAnalysis(d)
     }
 
     /**
@@ -207,5 +227,19 @@ export class WebsocketManager {
             x.last = Date.now()
             x.websocket.send(JSON.stringify(h))
         })
+    }
+
+
+    /**
+     * Recevied the shell text from client node
+     */
+    private shell_reply = (data:Single) => {
+        this.proxy?.shellReply(data)
+    }
+    /**
+     * Recevied the folders from client node
+     */
+    private shell_folder_reply = (data:ShellFolder) => {
+        this.proxy?.folderReply(data)
     }
 }

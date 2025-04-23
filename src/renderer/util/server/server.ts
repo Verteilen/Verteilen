@@ -1,6 +1,6 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { BusType, ExecuteRecord, Libraries, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
+import { BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, ShellFolder, Single, Task } from "../../interface";
 import { BackendProxy } from "../../proxy";
 import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
@@ -23,8 +23,8 @@ export interface DATA {
     lanSelect: string
     parameters: Array<Parameter>
     projects: Array<Project>
-    projects_exe: ExecuteRecord
     libs: Libraries
+    logs: Log
     selectProject: Project | undefined
     selectTask: Task | undefined
     selectParameter: Parameter | undefined
@@ -91,5 +91,24 @@ export class Util_Server {
                 window.electronAPI.send('save_parameter', x.uuid, text)
             })
         }
+    }
+
+    CombineProxy = (eps:Array<ExecuteProxy>) => {
+        const p:ExecuteProxy = {
+            executeProjectStart: (data:Project):void => { eps.map(x => x.executeProjectStart(data)) },
+            executeProjectFinish: (data:Project):void => { eps.map(x => x.executeProjectFinish(data)) },
+            executeTaskStart: (data:[Task, number]):void => { eps.map(x => x.executeTaskStart(data)) },
+            executeTaskFinish: (data:Task):void => { eps.map(x => x.executeTaskFinish(data)) },
+            executeSubtaskStart: (data:[Task, number, string]):void => { eps.map(x => x.executeSubtaskStart(data)) },
+            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { eps.map(x => x.executeSubtaskUpdate(data)) },
+            executeSubtaskFinish: (data:[Task, number, string]):void => { eps.map(x => x.executeSubtaskFinish(data)) },
+            executeJobStart: (data:[Job, number, string]):void => { eps.map(x => x.executeJobStart(data)) },
+            executeJobFinish: (data:[Job, number, string, number]):void => { eps.map(x => x.executeJobFinish(data)) },
+            feedbackMessage: (data:FeedBack):void => { eps.map(x => x.feedbackMessage(data)) },
+            updateParameter: (data:Parameter):void => { eps.map(x => x.updateParameter(data)) },
+            shellReply: (data:Single):void => { eps.map(x => x.shellReply(data)) },
+            folderReply: (data:ShellFolder):void => { eps.map(x => x.folderReply(data)) },
+        }
+        return p
     }
 }

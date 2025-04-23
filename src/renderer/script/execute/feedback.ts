@@ -1,4 +1,4 @@
-import { BusAnalysis, CronJobState, DataType, ExecuteState, FeedBack, Header, NodeLoad, Setter, ShellFolder, Single, SystemLoad, WebsocketPack, WorkState } from "../../interface"
+import { BusAnalysis, CronJobState, DataType, ExecuteState, FeedBack, Header, NodeLoad, Setter, Single, SystemLoad, WebsocketPack, WorkState } from "../../interface"
 import { ExecuteManager_Base } from "./base"
 
 /**
@@ -17,8 +17,6 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             'feedback_string': this.feedback_string,
             'feedback_boolean': this.feedback_boolean,
             'feedback_number': this.feedback_number,
-            'shell_reply': this.shell_reply,
-            'shell_folder_reply': this.shell_folder_reply,
             'system_info': this.system_info,
             'node_info': this.node_info,
             'pong': this.pong,
@@ -132,18 +130,6 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         const d:Header = { name: 'set_parameter', data: this.localPara!}
         this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
         this.proxy?.updateParameter(this.localPara!)
-    }
-    /**
-     * Recevied the shell text from client node
-     */
-    private shell_reply = (data:Single) => {
-        this.proxy?.shellReply(data)
-    }
-    /**
-     * Recevied the folders from client node
-     */
-    private shell_folder_reply = (data:ShellFolder) => {
-        this.proxy?.folderReply(data)
     }
     /**
      * When one of the node decide to change the parameter of number value
