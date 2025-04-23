@@ -128,7 +128,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         this.messager_log(`[String Feedback] ${data.key} = ${data.value}`)
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.localPara!}
-        this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.current_nodes.forEach(x => x.websocket.send(JSON.stringify(d)))
         this.proxy?.updateParameter(this.localPara!)
     }
     /**
@@ -143,7 +143,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         this.messager_log(`[Number Feedback] ${data.key} = ${data.value}`)
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.localPara!}
-        this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.current_nodes.forEach(x => x.websocket.send(JSON.stringify(d)))
         this.proxy?.updateParameter(this.localPara!)
     }
     /**
@@ -158,7 +158,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         this.messager_log(`[Boolean Feedback] ${data.key} = ${data.value}`)
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.localPara!}
-        this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.current_nodes.forEach(x => x.websocket.send(JSON.stringify(d)))
         this.proxy?.updateParameter(this.localPara!)
     }
 

@@ -13,7 +13,7 @@ export class Util_Server_Console {
     }
 
     receivedPack = (model:[ExecuteManager, ExecuteRecord], record:Record) => {
-        const pass = model[0].Register(record.projects)
+        const pass = model[0].Register(record)
         if(pass == -1){
             model[1].running = false
             model[1].stop = true
@@ -87,6 +87,7 @@ export class Util_Server_Console_Proxy {
                 state: ExecuteState.NONE
             }
         })
+        console.log("Debug Project", d)
     }
     
     execute_project_finish = (d:Project) => {

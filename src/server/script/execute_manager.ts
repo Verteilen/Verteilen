@@ -1,4 +1,4 @@
-import { ExecuteState, Header, Project, WebsocketPack } from "../interface";
+import { ExecuteState, Header, Record, WebsocketPack } from "../interface";
 import { ExecuteManager_Runner } from "./execute/runner";
 
 /**
@@ -27,7 +27,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
      * Pause has been called
      */
     Stop = () => {
-        this.websocket_manager.targets.forEach(x => {
+        this.current_nodes.forEach(x => {
             const h:Header = {
                 name: 'stop_job',
                 message: 'Stop All Jobs',
@@ -36,7 +36,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
             x.websocket.send(JSON.stringify(h))
         })
         this.jobstack = 0
-        this.websocket_manager.targets.forEach(x => x.current_job = [])
+        this.current_nodes.forEach(x => x.current_job = [])
     }
 
     /**
@@ -45,30 +45,36 @@ export class ExecuteManager extends ExecuteManager_Runner {
      * @param projects Target
      * @returns -1: register failed, 0: successfully
      */
-    Register = (projects:Array<Project>):number => {
-        this.messager_log(`[Execute] Start executing, Project count: ${projects.length}, Node count: ${this.websocket_manager.targets.length}`)
+    Register = (record:Record):number => {
+        this.messager_log(`[Execute] Start executing, Project count: ${record.projects.length}, Node count: ${record.nodes.length}`)
         if(this.state == ExecuteState.RUNNING){
             this.messager_log(`[Execute] Init error, There are projects being execute right now`)
             return -1
         }
-        if(projects.map(x => x.task.length).reduce((acc, cur) => acc + cur, 0) == 0){
+        if(record.nodes.length == 0){
+            this.messager_log(`[Execute] Node count should be bigger than one`)
+            return -1
+        }
+        if(record.projects.map(x => x.task.length).reduce((acc, cur) => acc + cur, 0) == 0){
             this.messager_log(`[Execute] No task can be executing`)
             return -1
         }
-        if(!this.validation(projects)){
+        if(!this.validation(record.projects)){
             this.messager_log(`[Execute] Init failed, Format checking error`)
             return -1
         }
         this.state = ExecuteState.RUNNING
         this.messager_log(`[Execute] Init successfully, Enter process right now`)
 
-        this.current_projects = projects
+        this.current_projects = record.projects
+        this.current_nodes = []
+        record.nodes.forEach(x => {
+            const n = this.current_nodes.find(y => y.uuid == x.ID)
+            if(n != undefined) this.current_nodes.push(n)
+        })
         let i = 0
         for(const x of this.current_projects){
             if(x.task.length > 0){
-                this.current_p = x;
-                this.SyncParameter(this.current_p)
-                this.current_t = this.current_p.task[0]
                 break;
             }else{
                 i++

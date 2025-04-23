@@ -10,6 +10,7 @@ export class ExecuteManager_Base {
     current_t:Task | undefined = undefined
     current_p:Project | undefined = undefined
     current_projects:Array<Project> = []
+    current_nodes:Array<WebsocketPack> = []
     current_cron:Array<CronJobState> = []
     current_job:Array<WorkState> = []
     current_multithread = 1
@@ -39,7 +40,7 @@ export class ExecuteManager_Base {
     }
 
     protected sync_local_para = (target:Parameter) => {
-        this.websocket_manager.targets.forEach(x => this.sync_para(target, x))
+        this.current_nodes.forEach(x => this.sync_para(target, x))
         this.proxy?.updateParameter(target)
     }
 

@@ -136,9 +136,9 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             const single = this.current_cron.filter(x => x.uuid != '')
             // Execute
             for(var cronwork of single){
-                const index = this.websocket_manager.targets.findIndex(x => x.uuid == cronwork.uuid)
+                const index = this.current_nodes.findIndex(x => x.uuid == cronwork.uuid)
                 if(index != -1){
-                    this.ExecuteCronTask(project, task, cronwork, this.websocket_manager.targets[index])
+                    this.ExecuteCronTask(project, task, cronwork, this.current_nodes[index])
                 }
             }
         }
@@ -155,7 +155,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         let ns:Array<WebsocketPack> = []
         if(this.current_job.length > 0){
             // If disconnect or deleted...
-            const last = this.websocket_manager.targets.find(x => x.uuid == this.current_job[0].uuid)
+            const last = this.current_nodes.find(x => x.uuid == this.current_job[0].uuid)
             if(last == undefined){
                 ns = this.get_idle()
                 this.current_job = []
