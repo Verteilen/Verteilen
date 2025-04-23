@@ -58,9 +58,8 @@ export class Util_Server_Log_Proxy {
                 }
             })
         }
-    
-        if(!this.preference.log) return
         this.logs.logs = [newlog].concat(this.logs.logs)
+        console.log("Debug Log", this.logs)
     }
 
     execute_project_finish = (d:Project) => {

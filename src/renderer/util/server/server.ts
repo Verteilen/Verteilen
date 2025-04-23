@@ -1,6 +1,6 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, ShellFolder, Single, Task } from "../../interface";
+import { BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
 import { BackendProxy } from "../../proxy";
 import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
@@ -106,8 +106,6 @@ export class Util_Server {
             executeJobFinish: (data:[Job, number, string, number]):void => { eps.map(x => x.executeJobFinish(data)) },
             feedbackMessage: (data:FeedBack):void => { eps.map(x => x.feedbackMessage(data)) },
             updateParameter: (data:Parameter):void => { eps.map(x => x.updateParameter(data)) },
-            shellReply: (data:Single):void => { eps.map(x => x.shellReply(data)) },
-            folderReply: (data:ShellFolder):void => { eps.map(x => x.folderReply(data)) },
         }
         return p
     }
