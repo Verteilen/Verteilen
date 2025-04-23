@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { BusType, Node, Parameter, Preference, Project, Record } from '../../interface';
 import DialogBase from './DialogBase.vue';
 
@@ -23,11 +23,21 @@ const name:Ref<string> = ref('')
 
 const tabs:Ref<Array<[string, string, number]>> = ref([])
 const page = ref(0)
-const projects:Ref<Array<[string, string]>> = ref([])
-const nodes:Ref<Array<string>> = ref([])
+const projects:Ref<Array<[string | null, string | null]>> = ref([])
+const nodes:Ref<Array<string | null>> = ref([])
 
 const ps = computed(() => {
     return props.projects.map(x => {
+        return {
+            title: x.title,
+            uuid: x.uuid,
+            value: x.uuid
+        }
+    })
+})
+
+const as = computed(() => {
+    return props.parameters.map(x => {
         return {
             title: x.title,
             uuid: x.uuid,
@@ -59,6 +69,14 @@ const updateTab = () => {
     ]
 }
 
+const removeProject = (index:number) => {
+    projects.value.splice(index, 1)
+}
+
+const removeNode = (index:number) => {
+    nodes.value.splice(index, 1)
+}
+
 const updateLocate = () => {
     updateTab()
 }
@@ -76,7 +94,7 @@ const generateResult = ():Record => {
         r.projects.push(project_target)
     })
     nodes.value.forEach(x => {
-        const _node_target = props.nodes.find(y => y.ID == x[0])
+        const _node_target = props.nodes.find(y => y.ID == x)
         if(_node_target == undefined) return
         const node_target:Node = JSON.parse(JSON.stringify(_node_target))
         r.nodes.push(node_target)
@@ -86,14 +104,31 @@ const generateResult = ():Record => {
 
 const confirm = () => {
     emits('confirm', name.value, generateResult())
+    modal.value = false
+}
+
+const cancel = () => {
+    modal.value = false
 }
 
 const AddProject = () => {
-    projects.value.push(['', ''])
+    projects.value.push([null,null])
 }
 
 const AddNode = () => {
-    nodes.value.push('')
+    nodes.value.push(null)
+}
+
+const updateProject = (index:number) => {
+    nextTick(() => {
+        if(projects.value[index][1] != null) return
+        const uuid = projects.value[index][0]
+        const target = props.projects.find(x => x.uuid == uuid)
+        if(target == undefined) return
+        const p_target = props.parameters.find(x => x.uuid == target.parameter_uuid)
+        if(p_target == undefined) return
+        projects.value[index][1] = p_target.uuid
+    })
 }
 
 const itemProps = (item:any) => {
@@ -114,7 +149,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <DialogBase v-model="modal" width="800">
+    <DialogBase v-model="modal" :persistent="true" width="800" :style="{ 'fontSize': props.preference.font + 'px' }">
         <template #title>
             <v-icon>mdi-console</v-icon>
             {{ $t('modal.console-create') }}
@@ -139,7 +174,7 @@ onUnmounted(() => {
                             {{ $t('create') }}
                         </v-tooltip>
                     </v-toolbar>
-                    <v-row>
+                    <v-row class="text-center mt-2">
                         <v-col cols="6">
                             <p>{{ $t('project') }}</p>
                         </v-col>
@@ -148,15 +183,20 @@ onUnmounted(() => {
                         </v-col>
                     </v-row>
                     <v-row>
-                        <v-col cols="6">
-                            <v-autocomplete clearable hide-details v-for="(v, i) in projects" :key="i"
-                                :item-props="itemProps" 
-                                v-model="v[0]" :items="ps" item-title="text" :label="$t('parameter')" ></v-autocomplete>
+                        <v-col cols="1">
+                            <v-btn v-for="(v, i) in projects" :key="i" color="error" variant="text" icon="mdi-delete" @click="removeProject(i)" rounded>
+                            </v-btn>
                         </v-col>
                         <v-col cols="6">
                             <v-autocomplete clearable hide-details v-for="(v, i) in projects" :key="i"
+                                :item-props="itemProps"
+                                @update:modelValue="updateProject(i)"
+                                v-model="v[0]" :items="ps" item-title="text" :label="$t('project')" ></v-autocomplete>
+                        </v-col>
+                        <v-col cols="5">
+                            <v-autocomplete clearable hide-details v-for="(v, i) in projects" :key="i"
                                 :item-props="itemProps" 
-                                v-model="v[1]" :items="ps" item-title="text" :label="$t('parameter')" ></v-autocomplete>
+                                v-model="v[1]" :items="as" item-title="text" :label="$t('parameter')" ></v-autocomplete>
                         </v-col>
                     </v-row>
                 </v-tabs-window-item>
@@ -171,15 +211,24 @@ onUnmounted(() => {
                             {{ $t('create') }}
                         </v-tooltip>
                     </v-toolbar>
-                    <p>{{ $t('node') }}</p>
-                    <v-autocomplete clearable hide-details v-for="(v, i) in nodes" :key="i"
-                        :item-props="itemProps" 
-                        v-model="v" :items="ns" item-title="text" :label="$t('node')" ></v-autocomplete>
+                    <p class="text-center w-100 mt-2">{{ $t('node') }}</p>
+                    <v-row>
+                        <v-col cols="1">
+                            <v-btn v-for="(v, i) in nodes" :key="i" color="error" variant="text" icon="mdi-delete" @click="removeNode(i)" rounded>
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="11">
+                            <v-autocomplete clearable hide-details v-for="(v, i) in nodes" :key="i"
+                                :item-props="itemProps" 
+                                v-model="nodes[i]" :items="ns" item-title="text" :label="$t('node')" ></v-autocomplete>
+                        </v-col>
+                    </v-row>
                 </v-tabs-window-item>
             </v-tabs-window>
         </template>
         <template #action>
             <v-btn class="mt-3" color="primary" @click="confirm">{{ $t('create') }}</v-btn>
+            <v-btn class="mt-3" color="error" @click="cancel">{{ $t('cancel') }}</v-btn>
         </template>
     </DialogBase>
 </template>

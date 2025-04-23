@@ -24,11 +24,12 @@ interface PROPS {
     nodes: Array<Node>
     parameters: Array<Parameter>
 }
-const model = defineModel<[ExecuteManager, ExecuteRecord]>()
+const p_model = defineModel<[ExecuteManager, ExecuteRecord]>()
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', name:string, record:Record):void,
     (e: 'select', index:number):void
+    (e: 'stop'):void
 }>()
 const data:Ref<DATA> = ref({
     leftSize: 3,
@@ -38,8 +39,9 @@ const data:Ref<DATA> = ref({
     createModal: false,
     skipModal: false,
 })
+const model:Ref<[ExecuteManager, ExecuteRecord, number] | undefined> = ref(undefined)
 
-const util:Util_Console = new Util_Console(data, () => model.value)
+const util:Util_Console = new Util_Console(data, () => p_model.value)
 
 const consoleAdded = (name:string, data:Record) => {
     emits('added', name, data)
@@ -51,8 +53,11 @@ const consoleAdded = (name:string, data:Record) => {
  * This will response for the main update for the process worker
  */
 const updateHandle = () => {
+    if(p_model.value != undefined){
+        model.value = [p_model.value![0], p_model.value![1], model.value == undefined ? 0 : model.value![2]++]
+    }
     props.execute.forEach(x => {
-        if(x[1].running && x[1].stop){
+        if(x[1].running && !x[1].stop){
             try {
                 x[0].Update()
             }catch(err:any){
@@ -78,9 +83,7 @@ const updateHandle = () => {
             else if (p[0] == 'skip') skip(p[1], p[2])
             else if (p[0] == 'execute') execute(p[1])
         }
-        
     })
-    
 }
 
 const createConsole = () => {
@@ -187,6 +190,7 @@ const confirmSkip = (v:number) => {
  * Destroy all state and reset
  */
 const clean = () => {
+    stop()
     model.value![0].Clean()
     model.value![1].projects = []
     model.value![1].project = ""
@@ -197,6 +201,7 @@ const clean = () => {
     model.value![1].task_state = []
     model.value![1].task_detail = []
     data.value.para = undefined
+    emits('stop')
 }
 /**
  * It means pause... but i just name it 'stop' anyway. you get the idea\
@@ -226,7 +231,7 @@ onUnmounted(() => {
                 <p v-if="model != undefined">{{ $t('execute') }}</p>
                 <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="execute(0)" :disabled="model[1].projects.length == 0 || model[1].running" color="success">
+                        <v-btn icon v-bind="props" @click="execute(0)" :disabled="model[1].running" color="success">
                             <v-icon>mdi-step-forward-2</v-icon>
                         </v-btn>
                     </template>
@@ -234,7 +239,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="execute(1)" :disabled="model[1].projects.length == 0 || model[1].running" color="success">
+                        <v-btn icon v-bind="props" @click="execute(1)" :disabled="model[1].running" color="success">
                             <v-icon>mdi-step-forward</v-icon>
                         </v-btn>
                     </template>
@@ -242,7 +247,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="execute(2)" :disabled="model[1].projects.length == 0 || model[1].running" color="success">
+                        <v-btn icon v-bind="props" @click="execute(2)" :disabled="model[1].running" color="success">
                             <v-icon>mdi-play</v-icon>
                         </v-btn>
                     </template>
@@ -251,7 +256,7 @@ onUnmounted(() => {
                 <p v-if="model != undefined">{{ $t('skip') }}</p>
                 <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(0)" :disabled="model[1].projects.length == 0 || model[1].running" color="info">
+                        <v-btn icon v-bind="props" @click="skip(0)" :disabled="model[1].running" color="info">
                             <v-icon>mdi-skip-forward</v-icon>
                         </v-btn>
                     </template>
@@ -259,7 +264,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(1)" :disabled="model[1].projects.length == 0 || model[1].running" color="info">
+                        <v-btn icon v-bind="props" @click="skip(1)" :disabled="model[1].running" color="info">
                             <v-icon>mdi-skip-next</v-icon>
                         </v-btn>
                     </template>
@@ -267,7 +272,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(2)" :disabled="model[1].projects.length == 0 || model[1].running" color="info">
+                        <v-btn icon v-bind="props" @click="skip(2)" :disabled="model[1].running" color="info">
                             <v-icon>mdi-debug-step-over</v-icon>
                         </v-btn>
                     </template>
@@ -276,7 +281,7 @@ onUnmounted(() => {
                 <p v-if="model != undefined">{{ $t('action') }}</p>
                 <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="clean" :disabled="model[1].projects.length == 0 || model[1].running" color="error">
+                        <v-btn icon v-bind="props" @click="clean" :disabled="model[1].running" color="error">
                             <v-icon>mdi-stop</v-icon>
                         </v-btn>
                     </template>
@@ -284,7 +289,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="stop" :disabled="model[1].projects.length == 0 || model[1].stop" color="error">
+                        <v-btn icon v-bind="props" @click="stop" :disabled="model[1].stop" color="error">
                             <v-icon>mdi-pause</v-icon>
                         </v-btn>
                     </template>
@@ -301,16 +306,16 @@ onUnmounted(() => {
                 </v-tooltip>
             </v-toolbar>
         </div>
-        <v-row style="height: calc(100vh - 150px)" class="w-100" v-if="model != undefined">
+        <v-row style="height: calc(100vh - 150px)" class="w-100">
             <v-col :cols="data.leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
                 <v-list v-model.number="data.tag" mandatory color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
-                    <v-list-item @click="data.tag = 0" :value="0" :active="data.tag == 0">
+                    <v-list-item v-if="model != undefined" @click="data.tag = 0" :value="0" :active="data.tag == 0">
                         {{ $t('console.list') }}
                     </v-list-item>
-                    <v-list-item @click="data.tag = 1" :value="1" :active="data.tag == 1">
+                    <v-list-item v-if="model != undefined" @click="data.tag = 1" :value="1" :active="data.tag == 1">
                         {{ $t('console.dashboard') }}
                     </v-list-item>
-                    <v-list-item @click="data.tag = 3" :value="3" :active="data.tag == 3">
+                    <v-list-item v-if="model != undefined" @click="data.tag = 3" :value="3" :active="data.tag == 3">
                         {{ $t('console.parameter') }}
                     </v-list-item>
                     <v-list-item @click="data.tag = 2" :value="2" :active="data.tag == 2">
@@ -318,11 +323,11 @@ onUnmounted(() => {
                     </v-list-item>
                 </v-list>
             </v-col>
-            <v-col :cols="data.rightSize" v-show="data.tag == 0">
-                <List v-model="model[1]" :preference="props.preference" />
+            <v-col v-if="model != undefined" :cols="data.rightSize" v-show="data.tag == 0">
+                <List v-model="model" :preference="props.preference" />
             </v-col>
-            <v-col :cols="data.rightSize" v-show="data.tag == 1">
-                <Process v-model="model[1]" :socket="props.socket" :preference="props.preference" />
+            <v-col v-if="model != undefined" :cols="data.rightSize" v-show="data.tag == 1">
+                <Process v-model="model" :socket="props.socket" :preference="props.preference" />
             </v-col>
             <v-col :cols="data.rightSize" v-show="data.tag == 2">
                 <DebugLog :preference="props.preference" />
