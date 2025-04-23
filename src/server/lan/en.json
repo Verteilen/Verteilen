@@ -72,7 +72,9 @@
         "delete-node": "Delete Node",
         "delete-node-confirm": "Are you sure delete nodes below",
         "log-recover-project-title": "New Project Title",
-        "log-recover-parameter-title": "New Parameter Title"
+        "log-recover-parameter-title": "New Parameter Title",
+        "console-create": "Create Console",
+        "console-name": "Console Name"
     },
     "toolbar": {
         "project": "Project",

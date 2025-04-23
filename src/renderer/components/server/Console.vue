@@ -220,11 +220,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div fluid class="ma-0 pa-0" v-if="model != undefined">
+    <div fluid class="ma-0 pa-0">
         <div class="py-3">
             <v-toolbar density="compact" class="px-3" :style="{ 'fontSize': props.preference.font + 'px' }">
-                <p>{{ $t('execute') }}</p>
-                <v-tooltip location="bottom">
+                <p v-if="model != undefined">{{ $t('execute') }}</p>
+                <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="execute(0)" :disabled="model[1].projects.length == 0 || model[1].running" color="success">
                             <v-icon>mdi-step-forward-2</v-icon>
@@ -232,7 +232,7 @@ onUnmounted(() => {
                     </template>
                     {{ $t('execute-0') }}
                 </v-tooltip>
-                <v-tooltip location="bottom">
+                <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="execute(1)" :disabled="model[1].projects.length == 0 || model[1].running" color="success">
                             <v-icon>mdi-step-forward</v-icon>
@@ -240,7 +240,7 @@ onUnmounted(() => {
                     </template>
                     {{ $t('execute-1') }}
                 </v-tooltip>
-                <v-tooltip location="bottom">
+                <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="execute(2)" :disabled="model[1].projects.length == 0 || model[1].running" color="success">
                             <v-icon>mdi-play</v-icon>
@@ -248,8 +248,8 @@ onUnmounted(() => {
                     </template>
                     {{ $t('execute-2') }}
                 </v-tooltip>
-                <p>{{ $t('skip') }}</p>
-                <v-tooltip location="bottom">
+                <p v-if="model != undefined">{{ $t('skip') }}</p>
+                <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="skip(0)" :disabled="model[1].projects.length == 0 || model[1].running" color="info">
                             <v-icon>mdi-skip-forward</v-icon>
@@ -257,7 +257,7 @@ onUnmounted(() => {
                     </template>
                     {{ $t('project') }}
                 </v-tooltip>
-                <v-tooltip location="bottom">
+                <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="skip(1)" :disabled="model[1].projects.length == 0 || model[1].running" color="info">
                             <v-icon>mdi-skip-next</v-icon>
@@ -265,7 +265,7 @@ onUnmounted(() => {
                     </template>
                     {{ $t('task') }}
                 </v-tooltip>
-                <v-tooltip location="bottom">
+                <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="skip(2)" :disabled="model[1].projects.length == 0 || model[1].running" color="info">
                             <v-icon>mdi-debug-step-over</v-icon>
@@ -273,8 +273,8 @@ onUnmounted(() => {
                     </template>
                     {{ $t('step') }}
                 </v-tooltip>
-                <p>{{ $t('action') }}</p>
-                <v-tooltip location="bottom">
+                <p v-if="model != undefined">{{ $t('action') }}</p>
+                <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="clean" :disabled="model[1].projects.length == 0 || model[1].running" color="error">
                             <v-icon>mdi-stop</v-icon>
@@ -282,7 +282,7 @@ onUnmounted(() => {
                     </template>
                     {{ $t('clean') }}
                 </v-tooltip>
-                <v-tooltip location="bottom">
+                <v-tooltip location="bottom" v-if="model != undefined">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="stop" :disabled="model[1].projects.length == 0 || model[1].stop" color="error">
                             <v-icon>mdi-pause</v-icon>
@@ -301,7 +301,7 @@ onUnmounted(() => {
                 </v-tooltip>
             </v-toolbar>
         </div>
-        <v-row style="height: calc(100vh - 150px)" class="w-100">
+        <v-row style="height: calc(100vh - 150px)" class="w-100" v-if="model != undefined">
             <v-col :cols="data.leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
                 <v-list v-model.number="data.tag" mandatory color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
                     <v-list-item @click="data.tag = 0" :value="0" :active="data.tag == 0">

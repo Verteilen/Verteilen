@@ -72,7 +72,9 @@
         "delete-node": "刪除節點",
         "delete-node-confirm": "確定刪除以下節點嗎?",
         "log-recover-project-title": "新專案名稱",
-        "log-recover-parameter-title": "新參數名稱"
+        "log-recover-parameter-title": "新參數名稱",
+        "console-create": "建立控制台",
+        "console-name": "控制台名稱"
     },
     "toolbar": {
         "project": "專案管理",

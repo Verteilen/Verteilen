@@ -71,14 +71,12 @@ onMounted(() => {
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
   if(props.config.isElectron){
     window.electronAPI.eventOn('msgAppend', msgAppend);
-    window.electronAPI.send('client_start');
   }
 })
 
 onUnmounted(() => {
     if(props.config.isElectron){
         window.electronAPI.eventOff('msgAppend', msgAppend);
-        window.electronAPI.send('client_stop');
     }
 })
 

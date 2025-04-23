@@ -295,6 +295,7 @@ onMounted(() => {
     }
 
     if(config.value.isElectron){
+      window.electronAPI.send('client_start');
       window.electronAPI.send('menu', true)
       window.electronAPI.eventOn('createProject', menuCreateProject)
       window.electronAPI.eventOn('menu_export_project', menu_export_project)
@@ -371,6 +372,7 @@ onUnmounted(() => {
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   if(config.value.isElectron) {
+    window.electronAPI.send('client_stop');
     window.electronAPI.eventOff('createProject', menuCreateProject)
     window.electronAPI.eventOff('menu_export_project', menu_export_project)
     window.electronAPI.eventOff('import_project_feedback', import_project_feedback)
