@@ -139,9 +139,7 @@ export class ClientAnalysis {
                     name: 'system_info',
                     data: msg.data
                 }
-                this.messager_log(
-                    "Inital pull \n" + JSON.stringify(msg.data, null, 4), "RESOURCE"
-                )
+                if(this.resource_cache == undefined) this.messager_log("Inital pull \n" + JSON.stringify(msg.data, null, 4), "RESOURCE")
                 this.resource_cache = h
                 this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
                 
