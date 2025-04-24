@@ -111,11 +111,7 @@ export class ClientAnalysis {
         if(this.resource_thread != undefined) return
         const shouldRun = this.resource_thread == undefined && (this.resource_cache == undefined || this.resource_wanter.length > 0)
         if(!shouldRun) return
-        // @ts-ignore
-        const isExe = process.pkg?.entrypoint != undefined
-        let workerExe = isExe ? path.join(process.execPath, "..", "worker.exe") : path.join(__dirname, "worker.exe")
-        workerExe = process.env.NODE_ENV === 'development' ? "worker.exe" : workerExe
-        this.resource_thread = spawn(workerExe, [],
+        this.resource_thread = spawn(Client.workerPath(), [],
             {
                 cwd: path.join('bin'),
                 stdio: ['inherit', 'pipe', 'pipe'],
@@ -180,4 +176,6 @@ export class ClientAnalysis {
             workerFeedback(chunk.toString())
         })
     }
+
+    
 }

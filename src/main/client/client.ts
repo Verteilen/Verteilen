@@ -1,3 +1,4 @@
+import * as path from 'path';
 import { check } from 'tcp-port-used';
 import { WebSocket, WebSocketServer } from 'ws';
 import { CLIENT_UPDATETICK, Header, Messager, Messager_log, PORT } from '../interface';
@@ -96,5 +97,25 @@ export class Client {
      */
     private update = () => {
         this.analysis.update(this)
+    }
+
+    public static workerPath = () => {
+        // @ts-ignore
+        const isExe = process.pkg?.entrypoint != undefined
+        let workerExe = ""
+        if(isExe && path.basename(process.execPath) == "app.exe") { // Node build
+            workerExe = path.join(process.execPath, "..", "worker.exe")
+        }
+        else if(isExe && path.basename(process.execPath) != "app.exe") { // Electron package
+            workerExe = "worker.exe"
+        }
+        else if (process.env.NODE_ENV === 'development'){
+            workerExe = "worker.exe"
+        }
+        else{ // Node un-build
+            workerExe = path.join(__dirname, "worker.exe")
+        }
+        console.log("worker path: " + workerExe)
+        return workerExe
     }
 }

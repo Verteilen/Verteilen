@@ -52,11 +52,7 @@ export class ClientExecute {
     }
 
     private execute_job_worker(job:Job, source:WebSocket){
-        // @ts-ignore
-        const isExe = process.pkg?.entrypoint != undefined
-        let workerExe = isExe ? path.join(process.execPath, "..", "worker.exe") : path.join(__dirname, "worker.exe")
-        workerExe = process.env.NODE_ENV === 'development' ? "worker.exe" : workerExe
-        const child = spawn(workerExe, [], 
+        const child = spawn(Client.workerPath(), [], 
             { 
                 cwd: path.join('bin'),
                 stdio: ['inherit', 'pipe', 'pipe'],
