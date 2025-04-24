@@ -38,10 +38,11 @@ async function startElectron() {
     }
 
     const args:Array<string> = [
+        Path.join(__dirname, '..', 'node_modules', 'electron', 'cli.js'),
         Path.join(__dirname, '..', 'build', 'main', 'main.js'),
         rendererPort!.toString(),
     ];
-    electronProcess = spawn('electron.exe', args);
+    electronProcess = spawn('node', args);
     electronProcessLocker = false;
 
     electronProcess?.stdout.on('data', data => {
