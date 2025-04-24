@@ -4,10 +4,7 @@
     "description": "Compute tool for multi computer",
     "main": "index.js",
     "repository": "https://github.com/Elly2018/Compute-Tool",
-    "dependencies": {
-        "lua-in-js": "file:plugins/lua-in-js",
-        "tcp-port-used": "^1.0.2",
-        "ws": "^8.18.0",
-        "vue-i18n": "^10.0.5"
+    "bin": {
+        "ctn": "app.exe"
     }
 }

@@ -1,5 +1,4 @@
 import { ChildProcess, spawn } from 'child_process';
-import * as path from 'path';
 import { WebSocket } from 'ws';
 import { DataType, FeedBack, Header, Job, JobCategory, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, Parameter, Setter } from "../interface";
 import { i18n } from "../plugins/i18n";
@@ -52,9 +51,8 @@ export class ClientExecute {
     }
 
     private execute_job_worker(job:Job, source:WebSocket){
-        const child = spawn("worker.exe", [], 
+        const child = spawn(Client.workerPath(), [], 
             { 
-                cwd: path.join('bin'),
                 stdio: ['inherit', 'pipe', 'pipe'],
                 windowsHide: true,
                 shell: true,

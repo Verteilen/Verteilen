@@ -1,5 +1,4 @@
 import { ChildProcess, spawn } from 'child_process';
-import * as path from 'path';
 import { WebSocket } from 'ws';
 import { Header, Messager, Messager_log } from "../interface";
 import { Client } from './client';
@@ -111,9 +110,8 @@ export class ClientAnalysis {
         if(this.resource_thread != undefined) return
         const shouldRun = this.resource_thread == undefined && (this.resource_cache == undefined || this.resource_wanter.length > 0)
         if(!shouldRun) return
-        this.resource_thread = spawn("worker.exe", [],
+        this.resource_thread = spawn(Client.workerPath(), [],
             {
-                cwd: path.join('bin'),
                 stdio: ['inherit', 'pipe', 'pipe'],
                 shell: true,
                 windowsHide: true,
@@ -176,4 +174,6 @@ export class ClientAnalysis {
             workerFeedback(chunk.toString())
         })
     }
+
+    
 }

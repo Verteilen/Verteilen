@@ -48,6 +48,13 @@ export async function Copy_PackageJson2Node() {
     return copyFile(from, to)
 }
 
+export async function Copy_PackageJson2NodeBuild() {
+    const from = Path.join(__dirname, '..', 'node_build_package.json');
+    await SyncVersionName(from, '_node')
+    const to = Path.join(__dirname, '..', 'build', 'node-build', 'package.json');
+    return copyFile(from, to)
+}
+
 export async function Copy_PackageJson2Server() {
     const from = Path.join(__dirname, '..', 'server_package.json');
     await SyncVersionName(from, '_server')
