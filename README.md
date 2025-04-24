@@ -7,13 +7,6 @@ For User
 [Demo](https://elly2018.github.io/Compute-Tool/)\
 [Utility Tool](./util/README.md)
 
-```bash
-# use npm install the compute tool node
-npm install compute_tool_node
-# use command ctn to start the client
-ctn
-```
-
 For Dev
 
 [Dev](./src/README.md)\
@@ -27,6 +20,14 @@ For Dev
 |![Lua](./docs/static/luaJob.jpg)|![commandJob](./docs/static/commanJob.jpg)|![pipeline](./docs/static/execution.jpg)|
 
 ## Installation
+
+```bash
+# use npm install the compute tool node
+npm install compute_tool_node
+# use command ctn to start the client
+ctn
+```
+
 
 > Desktop app installation
 
