@@ -111,5 +111,5 @@ export async function SyncVersionName(target:string, suffix:string, source:strin
     const target_json = JSON.parse(((await readFile(target)).toString()))
     target_json.name = `${source_json.name}${suffix}`
     target_json.version = source_json.version
-    await writeFile(target, JSON.stringify(target_json))
+    await writeFile(target, JSON.stringify(target_json, null, 4))
 }
