@@ -53,7 +53,7 @@ const getselect = (r:number):Array<number> => {
 <template>
     <v-container v-if="data != undefined" class="pt-4" style="max-height: calc(100vh - 150px); overflow-y: auto;">
         <v-card v-if="data[1].project_index >= 0">
-            <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }">
+            <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }" @click="console.log(data)">
                 {{ $t('project') }}: {{ data[1].projects[data[1].project_index]?.title }}
             </v-card-title>
             <v-card-text>

@@ -62,6 +62,8 @@ const updateHandle = () => {
             model.value[2] = model.value![2]++
             if(model.value[2] == Number.MAX_VALUE) model.value[2] = Number.MIN_VALUE
         }
+    }else{
+        model.value = undefined
     }
     props.execute.forEach(x => {
         if(x[1].running && !x[1].stop){

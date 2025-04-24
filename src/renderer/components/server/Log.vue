@@ -20,7 +20,7 @@ interface PROPS {
 
 const data = defineModel<[ExecuteManager, ExecuteRecord]>()
 const emits = defineEmits<{
-    (e: 'clean'):void
+    (e: 'clean', index:number):void
 }>()
 const props = defineProps<PROPS>()
 const tag = ref(0)
@@ -56,7 +56,7 @@ const slowUpdateHandle = () => {
     items.value.filter(x => x.dirty).forEach(x => {
         x.dirty = false
         x.output = undefined
-        window.electronAPI.send('save_log', x.filename, JSON.stringify(x))
+        window.electronAPI.send('save_log', x.uuid, JSON.stringify(x))
         x.output = true
     })
 }
@@ -80,7 +80,7 @@ const getindex = (r:number, i:number):number => {
 }
 
 const clean = () => {
-    emits('clean')
+    emits('clean', selection.value)
 }
 
 const recover = () => {

@@ -14,6 +14,7 @@ export interface ExecutionTaskLog {
 }
 
 export interface ExecutionLog {
+    uuid: string
     dirty?: boolean
     output?: boolean
     filename: string

@@ -1,6 +1,6 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { BusType, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
+import { BusType, ClientLog, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
 import { BackendProxy } from "../../proxy";
 import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
@@ -9,6 +9,7 @@ import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Node } from "./node_handle";
 import { Util_Server_Parameter } from "./parameter_handle";
 import { Util_Server_Project } from "./project_handle";
+import { Util_Server_Self } from "./self_handle";
 import { Util_Server_Task } from "./task_handle";
 
 export type save_and_update = () => void
@@ -29,6 +30,7 @@ export interface DATA {
     selectTask: Task | undefined
     selectParameter: Parameter | undefined
     nodes: Array<NodeTable>
+    messages: Array<ClientLog>
 }
 
 export class Util_Server {
@@ -42,6 +44,7 @@ export class Util_Server {
     node:Util_Server_Node
     parameter:Util_Server_Parameter
     console:Util_Server_Console
+    self:Util_Server_Self
 
     constructor(_data:Ref<DATA>, _config:config_getter, _emitter:Emitter<BusType>){
         this.data = _data
@@ -53,6 +56,7 @@ export class Util_Server {
         this.node = new Util_Server_Node(this.data, this.saveRecord)
         this.parameter = new Util_Server_Parameter(this.data, this.config, this.update)
         this.console = new Util_Server_Console(this.data, this.update)
+        this.self = new Util_Server_Self(this.data)
     }
 
     private update = () => {
@@ -95,17 +99,17 @@ export class Util_Server {
 
     CombineProxy = (eps:Array<ExecuteProxy>) => {
         const p:ExecuteProxy = {
-            executeProjectStart: (data:Project):void => { eps.map(x => x.executeProjectStart(data)) },
-            executeProjectFinish: (data:Project):void => { eps.map(x => x.executeProjectFinish(data)) },
-            executeTaskStart: (data:[Task, number]):void => { eps.map(x => x.executeTaskStart(data)) },
-            executeTaskFinish: (data:Task):void => { eps.map(x => x.executeTaskFinish(data)) },
-            executeSubtaskStart: (data:[Task, number, string]):void => { eps.map(x => x.executeSubtaskStart(data)) },
-            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { eps.map(x => x.executeSubtaskUpdate(data)) },
-            executeSubtaskFinish: (data:[Task, number, string]):void => { eps.map(x => x.executeSubtaskFinish(data)) },
-            executeJobStart: (data:[Job, number, string]):void => { eps.map(x => x.executeJobStart(data)) },
-            executeJobFinish: (data:[Job, number, string, number]):void => { eps.map(x => x.executeJobFinish(data)) },
-            feedbackMessage: (data:FeedBack):void => { eps.map(x => x.feedbackMessage(data)) },
-            updateParameter: (data:Parameter):void => { eps.map(x => x.updateParameter(data)) },
+            executeProjectStart: (data:Project):void => { eps.forEach(x => x.executeProjectStart(data)) },
+            executeProjectFinish: (data:Project):void => { eps.forEach(x => x.executeProjectFinish(data)) },
+            executeTaskStart: (data:[Task, number]):void => { eps.forEach(x => x.executeTaskStart(data)) },
+            executeTaskFinish: (data:Task):void => { eps.forEach(x => x.executeTaskFinish(data)) },
+            executeSubtaskStart: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskStart(data)) },
+            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { eps.forEach(x => x.executeSubtaskUpdate(data)) },
+            executeSubtaskFinish: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskFinish(data)) },
+            executeJobStart: (data:[Job, number, string]):void => { eps.forEach(x => x.executeJobStart(data)) },
+            executeJobFinish: (data:[Job, number, string, number]):void => { eps.forEach(x => x.executeJobFinish(data)) },
+            feedbackMessage: (data:FeedBack):void => { eps.forEach(x => x.feedbackMessage(data)) },
+            updateParameter: (data:Parameter):void => { eps.forEach(x => x.updateParameter(data)) },
         }
         return p
     }

@@ -1,83 +1,38 @@
 <script setup lang="ts">
-import { IpcRendererEvent } from 'electron';
-import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ClientLog, MESSAGE_LIMIT, Preference } from '../../interface';
-
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-let updateHandle:any = undefined
+import { onMounted, onUnmounted, Ref, ref } from 'vue';
+import { ClientLog, Preference } from '../../interface';
+import { BackendProxy } from '../../proxy';
 
 interface PROPS {
-    config: AppConfig
+    backend: BackendProxy
     preference: Preference
+    messages: Array<ClientLog>
 }
-
-const messages:Ref<Array<ClientLog>> = ref([
-  {
-      s: true,
-      tag: "client",
-      title: "Main Information",
-      text: []
-  }
-])
 const props = defineProps<PROPS>()
+const emits = defineEmits<{
+  (e: 'clean'):void
+}>()
 const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const panel:Ref<Array<number>> = ref([0])
 const autoScroll = ref(true)
 
-const msgAppend = (e:IpcRendererEvent, msg:string, tag?:string) => {
-  if(tag == undefined){
-    messages.value[0].text.push(msg)
-    if(messages.value[0].text.length > MESSAGE_LIMIT){
-      messages.value[0].text.shift()
-    }
-  }else{
-    const index = messages.value.findIndex(x => x.tag == tag)
-    if(index == -1){
-      messages.value.push({
-        s: true,
-        tag: tag,
-        title: tag,
-        text: [msg]
-      })
-      panel.value.push(messages.value.length - 1)
-      
-    }else{
-      messages.value[index].text.push(msg)
-      if(!panel.value.includes(index)) panel.value.push(index)
-      if(messages.value[index].text.length > MESSAGE_LIMIT){
-        messages.value[index].text.shift()
-      }
-    }
-  }
+const msgAppend = (msg:string, tag?:string) => {
   if(autoScroll.value) myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
 }
 
 const clearMessage = () => {
-  messages.value = [
-    {
-      s: true,
-      tag: "client",
-      title: "客戶端訊息",
-      text: [
-        "[介面] 訊息清空"
-      ]
-    }
-  ]
+  emits('clean')
   panel.value = [0]
 }
 
 onMounted(() => {
-  updateHandle = setInterval(() => emitter?.emit('updateHandle'), 1000);
-  if(props.config.isElectron){
-    window.electronAPI.eventOn('msgAppend', msgAppend);
-  }
+  props.backend.wait_init().then(() => {
+    props.backend.eventOn('msgAppend', msgAppend);
+  })
 })
 
 onUnmounted(() => {
-    if(props.config.isElectron){
-        window.electronAPI.eventOff('msgAppend', msgAppend);
-    }
+    props.backend.eventOff('msgAppend', msgAppend);
 })
 
 </script>
@@ -93,7 +48,7 @@ onUnmounted(() => {
     </div>
     <div class="flow text-white bg-grey-darken-4" ref="myDiv">
       <v-expansion-panels multiple v-model="panel">
-        <v-expansion-panel v-for="(block, i) in messages" :key="i">
+        <v-expansion-panel v-for="(block, i) in props.messages" :key="i">
           <v-expansion-panel-title color="grey-darken-3">
             <h3>{{ block.title }}</h3>
           </v-expansion-panel-title>

@@ -181,14 +181,14 @@ export class ExecuteManager_Base {
      * @returns All idle and open connection nodes
      */
     protected get_idle = ():Array<WebsocketPack> => {
-        return this.websocket_manager.targets.filter(x => this.check_socket_state(x) != ExecuteState.RUNNING && x.websocket.readyState == WebSocket.OPEN)
+        return this.current_nodes.filter(x => this.check_socket_state(x) != ExecuteState.RUNNING && x.websocket.readyState == WebSocket.OPEN)
     }
     /**
      * Filter out the connection open nodes
      * @returns All open connection nodes
      */
     protected get_idle_open = ():Array<WebsocketPack> => {
-        return this.websocket_manager.targets.filter(x => x.websocket.readyState == WebSocket.OPEN)
+        return this.current_nodes.filter(x => x.websocket.readyState == WebSocket.OPEN)
     }
 
     protected check_socket_state = (target:WebsocketPack) => {

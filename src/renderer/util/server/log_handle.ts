@@ -1,3 +1,4 @@
+import { v6 as uuid6 } from 'uuid'
 import { AppConfig, ConditionResult, ExecuteProxy, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Task } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 
@@ -38,6 +39,7 @@ export class Util_Server_Log_Proxy {
         const target = this.model[1].projects[this.model[1].project_index]
         const title = await this.getnewname(target.title)
         const newlog:ExecutionLog = {
+            uuid: uuid6(),
             filename: title,
             dirty: true,
             output: this.preference.log,

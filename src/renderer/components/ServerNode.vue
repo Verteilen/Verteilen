@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
@@ -48,7 +47,8 @@ const data:Ref<DATA> = ref({
     selectProject: undefined,
     selectTask: undefined,
     selectParameter: undefined,
-    nodes: []
+    nodes: [],
+    messages: []
 })
 
 const util:Util_Server = new Util_Server(data, () => props.backend, emitter!)
@@ -170,17 +170,27 @@ const consoleAdded = (name:string, record:Record) => {
   data.value.select_manager = data.value.execute_manager.length - 1
 }
 const consoleStop = () => {
-  nextTick(() => data.value.execute_manager.splice(data.value.select_manager, 1))
+  nextTick(() => {
+    data.value.execute_manager.splice(data.value.select_manager, 1)
+    if(data.value.execute_manager.length == 0) data.value.select_manager = -1
+    else data.value.select_manager = 0
+  })
 }
 const consoleSelect = (e:number) => { data.value.select_manager = e }
 //#endregion
 
 //#region Log
-const LogClean = () => {
+const LogClean = (index:number) => {
+  props.backend.send('delete_log', data.value.logs.logs[index])
   if(!config.value.isElectron) return
   window.electronAPI.send('delete_all_log')
   data.value.logs.logs = []
 }
+//#endregion
+
+//#region Self
+const msgAppend = (d:{msg:string, tag?:string}) => util.self.msgAppend(d)
+const msgClean = () => util.self.clearMessage()
 //#endregion
 
 //#region Web
@@ -209,15 +219,15 @@ const updateTab = () => {
   }
 }
 
-const menuCreateProject = (e:IpcRendererEvent) => {
+const menuCreateProject = () => {
   data.value.page = 0
 }
 
-const menu_export_project = (e:IpcRendererEvent) => {
+const menu_export_project = () => {
   if(config.value.isElectron) window.electronAPI.send("export_project", JSON.stringify(data.value.projects))
 }
 
-const import_project_feedback = (e:IpcRendererEvent, text:string) => {
+const import_project_feedback = (text:string) => {
   const ps:Array<Project> = JSON.parse(text)
   for(const p of ps){
     for(const t of p.task){
@@ -298,72 +308,71 @@ onMounted(() => {
       data.value.websocket_manager.onAnalysis = onAnalysis
     }
 
-    if(config.value.isElectron){
-      window.electronAPI.send('client_start');
-      window.electronAPI.send('menu', true)
-      window.electronAPI.eventOn('createProject', menuCreateProject)
-      window.electronAPI.eventOn('menu_export_project', menu_export_project)
-      window.electronAPI.eventOn('import_project_feedback', import_project_feedback)
-      const p1 = window.electronAPI.invoke('load_all_node').then(x => {
-        const texts:Array<string> = JSON.parse(x)
-        data.value.nodes.push(...texts.map(y => JSON.parse(y)))
-      })
-      const p2 = window.electronAPI.invoke('load_all_lib').then(x => {
-        const texts:Array<string> = JSON.parse(x)
-        data.value.libs = { libs: texts.map(y => JSON.parse(y)) }
-        console.log("Libs", data.value.libs)
-      })
-      const p3 = window.electronAPI.invoke('load_all_record').then(x => {
-        const texts:Array<string> = JSON.parse(x)
-        data.value.projects.push(...texts.map(y => JSON.parse(y)))
-      })
-      const p4 = window.electronAPI.invoke('load_record_obsolete').then(x => {
-        if(x == undefined) return
-        const texts:Record = JSON.parse(x)
-        const n:Array<NodeTable> = texts.nodes.map(y => {
-          return Object.assign(y, {
-            s: false,
-            state: 0,
-            connection_rate: 0
-          })
-        })
-        data.value.nodes.push(...n)
-        texts.projects.forEach(y => {
-          const p:Parameter = JSON.parse(JSON.stringify(y.parameter))
-          p.title = y.title
-          p.uuid = uuidv6()
-          data.value.parameters.push(p)
-          y.parameter = undefined
-          y.parameter_uuid = p.uuid
-          data.value.projects.push(y)
+    props.backend.send('client_start');
+    props.backend.send('menu', true)
+    props.backend.eventOn('createProject', menuCreateProject)
+    props.backend.eventOn('menu_export_project', menu_export_project)
+    props.backend.eventOn('import_project_feedback', import_project_feedback)
+    props.backend.eventOn('msgAppend', msgAppend)
+    const p1 = props.backend.invoke('load_all_node').then(x => {
+      const texts:Array<string> = JSON.parse(x)
+      data.value.nodes.push(...texts.map(y => JSON.parse(y)))
+    })
+    const p2 = props.backend.invoke('load_all_lib').then(x => {
+      const texts:Array<string> = JSON.parse(x)
+      data.value.libs = { libs: texts.map(y => JSON.parse(y)) }
+      console.log("Libs", data.value.libs)
+    })
+    const p3 = props.backend.invoke('load_all_record').then(x => {
+      const texts:Array<string> = JSON.parse(x)
+      data.value.projects.push(...texts.map(y => JSON.parse(y)))
+    })
+    const p4 = props.backend.invoke('load_record_obsolete').then(x => {
+      if(x == undefined) return
+      const texts:Record = JSON.parse(x)
+      const n:Array<NodeTable> = texts.nodes.map(y => {
+        return Object.assign(y, {
+          s: false,
+          state: 0,
+          connection_rate: 0
         })
       })
-      const p5 = window.electronAPI.invoke('load_all_parameter').then(x => {
-        const texts:Array<string> = JSON.parse(x)
-        data.value.parameters = texts.map(y => JSON.parse(y))
-        console.log("Parameters", data.value.libs)
+      data.value.nodes.push(...n)
+      texts.projects.forEach(y => {
+        const p:Parameter = JSON.parse(JSON.stringify(y.parameter))
+        p.title = y.title
+        p.uuid = uuidv6()
+        data.value.parameters.push(p)
+        y.parameter = undefined
+        y.parameter_uuid = p.uuid
+        data.value.projects.push(y)
       })
-      const p6 = window.electronAPI.invoke('load_all_log').then(x => {
-          const stringlist:Array<string> = JSON.parse(x)
-          const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
-          ll.forEach(x => x.output = true)
-          console.log("Logs", ll)
-          data.value.logs.logs = ll
-      })
-      Promise.all([p1, p2, p3, p4, p5, p6]).then(() => {
-        data.value.nodes = data.value.nodes.map(y => {
-          return Object.assign(y, {
-            s: false,
-            state: 0,
-            connection_rate: 0
-          })
+    })
+    const p5 = props.backend.invoke('load_all_parameter').then(x => {
+      const texts:Array<string> = JSON.parse(x)
+      data.value.parameters = texts.map(y => JSON.parse(y))
+      console.log("Parameters", data.value.libs)
+    })
+    const p6 = props.backend.invoke('load_all_log').then(x => {
+        const stringlist:Array<string> = JSON.parse(x)
+        const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
+        ll.forEach(x => x.output = true)
+        console.log("Logs", ll)
+        data.value.logs.logs = ll
+    })
+    Promise.all([p1, p2, p3, p4, p5, p6]).then(() => {
+      data.value.nodes = data.value.nodes.map(y => {
+        return Object.assign(y, {
+          s: false,
+          state: 0,
+          connection_rate: 0
         })
-        data.value.nodes.forEach(y => {
-          data.value.websocket_manager?.server_start(y.url, y.ID)
-        })
-        nextTick(() => allUpdate())
       })
-    }
+      data.value.nodes.forEach(y => {
+        data.value.websocket_manager?.server_start(y.url, y.ID)
+      })
+      nextTick(() => allUpdate())
+    })
   })
 })
 
@@ -375,12 +384,11 @@ onUnmounted(() => {
   emitter?.off('updateLocate', updateLocate)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
-  if(config.value.isElectron) {
-    window.electronAPI.send('client_stop');
-    window.electronAPI.eventOff('createProject', menuCreateProject)
-    window.electronAPI.eventOff('menu_export_project', menu_export_project)
-    window.electronAPI.eventOff('import_project_feedback', import_project_feedback)
-  }
+  props.backend.send('client_stop');
+  props.backend.eventOff('createProject', menuCreateProject)
+  props.backend.eventOff('menu_export_project', menu_export_project)
+  props.backend.eventOff('import_project_feedback', import_project_feedback)
+  props.backend.eventOff('msgAppend', msgAppend)
 })
 
 </script>
@@ -481,7 +489,8 @@ onUnmounted(() => {
         </v-tabs-window-item>
         <v-tabs-window-item v-shoe="config.haveBackend" :value="8">
           <SelfPage
-            :config="config"
+            :backend="props.backend"
+            :messages="data.messages"
             :preference="props.preference"/>
         </v-tabs-window-item>
       </v-tabs-window>

@@ -46,32 +46,32 @@ export class ExecuteManager extends ExecuteManager_Runner {
      * @returns -1: register failed, 0: successfully
      */
     Register = (record:Record):number => {
-        this.messager_log(`[Execute] Start executing, Project count: ${record.projects.length}, Node count: ${record.nodes.length}`)
+        this.current_projects = record.projects
+        this.current_nodes = []
+        record.nodes.forEach(x => {
+            const n = this.websocket_manager.targets.find(y => y.uuid == x.ID)
+            if(n != undefined) this.current_nodes.push(n)
+        })
+        this.messager_log(`[Execute] Start executing, Project count: ${this.current_projects.length}, Node count: ${this.current_nodes.length}`)
         if(this.state == ExecuteState.RUNNING){
             this.messager_log(`[Execute] Init error, There are projects being execute right now`)
             return -1
         }
-        if(record.nodes.length == 0){
+        if(this.current_nodes.length == 0){
             this.messager_log(`[Execute] Node count should be bigger than one`)
             return -1
         }
-        if(record.projects.map(x => x.task.length).reduce((acc, cur) => acc + cur, 0) == 0){
+        if(this.current_projects.map(x => x.task.length).reduce((acc, cur) => acc + cur, 0) == 0){
             this.messager_log(`[Execute] No task can be executing`)
             return -1
         }
-        if(!this.validation(record.projects)){
+        if(!this.validation(this.current_projects)){
             this.messager_log(`[Execute] Init failed, Format checking error`)
             return -1
         }
         this.state = ExecuteState.RUNNING
         this.messager_log(`[Execute] Init successfully, Enter process right now`)
-
-        this.current_projects = record.projects
-        this.current_nodes = []
-        record.nodes.forEach(x => {
-            const n = this.current_nodes.find(y => y.uuid == x.ID)
-            if(n != undefined) this.current_nodes.push(n)
-        })
+        
         let i = 0
         for(const x of this.current_projects){
             if(x.task.length > 0){

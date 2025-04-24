@@ -87,7 +87,6 @@ export class Util_Server_Console_Proxy {
                 state: ExecuteState.NONE
             }
         })
-        console.log("Debug Project", d)
     }
     
     execute_project_finish = (d:Project) => {
