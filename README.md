@@ -7,6 +7,13 @@ For User
 [Demo](https://elly2018.github.io/Compute-Tool/)\
 [Utility Tool](./util/README.md)
 
+```bash
+# use npm install the compute tool node
+npm install compute_tool_node
+# use command ctn to start the client
+ctn
+```
+
 For Dev
 
 [Dev](./src/README.md)\
