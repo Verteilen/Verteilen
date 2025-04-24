@@ -10,6 +10,9 @@ export class Util_Server_Log_Proxy {
 
     private task_index:number = 0
     private uuid:string = ''
+    private get target_log ():ExecutionLog | undefined {
+        return this.logs.logs.find(x => x.uuid == this.uuid)!
+    }
 
     constructor(_model:[ExecuteManager, ExecuteRecord], _log:Log, _preference:Preference, _config:AppConfig){
         this.model = _model
@@ -36,7 +39,6 @@ export class Util_Server_Log_Proxy {
     }
 
     execute_project_start = async (d:Project) => {
-        if(this.uuid.length == 0) return
         const target = this.model[1].projects[this.model[1].project_index]
         const title = await this.getnewname(target.title)
         this.uuid = uuid6()
@@ -67,25 +69,25 @@ export class Util_Server_Log_Proxy {
     }
 
     execute_project_finish = (d:Project) => {
-        if(this.uuid.length == 0) return
-        this.logs.logs[0].state = ExecuteState.FINISH
-        this.logs.logs[0].end_timer = Date.now()
-        this.logs.logs[0].dirty = true
+        if(this.target_log == undefined) return
+        this.target_log!.state = ExecuteState.FINISH
+        this.target_log!.end_timer = Date.now()
+        this.target_log!.dirty = true
     }
     
     execute_task_start = (d:[Task, number]) => {
-        if(this.uuid.length == 0) return
-        const index = this.logs.logs[0].project.task.findIndex(x => x.uuid == d[0].uuid)
+        if(this.target_log == undefined) return
+        const index = this.target_log!.project.task.findIndex(x => x.uuid == d[0].uuid)
         if(index == -1) return
         this.task_index = index
-        this.logs.logs[0].logs[this.task_index].task_detail = []
+        this.target_log!.logs[this.task_index].task_detail = []
     
         const p = this.model[1].projects[this.model[1].project_index]
         const t = p.task[this.task_index]
         const count = this.model[0].get_task_state_count(t)
         
         for(let i = 0; i < count; i++){
-            this.logs.logs[0].logs[this.task_index].task_detail.push({
+            this.target_log!.logs[this.task_index].task_detail.push({
                 index: i,
                 node: "",
                 message: [],
@@ -93,43 +95,43 @@ export class Util_Server_Log_Proxy {
             })
         }
     
-        if(this.logs.logs[0].logs.length > this.task_index){
-            this.logs.logs[0].logs[this.task_index].task_state.state = ExecuteState.RUNNING
-            this.logs.logs[0].logs[this.task_index].start_timer = Date.now()
-            this.logs.logs[0].dirty = true
+        if(this.target_log!.logs.length > this.task_index){
+            this.target_log!.logs[this.task_index].task_state.state = ExecuteState.RUNNING
+            this.target_log!.logs[this.task_index].start_timer = Date.now()
+            this.target_log!.dirty = true
         }
     }
     
     execute_task_finish = (d:Task) => {
-        if(this.uuid.length == 0) return
-        if(this.logs.logs[0].logs.length > this.task_index){
-            this.logs.logs[0].logs[this.task_index].task_state.state = ExecuteState.FINISH
-            this.logs.logs[0].logs[this.task_index].end_timer = Date.now()
-            this.logs.logs[0].dirty = true
+        if(this.target_log == undefined) return
+        if(this.target_log!.logs.length > this.task_index){
+            this.target_log!.logs[this.task_index].task_state.state = ExecuteState.FINISH
+            this.target_log!.logs[this.task_index].end_timer = Date.now()
+            this.target_log!.dirty = true
         }
     }
     
     execute_subtask_start = (d:[Task, number, string]) => {
-        if(this.uuid.length == 0) return
-        if(this.logs.logs[0].logs[this.task_index].task_detail.length > d[1]){
-            this.logs.logs[0].logs[this.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
-            this.logs.logs[0].dirty = true
+        if(this.target_log == undefined) return
+        if(this.target_log!.logs[this.task_index].task_detail.length > d[1]){
+            this.target_log!.logs[this.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
+            this.target_log!.dirty = true
         }
     }
     
     execute_subtask_update = (d:[Task, number, string, ExecuteState]) => {
-        if(this.uuid.length == 0) return
-        if(this.logs.logs[0].logs[this.task_index].task_detail.length > d[1]){
-            this.logs.logs[0].logs[this.task_index].task_detail[d[1]].state = d[3]
-            this.logs.logs[0].dirty = true
+        if(this.target_log == undefined) return
+        if(this.target_log!.logs[this.task_index].task_detail.length > d[1]){
+            this.target_log!.logs[this.task_index].task_detail[d[1]].state = d[3]
+            this.target_log!.dirty = true
         }
     }
     
     execute_subtask_end = (d:[Task, number, string]) => {
-        if(this.uuid.length == 0) return
-        if(this.logs.logs[0].logs[this.task_index].task_detail.length > d[1]){
-            this.logs.logs[0].logs[this.task_index].task_detail[d[1]].state = ExecuteState.FINISH
-            this.logs.logs[0].dirty = true
+        if(this.target_log == undefined) return
+        if(this.target_log!.logs[this.task_index].task_detail.length > d[1]){
+            this.target_log!.logs[this.task_index].task_detail[d[1]].state = ExecuteState.FINISH
+            this.target_log!.dirty = true
         }
     }
     
@@ -138,9 +140,9 @@ export class Util_Server_Log_Proxy {
     }
     
     execute_job_finish = (d:[Job, number, string, number]) => {
-        if(this.uuid.length == 0) return
+        if(this.target_log == undefined) return
         if (d[3] == 1){
-            const currentLog = this.logs.logs[0]
+            const currentLog = this.target_log!
             const task = currentLog.project.task[this.task_index]
             const index = task.jobs.findIndex(x => x.uuid == d[0].uuid)
             if(index != -1 && task.jobs[index].category == JobCategory.Condition){
@@ -158,21 +160,21 @@ export class Util_Server_Log_Proxy {
     }
     
     feedback_message = (d:FeedBack) => {
-        if(this.uuid.length == 0) return
+        if(this.target_log == undefined) return
         if(d.index == undefined || d.index == -1) return
-        if(this.uuid.length == 0) return
-        if(this.logs.logs[0].logs[this.task_index].task_detail.length > d.index){
-            this.logs.logs[0].logs[this.task_index].task_detail[d.index].message.push(d.message)
-            this.logs.logs[0].dirty = true
+        if(this.target_log == undefined) return
+        if(this.target_log!.logs[this.task_index].task_detail.length > d.index){
+            this.target_log!.logs[this.task_index].task_detail[d.index].message.push(d.message)
+            this.target_log!.dirty = true
         }else{
             console.warn("Try access message by index but failed: ", d)
         }
     }
 
     update_runtime_parameter = (d:Parameter) => {
-        if(this.logs.logs.length > 0) {
-            this.logs.logs[0].parameter = d
-            this.logs.logs[0].dirty = true
+        if(this.target_log != undefined) {
+            this.target_log!.parameter = d
+            this.target_log!.dirty = true
         }
     }
 

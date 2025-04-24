@@ -8,7 +8,6 @@ export interface DATA {
     leftSize: number
     rightSize: number
     tag: number
-    para: Parameter | undefined
     skipModal: boolean
     createModal: boolean
 }

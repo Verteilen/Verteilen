@@ -99,17 +99,17 @@ export class Util_Server {
 
     CombineProxy = (eps:Array<ExecuteProxy>) => {
         const p:ExecuteProxy = {
-            executeProjectStart: (data:Project):void => { eps.forEach(x => x.executeProjectStart(data)) },
-            executeProjectFinish: (data:Project):void => { eps.forEach(x => x.executeProjectFinish(data)) },
-            executeTaskStart: (data:[Task, number]):void => { eps.forEach(x => x.executeTaskStart(data)) },
-            executeTaskFinish: (data:Task):void => { eps.forEach(x => x.executeTaskFinish(data)) },
-            executeSubtaskStart: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskStart(data)) },
-            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { eps.forEach(x => x.executeSubtaskUpdate(data)) },
-            executeSubtaskFinish: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskFinish(data)) },
-            executeJobStart: (data:[Job, number, string]):void => { eps.forEach(x => x.executeJobStart(data)) },
-            executeJobFinish: (data:[Job, number, string, number]):void => { eps.forEach(x => x.executeJobFinish(data)) },
-            feedbackMessage: (data:FeedBack):void => { eps.forEach(x => x.feedbackMessage(data)) },
-            updateParameter: (data:Parameter):void => { eps.forEach(x => x.updateParameter(data)) },
+            executeProjectStart: (data:Project):void => { eps.forEach(x => x.executeProjectStart(JSON.parse(JSON.stringify(data)))) },
+            executeProjectFinish: (data:Project):void => { eps.forEach(x => x.executeProjectFinish(JSON.parse(JSON.stringify(data)))) },
+            executeTaskStart: (data:[Task, number]):void => { eps.forEach(x => x.executeTaskStart(JSON.parse(JSON.stringify(data)))) },
+            executeTaskFinish: (data:Task):void => { eps.forEach(x => x.executeTaskFinish(JSON.parse(JSON.stringify(data)))) },
+            executeSubtaskStart: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskStart(JSON.parse(JSON.stringify(data)))) },
+            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { eps.forEach(x => x.executeSubtaskUpdate(JSON.parse(JSON.stringify(data)))) },
+            executeSubtaskFinish: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskFinish(JSON.parse(JSON.stringify(data)))) },
+            executeJobStart: (data:[Job, number, string]):void => { eps.forEach(x => x.executeJobStart(JSON.parse(JSON.stringify(data)))) },
+            executeJobFinish: (data:[Job, number, string, number]):void => { eps.forEach(x => x.executeJobFinish(JSON.parse(JSON.stringify(data)))) },
+            feedbackMessage: (data:FeedBack):void => { eps.forEach(x => x.feedbackMessage(JSON.parse(JSON.stringify(data)))) },
+            updateParameter: (data:Parameter):void => { eps.forEach(x => x.updateParameter(JSON.parse(JSON.stringify(data)))) },
         }
         return p
     }

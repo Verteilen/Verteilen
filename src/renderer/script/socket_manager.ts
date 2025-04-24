@@ -26,23 +26,6 @@ export class WebsocketManager {
         setInterval(this.update, 1000)
     }
 
-    private socket_analysis = (d:BusAnalysis) => {
-        const typeMap:{ [key:string]:Function } = {
-            'system_info': this.system_info,
-            'shell_reply': this.shell_reply,
-            'shell_folder_reply': this.shell_folder_reply,
-            'node_info': this.node_info,
-            'pong': this.pong,
-        }
-        if(typeMap.hasOwnProperty(d.name)){
-            const castingFunc = typeMap[d.h.name]
-            castingFunc(d.h.data, d.c, d.h.meta)
-            return true
-        }else{
-            return false
-        }
-    }
-
     /**
      * Trying to connect a node by target URL
      * @param url target url
@@ -174,6 +157,23 @@ export class WebsocketManager {
         const d:BusAnalysis = {name: h.name, h: h, c: c}
         const pass = this.socket_analysis(d)
         if (!pass) this.onAnalysis(d)
+    }
+
+    private socket_analysis = (d:BusAnalysis) => {
+        const typeMap:{ [key:string]:Function } = {
+            'system_info': this.system_info,
+            'shell_reply': this.shell_reply,
+            'shell_folder_reply': this.shell_folder_reply,
+            'node_info': this.node_info,
+            'pong': this.pong,
+        }
+        if(typeMap.hasOwnProperty(d.name)){
+            const castingFunc = typeMap[d.h.name]
+            castingFunc(d.h.data, d.c, d.h.meta)
+            return true
+        }else{
+            return false
+        }
     }
 
     /**

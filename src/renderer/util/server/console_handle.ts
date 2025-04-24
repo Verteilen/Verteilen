@@ -6,7 +6,7 @@ import { DATA, save_and_update } from "./server"
 export class Util_Server_Console { 
     data:Ref<DATA>
     update:save_and_update
-
+    
     constructor (_data:Ref<DATA>, _update:save_and_update){
         this.data = _data
         this.update = _update
@@ -111,7 +111,7 @@ export class Util_Server_Console_Proxy {
         if (this.model[1].project_index == -1) return
         const index = this.model[1].projects[this.model[1].project_index].task.findIndex(x => x.uuid == d[0].uuid)
         if(index == -1) return
-        this.model[1].cronjob = d[0].cronjob
+        this.model[1].useCron = d[0].cronjob
         this.model[1].task = d[0].uuid
         this.model[1].task_index = index
         this.model[1].task_state[index].state = ExecuteState.RUNNING
@@ -137,7 +137,7 @@ export class Util_Server_Console_Proxy {
         if (this.model[1].project_index == -1) return
         const index = this.model[1].projects[this.model[1].project_index].task.findIndex(x => x.uuid == d.uuid)
         if(index == -1) return
-        this.model[1].cronjob = false
+        this.model[1].useCron = false
         this.model[1].task = ""
         this.model[1].task_state[index].state = ExecuteState.FINISH
         if(index + 1 < this.model[1].task_state.length - 1){
@@ -173,7 +173,10 @@ export class Util_Server_Console_Proxy {
     }
     
     execute_job_start = (d:[Job, number, string]) => {
-        //model.value![1].task_detail[index].node = node
+        if (this.model[1].project_index == -1) return
+        if(!this.model[1].useCron){
+            this.model[1].task_detail[0].node = d[2]
+        }
     }
     
     execute_job_finish = (d:[Job, number, string, number]) => {
@@ -217,6 +220,7 @@ export class Util_Server_Console_Proxy {
     }
 
     feedback_message = (d:FeedBack) => {
+        console.log("feedback_message", d)
         if(d.index == undefined || d.index == -1) return
         const container = this.model[1].task_detail[d.index]
         if(container != undefined){

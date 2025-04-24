@@ -35,7 +35,6 @@ const data:Ref<DATA> = ref({
     leftSize: 3,
     rightSize: 9,
     tag: 1,
-    para: undefined,
     createModal: false,
     skipModal: false,
 })
@@ -54,14 +53,7 @@ const consoleAdded = (name:string, data:Record) => {
  */
 const updateHandle = () => {
     if(p_model.value != undefined){
-        if(model.value == undefined){
-            model.value = [p_model.value![0], p_model.value![1], 0]
-        }else{
-            model.value[0] = p_model.value![0]
-            model.value[1] = p_model.value![1]
-            model.value[2] = model.value![2] + 1
-            if(model.value[2] > 5000) model.value[2] = 0
-        }
+        model.value = [p_model.value![0], p_model.value![1], model.value == undefined ? Number.MIN_VALUE : model.value[2]++]
     }else{
         model.value = undefined
     }
@@ -209,7 +201,6 @@ const clean = () => {
     model.value![1].project_state = []
     model.value![1].task_state = []
     model.value![1].task_detail = []
-    data.value.para = undefined
     emits('stop')
 }
 /**
@@ -353,8 +344,8 @@ onUnmounted(() => {
             <v-col :cols="data.rightSize" v-show="data.tag == 2">
                 <DebugLog :preference="props.preference" />
             </v-col>
-            <v-col :cols="data.rightSize" v-show="data.tag == 3">
-                <ParameterPage v-model="data.para" :preference="props.preference" />
+            <v-col v-if="model != undefined" :cols="data.rightSize" v-show="data.tag == 3">
+                <ParameterPage v-model="model[1].para" :preference="props.preference" />
             </v-col>
         </v-row>
         <ConsoleDialog v-model="data.createModal"

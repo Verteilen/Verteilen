@@ -52,10 +52,10 @@ export interface ExecuteRecord extends Record {
      * * 2: SIngle task through
      */
     process_type: number
-    cronjob: boolean
     para: Parameter | undefined
     command: Array<Array<any>>
     project: string
+    useCron: boolean
     task: string
     project_index: number
     task_index: number

@@ -11,6 +11,13 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      * @param d Package info
      */
     Analysis = (d:BusAnalysis) => {
+        if(d.c != undefined) {
+            const uuids = this.current_nodes.map(x => x.uuid)
+            if(!uuids.includes(d.c.uuid)) {
+                this.messager_log("Not inside")
+                return
+            }
+        }
         const typeMap:{ [key:string]:Function } = {
             'feedback_message': this.feedback_message,
             'feedback_job': this.feedback_job,
@@ -33,9 +40,14 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      * @param source The node target
      */
     private feedback_message = (data:Single, source:WebsocketPack | undefined, meta:string | undefined) => {
-        if(source == undefined) return
-        if(!this.current_nodes.includes(source)) return
-        if(this.state == ExecuteState.NONE) return
+        if(source == undefined) {
+            this.messager_log("[Server Feedback Warn] source is none")
+            return
+        }
+        if(this.state == ExecuteState.NONE) {
+            this.messager_log("[Server Feedback Warn] state is none, should not received feedback")
+            return
+        }
         this.messager_log(`[Execute] Single Received data: ${data.data}`)
         let index = 0
         if(this.current_cron.length > 0 && meta != undefined){

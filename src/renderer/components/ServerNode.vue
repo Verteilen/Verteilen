@@ -141,7 +141,7 @@ const consoleAdded = (name:string, record:Record) => {
     running: false,
     stop: true,
     process_type: -1,
-    cronjob: false,
+    useCron: false,
     para: undefined,
     command: [],
     project: '',
@@ -276,13 +276,7 @@ const disconnect = (x:WebsocketPack) => {
 }
 
 const onAnalysis = (d:BusAnalysis) => {
-  data.value.execute_manager.forEach(x => x[0].Analysis(d))
-}
-
-const analysis = (b:BusAnalysis) => {
-  data.value.execute_manager.forEach(y => {
-    y[0].Analysis(b)
-  })
+  data.value.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
 }
 
 onMounted(() => {
@@ -302,10 +296,7 @@ onMounted(() => {
         shellReply: data => { emitter?.emit('shellReply', data) },
         folderReply: data => { emitter?.emit('folderReply', data) },
       }
-      data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, analysis, messager_log, nodeproxy)
-      data.value.websocket_manager.newConnect = newConnect
-      data.value.websocket_manager.disconnect = disconnect
-      data.value.websocket_manager.onAnalysis = onAnalysis
+      data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
     }
 
     props.backend.eventOn('msgAppend', msgAppend)

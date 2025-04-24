@@ -195,7 +195,7 @@ onUnmounted(() => {
             </v-col>
             <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 0 && getselect != undefined">
                 <v-card class="mb-2 pb-2">
-                    <v-card-title @click="console.log(getselect)">
+                    <v-card-title @click="console.log(props.logs, getselect)">
                         {{ getselect.project.title }}
                     </v-card-title>
                     <v-card-subtitle>
