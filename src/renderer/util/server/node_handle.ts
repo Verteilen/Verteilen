@@ -1,5 +1,6 @@
 import { Ref } from "vue"
-import { NodeTable } from "../../interface"
+import { ExecuteRecord, NodeTable } from "../../interface"
+import { ExecuteManager } from "../../script/execute_manager"
 import { DATA, save_and_update } from "./server"
 
 export class Util_Server_Node {
@@ -21,5 +22,13 @@ export class Util_Server_Node {
             }
         })
         this.update()
+    }
+}
+
+export class Util_Server_Node_Proxy {
+    model:[ExecuteManager, ExecuteRecord]
+    
+    constructor(_model:[ExecuteManager, ExecuteRecord]){
+        this.model = _model
     }
 }

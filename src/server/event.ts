@@ -57,6 +57,7 @@ export class BackendEvent {
             'load_preference': this.load_preference,
         }
         this.Loader(typeMap, 'record', 'record')
+        this.Loader(typeMap, 'parameter', 'parameter')
         this.Loader(typeMap, 'node', 'node')
         this.Loader(typeMap, 'log', 'log')
         this.Loader(typeMap, 'lib', 'lib')

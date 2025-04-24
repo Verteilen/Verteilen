@@ -7,7 +7,7 @@ import { Header, Single, WebsocketPack } from "./interface";
 */
 export const messager = (...args:Array<string | undefined>) => {
     if(mainWindow == null || mainWindow == undefined || mainWindow.isDestroyed()) return
-    mainWindow.webContents.send('msgAppend', ...args);
+    mainWindow.webContents.send('msgAppend', args);
 }
 
 export const messager_feedback = (msg:string, meta?:string) => {

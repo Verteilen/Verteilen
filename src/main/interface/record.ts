@@ -14,6 +14,7 @@ export interface ExecutionTaskLog {
 }
 
 export interface ExecutionLog {
+    uuid: string
     dirty?: boolean
     output?: boolean
     filename: string
@@ -44,7 +45,17 @@ export interface Record {
 export interface ExecuteRecord extends Record {
     running: boolean
     stop: boolean
+    /**
+     * The speicifed the process step type
+     * * 0: All Projects through
+     * * 1: Single project through
+     * * 2: SIngle task through
+     */
+    process_type: number
+    para: Parameter | undefined
+    command: Array<Array<any>>
     project: string
+    useCron: boolean
     task: string
     project_index: number
     task_index: number

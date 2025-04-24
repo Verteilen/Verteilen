@@ -1,4 +1,4 @@
-import { Header, Job } from '../interface'
+import { Header, Job, ResourceType, SystemLoad } from '../interface'
 import { ClientHTTP } from './http'
 import { ClientJobExecute } from './job_execute'
 import { ClientResource } from './resource'
@@ -60,7 +60,9 @@ export function RUN(){
     else if (process.env.type == 'RESOURCE'){
         const r:ClientResource = new ClientResource()
         messager("Resource query")
-        r.Query().then(x => {
+        const cache:SystemLoad | undefined = process.env.cache == undefined ? undefined : JSON.parse(process.env.cache)
+        const type:ResourceType = cache == undefined ? ResourceType.ALL : ResourceType.BATTERY | ResourceType.LOAD | ResourceType.NETWORK | ResourceType.RAM
+        r.Query(cache, type).then(x => {
             const h:Header = {
                 name: 'resource',
                 data: x

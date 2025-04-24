@@ -48,6 +48,7 @@
         "delete-project": "Delete Project",
         "import-project": "Import Project",
         "delete-project-confirm": "Are you sure delete projects below",
+        "delete-project-binding": "Delete the binding parameter set as well",
         "enter-project-name": "Enter Project Name",
         "enter-project-description": "Enter Project Description",
         "new-task": "New Task",
@@ -57,13 +58,23 @@
         "new-job": "New Job",
         "new-parameter": "New Parameter",
         "edit-parameter": "Modify Parameter",
+        "delete-parameter": "Delete Parameter",
         "enter-parameter-name": "Enter Parameter Name",
+        "new-parameter-set": "New Parameter Set",
+        "edit-parameter-set": "Modify Parameter Set",
+        "enter-parameter-set-name": "Enter Parameter Set Name",
+        "import-parameter": "Delete Parameter",
+        "delete-parameter-confirm": "Are you sure delete parameter you selected",
         "parameter-datatype": "Datatype",
         "new-node": "New Node",
         "enter-node-address": "Enter Node Address",
         "skip-step": "Skip Step",
         "delete-node": "Delete Node",
-        "delete-node-confirm": "Are you sure delete nodes below"
+        "delete-node-confirm": "Are you sure delete nodes below",
+        "log-recover-project-title": "New Project Title",
+        "log-recover-parameter-title": "New Parameter Title",
+        "console-create": "Create Console",
+        "console-name": "Console Name"
     },
     "toolbar": {
         "project": "Project",
@@ -210,8 +221,10 @@
     "export": "Export",
     "import": "Import",
     "useTemplate": "Use Template",
+    "useExistParameter": "Use Exist Parameter",
     "execute-keep": "Execute (Keep)",
     "parameter-setting": "Parameter Setting",
+    "parameter-select": "Parameter Select",
     "is-running": "Is Running",
     "is-stop": "Is Stop",
     "clear": "Clear",
@@ -225,5 +238,6 @@
     "step": "Step",
     "confirm": "Confirm",
     "close": "Close",
-    "enter": "Enter"
+    "enter": "Enter",
+    "filters": "Filters"
 }

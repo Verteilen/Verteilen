@@ -48,6 +48,7 @@
         "delete-project": "刪除專案",
         "import-project": "匯入專案",
         "delete-project-confirm": "確定刪除以下專案嗎?",
+        "delete-project-binding": "連同綁定的參數集一起刪除",
         "enter-project-name": "輸入專案名稱",
         "enter-project-description": "輸入專案敘述",
         "new-task": "新增流程",
@@ -57,13 +58,23 @@
         "new-job": "新增工作",
         "new-parameter": "新增參數",
         "edit-parameter": "編輯參數",
+        "delete-parameter": "刪除參數",
         "enter-parameter-name": "輸入參數名稱",
+        "new-parameter-set": "新增參數組",
+        "edit-parameter-set": "編輯參數組",
+        "enter-parameter-set-name": "輸入參數組名稱",
+        "import-parameter": "刪除參數",
+        "delete-parameter-confirm": "確認刪除選擇參數嗎?",
         "parameter-datatype": "資料型態",
         "new-node": "新增節點",
         "enter-node-address": "輸入節點位址",
         "skip-step": "跳過步驟",
         "delete-node": "刪除節點",
-        "delete-node-confirm": "確定刪除以下節點嗎?"
+        "delete-node-confirm": "確定刪除以下節點嗎?",
+        "log-recover-project-title": "新專案名稱",
+        "log-recover-parameter-title": "新參數名稱",
+        "console-create": "建立控制台",
+        "console-name": "控制台名稱"
     },
     "toolbar": {
         "project": "專案管理",
@@ -210,8 +221,10 @@
     "export": "匯出",
     "import": "匯入",
     "useTemplate": "使用樣板",
+    "useExistParameter": "使用參數組",
     "execute-keep": "執行 (保留)",
     "parameter-setting": "參數設定",
+    "parameter-select": "參數選擇",
     "is-running": "是否執行中",
     "is-stop": "是否停止",
     "clear": "清除",
@@ -225,5 +238,6 @@
     "step": "步驟",
     "confirm": "確認",
     "close": "關閉",
-    "enter": "進入"
+    "enter": "進入",
+    "filters": "篩選"
 }

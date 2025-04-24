@@ -30,6 +30,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
 
 export const GetFUNIQUE_GS4LUTProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
+        title: "GS4_Lut Parameter",
+        uuid: uuidv6(),
         canWrite: true,
         containers: [
             { name: "frameCount", value: 50, type: DataType.Number, runtimeOnly: false, hidden: false },

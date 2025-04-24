@@ -10,8 +10,14 @@ export interface ParameterContainer {
     value: any
 }
 
+export interface Property {
+    name: string
+    expression: string
+}
 
 export interface Parameter {
+    uuid: string
+    title: string
     canWrite: boolean
     containers: Array<ParameterContainer>
 }
@@ -37,51 +43,6 @@ export interface Task {
     cronjobKey: string
     multi: boolean
     multiKey: string
-    jobs: Array<Job>
-}
-
-export interface Project {
-    uuid: string
-    title: string
-    description: string
-    parameter: Parameter
-    task: Array<Task>
-}
-
-export interface Node {
-    ID: string
-    url: string
-}
-
-export interface Node {
-    ID: string
-    url: string
-}
-
-export interface Property {
-    name: string
-    expression: string
-}
-
-export interface Job {
-    uuid: string
-    category: number
-    type: number
-    lua: string
-    index?: number
-    string_args: Array<string>
-    number_args: Array<number>
-    boolean_args: Array<boolean>
-}
-
-export interface Task {
-    uuid: string
-    title: string
-    description: string
-    cronjob: boolean
-    cronjobKey: string
-    multi: boolean
-    multiKey: string
     properties: Array<Property>
     jobs: Array<Job>
 }
@@ -90,6 +51,12 @@ export interface Project {
     uuid: string
     title: string
     description: string
-    parameter: Parameter
+    parameter_uuid: string
+    parameter?: Parameter
     task: Array<Task>
+}
+
+export interface Node {
+    ID: string
+    url: string
 }

@@ -1,4 +1,4 @@
-import { BusAnalysis, CronJobState, DataType, ExecuteState, FeedBack, Header, NodeLoad, Setter, ShellFolder, Single, SystemLoad, WebsocketPack, WorkState } from "../../interface"
+import { BusAnalysis, CronJobState, DataType, ExecuteState, FeedBack, Header, Setter, Single, WebsocketPack, WorkState } from "../../interface"
 import { ExecuteManager_Base } from "./base"
 
 /**
@@ -11,21 +11,21 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      * @param d Package info
      */
     Analysis = (d:BusAnalysis) => {
+        const targetn = this.current_nodes.find(x => x.uuid == d.c?.uuid)
+        if(targetn == undefined) {
+            this.messager_log("Not inside")
+            return
+        }
         const typeMap:{ [key:string]:Function } = {
             'feedback_message': this.feedback_message,
             'feedback_job': this.feedback_job,
             'feedback_string': this.feedback_string,
             'feedback_boolean': this.feedback_boolean,
             'feedback_number': this.feedback_number,
-            'shell_reply': this.shell_reply,
-            'shell_folder_reply': this.shell_folder_reply,
-            'system_info': this.system_info,
-            'node_info': this.node_info,
-            'pong': this.pong,
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
-            castingFunc(d.h.data, d.c, d.h.meta)
+            castingFunc(d.h.data, targetn, d.h.meta)
         }else{
             this.messager_log(`[Source Data Analysis] Decode failed, Unknowed header, name: ${d.name}, meta: ${d.h.meta}`)
         }
@@ -38,8 +38,14 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      * @param source The node target
      */
     private feedback_message = (data:Single, source:WebsocketPack | undefined, meta:string | undefined) => {
-        if(source == undefined) return
-        if(this.state == ExecuteState.NONE) return
+        if(source == undefined) {
+            this.messager_log("[Server Feedback Warn] source is none")
+            return
+        }
+        if(this.state == ExecuteState.NONE) {
+            this.messager_log("[Server Feedback Warn] state is none, should not received feedback")
+            return
+        }
         this.messager_log(`[Execute] Single Received data: ${data.data}`)
         let index = 0
         if(this.current_cron.length > 0 && meta != undefined){
@@ -114,7 +120,11 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         }
         // Reset the state of the node
         const index = source.current_job.findIndex(x => x == data.runtime_uuid)
-        source.current_job.splice(index, 1)
+        if(index == -1){
+            this.messager_log(`[Execute] Cannot find runtime uuid: ${data.runtime_uuid} in websocket pack source: ${source.uuid}`)
+        }else{
+            source.current_job.splice(index, 1)
+        }
         data.node_uuid = source.uuid
         this.proxy?.feedbackMessage(data)
     }
@@ -130,20 +140,8 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         this.messager_log(`[String Feedback] ${data.key} = ${data.value}`)
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.localPara!}
-        this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.current_nodes.forEach(x => x.websocket.send(JSON.stringify(d)))
         this.proxy?.updateParameter(this.localPara!)
-    }
-    /**
-     * Recevied the shell text from client node
-     */
-    private shell_reply = (data:Single) => {
-        this.proxy?.shellReply(data)
-    }
-    /**
-     * Recevied the folders from client node
-     */
-    private shell_folder_reply = (data:ShellFolder) => {
-        this.proxy?.folderReply(data)
     }
     /**
      * When one of the node decide to change the parameter of number value
@@ -157,7 +155,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         this.messager_log(`[Number Feedback] ${data.key} = ${data.value}`)
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.localPara!}
-        this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.current_nodes.forEach(x => x.websocket.send(JSON.stringify(d)))
         this.proxy?.updateParameter(this.localPara!)
     }
     /**
@@ -172,39 +170,8 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         this.messager_log(`[Boolean Feedback] ${data.key} = ${data.value}`)
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.localPara!}
-        this.websocket_manager.targets.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.current_nodes.forEach(x => x.websocket.send(JSON.stringify(d)))
         this.proxy?.updateParameter(this.localPara!)
-    }
-
-    /**
-     * Get the system information and assign to the node object
-     * @param info Data
-     * @param source The node target
-     */
-    private system_info = (info:SystemLoad, source:WebsocketPack | undefined) => {
-        if(source == undefined) return
-        source.information = info
-    }
-
-    /**
-     * Get the node information and assign to the node object
-     * @param info Data
-     * @param source The node target
-     */
-    private node_info = (info:NodeLoad, source:WebsocketPack | undefined) => {
-        if(source == undefined) return
-        source.load = info
-    }
-
-    /**
-     * Get the bouncing back function call\
-     * THis method will calculate the time different and assign the node object
-     * @param info Dummy number, nothing important, can be ignore
-     * @param source The node target
-     */
-    private pong = (info:number, source:WebsocketPack | undefined) => {
-        if(source == undefined || source.last == undefined) return
-        source.ms = Date.now() - source.last
     }
 
     private GetCronAndWork = (runtime:string, source:WebsocketPack):[CronJobState | undefined, WorkState | undefined] => {

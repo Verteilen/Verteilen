@@ -1,6 +1,6 @@
 import { Job, Parameter, Project, Task } from "./base"
 import { ExecuteState } from "./enum"
-import { ExecutionLog, Log, Record } from "./record"
+import { ExecutionLog, Log } from "./record"
 import { FeedBack, Header, Setter, ShellFolder, Single, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
@@ -40,15 +40,43 @@ export interface EmitterProxy<T> {
 export interface ExecuteProxy {
     executeProjectStart: (data:Project) => void
     executeProjectFinish: (data:Project) => void
+    /**
+     * * 0.Task: Task instance
+     * * 1.number: The amounts of subtask need
+     */
     executeTaskStart: (data:[Task, number]) => void
     executeTaskFinish: (data:Task) => void
+    /**
+     * * 0.Task: Task instance
+     * * 1.number: Subtask index
+     * * 2.string: node uuid
+     */
     executeSubtaskStart: (data:[Task, number, string]) => void
     executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]) => void
+    /**
+     * * 0.Task: Task instance
+     * * 1.number: Subtask index
+     * * 2.string: node uuid
+     */
     executeSubtaskFinish: (data:[Task, number, string]) => void
+    /**
+     * * 0.Job: Job instance
+     * * 1.number: Subtask index
+     * * 2.string: node uuid
+     */
     executeJobStart: (data:[Job, number, string]) => void
+    /**
+     * * 0.Job: Job instance
+     * * 1.number: Subtask index
+     * * 2.string: node uuid
+     * * 3.string: meta string
+     */
     executeJobFinish: (data:[Job, number, string, number]) => void
     feedbackMessage: (data:FeedBack) => void
     updateParameter: (data:Parameter) => void
+}
+
+export interface NodeProxy { 
     shellReply: (data:Single) => void
     folderReply: (data:ShellFolder) => void
 }
@@ -62,12 +90,13 @@ export type BusType = {
     createProject: void
     updateProject: void
     recoverProject: Project
+    recoverParameter: Parameter
     updateTask: void
     updateJob: void
     updateParameter: void
+    selectParameter: string
     updateLocate: void
     updateNode: Array<NodeTable>
-    execute: Record
     updateCurrent: ExecutionLog,
     updateLog: Log
     updateHandle: void
@@ -78,42 +107,6 @@ export type BusType = {
 
     renameScript: Rename
     deleteScript: string
-
-    executeProjectStart: Project
-    executeProjectFinish: Project
-    /**
-     * * 0.Task: Task instance
-     * * 1.number: The amounts of subtask need
-     */
-    executeTaskStart: [Task, number]
-    executeTaskFinish: Task
-    /**
-     * * 0.Task: Task instance
-     * * 1.number: Subtask index
-     * * 2.string: node uuid
-     */
-    executeSubtaskStart: [Task, number, string]
-    /**
-     * * 0.Task: Task instance
-     * * 1.number: Subtask index
-     * * 2.string: node uuid
-     */
-    executeSubtaskFinish: [Task, number, string]
-    executeSubtaskUpdate: [Task, number, string, ExecuteState]
-    /**
-     * * 0.Job: Job instance
-     * * 1.number: Subtask index
-     * * 2.string: node uuid
-     */
-    executeJobStart: [Job, number, string]
-    /**
-     * * 0.Job: Job instance
-     * * 1.number: Subtask index
-     * * 2.string: node uuid
-     * * 3.string: meta string
-     */
-    executeJobFinish: [Job, number, string, number]
-    updateRuntimeParameter: Parameter
 
     analysis: BusAnalysis
     debuglog: string

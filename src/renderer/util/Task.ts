@@ -16,6 +16,7 @@ export interface CreateField {
 
 export interface DATA {
     fields: Array<any>
+    paraModal:boolean
     dialogModal:boolean
     isEdit: boolean
     editData: CreateField
@@ -26,7 +27,8 @@ export interface DATA {
     para_keys:Array<string>
     errorMessage: string
     titleError: boolean
-    search: string,
+    search: string | undefined
+    selectSearch: string | undefined
     selection:Array<string>
 }
 
@@ -70,7 +72,7 @@ export class Util_Task {
 
     updateParameter = () => {
         const p = this.select_props
-        this.data.value.para_keys = p?.parameter.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
+        this.data.value.para_keys = p?.parameter?.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
     }
 
     createProject = () => {
@@ -137,6 +139,25 @@ export class Util_Task {
             properties: selectp.properties,
             jobs: selectp.jobs
         }
+    }
+
+    dataedit = (uuid:string) => {
+        if(this.select() == undefined) return
+        const selectp = this.select()!.task.find(x => x.uuid == uuid)
+        if(selectp == undefined) return;
+        this.data.value.editData = {
+            cronjob: selectp.cronjob, 
+            cronjobKey: selectp.cronjobKey, 
+            title: selectp.title, 
+            description: selectp.description, 
+            multi: selectp.multi, 
+            multiKey: selectp.multiKey
+        };
+        this.data.value.dialogModal = true;
+        this.data.value.isEdit = true
+        this.data.value.editUUID = uuid;
+        this.data.value.errorMessage = ''
+        this.data.value.titleError = false
     }
 
     isFirst = (uuid:string) => {

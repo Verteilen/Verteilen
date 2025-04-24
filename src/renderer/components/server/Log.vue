@@ -1,34 +1,40 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { AppConfig, BusType, ConditionResult, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Record, Task } from '../../interface';
+import { AppConfig, BusType, ExecuteRecord, ExecuteState, Log, Parameter, Preference, Project } from '../../interface';
+import { i18n } from '../../plugins/i18n';
 import { ExecuteManager } from '../../script/execute_manager';
+import LogMenuDialog from './../dialog/LogMenuDialog.vue';
 import ParameterPage from './console/Parameter.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
-    execute: Array<ExecuteManager>
+    execute: Array<[ExecuteManager, ExecuteRecord]>
     preference: Preference
     config: AppConfig
+    logs: Log
 }
 
-const tag = ref(0)
-const exportDialog = ref(false)
-const data = defineModel<ExecuteRecord>()
+const data = defineModel<[ExecuteManager, ExecuteRecord]>()
+const emits = defineEmits<{
+    (e: 'clean', index:number):void
+}>()
 const props = defineProps<PROPS>()
-const logs:Ref<Log> = ref({logs: []})
-const task_index = ref(0)
+const tag = ref(0)
+const recoverDialog = ref(false)
+const exportDialog = ref(false)
 const leftSize = ref(3)
 const rightSize = ref(9)
 const totalLength = ref(4)
+const holder:Ref<Array<string>> = ref([])
 const current:Ref<number> = ref(-1)
 const selection:Ref<number> = ref(0)
 const panelValue:Ref<Array<number>> = ref([])
 
-const items = computed(() => logs.value.logs.filter(x => x.output))
+const items = computed(() => props.logs.logs.filter(x => x.output))
 const getselect = computed(() => items.value.length == 0 ? undefined : items.value[selection.value])
 const getselectTask = computed(() => getselect.value == undefined || current.value == -1 ? undefined : getselect.value.logs[current.value])
 
@@ -38,20 +44,6 @@ const getEnable = (r:number):Array<number> => {
     const min = (r - 1) * totalLength.value
     const max = Math.min(getselect.value.logs.length, min + totalLength.value)
     return (min <= current.value && max > current.value) ? [k] : []
-}
-
-const getnewname = async (name:string) => {
-    if(!props.config.isElectron) return name
-    const root = "data/log"
-    let count = 0
-    let filename = name
-    let p = `${root}/${filename}`
-    while(await window.electronAPI.invoke('exist', p + ".json")){
-        count = count + 1
-        filename = `${name} ${count}`
-        p = `${root}/${filename}`
-    }
-    return filename
 }
 
 const setEnable = (index:number) => {
@@ -64,7 +56,7 @@ const slowUpdateHandle = () => {
     items.value.filter(x => x.dirty).forEach(x => {
         x.dirty = false
         x.output = undefined
-        window.electronAPI.send('save_log', x.filename, JSON.stringify(x))
+        window.electronAPI.send('save_log', x.uuid, JSON.stringify(x))
         x.output = true
     })
 }
@@ -88,29 +80,44 @@ const getindex = (r:number, i:number):number => {
 }
 
 const clean = () => {
-    if(!props.config.isElectron) return
-    window.electronAPI.send('delete_all_log')
-    logs.value.logs = []
+    emits('clean', selection.value)
 }
 
 const recover = () => {
     if(getselect.value == undefined) return
-    const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
-    p.uuid = uuidv6()
-    p.title = p.title + " (恢復)"
-    p.parameter = getselect.value.parameter
-    p.task.forEach(x => {
-        x.uuid = uuidv6()
-        x.jobs.forEach(y => {
-            y.uuid = uuidv6()
-        })
-    })
-    emitter?.emit('recoverProject', p)
+    const p = getselect.value.project.parameter!.title == undefined ? `${getselect.value.project.title} ${i18n.global.t('parameter')}` : getselect.value.project.parameter!.title
+    holder.value = [
+        `${getselect.value.project.title} ${i18n.global.t('recover')}`,
+        `${p} ${i18n.global.t('recover')}`
+    ]
+    nextTick(() => recoverDialog.value = true)
 }
 
 const exporter = () => {
     exportDialog.value = true
-    
+}
+
+const recoverConfirm = (mode:number, _names?:Array<string>) => {
+    if(getselect.value == undefined) return
+    const names:Array<string> = _names!
+    if(mode == 0){
+        const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
+        p.uuid = uuidv6()
+        p.title = names[0]
+        p.parameter = getselect.value.parameter
+        p.task.forEach(x => {
+            x.uuid = uuidv6()
+            x.jobs.forEach(y => {
+                y.uuid = uuidv6()
+            })
+        })
+        emitter?.emit('recoverProject', p)
+    }else{
+        const p:Parameter = JSON.parse(JSON.stringify(getselect.value.project.parameter))
+        p.uuid = uuidv6()
+        p.title = names[1]
+        emitter?.emit('recoverParameter', p)
+    }
 }
 
 const exportConfirm = (mode:number) => {
@@ -121,215 +128,12 @@ const exportConfirm = (mode:number) => {
     exportDialog.value = false
 }
 
-const receivedPack = async (record:Record) => {
-    task_index.value = 0
-    const target = record.projects[0]
-    const title = await getnewname(target.title)
-    const newlog:ExecutionLog = {
-        filename: title,
-        dirty: true,
-        output: props.preference.log,
-        project: target,
-        parameter: target.parameter,
-        state: ExecuteState.NONE,
-        start_timer: Date.now(),
-        end_timer: 0,
-        logs: target.task.map(x => {
-            return {
-                start_timer: 0,
-                end_timer: 0,
-                task_state: {
-                    uuid: x.uuid,
-                    state: ExecuteState.NONE
-                },
-                task_detail: []
-            }
-        })
-    }
-    logs.value.logs = [newlog].concat(logs.value.logs)
-}
-
-const feedback_message = (d:FeedBack) => {
-    if(!props.preference.log) return
-    if(d.index == undefined || d.index == -1) return
-    if(!props.preference.log) return
-    if(logs.value.logs[0].logs[task_index.value].task_detail.length > d.index){
-        logs.value.logs[0].logs[task_index.value].task_detail[d.index].message.push(d.message)
-        logs.value.logs[0].dirty = true
-    }else{
-        console.warn("Try access message by index but failed: ", d)
-    }
-}
-
-const execute_project_start = async (d:Project) => {
-    if(!props.preference.log) return
-    const target = data.value!.projects[data.value!.project_index]
-    const title = await getnewname(target.title)
-    const newlog:ExecutionLog = {
-        filename: title,
-        dirty: true,
-        output: props.preference.log,
-        project: target,
-        state: ExecuteState.RUNNING,
-        start_timer: Date.now(),
-        parameter: d.parameter,
-        end_timer: 0,
-        logs: target.task.map(x => {
-            return {
-                start_timer: 0,
-                end_timer: 0,
-                task_state: {
-                    uuid: x.uuid,
-                    state: ExecuteState.NONE
-                },
-                task_detail: []
-            }
-        })
-    }
-
-    if(!props.preference.log) return
-    logs.value.logs = [newlog].concat(logs.value.logs)
-}
-
-const execute_project_finish = (d:Project) => {
-    if(!props.preference.log) return
-    logs.value.logs[0].state = ExecuteState.FINISH
-    logs.value.logs[0].end_timer = Date.now()
-    logs.value.logs[0].dirty = true
-}
-
-const execute_task_start = (d:[Task, number]) => {
-    if(!props.preference.log) return
-    const index = logs.value.logs[0].project.task.findIndex(x => x.uuid == d[0].uuid)
-    if(index == -1) return
-    task_index.value = index
-    logs.value.logs[0].logs[task_index.value].task_detail = []
-
-    const p = data.value!.projects[data.value!.project_index]
-    const t = p.task[task_index.value]
-    const count = props.execute[0].get_task_state_count(t)
-    
-    for(let i = 0; i < count; i++){
-        logs.value.logs[0].logs[task_index.value].task_detail.push({
-            index: i,
-            node: "",
-            message: [],
-            state: ExecuteState.NONE
-        })
-    }
-
-    if(!props.preference.log) return
-    if(logs.value.logs[0].logs.length > task_index.value){
-        logs.value.logs[0].logs[task_index.value].task_state.state = ExecuteState.RUNNING
-        logs.value.logs[0].logs[task_index.value].start_timer = Date.now()
-        logs.value.logs[0].dirty = true
-    }
-}
-
-const execute_task_finish = (d:Task) => {
-    if(!props.preference.log) return
-    if(logs.value.logs[0].logs.length > task_index.value){
-        logs.value.logs[0].logs[task_index.value].task_state.state = ExecuteState.FINISH
-        logs.value.logs[0].logs[task_index.value].end_timer = Date.now()
-        logs.value.logs[0].dirty = true
-    }
-}
-
-const execute_subtask_start = (d:[Task, number, string]) => {
-    if(!props.preference.log) return
-    if(logs.value.logs[0].logs[task_index.value].task_detail.length > d[1]){
-        logs.value.logs[0].logs[task_index.value].task_detail[d[1]].state = ExecuteState.RUNNING
-        logs.value.logs[0].dirty = true
-    }
-}
-
-const execute_subtask_update = (d:[Task, number, string, ExecuteState]) => {
-    if(!props.preference.log) return
-    if(logs.value.logs[0].logs[task_index.value].task_detail.length > d[1]){
-        logs.value.logs[0].logs[task_index.value].task_detail[d[1]].state = d[3]
-        logs.value.logs[0].dirty = true
-    }
-}
-
-const execute_subtask_end = (d:[Task, number, string]) => {
-    if(!props.preference.log) return
-    if(logs.value.logs[0].logs[task_index.value].task_detail.length > d[1]){
-        logs.value.logs[0].logs[task_index.value].task_detail[d[1]].state = ExecuteState.FINISH
-        logs.value.logs[0].dirty = true
-    }
-}
-
-const execute_job_start = (d:[Job, number, string]) => {
-
-}
-
-const execute_job_finish = (d:[Job, number, string, number]) => {
-    if(!props.preference.log) return
-    if (d[3] == 1){
-        const currentLog = logs.value.logs[0]
-        const task = currentLog.project.task[task_index.value]
-        const index = task.jobs.findIndex(x => x.uuid == d[0].uuid)
-        if(index != -1 && task.jobs[index].category == JobCategory.Condition){
-            const cr:ConditionResult = task.jobs[index].number_args[0] as ConditionResult
-            if(cr == ConditionResult.None) return
-            const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-            currentLog.logs[task_index.value].task_detail[d[1]].state = state
-            currentLog.logs[task_index.value].task_state.state = state
-            if (cr == ConditionResult.Pause) return
-            if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
-                currentLog.state = state
-            }
-        }
-    }
-}
-
-const update_runtime_parameter = (d:Parameter) => {
-    if(logs.value.logs.length > 0) {
-        logs.value.logs[0].parameter = d
-        logs.value.logs[0].dirty = true
-    }
-}
-
 onMounted(() => {
     emitter?.on('slowUpdateHandle', slowUpdateHandle)
-    emitter?.on('execute', receivedPack)
-    emitter?.on('feedbackMessage', feedback_message)
-    emitter?.on('executeProjectStart', execute_project_start)
-    emitter?.on('executeProjectFinish', execute_project_finish)
-    emitter?.on('executeTaskStart', execute_task_start)
-    emitter?.on('executeTaskFinish', execute_task_finish)
-    emitter?.on('executeSubtaskStart', execute_subtask_start)
-    emitter?.on('executeSubtaskUpdate', execute_subtask_update)
-    emitter?.on('executeSubtaskFinish', execute_subtask_end)
-    emitter?.on('executeJobStart', execute_job_start)
-    emitter?.on('executeJobFinish', execute_job_finish)
-    emitter?.on('updateRuntimeParameter', update_runtime_parameter)
-
-    if(props.config.isElectron){
-        window.electronAPI.invoke('load_all_log').then(x => {
-            const stringlist:Array<string> = JSON.parse(x)
-            const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
-            ll.forEach(x => x.output = true)
-            console.log("Logs", ll)
-            logs.value.logs = ll
-        })
-    }
 })
 
 onUnmounted(() => {
     emitter?.off('slowUpdateHandle', slowUpdateHandle)
-    emitter?.off('execute', receivedPack)
-    emitter?.off('feedbackMessage', feedback_message)
-    emitter?.off('executeProjectStart', execute_project_start)
-    emitter?.off('executeProjectFinish', execute_project_finish)
-    emitter?.off('executeTaskStart', execute_task_start)
-    emitter?.off('executeTaskFinish', execute_task_finish)
-    emitter?.off('executeSubtaskStart', execute_subtask_start)
-    emitter?.off('executeSubtaskUpdate', execute_subtask_update)
-    emitter?.off('executeSubtaskFinish', execute_subtask_end)
-    emitter?.off('executeJobStart', execute_job_start)
-    emitter?.off('executeJobFinish', execute_job_finish)
-    emitter?.off('updateRuntimeParameter', update_runtime_parameter)
 })
 
 </script>
@@ -390,6 +194,14 @@ onUnmounted(() => {
                 </v-list>
             </v-col>
             <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 0 && getselect != undefined">
+                <v-card class="mb-2 pb-2">
+                    <v-card-title @click="console.log(props.logs, getselect)">
+                        {{ getselect.project.title }}
+                    </v-card-title>
+                    <v-card-subtitle>
+                        {{ getselect.project.uuid }}
+                    </v-card-subtitle>
+                </v-card>
                 <v-stepper :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
                     <v-stepper-header>
                         <template v-for="i in page(r - 1)" :key="i">
@@ -424,35 +236,24 @@ onUnmounted(() => {
                 <ParameterPage v-model="getselect.parameter" :preference="props.preference" />
             </v-col>
         </v-row>
-        <v-dialog width="500" v-model="exportDialog">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-export</v-icon>
-                    {{ $t('export') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-row style="height: 100px;">
-                        <v-col cols="6">
-                            <v-btn color="primary" class="w-100 h-100" @click="exportConfirm(0)">
-                                <span :style="{ 'fontSize': props.preference.font + 'px' }">
-                                    {{ $t('project') }}
-                                </span>
-                            </v-btn>
-                        </v-col>
-                        <v-col cols="6">
-                            <v-btn color="secondary" class="w-100 h-100" @click="exportConfirm(1)">
-                                <span :style="{ 'fontSize': props.preference.font + 'px' }">
-                                    {{ $t('parameter') }}
-                                </span>
-                            </v-btn>
-                        </v-col>
-                    </v-row>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="error" @click="exportDialog = false">{{ $t('cancel') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
+        <LogMenuDialog 
+            v-model="recoverDialog" 
+            icon="mdi-recycle"
+            :label="$t('recover')"
+            :preference="props.preference"
+            :recover="true"
+            :holder="holder"
+            @project="e => recoverConfirm(0, e)"
+            @parameter="e => recoverConfirm(1, e)" />
+        <LogMenuDialog 
+            v-model="exportDialog" 
+            icon="mdi-export"
+            :label="$t('export')"
+            :preference="props.preference"
+            :recover="false"
+            :holder="holder"
+            @project="exportConfirm(0)"
+            @parameter="exportConfirm(1)" />
     </v-container>
 </template>
 

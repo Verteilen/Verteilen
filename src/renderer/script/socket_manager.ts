@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { Header, Node, NodeTable, WebsocketPack } from "../interface";
+import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, ShellFolder, Single, SystemLoad, WebsocketPack } from "../interface";
 
 /**
  * The node connection instance manager, Use by the cluster server
@@ -9,17 +9,20 @@ export class WebsocketManager {
     newConnect:Function
     disconnect:Function
     onAnalysis:Function
+    proxy:NodeProxy
     private messager_log:Function
 
     constructor(
         _newConnect:Function,
         _disconnect:Function,
         _onAnalysis:Function,
-        _messager_log:Function,){
+        _messager_log:Function,
+        _proxy:NodeProxy){
         this.newConnect = _newConnect
         this.disconnect = _disconnect
         this.onAnalysis = _onAnalysis
         this.messager_log = _messager_log
+        this.proxy = _proxy
         setInterval(this.update, 1000)
     }
 
@@ -150,7 +153,27 @@ export class WebsocketManager {
             this.messager_log(`[Source Analysis] ${h.message}`)
         }
         if (h.data == undefined) return
-        this.onAnalysis({name: h.name, h: h, c: c})
+
+        const d:BusAnalysis = {name: h.name, h: h, c: c}
+        const pass = this.socket_analysis(d)
+        if (!pass) this.onAnalysis(d)
+    }
+
+    private socket_analysis = (d:BusAnalysis) => {
+        const typeMap:{ [key:string]:Function } = {
+            'system_info': this.system_info,
+            'shell_reply': this.shell_reply,
+            'shell_folder_reply': this.shell_folder_reply,
+            'node_info': this.node_info,
+            'pong': this.pong,
+        }
+        if(typeMap.hasOwnProperty(d.name)){
+            const castingFunc = typeMap[d.h.name]
+            castingFunc(d.h.data, d.c, d.h.meta)
+            return true
+        }else{
+            return false
+        }
     }
 
     /**
@@ -207,5 +230,48 @@ export class WebsocketManager {
             x.last = Date.now()
             x.websocket.send(JSON.stringify(h))
         })
+    }
+
+
+    /**
+     * Recevied the shell text from client node
+     */
+    private shell_reply = (data:Single) => {
+        this.proxy?.shellReply(data)
+    }
+    /**
+     * Recevied the folders from client node
+     */
+    private shell_folder_reply = (data:ShellFolder) => {
+        this.proxy?.folderReply(data)
+    }
+    /**
+     * Get the system information and assign to the node object
+     * @param info Data
+     * @param source The node target
+     */
+    private system_info = (info:SystemLoad, source:WebsocketPack | undefined) => {
+        if(source == undefined) return
+        source.information = info
+    }
+    /**
+     * Get the node information and assign to the node object
+     * @param info Data
+     * @param source The node target
+     */
+    private node_info = (info:NodeLoad, source:WebsocketPack | undefined) => {
+        if(source == undefined) return
+        source.load = info
+    }
+
+    /**
+     * Get the bouncing back function call\
+     * THis method will calculate the time different and assign the node object
+     * @param info Dummy number, nothing important, can be ignore
+     * @param source The node target
+     */
+    private pong = (info:number, source:WebsocketPack | undefined) => {
+        if(source == undefined || source.last == undefined) return
+        source.ms = Date.now() - source.last
     }
 }

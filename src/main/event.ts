@@ -36,7 +36,7 @@ export class BackendEvent {
         })
         ipcMain.on('modeSelect', (event, isclient:boolean) => {
             console.log("[Backend] Mode select: " + (isclient ? "Node" : "Server"))
-            if(isclient) event.sender.send('msgAppend', "Client mode activate")
+            if(isclient) event.sender.send('msgAppend', { msg:" Client mode activate" })
         })
         ipcMain.handle('exist', (event, d:string) => {
             return fs.existsSync(d)
@@ -65,6 +65,7 @@ export class BackendEvent {
             console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
         })
         this.Loader('record', 'record')
+        this.Loader('parameter', 'parameter')
         this.Loader('node', 'node')
         this.Loader('log', 'log')
         this.Loader('lib', 'lib')

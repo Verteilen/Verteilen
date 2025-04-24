@@ -5,6 +5,19 @@ export enum DataType {
     Expression
 }
 
+export enum ResourceType {
+    ALL = ~(~0 << 10),
+    SYSTEM = 1 << 0,
+    CPU = 1 << 1,
+    RAM = 1 << 2,
+    BATTERY = 1 << 3,
+    LOAD = 1 << 4,
+    OS = 1 << 5,
+    GPU = 1 << 6,
+    DISK = 1 << 7,
+    NETWORK = 1 << 8,
+}
+
 export enum JobCategory {
     Condition,
     Execution
@@ -48,6 +61,13 @@ export enum ProjectTemplate {
 
 export enum ExecuteState {
     NONE, RUNNING, FINISH, ERROR, SKIP
+}
+
+export enum RenderUpdateType {
+    All= ~(~0 << 7),
+    Project = 1 << 0, 
+    Node = 1 << 1, 
+    Parameter = 1 << 2
 }
 
 export enum LuaLib {

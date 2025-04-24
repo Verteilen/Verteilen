@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ClientLog, MESSAGE_LIMIT, Preference, RENDER_UPDATETICK } from '../interface';
@@ -15,10 +14,12 @@ interface PROPS {
 
 const messages:Ref<Array<ClientLog>> = ref([
   {
-      s: true,
-      tag: "client",
-      title: "Main Information",
-      text: []
+    s: true,
+    tag: "Main Information",
+    title: "Main Information",
+    text: [
+        "[Interfaca] Clean messages"
+    ]
   }
 ])
 const config = computed(() => props.backend.config)
@@ -27,25 +28,25 @@ const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const panel:Ref<Array<number>> = ref([0])
 const autoScroll = ref(true)
 
-const msgAppend = (e:IpcRendererEvent, msg:string, tag?:string) => {
-  if(tag == undefined){
-    messages.value[0].text.push(msg)
+const msgAppend = (d:Array<string | undefined>) => {
+  if(d[1] == undefined){
+    messages.value[0].text.push(d[0]!)
     if(messages.value[0].text.length > MESSAGE_LIMIT){
       messages.value[0].text.shift()
     }
   }else{
-    const index = messages.value.findIndex(x => x.tag == tag)
+    const index = messages.value.findIndex(x => x.tag == d[1])
     if(index == -1){
       messages.value.push({
         s: true,
-        tag: tag,
-        title: tag,
-        text: [msg]
+        tag: d[1],
+        title: d[1],
+        text: [d[0]!]
       })
       panel.value.push(messages.value.length - 1)
       
     }else{
-      messages.value[index].text.push(msg)
+      messages.value[index].text.push(d[0]!)
       if(!panel.value.includes(index)) panel.value.push(index)
       if(messages.value[index].text.length > MESSAGE_LIMIT){
         messages.value[index].text.shift()

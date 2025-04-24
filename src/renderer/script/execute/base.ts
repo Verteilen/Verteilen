@@ -1,11 +1,16 @@
-import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, Libraries, Messager, Parameter, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { v6 as uuid6 } from 'uuid';
+import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 import { Util_Parser } from './util_parser';
 
 export class ExecuteManager_Base {
+    uuid: string
+    name: string
+    record: Record
     current_t:Task | undefined = undefined
     current_p:Project | undefined = undefined
     current_projects:Array<Project> = []
+    current_nodes:Array<WebsocketPack> = []
     current_cron:Array<CronJobState> = []
     current_job:Array<WorkState> = []
     current_multithread = 1
@@ -26,13 +31,16 @@ export class ExecuteManager_Base {
     websocket_manager:WebsocketManager
     messager_log:Messager
 
-    constructor(_websocket_manager:WebsocketManager, _messager_log:Messager) {
+    constructor(_name:string, _websocket_manager:WebsocketManager, _messager_log:Messager, _record:Record) {
+        this.name = _name
+        this.uuid = uuid6()
+        this.record = _record
         this.websocket_manager = _websocket_manager
         this.messager_log = _messager_log
     }
 
     protected sync_local_para = (target:Parameter) => {
-        this.websocket_manager.targets.forEach(x => this.sync_para(target, x))
+        this.current_nodes.forEach(x => this.sync_para(target, x))
         this.proxy?.updateParameter(target)
     }
 
@@ -87,26 +95,26 @@ export class ExecuteManager_Base {
         projects.forEach(x => {
             x.task.forEach(t => {
                 if(t.cronjob){
-                    const index = x.parameter.containers.findIndex(x => x.name == t.cronjobKey && x.type == DataType.Number)
+                    const index = x.parameter?.containers.findIndex(x => x.name == t.cronjobKey && x.type == DataType.Number) ?? -1
                     if(index == -1){
                         this.messager_log(`[Execute:CronJob] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.cronjobKey}\"`)
                         this.messager_log(`[Execute:CronJob] Cron task registerd key not found`)
                         return false
                     }
-                    else if (x.parameter.containers[index].value == 0){
+                    else if (x.parameter?.containers[index].value == 0){
                         this.messager_log(`[Execute:CronJob] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.cronjobKey}\"`)
                         this.messager_log(`[Execute:CronJob] Cron task value must bigger than 0`)
                         return false
                     }
                 }
                 if(t.cronjob && t.multi){
-                    const index = x.parameter.containers.findIndex(x => x.name == t.multiKey && x.type == DataType.Number)
+                    const index = x.parameter?.containers.findIndex(x => x.name == t.multiKey && x.type == DataType.Number) ?? -1
                     if(index == -1){
                         this.messager_log(`[Execute:Multi] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.multiKey}\"`)
                         this.messager_log(`[Execute:Multi] Cron task registerd key not found`)
                         return false
                     }
-                    else if (x.parameter.containers[index].value == 0){
+                    else if (x.parameter?.containers[index].value == 0){
                         this.messager_log(`[Execute:Multi] Project ${x.title} (${x.uuid}), Task ${t.title} (${t.uuid}), Has unknoed parameter: \"${t.multiKey}\"`)
                         this.messager_log(`[Execute:Multi] Cron task value must bigger than 0`)
                         return false
@@ -173,14 +181,14 @@ export class ExecuteManager_Base {
      * @returns All idle and open connection nodes
      */
     protected get_idle = ():Array<WebsocketPack> => {
-        return this.websocket_manager.targets.filter(x => this.check_socket_state(x) != ExecuteState.RUNNING && x.websocket.readyState == WebSocket.OPEN)
+        return this.current_nodes.filter(x => this.check_socket_state(x) != ExecuteState.RUNNING && x.websocket.readyState == WebSocket.OPEN)
     }
     /**
      * Filter out the connection open nodes
      * @returns All open connection nodes
      */
     protected get_idle_open = ():Array<WebsocketPack> => {
-        return this.websocket_manager.targets.filter(x => x.websocket.readyState == WebSocket.OPEN)
+        return this.current_nodes.filter(x => x.websocket.readyState == WebSocket.OPEN)
     }
 
     protected check_socket_state = (target:WebsocketPack) => {

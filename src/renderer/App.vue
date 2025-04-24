@@ -50,7 +50,7 @@ const setting = () => {
 }
 
 const preferenceUpdate = (data:Preference) => {
-  preference.value = data
+  Object.assign(preference.value, data)
   locate(preference.value.lan)
 }
 

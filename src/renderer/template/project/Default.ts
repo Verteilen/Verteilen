@@ -254,6 +254,8 @@ const GetDefaultProjectTemplate_Checker = ():Task => {
 
 export const GetDefaultProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
+        title: "Default Parameter",
+        uuid: uuidv6(),
         canWrite: true,
         containers: [
             { name: "n1", value: 25, type: DataType.Number, runtimeOnly: false, hidden: false },

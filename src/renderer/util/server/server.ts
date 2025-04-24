@@ -1,29 +1,36 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { AppConfig, BusType, ExecuteRecord, Libraries, Node, NodeTable, Project, Record, Task } from "../../interface";
+import { BusType, ClientLog, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
+import { BackendProxy } from "../../proxy";
 import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
+import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Node } from "./node_handle";
 import { Util_Server_Parameter } from "./parameter_handle";
 import { Util_Server_Project } from "./project_handle";
+import { Util_Server_Self } from "./self_handle";
 import { Util_Server_Task } from "./task_handle";
 
 export type save_and_update = () => void
-type config_getter = () => AppConfig
+export type config_getter = () => BackendProxy
 
 export interface DATA {
     websocket_manager: WebsocketManager | undefined
-    execute_manager: Array<ExecuteManager>
+    execute_manager: Array<[ExecuteManager, ExecuteRecord]>
 
     page:number
+    select_manager: number
     lanSelect: string
+    parameters: Array<Parameter>
     projects: Array<Project>
-    projects_exe: ExecuteRecord
     libs: Libraries
+    logs: Log
     selectProject: Project | undefined
     selectTask: Task | undefined
+    selectParameter: Parameter | undefined
     nodes: Array<NodeTable>
+    messages: Array<ClientLog>
 }
 
 export class Util_Server {
@@ -36,16 +43,20 @@ export class Util_Server {
     job:Util_Server_Job
     node:Util_Server_Node
     parameter:Util_Server_Parameter
+    console:Util_Server_Console
+    self:Util_Server_Self
 
     constructor(_data:Ref<DATA>, _config:config_getter, _emitter:Emitter<BusType>){
         this.data = _data
         this.config = _config
         this.emitter = _emitter
-        this.project = new Util_Server_Project(this.data, this.allUpdate, this.update, _emitter)
+        this.project = new Util_Server_Project(this.data, this.config, this.allUpdate, this.update, _emitter)
         this.task = new Util_Server_Task(this.data, this.allUpdate, this.update)
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
-        this.parameter = new Util_Server_Parameter(this.data, this.update)
+        this.parameter = new Util_Server_Parameter(this.data, this.config, this.update)
+        this.console = new Util_Server_Console(this.data, this.update)
+        this.self = new Util_Server_Self(this.data)
     }
 
     private update = () => {
@@ -62,21 +73,44 @@ export class Util_Server {
         })
     }
     
-    saveRecord = ():Record => {
-        const record:Record = {
-            projects: this.data.value.projects,
-            nodes: this.data.value.nodes as Array<Node>
+    saveRecord = (type:RenderUpdateType = RenderUpdateType.All) => {
+        if((type & RenderUpdateType.Project) == RenderUpdateType.Project){
+            this.data.value.projects.forEach(x => {
+                if(!this.config().config.isElectron) return
+                const text = JSON.stringify(x)
+                window.electronAPI.send('save_record', x.uuid, text)
+            })
         }
-        record.projects.forEach(x => {
-            if(!this.config().isElectron) return
-            const text = JSON.stringify(x)
-            window.electronAPI.send('save_record', x.uuid, text)
-        })
-        record.nodes.forEach(x => {
-            if(!this.config().isElectron) return
-            const text = JSON.stringify(x)
-            window.electronAPI.send('save_node', x.ID, text)
-        })
-        return record
+        if((type & RenderUpdateType.Node) == RenderUpdateType.Node){
+            this.data.value.nodes.forEach(x => {
+                if(!this.config().config.isElectron) return
+                const text = JSON.stringify(x)
+                window.electronAPI.send('save_node', x.ID, text)
+            })
+        }
+        if((type & RenderUpdateType.Parameter) == RenderUpdateType.Parameter){
+            this.data.value.parameters.forEach(x => {
+                if(!this.config().config.isElectron) return
+                const text = JSON.stringify(x)
+                window.electronAPI.send('save_parameter', x.uuid, text)
+            })
+        }
+    }
+
+    CombineProxy = (eps:Array<ExecuteProxy>) => {
+        const p:ExecuteProxy = {
+            executeProjectStart: (data:Project):void => { eps.forEach(x => x.executeProjectStart(JSON.parse(JSON.stringify(data)))) },
+            executeProjectFinish: (data:Project):void => { eps.forEach(x => x.executeProjectFinish(JSON.parse(JSON.stringify(data)))) },
+            executeTaskStart: (data:[Task, number]):void => { eps.forEach(x => x.executeTaskStart(JSON.parse(JSON.stringify(data)))) },
+            executeTaskFinish: (data:Task):void => { eps.forEach(x => x.executeTaskFinish(JSON.parse(JSON.stringify(data)))) },
+            executeSubtaskStart: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskStart(JSON.parse(JSON.stringify(data)))) },
+            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]):void => { eps.forEach(x => x.executeSubtaskUpdate(JSON.parse(JSON.stringify(data)))) },
+            executeSubtaskFinish: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskFinish(JSON.parse(JSON.stringify(data)))) },
+            executeJobStart: (data:[Job, number, string]):void => { eps.forEach(x => x.executeJobStart(JSON.parse(JSON.stringify(data)))) },
+            executeJobFinish: (data:[Job, number, string, number]):void => { eps.forEach(x => x.executeJobFinish(JSON.parse(JSON.stringify(data)))) },
+            feedbackMessage: (data:FeedBack):void => { eps.forEach(x => x.feedbackMessage(JSON.parse(JSON.stringify(data)))) },
+            updateParameter: (data:Parameter):void => { eps.forEach(x => x.updateParameter(JSON.parse(JSON.stringify(data)))) },
+        }
+        return p
     }
 }

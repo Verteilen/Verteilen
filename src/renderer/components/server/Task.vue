@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, Preference, Project, Task } from '../../interface';
+import { BusType, DataType, Parameter, Preference, Project, Task } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, Util_Task } from '../../util/Task';
 import TaskDialog from '../dialog/TaskDialog.vue';
@@ -12,6 +12,7 @@ interface PROPS {
     preference: Preference
     projects: Array<Project>
     select: Project | undefined
+    parameters: Array<Parameter>
 }
 
 const props = defineProps<PROPS>()
@@ -20,12 +21,14 @@ const emits = defineEmits<{
     (e: 'edit', uuid:string, task:Task): void
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
-    (e: 'parameter'):void
+    (e: 'parameter', uuid:string):void
+    (e: 'bind', uuid:string):void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
 const data:Ref<DATA> = ref({
     fields: [],
+    paraModal: false,
     dialogModal: false,
     isEdit: false,
     editData: {cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""},
@@ -37,22 +40,35 @@ const data:Ref<DATA> = ref({
     errorMessage: '',
     titleError: false,
     search: '',
+    selectSearch: '',
     selection: []
 })
 
 const util:Util_Task = new Util_Task(data, () => props.select)
 
-const realSearch = computed(() => data.value.search.trimStart().trimEnd())
+const hasPara = computed(() => {
+    if(props.select == undefined || props.select.parameter_uuid.length == 0) return false
+    return props.parameters.find(x => x.uuid == props.select!.parameter_uuid) != undefined
+})
+const realSearch = computed(() => data.value.search?.trimStart().trimEnd() ?? '')
 const items_final = computed(() => {
     return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value))
 })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_task_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
+const para_title = computed(() => props.parameters.find(x => x.uuid == props.select?.parameter_uuid)?.title)
 
 const updateTask = () => util.updateTask()
 const updateParameter = () => util.updateParameter()
 const createProject = () => util.createProject()
-const detailOpen = () => emits('parameter')
+const detailOpen = () => emits('parameter', props.select!.parameter_uuid)
+
+const datachoose = (uuid:string) => emits('select', uuid)
+const dataedit = (uuid:string) => util.dataedit(uuid)
+
+const detailSelect = () => {
+    data.value.paraModal = true
+}
 
 const cloneSelect = () => {
     const ts = util.cloneSelect()
@@ -78,25 +94,8 @@ const deleteConfirm = () => {
     })
 }
 
-const datachoose = (uuid:string) => emits('select', uuid)
-
-const dataedit = (uuid:string) => {
-    if(props.select == undefined) return
-    const selectp = props.select.task.find(x => x.uuid == uuid)
-    if(selectp == undefined) return;
-    data.value.editData = {
-        cronjob: selectp.cronjob, 
-        cronjobKey: selectp.cronjobKey, 
-        title: selectp.title, 
-        description: selectp.description, 
-        multi: selectp.multi, 
-        multiKey: selectp.multiKey
-    };
-    data.value.dialogModal = true;
-    data.value.isEdit = true
-    data.value.editUUID = uuid;
-    data.value.errorMessage = ''
-    data.value.titleError = false
+const selectParameter = (uuid:string) => {
+    emits('bind', uuid)
 }
 
 const DialogSubmit = (p:CreateField) => {
@@ -159,14 +158,12 @@ const updateLocate = () => {
 onMounted(() => {
     updateFields()
     emitter?.on('updateTask', updateTask)
-    emitter?.on('updateParameter', updateParameter)
     emitter?.on('updateLocate', updateLocate)
-    data.value.para_keys = props.select?.parameter.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
+    data.value.para_keys = props.select?.parameter?.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
 })
 
 onUnmounted(() => {
     emitter?.off('updateTask', updateTask)
-    emitter?.off('updateParameter', updateParameter)
     emitter?.off('updateLocate', updateLocate)
 })
 
@@ -180,8 +177,12 @@ onUnmounted(() => {
                 <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
-                <v-chip v-if="props.select != undefined" prepend-icon="mdi-pen" @click="detailOpen" color="success">
-                    {{ $t('parameter-setting') }}
+                <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailOpen" color="success">
+                    {{ $t('parameter-setting') }}: {{ para_title }}
+                </v-chip>
+                <v-btn v-if="hasPara && props.select != undefined" variant="text" icon="mdi-select" @click="detailSelect"></v-btn>
+                <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailSelect" color="warning">
+                    {{ $t('parameter-select') }}
                 </v-chip>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
@@ -269,6 +270,32 @@ onUnmounted(() => {
                     <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
                     <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
                 </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="data.paraModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('parameter-select') }}
+                </v-card-title>
+                <v-card-text>
+                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
+                    </v-text-field>
+                    <v-list>
+                        <v-list-item v-for="(p, i) in [{ title: 'None', uuid: '' }, ...props.parameters]" :key="i">
+                            <v-list-item-title>
+                                {{ p.title }}
+                            </v-list-item-title>
+                            <v-list-item-subtitle>
+                                {{ p.uuid }}
+                            </v-list-item-subtitle>
+                            <template v-slot:append>
+                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); data.paraModal = false"
+                                ></v-btn>
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                </v-card-text>
             </v-card>
         </v-dialog>
     </div>

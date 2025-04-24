@@ -1,4 +1,5 @@
 import si from "systeminformation"
+import { ResourceType } from "../interface"
 import { SystemLoad } from "../interface/struct"
 
 /**
@@ -7,9 +8,11 @@ import { SystemLoad } from "../interface/struct"
 export class ClientResource {
     is_query = false
 
-    Query = async ():Promise<SystemLoad> => {
+    Query = async (src:SystemLoad | undefined = undefined, type:ResourceType = ResourceType.ALL):Promise<SystemLoad> => {
         this.is_query = true
-        const _system = si.system()
+        const result:SystemLoad = src != undefined ? src : this.create_new()
+
+        const _system = (type & ResourceType.SYSTEM ) == ResourceType.SYSTEM ? si.system() : undefined
         const _cpu = si.cpu()
         const _ram = si.mem()
         const _battery = si.battery()
@@ -31,43 +34,83 @@ export class ClientResource {
             const disk = x[7]
             const net = x[8]
 
-            return {
-                system_name: `${system.manufacturer} ${system.model}`,
-                virtual: system.virtual,
-                platform: os.platform,
-                arch: os.arch,
-                hostname: os.hostname,
-    
-                cpu_name: `${cpu.manufacturer} ${cpu.brand} ${cpu.speed}`,
-                cpu_core: cpu.cores,
-                cpu_usage: load.currentLoadGuest + load.currentLoadIrq + load.currentLoadSystem + load.currentLoad + load.currentLoadSteal + load.currentLoadNice,
-    
-                ram_usage: ram.used,
-                ram_free: ram.free,
-                ram_total: ram.total,
-    
-                battery: battery.hasBattery ? battery.percent : 1,
-                charging: battery.isCharging,
-    
-                gpu: gpu.controllers.map(x => ({
+            if(system != undefined){
+                result.system_name = `${system.manufacturer} ${system.model}`
+                result.virtual = system.virtual
+            }
+            if(os != undefined){
+                result.platform = os.platform
+                result.arch = os.arch
+                result.hostname = os.hostname
+            }
+            if(cpu != undefined){
+                result.cpu_name = `${cpu.manufacturer} ${cpu.brand} ${cpu.speed}`
+                result.cpu_core = cpu.cores
+            }
+            if(load != undefined){
+                result.cpu_usage = load.currentLoadGuest + load.currentLoadIrq + load.currentLoadSystem + load.currentLoad + load.currentLoadSteal + load.currentLoadNice
+            }
+            if(ram != undefined){
+                result.ram_usage = ram.used
+                result.ram_free = ram.free
+                result.ram_total = ram.total
+            }
+            if(battery != undefined){
+                result.battery = battery.hasBattery ? battery.percent : 1
+                result.charging = battery.isCharging
+            }
+            if(gpu != undefined){
+                result.gpu = gpu.controllers.map(x => ({
                     gpu_name: `${x.vendor} ${x.model}`
-                })),
-                disk: disk.map(x => ({
+                }))
+            }
+            if(disk != undefined){
+                result.disk = disk.map(x => ({
                     disk_name: x.fs,
                     disk_type: x.type,
                     disk_free: x.available,
                     disk_total: x.size,
                     disk_usage: x.used,
                     disk_percentage: x.use,
-                })),
-                net: net.map(x => ({
+                }))
+            }
+            if(net != undefined){
+                result.net = net.map(x => ({
                     net_name: x.iface,
                     download: x.rx_sec,
                     upload: x.tx_sec
-                })),
-                
-                pid_usage: process.pid
+                }))
             }
+
+            result.pid_usage = process.pid
+            return result
         })
+    }
+
+    private create_new = ():SystemLoad => {
+        return {
+            system_name: '',
+            virtual: false,
+            platform: '',
+            arch: '',
+            hostname: '',
+        
+            cpu_name: '',
+            cpu_core: 0,
+            cpu_usage: 0,
+        
+            ram_usage: 0,
+            ram_free: 0,
+            ram_total: 0,
+        
+            battery: 0,
+            charging: false,
+        
+            gpu: [],
+            disk: [],
+            net: [],
+        
+            pid_usage: 0
+        }
     }
 }
