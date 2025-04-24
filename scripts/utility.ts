@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, rmdirSync } from 'fs';
-import { copyFile, cp } from 'fs/promises';
+import { copyFile, cp, readFile, writeFile } from 'fs/promises';
 import Path from 'path';
 import * as pkg from 'pkg';
 import * as electron from './build';
@@ -43,12 +43,14 @@ export async function PKG_Node(){
 
 export async function Copy_PackageJson2Node() {
     const from = Path.join(__dirname, '..', 'node_package.json');
+    await SyncVersionName(from, '_node')
     const to = Path.join(__dirname, '..', 'build', 'node', 'package.json');
     return copyFile(from, to)
 }
 
 export async function Copy_PackageJson2Server() {
     const from = Path.join(__dirname, '..', 'server_package.json');
+    await SyncVersionName(from, '_server')
     const to = Path.join(__dirname, '..', 'build', 'server', 'package.json');
     return copyFile(from, to)
 }
@@ -102,4 +104,12 @@ export function Clean_Node_Build(){
         rmdirSync(Path.join(__dirname, '..', 'build', 'node-build'), {recursive: true})
     }
     mkdirSync(Path.join(__dirname, '..', 'build', 'node-build'))
+}
+
+export async function SyncVersionName(target:string, suffix:string, source:string = Path.join(__dirname, '..', 'package.json')){
+    const source_json = JSON.parse(((await readFile(source)).toString()))
+    const target_json = JSON.parse(((await readFile(target)).toString()))
+    target_json.name = `${source_json.name}${suffix}`
+    target_json.version = source_json.version
+    await writeFile(target, JSON.stringify(target_json))
 }
