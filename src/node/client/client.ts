@@ -110,7 +110,7 @@ export class Client {
             workerExe = path.join("bin", "worker.exe")
         }
         else if (process.env.NODE_ENV === 'development'){
-            workerExe = path.join("bin", "worker.exe")
+            workerExe = path.join(process.cwd(), "bin", "worker.exe")
         }
         else{ // Node un-build
             workerExe = path.join(__dirname, "bin", "worker.exe")
