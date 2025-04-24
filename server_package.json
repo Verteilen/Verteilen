@@ -1,9 +1,9 @@
 {
     "name": "compute_tool_server",
     "version": "0.6.1",
-    "description": "A minimal Electron + Vue application",
+    "description": "Compute tool for multi computer",
     "main": "index.js",
-    "repository": "https://github.com/deluze/electron-vue-template",
+    "repository": "https://github.com/Elly2018/Compute-Tool",
     "dependencies": {
         "express": "^4.21.2",
         "lua-in-js": "^2.2.5",

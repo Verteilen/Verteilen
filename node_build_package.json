@@ -1,0 +1,10 @@
+{
+    "name": "compute_tool_node",
+    "version": "0.7.0",
+    "description": "Compute tool for multi computer",
+    "main": "index.js",
+    "repository": "https://github.com/Elly2018/Compute-Tool",
+    "bin": {
+        "ctn": "app.exe"
+    }
+}

@@ -19,6 +19,7 @@ async function main(){
         await util.Clean_Node_Build()
         await util.PKG_Node()
         await util.Copy_Worker2NodeBuild()
+        await util.Copy_PackageJson2NodeBuild
     }
 }
 
