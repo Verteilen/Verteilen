@@ -37,6 +37,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      */
     private feedback_message = (data:Single, source:WebsocketPack | undefined, meta:string | undefined) => {
         if(source == undefined) return
+        if(!this.current_nodes.includes(source)) return
         if(this.state == ExecuteState.NONE) return
         this.messager_log(`[Execute] Single Received data: ${data.data}`)
         let index = 0

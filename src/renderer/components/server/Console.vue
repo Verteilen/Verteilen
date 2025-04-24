@@ -54,7 +54,14 @@ const consoleAdded = (name:string, data:Record) => {
  */
 const updateHandle = () => {
     if(p_model.value != undefined){
-        model.value = [p_model.value![0], p_model.value![1], model.value == undefined ? 0 : model.value![2]++]
+        if(model.value == undefined){
+            model.value = [p_model.value![0], p_model.value![1], Number.MIN_VALUE]
+        }else{
+            model.value[0] = p_model.value![0]
+            model.value[1] = p_model.value![1]
+            model.value[2] = model.value![2]++
+            if(model.value[2] == Number.MAX_VALUE) model.value[2] = Number.MIN_VALUE
+        }
     }
     props.execute.forEach(x => {
         if(x[1].running && !x[1].stop){
@@ -353,6 +360,7 @@ onUnmounted(() => {
             :nodes="props.nodes"
             :parameters="props.parameters"
             :preference="props.preference"
+            :execute="props.execute"
             @confirm="(e, e1) => consoleAdded(e, e1)"
         />
         <NumberDialog v-model="data.skipModal" 

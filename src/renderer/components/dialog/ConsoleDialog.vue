@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, Node, Parameter, Preference, Project, Record } from '../../interface';
+import { BusType, ExecuteRecord, Node, Parameter, Preference, Project, Record } from '../../interface';
+import { ExecuteManager } from '../../script/execute_manager';
 import DialogBase from './DialogBase.vue';
 
 interface PROP {
@@ -9,6 +10,7 @@ interface PROP {
     nodes: Array<Node>
     parameters: Array<Parameter>
     preference: Preference
+    execute: Array<[ExecuteManager, ExecuteRecord]>
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -47,7 +49,9 @@ const as = computed(() => {
 })
 
 const ns = computed(() => {
-    return  props.nodes.map(x => {
+    const reged:Array<string> = []
+    props.execute.map(x => x[0].current_nodes).forEach(x => reged.push(...x.map(y => y.uuid)))
+    return  props.nodes.filter(x => !reged.includes(x.ID)).map(x => {
         return {
             title: x.url,
             uuid: x.ID,
