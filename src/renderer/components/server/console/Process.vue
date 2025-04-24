@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { Emitter } from 'mitt';
-import { inject, Ref, ref } from 'vue';
+import { Ref, ref } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { BusType, ExecuteRecord, ExecuteState, Preference } from '../../../interface';
+import { ExecuteRecord, ExecuteState, Preference } from '../../../interface';
 import { ExecuteManager } from '../../../script/execute_manager';
 import { WebsocketManager } from '../../../script/socket_manager';
 
@@ -10,8 +9,6 @@ interface PROPS {
     preference: Preference
     socket: WebsocketManager | undefined
 }
-
-const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 const data = defineModel<[ExecuteManager, ExecuteRecord, number]>()
 const props = defineProps<PROPS>()

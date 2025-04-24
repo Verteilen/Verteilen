@@ -189,7 +189,7 @@ const LogClean = (index:number) => {
 //#endregion
 
 //#region Self
-const msgAppend = (d:{msg:string, tag?:string}) => util.self.msgAppend(d)
+const msgAppend = (msg:string, tag?:string) => util.self.msgAppend(msg, tag)
 const msgClean = () => util.self.clearMessage()
 //#endregion
 
@@ -473,7 +473,7 @@ onUnmounted(() => {
             @stop="consoleStop()"
             @select="e => consoleSelect(e)"/>
         </v-tabs-window-item>
-        <v-tabs-window-item v-shoe="config.haveBackend" :value="6">
+        <v-tabs-window-item v-show="config.haveBackend" :value="6">
           <LogPage 
             :config="config"
             :execute="data.execute_manager"
@@ -482,12 +482,12 @@ onUnmounted(() => {
             @clean="LogClean"
             v-model="selectExecute"/>
         </v-tabs-window-item>
-        <v-tabs-window-item v-shoe="config.haveBackend" :value="7">
+        <v-tabs-window-item v-show="config.haveBackend" :value="7">
           <LibraryPage
             :config="config"
             v-model="data.libs"/>
         </v-tabs-window-item>
-        <v-tabs-window-item v-shoe="config.haveBackend" :value="8">
+        <v-tabs-window-item v-show="config.haveBackend" :value="8">
           <SelfPage
             :backend="props.backend"
             :messages="data.messages"

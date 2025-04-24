@@ -55,12 +55,12 @@ const consoleAdded = (name:string, data:Record) => {
 const updateHandle = () => {
     if(p_model.value != undefined){
         if(model.value == undefined){
-            model.value = [p_model.value![0], p_model.value![1], Number.MIN_VALUE]
+            model.value = [p_model.value![0], p_model.value![1], 0]
         }else{
             model.value[0] = p_model.value![0]
             model.value[1] = p_model.value![1]
-            model.value[2] = model.value![2]++
-            if(model.value[2] == Number.MAX_VALUE) model.value[2] = Number.MIN_VALUE
+            model.value[2] = model.value![2] + 1
+            if(model.value[2] > 5000) model.value[2] = 0
         }
     }else{
         model.value = undefined

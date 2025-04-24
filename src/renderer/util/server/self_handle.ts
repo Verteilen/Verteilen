@@ -32,23 +32,23 @@ export class Util_Server_Self {
         ]
     }
 
-    msgAppend = (d:{msg:string, tag?:string}) => {
-        if(d.tag == undefined){
-            this.data.value.messages[0].text.push(d.msg)
+    msgAppend = (msg:string, tag?:string) => {
+        if(tag == undefined){
+            this.data.value.messages[0].text.push(msg)
             if(this.data.value.messages[0].text.length > MESSAGE_LIMIT){
                 this.data.value.messages.shift()
             }
         }else{
-            const index = this.data.value.messages.findIndex(x => x.tag == d.tag)
+            const index = this.data.value.messages.findIndex(x => x.tag == tag)
             if(index == -1){
                 this.data.value.messages.push({
                     s: true,
-                    tag: d.tag,
-                    title: d.tag,
-                    text: [d.msg]
+                    tag: tag,
+                    title: tag,
+                    text: [msg]
                 })
             }else{
-                this.data.value.messages[index].text.push(d.msg)
+                this.data.value.messages[index].text.push(msg)
                 if(this.data.value.messages[index].text.length > MESSAGE_LIMIT){
                     this.data.value.messages[index].text.shift()
                 }
