@@ -189,7 +189,7 @@ const LogClean = (index:number) => {
 //#endregion
 
 //#region Self
-const msgAppend = (msg:string, tag?:string) => util.self.msgAppend(msg, tag)
+const msgAppend = (d:Array<string | undefined>) => util.self.msgAppend(d)
 const msgClean = () => util.self.clearMessage()
 //#endregion
 
@@ -308,12 +308,12 @@ onMounted(() => {
       data.value.websocket_manager.onAnalysis = onAnalysis
     }
 
-    props.backend.send('client_start');
+    props.backend.eventOn('msgAppend', msgAppend)
     props.backend.send('menu', true)
     props.backend.eventOn('createProject', menuCreateProject)
     props.backend.eventOn('menu_export_project', menu_export_project)
     props.backend.eventOn('import_project_feedback', import_project_feedback)
-    props.backend.eventOn('msgAppend', msgAppend)
+    props.backend.send('client_start');
     const p1 = props.backend.invoke('load_all_node').then(x => {
       const texts:Array<string> = JSON.parse(x)
       data.value.nodes.push(...texts.map(y => JSON.parse(y)))
@@ -491,7 +491,8 @@ onUnmounted(() => {
           <SelfPage
             :backend="props.backend"
             :messages="data.messages"
-            :preference="props.preference"/>
+            :preference="props.preference"
+            @clean="msgClean"/>
         </v-tabs-window-item>
       </v-tabs-window>
     </div>

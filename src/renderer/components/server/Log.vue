@@ -194,6 +194,14 @@ onUnmounted(() => {
                 </v-list>
             </v-col>
             <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 0 && getselect != undefined">
+                <v-card class="mb-2 pb-2">
+                    <v-card-title @click="console.log(getselect)">
+                        {{ getselect.project.title }}
+                    </v-card-title>
+                    <v-card-subtitle>
+                        {{ getselect.project.uuid }}
+                    </v-card-subtitle>
+                </v-card>
                 <v-stepper :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
                     <v-stepper-header>
                         <template v-for="i in page(r - 1)" :key="i">

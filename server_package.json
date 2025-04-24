@@ -1,6 +1,6 @@
 {
     "name": "compute_tool_server",
-    "version": "0.1.0",
+    "version": "0.6.1",
     "description": "A minimal Electron + Vue application",
     "main": "index.js",
     "repository": "https://github.com/deluze/electron-vue-template",

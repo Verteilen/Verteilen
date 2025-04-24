@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { BusAnalysis, Header, Node, NodeProxy, NodeTable, ShellFolder, Single, WebsocketPack } from "../interface";
+import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, ShellFolder, Single, SystemLoad, WebsocketPack } from "../interface";
 
 /**
  * The node connection instance manager, Use by the cluster server
@@ -28,8 +28,11 @@ export class WebsocketManager {
 
     private socket_analysis = (d:BusAnalysis) => {
         const typeMap:{ [key:string]:Function } = {
+            'system_info': this.system_info,
             'shell_reply': this.shell_reply,
             'shell_folder_reply': this.shell_folder_reply,
+            'node_info': this.node_info,
+            'pong': this.pong,
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
@@ -241,5 +244,34 @@ export class WebsocketManager {
      */
     private shell_folder_reply = (data:ShellFolder) => {
         this.proxy?.folderReply(data)
+    }
+    /**
+     * Get the system information and assign to the node object
+     * @param info Data
+     * @param source The node target
+     */
+    private system_info = (info:SystemLoad, source:WebsocketPack | undefined) => {
+        if(source == undefined) return
+        source.information = info
+    }
+    /**
+     * Get the node information and assign to the node object
+     * @param info Data
+     * @param source The node target
+     */
+    private node_info = (info:NodeLoad, source:WebsocketPack | undefined) => {
+        if(source == undefined) return
+        source.load = info
+    }
+
+    /**
+     * Get the bouncing back function call\
+     * THis method will calculate the time different and assign the node object
+     * @param info Dummy number, nothing important, can be ignore
+     * @param source The node target
+     */
+    private pong = (info:number, source:WebsocketPack | undefined) => {
+        if(source == undefined || source.last == undefined) return
+        source.ms = Date.now() - source.last
     }
 }

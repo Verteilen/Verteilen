@@ -5,6 +5,19 @@ export enum DataType {
     Expression
 }
 
+export enum ResourceType {
+    ALL = ~(~0 << 10),
+    SYSTEM = 1 << 0,
+    CPU = 1 << 1,
+    RAM = 1 << 2,
+    BATTERY = 1 << 3,
+    LOAD = 1 << 4,
+    OS = 1 << 5,
+    GPU = 1 << 6,
+    DISK = 1 << 7,
+    NETWORK = 1 << 8,
+}
+
 export enum JobCategory {
     Condition,
     Execution

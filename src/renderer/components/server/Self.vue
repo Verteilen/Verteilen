@@ -16,7 +16,7 @@ const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const panel:Ref<Array<number>> = ref([0])
 const autoScroll = ref(true)
 
-const msgAppend = (msg:string, tag?:string) => {
+const msgAppend = () => {
   if(autoScroll.value) myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
 }
 

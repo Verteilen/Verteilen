@@ -1,4 +1,4 @@
-import { BusAnalysis, CronJobState, DataType, ExecuteState, FeedBack, Header, NodeLoad, Setter, Single, SystemLoad, WebsocketPack, WorkState } from "../../interface"
+import { BusAnalysis, CronJobState, DataType, ExecuteState, FeedBack, Header, Setter, Single, WebsocketPack, WorkState } from "../../interface"
 import { ExecuteManager_Base } from "./base"
 
 /**
@@ -17,9 +17,6 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             'feedback_string': this.feedback_string,
             'feedback_boolean': this.feedback_boolean,
             'feedback_number': this.feedback_number,
-            'system_info': this.system_info,
-            'node_info': this.node_info,
-            'pong': this.pong,
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
@@ -161,37 +158,6 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         const d:Header = { name: 'set_parameter', data: this.localPara!}
         this.current_nodes.forEach(x => x.websocket.send(JSON.stringify(d)))
         this.proxy?.updateParameter(this.localPara!)
-    }
-
-    /**
-     * Get the system information and assign to the node object
-     * @param info Data
-     * @param source The node target
-     */
-    private system_info = (info:SystemLoad, source:WebsocketPack | undefined) => {
-        if(source == undefined) return
-        source.information = info
-    }
-
-    /**
-     * Get the node information and assign to the node object
-     * @param info Data
-     * @param source The node target
-     */
-    private node_info = (info:NodeLoad, source:WebsocketPack | undefined) => {
-        if(source == undefined) return
-        source.load = info
-    }
-
-    /**
-     * Get the bouncing back function call\
-     * THis method will calculate the time different and assign the node object
-     * @param info Dummy number, nothing important, can be ignore
-     * @param source The node target
-     */
-    private pong = (info:number, source:WebsocketPack | undefined) => {
-        if(source == undefined || source.last == undefined) return
-        source.ms = Date.now() - source.last
     }
 
     private GetCronAndWork = (runtime:string, source:WebsocketPack):[CronJobState | undefined, WorkState | undefined] => {

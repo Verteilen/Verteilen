@@ -108,6 +108,7 @@ export class ClientAnalysis {
     }
 
     private resource_require = () => {
+        if(this.resource_thread != undefined) return
         const shouldRun = this.resource_thread == undefined && (this.resource_cache == undefined || this.resource_wanter.length > 0)
         if(!shouldRun) return
         this.resource_thread = spawn("worker.exe", [],
@@ -119,6 +120,7 @@ export class ClientAnalysis {
                 env: {
                     ...process.env,
                     type: "RESOURCE",
+                    cache: this.resource_cache == undefined ? undefined : JSON.stringify(this.resource_cache.data)
                 }
             }
         )
@@ -137,8 +139,12 @@ export class ClientAnalysis {
                     name: 'system_info',
                     data: msg.data
                 }
+                this.messager_log(
+                    "Inital pull \n" + JSON.stringify(msg.data, null, 4), "RESOURCE"
+                )
                 this.resource_cache = h
                 this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
+                
             } 
             else if(msg.name == 'error'){
                 if(msg.data instanceof String) this.messager_log(msg.data.toString(), "RESOURCE")

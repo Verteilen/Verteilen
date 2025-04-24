@@ -9,6 +9,7 @@ export class Util_Server_Log_Proxy {
     config:AppConfig
 
     private task_index:number = 0
+    private uuid:string = ''
 
     constructor(_model:[ExecuteManager, ExecuteRecord], _log:Log, _preference:Preference, _config:AppConfig){
         this.model = _model
@@ -35,11 +36,12 @@ export class Util_Server_Log_Proxy {
     }
 
     execute_project_start = async (d:Project) => {
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         const target = this.model[1].projects[this.model[1].project_index]
         const title = await this.getnewname(target.title)
+        this.uuid = uuid6()
         const newlog:ExecutionLog = {
-            uuid: uuid6(),
+            uuid: this.uuid,
             filename: title,
             dirty: true,
             output: this.preference.log,
@@ -65,14 +67,14 @@ export class Util_Server_Log_Proxy {
     }
 
     execute_project_finish = (d:Project) => {
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         this.logs.logs[0].state = ExecuteState.FINISH
         this.logs.logs[0].end_timer = Date.now()
         this.logs.logs[0].dirty = true
     }
     
     execute_task_start = (d:[Task, number]) => {
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         const index = this.logs.logs[0].project.task.findIndex(x => x.uuid == d[0].uuid)
         if(index == -1) return
         this.task_index = index
@@ -91,7 +93,6 @@ export class Util_Server_Log_Proxy {
             })
         }
     
-        if(!this.preference.log) return
         if(this.logs.logs[0].logs.length > this.task_index){
             this.logs.logs[0].logs[this.task_index].task_state.state = ExecuteState.RUNNING
             this.logs.logs[0].logs[this.task_index].start_timer = Date.now()
@@ -100,7 +101,7 @@ export class Util_Server_Log_Proxy {
     }
     
     execute_task_finish = (d:Task) => {
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         if(this.logs.logs[0].logs.length > this.task_index){
             this.logs.logs[0].logs[this.task_index].task_state.state = ExecuteState.FINISH
             this.logs.logs[0].logs[this.task_index].end_timer = Date.now()
@@ -109,7 +110,7 @@ export class Util_Server_Log_Proxy {
     }
     
     execute_subtask_start = (d:[Task, number, string]) => {
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         if(this.logs.logs[0].logs[this.task_index].task_detail.length > d[1]){
             this.logs.logs[0].logs[this.task_index].task_detail[d[1]].state = ExecuteState.RUNNING
             this.logs.logs[0].dirty = true
@@ -117,7 +118,7 @@ export class Util_Server_Log_Proxy {
     }
     
     execute_subtask_update = (d:[Task, number, string, ExecuteState]) => {
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         if(this.logs.logs[0].logs[this.task_index].task_detail.length > d[1]){
             this.logs.logs[0].logs[this.task_index].task_detail[d[1]].state = d[3]
             this.logs.logs[0].dirty = true
@@ -125,7 +126,7 @@ export class Util_Server_Log_Proxy {
     }
     
     execute_subtask_end = (d:[Task, number, string]) => {
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         if(this.logs.logs[0].logs[this.task_index].task_detail.length > d[1]){
             this.logs.logs[0].logs[this.task_index].task_detail[d[1]].state = ExecuteState.FINISH
             this.logs.logs[0].dirty = true
@@ -137,7 +138,7 @@ export class Util_Server_Log_Proxy {
     }
     
     execute_job_finish = (d:[Job, number, string, number]) => {
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         if (d[3] == 1){
             const currentLog = this.logs.logs[0]
             const task = currentLog.project.task[this.task_index]
@@ -157,9 +158,9 @@ export class Util_Server_Log_Proxy {
     }
     
     feedback_message = (d:FeedBack) => {
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         if(d.index == undefined || d.index == -1) return
-        if(!this.preference.log) return
+        if(this.uuid.length == 0) return
         if(this.logs.logs[0].logs[this.task_index].task_detail.length > d.index){
             this.logs.logs[0].logs[this.task_index].task_detail[d.index].message.push(d.message)
             this.logs.logs[0].dirty = true

@@ -23,32 +23,32 @@ export class Util_Server_Self {
         this.data.value.messages = [
             {
                 s: true,
-                tag: "client",
-                title: "客戶端訊息",
+                tag: "Main Information",
+                title: "Main Information",
                 text: [
-                    "[介面] 訊息清空"
+                    "[Interfaca] Clean messages"
                 ]
             }
         ]
     }
 
-    msgAppend = (msg:string, tag?:string) => {
-        if(tag == undefined){
-            this.data.value.messages[0].text.push(msg)
+    msgAppend = (d:Array<string | undefined>) => {
+        if(d[1] == undefined){
+            this.data.value.messages[0].text.push(d[0]!)
             if(this.data.value.messages[0].text.length > MESSAGE_LIMIT){
                 this.data.value.messages.shift()
             }
         }else{
-            const index = this.data.value.messages.findIndex(x => x.tag == tag)
+            const index = this.data.value.messages.findIndex(x => x.tag == d[1])
             if(index == -1){
                 this.data.value.messages.push({
                     s: true,
-                    tag: tag,
-                    title: tag,
-                    text: [msg]
+                    tag: d[1],
+                    title: d[1],
+                    text: [d[0]!]
                 })
             }else{
-                this.data.value.messages[index].text.push(msg)
+                this.data.value.messages[index].text.push(d[0]!)
                 if(this.data.value.messages[index].text.length > MESSAGE_LIMIT){
                     this.data.value.messages[index].text.shift()
                 }
