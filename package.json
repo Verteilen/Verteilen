@@ -3,6 +3,7 @@
   "version": "0.6.1",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
+  "bin": "build/node-build/app.exe",
   "scripts": {
     "dev":                "ts-node scripts/dev-server.ts",
     "web":                "ts-node scripts/web.ts && cd ./build/renderer && http-server -p 80",
