@@ -1,5 +1,4 @@
 import { ChildProcess, spawn } from 'child_process';
-import * as path from 'path';
 import { WebSocket } from 'ws';
 import { Header, Messager, Messager_log } from "../interface";
 import { Client } from './client';
@@ -113,7 +112,6 @@ export class ClientAnalysis {
         if(!shouldRun) return
         this.resource_thread = spawn(Client.workerPath(), [],
             {
-                cwd: path.join('bin'),
                 stdio: ['inherit', 'pipe', 'pipe'],
                 shell: true,
                 windowsHide: true,

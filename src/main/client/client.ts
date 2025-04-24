@@ -104,16 +104,16 @@ export class Client {
         const isExe = process.pkg?.entrypoint != undefined
         let workerExe = ""
         if(isExe && path.basename(process.execPath) == "app.exe") { // Node build
-            workerExe = path.join(process.execPath, "..", "worker.exe")
+            workerExe = path.join(process.execPath, "..", "bin", "worker.exe")
         }
         else if(isExe && path.basename(process.execPath) != "app.exe") { // Electron package
-            workerExe = "worker.exe"
+            workerExe = path.join("bin", "worker.exe")
         }
         else if (process.env.NODE_ENV === 'development'){
-            workerExe = "worker.exe"
+            workerExe = path.join("bin", "worker.exe")
         }
         else{ // Node un-build
-            workerExe = path.join(__dirname, "worker.exe")
+            workerExe = path.join(__dirname, "bin", "worker.exe")
         }
         console.log("worker path: " + workerExe)
         return workerExe
