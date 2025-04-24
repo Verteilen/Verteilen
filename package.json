@@ -23,6 +23,7 @@
     "build:linux": "ts-node scripts/before_build.ts && electron-builder --linux",
     "docker:node": "docker_node.sh",
     "docker:server": "docker_server.sh",
+    "publish:node-pkg": "cd build/node-build && npm publish",
     "pkg": "ts-node scripts/program_build.ts",
     "test": "jest"
   },

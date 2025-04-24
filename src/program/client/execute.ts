@@ -52,7 +52,7 @@ export class ClientExecute {
     }
 
     private execute_job_worker(job:Job, source:WebSocket){
-        const child = spawn("worker.exe", [], 
+        const child = spawn(path.join(__dirname, "worker.exe"), [], 
             { 
                 cwd: path.join('bin'),
                 stdio: ['inherit', 'pipe', 'pipe'],
