@@ -103,19 +103,27 @@ export class Client {
         // @ts-ignore
         const isExe = process.pkg?.entrypoint != undefined
         let workerExe = ""
+        let p = 0
         if(isExe && path.basename(process.execPath) == "app.exe") { // Node build
             workerExe = path.join(process.execPath, "..", "bin", "worker.exe")
+            p = 1
         }
-        else if(isExe && path.basename(process.execPath) != "app.exe") { // Electron package
+        else if(
+            (process.mainModule && process.mainModule.filename.indexOf('app.asar') !== -1) ||
+            process.argv.filter(a => a.indexOf('app.asar') !== -1).length > 0
+        ) { // Electron package
             workerExe = path.join("bin", "worker.exe")
+            p = 2
         }
         else if (process.env.NODE_ENV === 'development'){
             workerExe = path.join(process.cwd(), "bin", "worker.exe")
+            p = 3
         }
         else{ // Node un-build
             workerExe = path.join(__dirname, "bin", "worker.exe")
+            p = 4
         }
-        console.log("worker path: " + workerExe)
+        console.log(`worker path: ${p} ${workerExe}`)
         return workerExe
     }
 }
