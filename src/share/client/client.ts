@@ -123,7 +123,6 @@ export class Client {
             workerExe = path.join(__dirname, "bin", "worker.exe")
             p = 4
         }
-        console.log(`worker path: ${p} ${workerExe}`)
         return workerExe
     }
 }
