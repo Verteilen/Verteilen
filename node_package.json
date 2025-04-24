@@ -1,1 +1,13 @@
-{"name":"compute_tool_node","version":"0.6.1","description":"A minimal Electron + Vue application","main":"index.js","repository":"https://github.com/deluze/electron-vue-template","dependencies":{"lua-in-js":"file:plugins/lua-in-js","tcp-port-used":"^1.0.2","ws":"^8.18.0","vue-i18n":"^10.0.5"}}
+{
+    "name": "compute_tool_node",
+    "version": "0.6.1",
+    "description": "A minimal Electron + Vue application",
+    "main": "index.js",
+    "repository": "https://github.com/deluze/electron-vue-template",
+    "dependencies": {
+        "lua-in-js": "file:plugins/lua-in-js",
+        "tcp-port-used": "^1.0.2",
+        "ws": "^8.18.0",
+        "vue-i18n": "^10.0.5"
+    }
+}
