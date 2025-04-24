@@ -220,7 +220,6 @@ export class Util_Server_Console_Proxy {
     }
 
     feedback_message = (d:FeedBack) => {
-        console.log("feedback_message", d)
         if(d.index == undefined || d.index == -1) return
         const container = this.model[1].task_detail[d.index]
         if(container != undefined){

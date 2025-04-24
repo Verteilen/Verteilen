@@ -141,7 +141,6 @@ export class ClientAnalysis {
                 }
                 this.resource_cache = h
                 this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
-                
             } 
             else if(msg.name == 'error'){
                 if(msg.data instanceof String) this.messager_log(msg.data.toString(), "RESOURCE")

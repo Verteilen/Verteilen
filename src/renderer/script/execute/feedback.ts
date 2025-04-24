@@ -11,12 +11,10 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
      * @param d Package info
      */
     Analysis = (d:BusAnalysis) => {
-        if(d.c != undefined) {
-            const uuids = this.current_nodes.map(x => x.uuid)
-            if(!uuids.includes(d.c.uuid)) {
-                this.messager_log("Not inside")
-                return
-            }
+        const targetn = this.current_nodes.find(x => x.uuid == d.c?.uuid)
+        if(targetn == undefined) {
+            this.messager_log("Not inside")
+            return
         }
         const typeMap:{ [key:string]:Function } = {
             'feedback_message': this.feedback_message,
@@ -27,7 +25,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
-            castingFunc(d.h.data, d.c, d.h.meta)
+            castingFunc(d.h.data, targetn, d.h.meta)
         }else{
             this.messager_log(`[Source Data Analysis] Decode failed, Unknowed header, name: ${d.name}, meta: ${d.h.meta}`)
         }
@@ -122,7 +120,11 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         }
         // Reset the state of the node
         const index = source.current_job.findIndex(x => x == data.runtime_uuid)
-        source.current_job.splice(index, 1)
+        if(index == -1){
+            this.messager_log(`[Execute] Cannot find runtime uuid: ${data.runtime_uuid} in websocket pack source: ${source.uuid}`)
+        }else{
+            source.current_job.splice(index, 1)
+        }
         data.node_uuid = source.uuid
         this.proxy?.feedbackMessage(data)
     }

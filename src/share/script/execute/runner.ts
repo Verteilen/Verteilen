@@ -172,7 +172,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             ns = this.get_idle()
             if(ns.length > 0) {
                 this.proxy?.executeTaskStart([task, taskCount ])
-                this.proxy?.executeSubtaskFinish([task, 0, ns[0].uuid])
+                this.proxy?.executeSubtaskStart([task, 0, ns[0].uuid])
             }
         }
 

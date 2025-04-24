@@ -49,9 +49,7 @@ const as = computed(() => {
 })
 
 const ns = computed(() => {
-    const reged:Array<string> = []
-    props.execute.map(x => x[0].current_nodes).forEach(x => reged.push(...x.map(y => y.uuid)))
-    return  props.nodes.filter(x => !reged.includes(x.ID)).map(x => {
+    return props.nodes.map(x => {
         return {
             title: x.url,
             uuid: x.ID,
@@ -138,7 +136,8 @@ const updateProject = (index:number) => {
 const itemProps = (item:any) => {
     return {
         title: item.title,
-        subtitle: item.uuid
+        subtitle: item.uuid,
+        disabled: nodes.value.includes(item.uuid)
     }
 }
 
