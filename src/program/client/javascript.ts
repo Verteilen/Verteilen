@@ -233,10 +233,10 @@ export class ClientJavascript {
         const root = isbin ? path.join(process.cwd(), 'lua') : path.join(process.cwd(), 'bin', 'lua')
         if (!fs.existsSync(root)) fs.mkdirSync(root)
         let javascriptEnv = {}
-        if((flags & JavascriptLib.OS) == JavascriptLib.OS) javascriptEnv = Object.assign(javascriptEnv, this.os)
-        if((flags & JavascriptLib.ENV) == JavascriptLib.ENV) javascriptEnv = Object.assign(javascriptEnv, this.env)
-        if((flags & JavascriptLib.MESSAGE) == JavascriptLib.MESSAGE) javascriptEnv = Object.assign(javascriptEnv, this.message)
-        if((flags & JavascriptLib.HTTP) == JavascriptLib.HTTP) javascriptEnv = Object.assign(javascriptEnv, this.http)
+        if((flags & JavascriptLib.OS) == JavascriptLib.OS) javascriptEnv = Object.assign(javascriptEnv, { o: this.os })
+        if((flags & JavascriptLib.ENV) == JavascriptLib.ENV) javascriptEnv = Object.assign(javascriptEnv, { env: this.env })
+        if((flags & JavascriptLib.MESSAGE) == JavascriptLib.MESSAGE) javascriptEnv = Object.assign(javascriptEnv, { m: this.message })
+        if((flags & JavascriptLib.HTTP) == JavascriptLib.HTTP) javascriptEnv = Object.assign(javascriptEnv, { http: this.http })
         return javascriptEnv
     }
     private copyfile(from:string, to:string){
