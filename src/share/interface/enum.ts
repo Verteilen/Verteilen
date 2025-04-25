@@ -75,6 +75,13 @@ export enum LuaLib {
     OS = 1 << 0, 
     ENV = 1 << 1, 
     MESSAGE = 1 << 2,
+}
+
+export enum JavascriptLib {
+    ALL = ~(~0 << 7),
+    OS = 1 << 0, 
+    ENV = 1 << 1, 
+    MESSAGE = 1 << 2,
     HTTP = 1 << 3,
 }
 
