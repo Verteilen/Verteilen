@@ -8,7 +8,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: FUNIQUE_GS4_PREPARE,
+        script: FUNIQUE_GS4_PREPARE,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -17,7 +17,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
-        lua: "",
+        script: "",
         string_args: ["%root%/%after%/GOP_20_I"],
         number_args: [],
         boolean_args: []
@@ -26,7 +26,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
-        lua: "",
+        script: "",
         string_args: ["%root%/%after%/liar"],
         number_args: [],
         boolean_args: []
@@ -55,7 +55,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
-        lua: "",
+        script: "",
         string_args: ["%root%/%before%/%ck%/sparse/0"],
         number_args: [],
         boolean_args: []
@@ -64,7 +64,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%root%/%before%/%ck%", "colmap", "feature_extractor --database_path sparse/0/database.db --image_path images"],
         number_args: [],
         boolean_args: []
@@ -73,7 +73,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%root%/%before%/%ck%", "colmap", "exhaustive_matcher --database_path sparse/0/database.db"],
         number_args: [],
         boolean_args: []
@@ -82,7 +82,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%root%/%before%/%ck%", "colmap", "point_triangulator --database sparse/0/database.db --image_path images --input_path ../sparse/0/TXT/edit --output_path sparse/0"],
         number_args: [],
         boolean_args: []
@@ -91,7 +91,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.DELETE_FILE,
-        lua: "",
+        script: "",
         string_args: ["%root%/%before%/%ck%/sparse/0/database.db"],
         number_args: [],
         boolean_args: []
@@ -123,7 +123,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_two% --iframe 1 --data %root%/%before% --output %root%/%after%/GOP_20_I --interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
         number_args: [],
         boolean_args: []
@@ -163,7 +163,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.RENAME,
-        lua: "",
+        script: "",
         string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud.ply", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
@@ -172,7 +172,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply -r %denoise% -g %denoise% -b %denoise%"],
         number_args: [],
         boolean_args: []
@@ -181,7 +181,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.DELETE_FILE,
-        lua: "",
+        script: "",
         string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
@@ -215,7 +215,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COPY_DIR,
-        lua: "",
+        script: "",
         string_args: ["%root%/%after%/GOP_20_I", "%root%/%after%/GOP_20_I_Backup"],
         number_args: [],
         boolean_args: []
@@ -242,7 +242,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COPY_DIR,
-        lua: "",
+        script: "",
         string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value%"],
         number_args: [],
         boolean_args: []
@@ -251,7 +251,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COPY_DIR,
-        lua: "",
+        script: "",
         string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value_two%"],
         number_args: [],
         boolean_args: []
@@ -260,7 +260,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_end% --iframe 0 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval 1 --group_size %iframe_gap% --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
         number_args: [],
         boolean_args: []
@@ -269,7 +269,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.DELETE_DIR,
-        lua: "",
+        script: "",
         string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
         number_args: [],
         boolean_args: []
@@ -278,7 +278,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COPY_DIR,
-        lua: "",
+        script: "",
         string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
         number_args: [],
         boolean_args: []
@@ -287,7 +287,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.DELETE_DIR,
-        lua: "",
+        script: "",
         string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%"],
         number_args: [],
         boolean_args: []
@@ -332,7 +332,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: FUNIQUE_GS4_BLEND_PREPARE,
+        script: FUNIQUE_GS4_BLEND_PREPARE,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -359,7 +359,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Checkpoint = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %frameCount% --iframe 0 --data %root%/%before% --output %root%/%after%/BLEND_%blend_value%_I/ --group_size %group_size% --iteration %iteration_iframe% --gtp %gtp% --dynamic %iteration_dynamic% %train_command% --interval 1"],
         number_args: [],
         boolean_args: []
@@ -395,7 +395,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: FUNIQUE_GS4_PLYDone,
+        script: FUNIQUE_GS4_PLYDone,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -422,7 +422,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend1 = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%output%", "ply_blend", "-t 0 -f %frame_index% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/raw -o %output%/trans"],
         number_args: [],
         boolean_args: []
@@ -454,7 +454,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Blend2 = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%output%", "ply_blend", "-t 1 -f %ck% -b %blend% -g %iframe_gap% -c %contribute% -r %output%/trans -o %output%/final"],
         number_args: [],
         boolean_args: []

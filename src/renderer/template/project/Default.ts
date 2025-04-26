@@ -3,11 +3,11 @@ import { ConditionResult, DataType, Job, JobCategory, JobType, JobType2, Paramet
 import { DEFAULT_LuaCronMultiExample, DEFAULT_LuaExample, DEFAULT_LuaPrintExample, DEFAULT_LuaSaveExample } from '../lua/Default';
 
 const GetDefaultProjectTemplate_PrintCustomParameterMulticore = ():Task => {
-    const lua:Job = {
+    const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: DEFAULT_LuaPrintExample,
+        script: DEFAULT_LuaPrintExample,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -22,18 +22,18 @@ const GetDefaultProjectTemplate_PrintCustomParameterMulticore = ():Task => {
         multiKey: "n2",
         properties: [],
         jobs: [
-            lua
+            script
         ]
     }
     return t
 }
 
 const GetDefaultProjectTemplate_PrintCustomParameter = ():Task => {
-    const lua:Job = {
+    const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: DEFAULT_LuaPrintExample,
+        script: DEFAULT_LuaPrintExample,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -48,18 +48,18 @@ const GetDefaultProjectTemplate_PrintCustomParameter = ():Task => {
         multiKey: "",
         properties: [],
         jobs: [
-            lua
+            script
         ]
     }
     return t
 }
 
 const GetDefaultProjectTemplate_SaveCustomParameter = ():Task => {
-    const lua:Job = {
+    const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: DEFAULT_LuaSaveExample,
+        script: DEFAULT_LuaSaveExample,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -74,18 +74,18 @@ const GetDefaultProjectTemplate_SaveCustomParameter = ():Task => {
         multiKey: "",
         properties: [],
         jobs: [
-            lua
+            script
         ]
     }
     return t
 }
 
 const GetDefaultProjectTemplate_CronLua = ():Task => {
-    const lua:Job = {
+    const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: DEFAULT_LuaCronMultiExample,
+        script: DEFAULT_LuaCronMultiExample,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -100,7 +100,7 @@ const GetDefaultProjectTemplate_CronLua = ():Task => {
         multiKey: "",
         properties: [],
         jobs: [
-            lua
+            script
         ]
     }
     return t
@@ -108,11 +108,11 @@ const GetDefaultProjectTemplate_CronLua = ():Task => {
 
 
 const GetDefaultProjectTemplate_Lua = ():Task => {
-    const lua:Job = {
+    const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: DEFAULT_LuaExample,
+        script: DEFAULT_LuaExample,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -127,7 +127,7 @@ const GetDefaultProjectTemplate_Lua = ():Task => {
         multiKey: "",
         properties: [],
         jobs: [
-            lua
+            script
         ]
     }
     return t
@@ -138,7 +138,7 @@ const GetDefaultProjectTemplate_Pnumber2 = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["", "echo", "%prop%"],
         number_args: [ConditionResult.ThrowProject],
         boolean_args: []
@@ -169,7 +169,7 @@ const GetDefaultProjectTemplate_OS = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
-        lua: "",
+        script: "",
         string_args: ["test"],
         number_args: [ConditionResult.ThrowProject],
         boolean_args: []
@@ -178,7 +178,7 @@ const GetDefaultProjectTemplate_OS = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.CREATE_FILE,
-        lua: "",
+        script: "",
         string_args: ["test/hello.txt", "Hello World"],
         number_args: [ConditionResult.ThrowProject],
         boolean_args: []
@@ -205,7 +205,7 @@ const GetDefaultProjectTemplate_Pnumber = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["", "echo", "%ck%"],
         number_args: [ConditionResult.ThrowProject],
         boolean_args: []
@@ -231,7 +231,7 @@ const GetDefaultProjectTemplate_Checker = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Condition,
         type: JobType2.CHECK_PATH,
-        lua: "",
+        script: "",
         string_args: ["%path%"],
         number_args: [ConditionResult.ThrowProject],
         boolean_args: []

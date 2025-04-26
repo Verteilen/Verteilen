@@ -133,7 +133,7 @@ const confirmCreate = () => {
             uuid: uuidv6(),
             category: createData.value.category,
             type: createData.value.type,
-            lua: "",
+            script: "",
             string_args: [],
             number_args: [0],
             boolean_args: []
@@ -361,7 +361,7 @@ onUnmounted(() => {
                             <v-card-text>
                                 <div v-if="checkPatterm(c.category, c.type, 'Script_n')">
                                 <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
-                                <codemirror  v-model="c.lua" 
+                                <codemirror  v-model="c.script" 
                                     style="text-align:left; filter:brightness(2)"
                                     :style="{ height: '40vh' }"
                                     :autofocus="true"
@@ -398,7 +398,7 @@ onUnmounted(() => {
                                 <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
                             </div>
                             <div v-else-if="checkPatterm(c.category, c.type, 'Script')">
-                                <codemirror v-model="c.lua"
+                                <codemirror v-model="c.script"
                                     style="text-align:left; filter:brightness(2)"
                                     :style="{ height: '40vh' }"
                                     :autofocus="true"

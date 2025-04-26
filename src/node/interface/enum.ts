@@ -41,6 +41,7 @@ export enum JobType {
     CREATE_DIR,
     RENAME,
     LUA,
+    JAVASCRIPT,
     COMMAND
 }
 

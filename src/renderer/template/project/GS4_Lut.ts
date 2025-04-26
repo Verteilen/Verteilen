@@ -7,7 +7,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["", "ply_lut", "-i %root%/%ck%.ply -l %lut% -o %output%/%ck%.ply"],
         number_args: [],
         boolean_args: []

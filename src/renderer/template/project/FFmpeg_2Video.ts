@@ -6,7 +6,7 @@ const GetFFmpeg_Image2VideoProjectTemplate_Render = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["", "blender", "-b %file% -s %ck% -e %ck% -F %format% -o %output%"],
         number_args: [],
         boolean_args: []
@@ -32,7 +32,7 @@ const GetFFmpeg_Image2VideoProjectTemplate_Concat = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["", "blender", "-b %file% -s %ck% -e %ck% -F %format% -o %output%"],
         number_args: [],
         boolean_args: []

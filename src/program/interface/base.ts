@@ -29,7 +29,7 @@ export interface Job {
     runtime_uuid?: string
     category: number
     type: number
-    lua: string
+    script: string
     string_args: Array<string>
     number_args: Array<number>
     boolean_args: Array<boolean>

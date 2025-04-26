@@ -1,6 +1,7 @@
 import WebSocket from "ws";
 import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, OnePath, Parameter, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";
+import { ClientJavascript } from "./javascript";
 import { ClientJobParameter } from "./job_parameter";
 import { ClientLua } from "./lua";
 import { ClientOS } from "./os";
@@ -28,6 +29,7 @@ export class ClientJobExecute {
     private messager:Messager
     private messager_log:Messager_log
     private lua:ClientLua
+    private javascript:ClientJavascript
     private os:ClientOS
     private para:ClientJobParameter
     private job:Job
@@ -41,10 +43,16 @@ export class ClientJobExecute {
         this.para = new ClientJobParameter()
         this.os = new ClientOS(() => this.tag, () => this.job.runtime_uuid || '', _messager, _messager_log)
         this.lua = new ClientLua(_messager, _messager_log, () => this.job)
+        this.javascript = new ClientJavascript(_messager, _messager_log, () => this.job)
         this.parameter = process.env.parameter != undefined ? JSON.parse(process.env.parameter) : undefined
         this.libraries = process.env.libraries != undefined ? JSON.parse(process.env.libraries) : undefined
 
         ClientLua.Init(_messager, _messager_log, this.os, this.para, 
+            () => this.libraries,
+            () => this.parameter,
+            () => this.job
+        )
+        ClientJavascript.Init(_messager, _messager_log, this.os, this.para, 
             () => this.libraries,
             () => this.parameter,
             () => this.job
@@ -121,8 +129,14 @@ export class ClientJobExecute {
                     }
                 case JobType.LUA:
                     {
-                        this.lua.LuaExecuteWithLib(this.job.lua, this.job.string_args)
+                        this.lua.LuaExecuteWithLib(this.job.script, this.job.string_args)
                         resolve(`Execute Lua successfully`)
+                        break
+                    }
+                case JobType.JAVASCRIPT:
+                    {
+                        this.javascript.JavascriptExecuteWithLib(this.job.script, this.job.string_args)
+                        resolve(`Execute Javascript successfully`)
                         break
                     }
                 case JobType.COMMAND:
@@ -158,7 +172,7 @@ export class ClientJobExecute {
                     }
                 case JobType2.LUA:
                     {
-                        const r = this.lua.LuaExecuteWithLib(this.job.lua, this.job.string_args)
+                        const r = this.lua.LuaExecuteWithLib(this.job.script, this.job.string_args)
                         if(r != undefined && r == 0){
                             resolve(`Execute Lua successfully`)
                         }else{

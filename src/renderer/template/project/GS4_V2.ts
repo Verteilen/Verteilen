@@ -10,7 +10,7 @@ const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: FUNIQUE_GS4_V2_COLMAP_COPY,
+        script: FUNIQUE_GS4_V2_COLMAP_COPY,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -38,7 +38,7 @@ const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare2 = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: FUNIQUE_GS4_V2_BLEND_PREPARE,
+        script: FUNIQUE_GS4_V2_BLEND_PREPARE,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -65,7 +65,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Position = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --gtp %gtp% --start %gap_value% --end %frameCount_p% --iframe 0 --data %root%/%after%/DATASET_P_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IP/ --group_size %gap_p% --iteration %iframe_iteration% --dynamic %finetune_iteration% %train_command% --interval 1"],
         number_args: [],
         boolean_args: []
@@ -109,7 +109,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Checkpoint_Negative = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        lua: "",
+        script: "",
         string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --gtp %gtp% --start %gap_value% --end %frameCount_n% --iframe 0 --data %root%/%after%/DATASET_N_%blend_value% --output %root%/%after%/BLEND_%blend_value%_IN/ --group_size %gap_n% --iteration %iframe_iteration% --dynamic %finetune_iteration% %train_command% --interval 1"],
         number_args: [],
         boolean_args: []
@@ -153,7 +153,7 @@ const GetFUNIQUE_GS4ProjectTemplate_PlyList = ():Task => {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LUA,
-        lua: FUNIQUE_GS4_V2_PLYDone,
+        script: FUNIQUE_GS4_V2_PLYDone,
         string_args: [],
         number_args: [],
         boolean_args: []
