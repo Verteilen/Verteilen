@@ -229,7 +229,7 @@ export class ClientJavascript {
      * @param libs Libraries header names
      * @returns Calcuate result
      */
-    LuaExecuteWithLib = (lua:string, libs:Array<string>) => {
+    JavascriptExecuteWithLib = (lua:string, libs:Array<string>) => {
         const context = this.getJavascriptEnv()
         let script = ''
 
