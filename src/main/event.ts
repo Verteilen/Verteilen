@@ -2,6 +2,7 @@ import { dialog, ipcMain } from "electron";
 import fs from "fs";
 import path from "path";
 import { Client } from "./client/client";
+import { ClientJavascript } from "./client/javascript";
 import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
@@ -59,6 +60,19 @@ export class BackendEvent {
             }
             const lua:ClientLua = new ClientLua(lua_messager_feedback, lua_messager_log_feedback, () => this.job)
             const r = lua.LuaExecute(content)
+            event.sender.send('lua-feedback', r?.toString() ?? '')
+        })
+        ipcMain.on('javascript', (event, content:string) => {
+            const javascript_messager_feedback = (msg:string, tag?:string) => {
+                messager(msg, tag)
+                event.sender.send('lua-feedback', msg)
+            }
+            const javascript_messager_log_feedback = (msg:string, tag?:string) => {
+                messager_log(msg, tag)
+                event.sender.send('lua-feedback', msg)
+            }
+            const javascript:ClientJavascript = new ClientJavascript(javascript_messager_feedback, javascript_messager_log_feedback, () => this.job)
+            const r = javascript.JavascriptExecute(content)
             event.sender.send('lua-feedback', r?.toString() ?? '')
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {

@@ -222,8 +222,38 @@ export class ClientJavascript {
         getjob = _getjob
     }
 
+    /**
+     * Running lua\
+     * With reference libraries\
+     * @param lua Lua script text
+     * @param libs Libraries header names
+     * @returns Calcuate result
+     */
+    LuaExecuteWithLib = (lua:string, libs:Array<string>) => {
+        const context = this.getJavascriptEnv()
+        let script = ''
+
+        const p = getlib?.() ?? undefined
+        if(p != undefined){
+            libs.forEach(x => {
+                const t = p.libs.find(y => y.name == x)
+                if(t != undefined) script += ("\n" + t.content + "\n")
+            })
+        }
+        
+        script += ('\n' + lua)
+        const execc = safeEval(script, context)
+        const r = execc.exec()
+        return r
+    }
+
+    /**
+     * Running lua
+     * @param lua Lua script text
+     * @returns Calcuate result
+     */
     JavascriptExecute = (javascript:string) => {
-        const context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE)
+        const context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE | JavascriptLib.HTTP)
         const r = safeEval(javascript, context)
         return r
     }
