@@ -117,11 +117,13 @@
             "create-dir": "Create Dir",
             "rename": "Rename Path",
             "lua": "Lua",
+            "javascript": "Javascript",
             "command": "Command"
         },
         "jobtype2": {
             "check-path": "Check Path",
-            "lua": "Lua"
+            "lua": "Lua",
+            "javascript": "Javascript"
         },
         "jobresult": {
             "none": "None",
