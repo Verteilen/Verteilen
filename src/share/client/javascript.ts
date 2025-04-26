@@ -188,8 +188,8 @@ export class ClientJavascript {
         }
         
         this.message = {
-            "messager": (m:any) => _messager(m.toString(), tag()), 
-            "messager_log": (m:any) => _messager_log(m.toString(), tag(), runtime()),
+            "messager": (m:any) => messager(m.toString(), tag()), 
+            "messager_log": (m:any) => messager_log(m.toString(), tag(), runtime()),
         }
         
         this.http = {
