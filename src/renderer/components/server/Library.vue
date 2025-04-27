@@ -180,11 +180,7 @@ onUnmounted(() => {
                     <codemirror v-model="selection.content" 
                         style="text-align:left;"
                         :style="{ height: openBottom ? 'calc(50vh - 10px)' : 'calc(100vh - 160px)' }"
-                        :autofocus="true"
-                        :indent-with-tab="true"
-                        :tab-size="2" 
                         :hintOptions="{ completeSingle: false }"
-                        mode="text/x-lua"
                         @change="setdirty"/>
                 </v-card>
                 <div class="text-white text-left px-6" v-if="openBottom" style="height: calc(40vh - 100px); overflow-y: scroll; line-height: 15px;">

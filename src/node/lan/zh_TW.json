@@ -117,11 +117,13 @@
             "create-dir": "建立資料夾",
             "rename": "改名",
             "lua": "LUA 腳本",
+            "javascript": "Javascript 腳本",
             "command": "指令執行"
         },
         "jobtype2": {
             "check-path": "檢查路徑",
-            "lua": "LUA 腳本"
+            "lua": "LUA 腳本",
+            "javascript": "Javascript 腳本"
         },
         "jobresult": {
             "none": "無",

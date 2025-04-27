@@ -63,10 +63,12 @@ const checkPatterm = (category:number, type:number, checker:string):boolean => {
         (checker == 'OnePath' && ( type === JobType.DELETE_DIR || type === JobType.DELETE_FILE || type === JobType.CREATE_DIR )) ||
         (checker == 'Command' && ( type === JobType.COMMAND )) ||
         (checker == 'Writer' && ( type === JobType.CREATE_FILE )) ||
-        (checker == 'Script' && (type == JobType.LUA))
+        (checker == 'Lua' && (type == JobType.LUA)) ||
+        (checker == 'Javascript' && (type == JobType.JAVASCRIPT))
     );
     const e2 = category == JobCategory.Condition && (
-        (checker == 'Script_n' && (type == JobType2.LUA)) ||
+        (checker == 'Lua_n' && (type == JobType2.LUA)) ||
+        (checker == 'Javascript_n' && (type == JobType2.JAVASCRIPT)) ||
         (checker == 'OnePath_n' && (type == JobType2.CHECK_PATH))
     )
     return e || e2
@@ -359,60 +361,65 @@ onUnmounted(() => {
                     <v-expansion-panel-text>
                         <v-card flat>
                             <v-card-text>
-                                <div v-if="checkPatterm(c.category, c.type, 'Script_n')">
-                                <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
-                                <codemirror  v-model="c.script" 
-                                    style="text-align:left; filter:brightness(2)"
-                                    :style="{ height: '40vh' }"
-                                    :autofocus="true"
-                                    :indent-with-tab="true"
-                                    :tab-size="2" 
-                                    mode="text/x-lua"
-                                    @change="setdirty"/>
-                                <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
-                                    <template #selection="{ item }">
-                                        <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
-                                        <v-chip v-else closable color="danger">{{item.title}}</v-chip>
-                                    </template>
-                                </v-select>
-                            </div>
-                            <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
-                                <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
-                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                            </div>
-                            <!-- Execution -->
-                            <div v-else-if="checkPatterm(c.category, c.type, 'TwoPath')">
-                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.from')" hide-details></v-text-field>
-                                <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.to')" hide-details></v-text-field>
-                            </div>
-                            <div v-else-if="checkPatterm(c.category, c.type, 'OnePath')">
-                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                            </div>
-                            <div v-else-if="checkPatterm(c.category, c.type, 'Writer')">
-                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                                <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.content')" hide-details></v-textarea>
-                            </div>
-                            <div v-else-if="checkPatterm(c.category, c.type, 'Command')">
-                                <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                                <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
-                                <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
-                            </div>
-                            <div v-else-if="checkPatterm(c.category, c.type, 'Script')">
-                                <codemirror v-model="c.script"
-                                    style="text-align:left; filter:brightness(2)"
-                                    :style="{ height: '40vh' }"
-                                    :autofocus="true"
-                                    :indent-with-tab="true"
-                                    :tab-size="2" 
-                                    mode="text/x-lua"
-                                    @change="setdirty"/>
-                                <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
-                                    <template #selection="{ item }">
-                                        <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
-                                        <v-chip v-else closable color="danger">{{item.title}}</v-chip>
-                                    </template>
-                                </v-select>
-                            </div>
+                                <div v-if="checkPatterm(c.category, c.type, 'Lua_n')">
+                                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                    <codemirror-lua v-model="c.script" 
+                                        style="text-align:left;"
+                                        :style="{ height: '40vh' }"
+                                        @change="setdirty"/>
+                                    <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
+                                        <template #selection="{ item }">
+                                            <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
+                                            <v-chip v-else closable color="danger">{{item.title}}</v-chip>
+                                        </template>
+                                    </v-select>
+                                </div>
+                                <div v-if="checkPatterm(c.category, c.type, 'Javascript_n')">
+                                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                    <codemirror-js v-model="c.script" 
+                                        style="text-align:left;"
+                                        :style="{ height: '40vh' }"
+                                        @change="setdirty"/>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
+                                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                </div>
+                                <!-- Execution -->
+                                <div v-else-if="checkPatterm(c.category, c.type, 'TwoPath')">
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.from')" hide-details></v-text-field>
+                                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.to')" hide-details></v-text-field>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'OnePath')">
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'Writer')">
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                    <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.content')" hide-details></v-textarea>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'Command')">
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
+                                    <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'Lua')">
+                                    <codemirror-lua v-model="c.script"
+                                        style="text-align:left;"
+                                        :style="{ height: '40vh' }"
+                                        @change="setdirty"/>
+                                    <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
+                                        <template #selection="{ item }">
+                                            <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
+                                            <v-chip v-else closable color="danger">{{item.title}}</v-chip>
+                                        </template>
+                                    </v-select>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'Javascript')">
+                                    <codemirror-js v-model="c.script"
+                                        style="text-align:left;"
+                                        :style="{ height: '40vh' }"
+                                        @change="setdirty"/>
+                                </div>
                             </v-card-text>
                         </v-card>
                     </v-expansion-panel-text>
