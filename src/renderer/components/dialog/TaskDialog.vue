@@ -35,7 +35,7 @@ const confirm = () => emits('submit', buffer.value)
                 <v-checkbox v-model="buffer.setupjob" :label="$t('setupjob')" hide_details></v-checkbox>
                 <v-checkbox v-if="!buffer.setupjob" v-model="buffer.cronjob" :label="$t('cronjob')" hide_details></v-checkbox>
                 <v-select v-if="!buffer.setupjob && buffer.cronjob" v-model="buffer.cronjobKey" :items="para_keys" hide-details></v-select>
-                <br />
+                <br v-if="!buffer.setupjob" />
                 <v-checkbox v-if="!buffer.setupjob && buffer.cronjob" v-model="buffer.multi" :label="$t('multicore')" hide_details></v-checkbox>
                 <v-select v-if="!buffer.setupjob && buffer.cronjob && buffer.multi" v-model="buffer.multiKey" :items="props.para_keys" hide-details></v-select>
                 <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>

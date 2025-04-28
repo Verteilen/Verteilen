@@ -66,6 +66,8 @@
         "import-parameter": "Delete Parameter",
         "delete-parameter-confirm": "Are you sure delete parameter you selected",
         "parameter-datatype": "Datatype",
+        "create-library": "Create Lib",
+        "enter-library-name": "Enter Lib Name",
         "new-node": "New Node",
         "enter-node-address": "Enter Node Address",
         "skip-step": "Skip Step",

@@ -66,6 +66,8 @@
         "import-parameter": "刪除參數",
         "delete-parameter-confirm": "確認刪除選擇參數嗎?",
         "parameter-datatype": "資料型態",
+        "create-library": "新增程式庫",
+        "enter-library-name": "輸入程式庫名稱",
         "new-node": "新增節點",
         "enter-node-address": "輸入節點位址",
         "skip-step": "跳過步驟",

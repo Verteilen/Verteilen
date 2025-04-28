@@ -156,3 +156,8 @@ export const ProjectTemplateText: { [key:number]:string } = {
     30: 'enum.project.blender',
     40: 'enum.project.aftereffect',
 }
+
+export const LibTypeText: { [key:number]:string } = {
+    0: 'enum.jobresult.lua',
+    1: 'enum.jobresult.javascript',
+}
