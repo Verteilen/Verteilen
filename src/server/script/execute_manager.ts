@@ -1,4 +1,4 @@
-import { ExecuteState, Header, Record, WebsocketPack } from "../interface";
+import { ExecuteState, Header, Libraries, Record, WebsocketPack } from "../interface";
 import { ExecuteManager_Runner } from "./execute/runner";
 
 /**
@@ -45,7 +45,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
      * @param projects Target
      * @returns -1: register failed, 0: successfully
      */
-    Register = (record:Record):number => {
+    Register = (record:Record, lib?:Libraries):number => {
         this.current_projects = record.projects
         this.current_nodes = []
         record.nodes.forEach(x => {

@@ -11,6 +11,7 @@ export interface NodeTable extends Node {
 export interface TaskTable {
     s: boolean
     ID: string
+    setupjob: boolean
     cronjob: boolean
     multi:boolean
     title: string

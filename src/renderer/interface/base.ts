@@ -39,6 +39,7 @@ export interface Task {
     uuid: string
     title: string
     description: string
+    setupjob: boolean
     cronjob: boolean
     cronjobKey: string
     multi: boolean

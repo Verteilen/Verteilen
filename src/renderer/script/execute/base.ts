@@ -138,11 +138,9 @@ export class ExecuteManager_Base {
      * Get the task's cronjob count
      */
     public get_task_state_count(t:Task){
-        if (t.cronjob){
-            return this.get_number(t.cronjobKey)
-        }else{
-            return 1
-        }
+        if(t.setupjob) return this.current_nodes.length
+        if (t.cronjob) return this.get_number(t.cronjobKey)
+        else return 1
     }
 
     /**

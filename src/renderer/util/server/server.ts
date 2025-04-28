@@ -6,6 +6,7 @@ import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
+import { Util_Server_Lib } from "./lib_handle";
 import { Util_Server_Node } from "./node_handle";
 import { Util_Server_Parameter } from "./parameter_handle";
 import { Util_Server_Project } from "./project_handle";
@@ -44,6 +45,7 @@ export class Util_Server {
     node:Util_Server_Node
     parameter:Util_Server_Parameter
     console:Util_Server_Console
+    lib:Util_Server_Lib
     self:Util_Server_Self
 
     constructor(_data:Ref<DATA>, _config:config_getter, _emitter:Emitter<BusType>){
@@ -56,6 +58,7 @@ export class Util_Server {
         this.node = new Util_Server_Node(this.data, this.saveRecord)
         this.parameter = new Util_Server_Parameter(this.data, this.config, this.update)
         this.console = new Util_Server_Console(this.data, this.update)
+        this.lib = new Util_Server_Lib(this.data, this.update)
         this.self = new Util_Server_Self(this.data)
     }
 

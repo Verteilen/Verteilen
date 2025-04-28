@@ -8,6 +8,7 @@ type getselect = () => Project | undefined
 export interface CreateField {
     title: string
     description: string
+    setupjob: boolean
     cronjob: boolean
     cronjobKey: string
     multi: boolean
@@ -59,6 +60,7 @@ export class Util_Task {
             return {
                 s: false,
                 ID: x.uuid,
+                setupjob: x.setupjob,
                 cronjob: x.cronjob,
                 multi: x.multi,
                 title: x.title,
@@ -76,7 +78,7 @@ export class Util_Task {
     }
 
     createProject = () => {
-        this.data.value.editData = {cronjob: false, cronjobKey: this.data.value.para_keys[0], title: "", description: "", multi: false, multiKey: this.data.value.para_keys[0]}
+        this.data.value.editData = {cronjob: false, cronjobKey: this.data.value.para_keys[0], title: "", description: "", setupjob: false, multi: false, multiKey: this.data.value.para_keys[0]}
         this.data.value.dialogModal = true
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
@@ -108,6 +110,7 @@ export class Util_Task {
             uuid: uuidv6(),
             title: this.data.value.editData.title, 
             description: this.data.value.editData.description,
+            setupjob: this.data.value.editData.setupjob,
             cronjob: this.data.value.editData.cronjob,
             cronjobKey: this.data.value.editData.cronjobKey,
             multi: this.data.value.editData.multi, 
@@ -132,6 +135,7 @@ export class Util_Task {
             uuid: this.data.value.editUUID,
             title: this.data.value.editData.title, 
             description: this.data.value.editData.description,
+            setupjob: this.data.value.editData.setupjob,
             cronjob: this.data.value.editData.cronjob,
             cronjobKey: this.data.value.editData.cronjobKey,
             multi: this.data.value.editData.multi, 
@@ -146,6 +150,7 @@ export class Util_Task {
         const selectp = this.select()!.task.find(x => x.uuid == uuid)
         if(selectp == undefined) return;
         this.data.value.editData = {
+            setupjob: selectp.setupjob,
             cronjob: selectp.cronjob, 
             cronjobKey: selectp.cronjobKey, 
             title: selectp.title, 

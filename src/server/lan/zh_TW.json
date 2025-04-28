@@ -234,6 +234,7 @@
     "close-all": "全部關閉",
     "clean": "清除",
     "cronjob": "分散運算",
+    "setupjob": "設置作業",
     "multicore": "多核運算",
     "recover": "恢復",
     "cancel": "取消",

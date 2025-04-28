@@ -234,6 +234,7 @@
     "close-all": "Close All",
     "clean": "Clean",
     "cronjob": "Distribute",
+    "setupjob": "Setup",
     "multicore": "Multicore",
     "recover": "Recover",
     "cancel": "Cancel",

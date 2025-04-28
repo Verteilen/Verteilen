@@ -76,7 +76,13 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             return
         }
 
-        allJobFinish = task.cronjob ? this.ExecuteTask_Cronjob(project, task, this.current_task_count) : this.ExecuteTask_Single(project, task, this.current_task_count)
+        if(task.setupjob){
+            allJobFinish = this.ExecuteTask_Setup(project, task, this.current_task_count)
+        } else if (task.cronjob){
+            allJobFinish = this.ExecuteTask_Cronjob(project, task, this.current_task_count)
+        } else {
+            allJobFinish = this.ExecuteTask_Single(project, task, this.current_task_count)
+        }
 
         if (allJobFinish){
             this.ExecuteTask_AllFinish(project, task)
@@ -193,6 +199,63 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                     job.index = 1
                     job.runtime_uuid = runtime
                     this.ExecuteJob(project, task, job, ns[0], false)
+                }
+            }
+        }
+        return allJobFinish
+    }
+
+    private ExecuteTask_Setup(project:Project, task:Task, taskCount:number):boolean {
+        let ns:Array<WebsocketPack> = this.get_idle_open()
+        let allJobFinish = false
+
+        /**
+         * if current_cron length is zero\
+         * this means the init process has not been run yet
+         */
+        if(this.current_cron.length == 0){
+            // First time
+            this.Init_CronContainer(task, taskCount)
+            this.messager_log(`[Execute] TaskCount: ${taskCount}`)
+        } else{
+            // If disconnect or deleted...
+            /**
+             * We query all the cron state and get all the processing first and count it\
+             * All we want is to filter out the node which is fully load\
+             * So we can follow the multithread limit to send the mission
+             */
+            const worker = this.current_cron.filter(x => x.uuid != '').map(x => x.uuid)
+            const counter:Array<[string, number]> = []
+            worker.forEach(uuid => {
+                const index = counter.findIndex(x => x[0] == uuid)
+                if(index == -1) counter.push([uuid, 1])
+                else counter[index][1] += 1
+            })
+            const fullLoadUUID = counter.filter(x => x[1] >= this.current_multithread).map(x => x[0])
+            ns = ns.filter(x => !fullLoadUUID.includes(x.uuid))
+        }
+        
+        const allworks:Array<WorkState> = []
+        this.current_cron.forEach(x => {
+            allworks.push(...x.work)
+        })
+        
+        if(this.check_all_cron_end()){
+            allJobFinish = true
+        }else{
+            // Assign worker
+            // Find the cron which is need to be execute by a node
+            const needs = this.current_cron.filter(x => x.uuid == '' && x.work.filter(y => y.state != ExecuteState.FINISH && y.state != ExecuteState.ERROR).length > 0)
+            const min = Math.min(needs.length, ns.length)
+            for(let i = 0; i < min; i++){
+                needs[i].uuid = ns[i].uuid
+            }
+            const single = this.current_cron.filter(x => x.uuid != '')
+            // Execute
+            for(var cronwork of single){
+                const index = this.current_nodes.findIndex(x => x.uuid == cronwork.uuid)
+                if(index != -1){
+                    this.ExecuteCronTask(project, task, cronwork, this.current_nodes[index])
                 }
             }
         }

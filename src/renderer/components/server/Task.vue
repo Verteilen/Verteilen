@@ -31,7 +31,7 @@ const data:Ref<DATA> = ref({
     paraModal: false,
     dialogModal: false,
     isEdit: false,
-    editData: {cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""},
+    editData: {cronjob: false, cronjobKey: "", title: "", description: "", setupjob: false, multi: false, multiKey: ""},
     editUUID: '',
     deleteModal: false,
     deleteData: [],
@@ -109,7 +109,7 @@ const confirmCreate = () => {
     emits('added', p)
     nextTick(() => {
         updateTask();
-        data.value.editData = {cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""};
+        data.value.editData = {cronjob: false, cronjobKey: "", title: "", description: "", setupjob: false, multi: false, multiKey: ""};
     })
 }
 
@@ -239,7 +239,7 @@ onUnmounted(() => {
                     </v-btn>
                 </template>
                 <template v-slot:item.cronjob="{ item }">
-                    <v-chip :color="item.cronjob ? 'success' : 'error'">{{ item.cronjob }}</v-chip>
+                    <v-chip :color="item.cronjob ? 'success' : 'error'">{{ item.cronjob || item.setupjob }}</v-chip>
                 </template>
                 <template v-slot:item.multi="{ item }">
                     <v-chip :color="item.multi ? 'success' : 'error'">{{ item.multi }}</v-chip>

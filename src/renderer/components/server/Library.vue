@@ -2,8 +2,9 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, Libraries, LibType } from '../../interface';
+import { AppConfig, BusType, Libraries, Library, LibType } from '../../interface';
 import { i18n } from '../../plugins/i18n';
+import { CreateField, DATA, Util_Lib } from '../../util/lib';
 
 interface PROPS {
     config: AppConfig
@@ -11,36 +12,34 @@ interface PROPS {
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const props = defineProps<PROPS>()
-const data = defineModel<Libraries>()
 const emits = defineEmits<{
-    (e: 'rename', oldname:string, newname:string): void
-    (e: 'save', file:string): void
+    (e: 'create', data:CreateField): void
+    (e: 'edit', olddata:CreateField, newdata:CreateField): void
+    (e: 'save', data:Library): void
     (e: 'load', file:string): void
     (e: 'delete', file:string): void
     (e: 'delete-all'): void
 }>()
-const leftSize = ref(3)
-const rightSize = ref(9)
-const select = ref([])
-const renameData = ref({ oldname: '', name: '' })
-const selection = computed(() => data.value!.libs.find(x => select.value.length > 0 && x.name == select.value[0]))
-const dirty = ref(false)
-const titleError = ref(false)
-const renameModal = ref(false)
-const errorMessage = ref('')
-const openBottom = computed(() => messages.value.length > 0)
-const messages:Ref<Array<string>> = ref([])
-const search = ref('')
+const model = defineModel<Libraries>()
+const data:Ref<DATA> = ref({
+    leftSize: 3,
+    rightSize: 9,
+    select: [],
+    createModel: false,
+    isEdit: false,
+    editData: { name: "", type: LibType.LUA },
+    dirty: false,
+    titleError: false,
+    renameModal: false,
+    errorMessage: '',
+    messages: [],
+    search: '',
+})
 
-const newname = () => {
-    let r = "New Script"
-    let count = 0
-    while(data.value!.libs.find(x => x.name == r) != undefined){
-        count = count + 1
-        r = `New Script ${count}`
-    }
-    return r
-}
+const openBottom = computed(() => data.value.messages.length > 0)
+const selection = computed(() => model.value!.libs.find(x => data.value.select.length > 0 && x.name == data.value.select[0]))
+
+const util:Util_Lib = new Util_Lib(data, () => selection.value)
 
 const execute = () => {
     if(!props.config.isElectron || selection.value == undefined) return
@@ -48,91 +47,91 @@ const execute = () => {
 }
 
 const clean = () => {
-    messages.value = []
+    data.value.messages = []
 }
 
 const setdirty = () => {
-    dirty.value = true
+    data.value.dirty = true
 }
 
 const remove = () => {
     if(selection.value == undefined) return
     emitter?.emit('deleteScript', selection.value!.name)
-    data.value!.libs = data.value!.libs.filter(x => x.name != selection.value!.name)
-    dirty.value = true
+    model.value!.libs = model.value!.libs.filter(x => x.name != selection.value!.name)
+    data.value.dirty = true
     clean()
 }
 
-const rename = () => {
-    renameData.value = { oldname: selection.value!.name, name: selection.value!.name }
-    renameModal.value = true
-    errorMessage.value = ''
-    titleError.value = false
+const submit = () => {
+    if (data.value.isEdit) confirmEdit()
+    else confirmCreate()
 }
 
 const luaFeedback = (e:IpcRendererEvent, str:string) => {
-    messages.value.push(str)
+    data.value.messages.push(str)
 }
 
-const confirmRename = () => {
-    if(renameData.value.name.length == 0){
-        errorMessage.value = i18n.global.t('error.title-needed')
-        titleError.value = true
-        return
-    }
-    const index = data.value!.libs.findIndex(x => x.name == renameData.value.oldname)
-    const newIndex = data.value!.libs.findIndex(x => x.name == renameData.value.name)
-    if(index != -1 && newIndex == -1){
-        data.value!.libs[index].name = renameData.value.name
-        dirty.value = true
-        renameModal.value = false
-        emitter?.emit('renameScript', { oldname: renameData.value.oldname, newname: renameData.value.name })
-    }else{
-        errorMessage.value = i18n.global.t('error.title-repeat')
-        titleError.value = true
-        return
-    }
+const javascriptFeedback = (e:IpcRendererEvent, str:string) => {
+    data.value.messages.push(str)
 }
 
-const createScript = () => {
-    data.value!.libs.push({
-        name: newname(),
-        type: LibType.LUA,
-        content: ""
-    })
-    dirty.value = true
+const confirmCreate = () => {
+    if(data.value.editData.name.length == 0){
+        data.value.errorMessage = i18n.global.t('error.title-needed')
+        data.value.titleError = true
+        return
+    }
+    data.value.createModel = false
+    emits('create', { name: data.value.editData.name, type: data.value.editData.type })
+}
+
+const confirmEdit = () => {
+    if(selection.value == undefined) return
+    if(data.value.editData.name.length == 0){
+        data.value.errorMessage = i18n.global.t('error.title-needed')
+        data.value.titleError = true
+        return
+    }
+    data.value.createModel = false
+    emits('edit', 
+        { name: selection.value.name, type: selection.value.type },
+        { name: data.value.editData.name, type: data.value.editData.type })
 }
 
 const save = () => {
-    dirty.value = false
+    if(selection.value == undefined) return
+    data.value.dirty = false
+    emits('save', selection.value)
     if(!props.config.isElectron) return
-    data.value?.libs.forEach(x => {
+    model.value?.libs.forEach(x => {
         window.electronAPI.send('save_lib', x.name, JSON.stringify(x, null, 4))
     })
-    
 }
 
 onMounted(() => {
     if(!props.config.isElectron) return
     window.electronAPI.eventOn('lua-feedback', luaFeedback)
+    window.electronAPI.eventOn('javascript-feedback', javascriptFeedback)
+    
 })
 
 onUnmounted(() => {
     if(!props.config.isElectron) return
     window.electronAPI.eventOff('lua-feedback', luaFeedback)
+    window.electronAPI.eventOff('javascript-feedback', javascriptFeedback)
 })
 
 </script>
 
 <template>
-    <v-container fluid class="ma-0 pa-0" v-if="data != undefined">
+    <v-container fluid class="ma-0 pa-0" v-if="model != undefined">
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
-                <v-text-field max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search"></v-text-field>
+                <v-text-field max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="createScript" :disabled="select == undefined">
+                        <v-btn icon v-bind="props" @click="util.createScript" :disabled="data.select == undefined">
                             <v-icon>mdi-plus</v-icon>
                         </v-btn>
                     </template>
@@ -148,7 +147,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
-                        <v-btn icon v-bind="pro.props" color="success" :disabled="!dirty" @click="save">
+                        <v-btn icon v-bind="pro.props" color="success" :disabled="!data.dirty" @click="save">
                             <v-icon>mdi-content-save</v-icon>
                         </v-btn>
                     </template>
@@ -156,11 +155,11 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
-                        <v-btn icon v-bind="pro.props" :disabled="selection == undefined" @click="rename">
+                        <v-btn icon v-bind="pro.props" :disabled="selection == undefined" @click="util.editScript">
                             <v-icon>mdi-pencil</v-icon>
                         </v-btn>
                     </template>
-                    {{ $t('rename') }}
+                    {{ $t('edit') }}
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
@@ -173,10 +172,10 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <v-row style="height: calc(100vh - 120px)" class="w-100">
-            <v-col :cols="leftSize" style="border-right: brown 1px solid;">
-                <v-list :items="data.libs" item-title="name" item-value="name" v-model:selected="select"></v-list>
+            <v-col :cols="data.leftSize" style="border-right: brown 1px solid;">
+                <v-list :items="model.libs" item-title="name" item-value="name" v-model:selected="data.select"></v-list>
             </v-col>
-            <v-col :cols="rightSize">
+            <v-col :cols="data.rightSize">
                 <v-card v-if="selection != undefined" no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
                     <codemirror v-model="selection.content" 
                         style="text-align:left;"
@@ -190,21 +189,21 @@ onUnmounted(() => {
                             <v-btn color="primary" @click="clean">{{ $t('clear') }}</v-btn>
                         </v-btn-group>
                     </div>
-                    <p v-for="(item, i) in messages" :key="i">{{ item }}</p>
+                    <p v-for="(item, i) in data.messages" :key="i">{{ item }}</p>
                 </div>
             </v-col>
         </v-row>
-        <v-dialog v-model="renameModal" class="text-white">
+        <v-dialog v-model="data.createModel" class="text-white">
             <v-card>
                 <v-card-title>
                     {{ $t('modal.rename-parameter') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field :error="titleError" v-model="renameData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-                    <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
+                    <v-text-field :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>
-                    <v-btn color="primary" @click="confirmRename">{{ $t('rename') }}</v-btn>
+                    <v-btn color="primary" @click="submit">{{ $t('confirm') }}</v-btn>
                 </template>
             </v-card>
         </v-dialog>
