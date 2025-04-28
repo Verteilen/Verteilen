@@ -23,6 +23,11 @@ export enum JobCategory {
     Execution
 }
 
+export enum LibType {
+    LUA,
+    JAVASCRIPT,
+}
+
 export enum ConditionResult {
     None,
     SkipProject,

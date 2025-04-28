@@ -2,7 +2,7 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, Libraries } from '../../interface';
+import { AppConfig, BusType, Libraries, LibType } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 
 interface PROPS {
@@ -97,6 +97,7 @@ const confirmRename = () => {
 const createScript = () => {
     data.value!.libs.push({
         name: newname(),
+        type: LibType.LUA,
         content: ""
     })
     dirty.value = true

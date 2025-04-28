@@ -1,5 +1,5 @@
 import { Node, Parameter, Project } from "./base"
-import { ExecuteState } from "./enum"
+import { ExecuteState, LibType } from "./enum"
 
 export interface ExecuteData {
     uuid: string
@@ -80,6 +80,7 @@ export interface Preference {
 
 export interface Library {
     name: string
+    type: LibType
     content: string
 }
 
