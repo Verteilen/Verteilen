@@ -171,6 +171,7 @@ const consoleAdded = (name:string, record:Record) => {
 }
 const consoleStop = () => {
   nextTick(() => {
+    data.value.execute_manager[data.value.select_manager][0].Release()
     data.value.execute_manager.splice(data.value.select_manager, 1)
     if(data.value.execute_manager.length == 0) data.value.select_manager = -1
     else data.value.select_manager = 0
