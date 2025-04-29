@@ -15,6 +15,7 @@ const emit = defineEmits<{
 
 const buffer:Ref<Preference | undefined> = ref(undefined)
 const lan:Ref<Array<string>> = ref(['en', 'zh_TW'])
+const tag = ref(0)
 
 watch(() => modal.value, () => {
     buffer.value = JSON.parse(JSON.stringify(props.item))
@@ -39,10 +40,32 @@ const close = () => {
                 <v-icon>mdi-cog</v-icon>
                 {{ $t('toolbar.setting') }}
             </v-card-title>
-            <v-card-text v-if="buffer">
-                <v-select hide-details :label="$t('menu.language')" v-model="buffer.lan" :items="lan"></v-select>
-                <v-checkbox hide-details :label="$t('menu.log')" v-model="buffer.log"></v-checkbox>
-                <v-slider :min="12" :max="36" :step="1" hide-details :label="$t('menu.font') + ' ' + buffer.font" v-model="buffer.font"></v-slider>
+            <v-card-text v-if="buffer" style="min-height: 50vh;">
+                <v-container fluid class="pa-0 ma-0">
+                    <v-tabs v-model="tag" tabs show-arrows class="bg-grey-darken-4">
+                        <v-tab :value="0">
+                            {{ $t('settings.system') }}
+                        </v-tab>
+                        <v-tab :value="1">
+                            {{ $t('settings.appearance') }}
+                        </v-tab>
+                        <v-tab :value="2">
+                            {{ $t('settings.workflow') }}
+                        </v-tab>
+                    </v-tabs>
+                    <v-tabs-window v-model="tag" class="pt-4">
+                        <v-tabs-window-item :value="0">
+                            <v-select hide-details :label="$t('menu.language')" v-model="buffer.lan" :items="lan"></v-select>
+                            <v-slider :min="12" :max="36" :step="1" hide-details :label="$t('menu.font') + ' ' + buffer.font" v-model="buffer.font"></v-slider>
+                        </v-tabs-window-item>
+                        <v-tabs-window-item :value="1">
+                            
+                        </v-tabs-window-item>
+                        <v-tabs-window-item :value="2">
+                            <v-checkbox hide-details :label="$t('menu.log')" v-model="buffer.log"></v-checkbox>
+                        </v-tabs-window-item>
+                    </v-tabs-window>
+                </v-container>
             </v-card-text>
             <template v-slot:actions>
                 <v-btn color="success" @click="confirm">

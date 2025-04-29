@@ -19,6 +19,11 @@
         "log": "紀錄",
         "font": "字型大小"
     },
+    "settings": {
+        "system": "系統",
+        "appearance": "外觀",
+        "workflow": "流程"
+    },
     "toast": {
         "server": "伺服器模式",
         "node": "節點模式",

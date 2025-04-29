@@ -19,6 +19,11 @@
         "log": "Log",
         "font": "Font Size"
     },
+    "settings": {
+        "system": "System",
+        "appearance": "Appearance",
+        "workflow": "Wrkflow"
+    },
     "toast": {
         "server": "Server Mode",
         "node": "Node Mode",
