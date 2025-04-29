@@ -48,14 +48,24 @@ export class ExecuteManager_Base {
     protected sync_para = (target:Parameter, source:WebsocketPack) => {
         const h:Header = {
             name: 'set_parameter',
+            channel: this.uuid,
             data: target
         }
         const h2:Header = {
             name: 'set_libs',
+            channel: this.uuid,
             data: this.libs
         }
         source.websocket.send(JSON.stringify(h))
         source.websocket.send(JSON.stringify(h2))
+    }
+    protected release = (source:WebsocketPack) => {
+        const h:Header = {
+            name: 'release',
+            channel: this.uuid,
+            data: 0
+        }
+        source.websocket.send(JSON.stringify(h))
     }
     /**
      * Check all the cronjob is finish or not

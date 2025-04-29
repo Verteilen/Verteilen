@@ -1,6 +1,6 @@
 import { ChildProcess, spawn } from 'child_process';
 import { WebSocket } from 'ws';
-import { Header, Messager, Messager_log } from "../interface";
+import { Header, Job, Libraries, Messager, Messager_log, Parameter } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientShell } from './shell';
@@ -12,7 +12,7 @@ export class ClientAnalysis {
     private messager: Messager
     private messager_log: Messager_log
     private client:Client
-    private exec:ClientExecute
+    private exec:Array<ClientExecute>
     private shell:ClientShell
     private resource_wanter:Array<WebSocket> = []
     private resource_thread:ChildProcess | undefined = undefined
@@ -24,7 +24,7 @@ export class ClientAnalysis {
         this.messager = _messager
         this.messager_log = _messager_log
         this.shell = new ClientShell(_messager, _messager_log, this.client)
-        this.exec = new ClientExecute(_messager, _messager_log, this.client)
+        this.exec = []
     }
 
     /**
@@ -34,10 +34,11 @@ export class ClientAnalysis {
      */
     analysis = (h:Header | undefined, source:WebSocket) => {
         const typeMap = {
-            'execute_job': this.exec.execute_job,
+            'execute_job': this.execute_job,
+            'release': this.release,
             'stop_job': this.stop_all,
-            'set_parameter': this.exec.set_parameter,
-            'set_libs': this.exec.set_libs,
+            'set_parameter': this.set_parameter,
+            'set_libs': this.set_libs,
             'shell_folder': this.shell.shell_folder,
             'open_shell': this.shell.open_shell,
             'close_shell': this.shell.close_shell,
@@ -60,10 +61,47 @@ export class ClientAnalysis {
         }
         if(typeMap.hasOwnProperty(h.name)){
             const castingFunc = typeMap[h.name]
-            castingFunc(h.data, source)
+            castingFunc(h.data, source, h.channel)
         }else{
             this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
         }
+    }
+
+    private execute_job = (job: Job, source: WebSocket, channel:string | undefined) => {
+        if(channel == undefined) return
+        const target = this.exec_checker(channel)
+        target.execute_job(job, source)
+    }
+
+    private release = (dummy:number, source: WebSocket, channel:string | undefined) => {
+        if(channel == undefined) return
+        const index = this.exec.findIndex(x => x.uuid == channel)
+        if(index == -1) return
+        this.exec.splice(index, 1)
+    }
+
+    private set_parameter = (data:Parameter, source: WebSocket, channel:string | undefined) => {
+        if(channel == undefined) return
+        const target = this.exec_checker(channel)
+        target.set_parameter(data)
+    }
+
+    private set_libs = (data:Libraries, source: WebSocket, channel:string | undefined) => {
+        if(channel == undefined) return
+        const target = this.exec_checker(channel)
+        target.set_libs(data)
+    }
+
+    private exec_checker = (uuid:string): ClientExecute => {
+        let r:ClientExecute | undefined = undefined
+        const index = this.exec.findIndex(x => x.uuid == uuid)
+        if(index == -1) {
+            r = new ClientExecute(uuid, this.messager, this.messager_log, this.client)
+            this.exec.push(r)
+        }else{
+            r = this.exec[index]
+        }
+        return r
     }
 
     /**
@@ -71,18 +109,18 @@ export class ClientAnalysis {
      * @param data Dummy value, should always be 0
      * @param source The cluster server websocket instance
      */
-    pong = (data:number, source: WebSocket) => {
+    private pong = (data:number, source: WebSocket) => {
         const h:Header = { name: 'pong', data: data }
         source.send(JSON.stringify(h))
     }
 
-    resource_start = (data:number, source: WebSocket) => {
+    private resource_start = (data:number, source: WebSocket) => {
         this.resource_wanter.push(source)
         this.messager_log(`Register resource_wanter!, count: ${this.resource_wanter.length}`)
         if(this.resource_cache != undefined) source.send(JSON.stringify(this.resource_cache))
     }
 
-    resource_end = (data:number, source: WebSocket) => {
+    private resource_end = (data:number, source: WebSocket) => {
         const index = this.resource_wanter.findIndex(x => x ==source)
         if(index != -1) {
             this.resource_wanter.splice(index, 1)
@@ -99,11 +137,11 @@ export class ClientAnalysis {
 
     disconnect = (source: WebSocket) => {
         this.shell.disconnect(source)
-        this.exec.stop_job()
+        this.exec.forEach(x => x.stop_job())
     }
 
     stop_all = () => {
-        this.exec.stop_job()
+        this.exec.forEach(x => x.stop_job())
     }
 
     private resource_require = () => {

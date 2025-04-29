@@ -71,7 +71,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
         }
         if(lib != undefined) this.libs = this.filter_lib(record.projects, lib)
         else this.libs = { libs: [] }
-    
+
         this.state = ExecuteState.RUNNING
         this.messager_log(`[Execute] Init successfully, Enter process right now`)
         
@@ -95,8 +95,16 @@ export class ExecuteManager extends ExecuteManager_Runner {
         this.current_t = undefined
         this.current_cron = []
         this.current_job = []
+        this.current_nodes = []
         this.current_multithread = 1
         this.state = ExecuteState.NONE
+    }
+
+    /**
+     * Tell clients release lib and parameter data
+     */
+    Release = () => {
+        this.current_nodes.forEach(x => this.release(x))
     }
 
     /**

@@ -315,6 +315,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         }
         const h:Header = {
             name: 'execute_job',
+            channel: this.uuid,
             data: job
         }
         wss.current_job.push(job.runtime_uuid!)

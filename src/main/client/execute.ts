@@ -9,6 +9,7 @@ import { ClientParameter } from './parameter';
  * Execute worker, Execute the job container
  */
 export class ClientExecute {
+    uuid:string
     private parameter:Parameter | undefined = undefined
     private libraries:Libraries | undefined = undefined
     private tag: string = ''
@@ -21,7 +22,8 @@ export class ClientExecute {
         return this.workers.length
     }
 
-    constructor(_messager:Messager, _messager_log:Messager_log, _client:Client){
+    constructor(_uuid:string, _messager:Messager, _messager_log:Messager_log, _client:Client){
+        this.uuid =_uuid
         this.messager = _messager
         this.messager_log = _messager_log
     }

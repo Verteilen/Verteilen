@@ -41,6 +41,10 @@ export interface Header {
      */
     message?: string
     /**
+     * Resource channel
+     */
+    channel?:string
+    /**
      * The data content
      */
     data?: any
