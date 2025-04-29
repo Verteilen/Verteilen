@@ -1,5 +1,5 @@
 import { v6 as uuid6 } from 'uuid';
-import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, JobCategory, JobType, JobType2, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 import { Util_Parser } from './util_parser';
 
@@ -123,6 +123,24 @@ export class ExecuteManager_Base {
             })
         })
         return true
+    }
+    protected filter_lib = (projects:Array<Project>, lib:Libraries):Libraries => {
+        const r:Libraries = { libs: [] }
+        projects.forEach(x => {
+            x.task.forEach(y => {
+                y.jobs.forEach(z => {
+                    let code = -1
+                    if((z.category == JobCategory.Execution && z.type == JobType.LUA) || (z.category == JobCategory.Condition && z.type == JobType2.LUA)) code = 0
+                    else if((z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT) || (z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT)) code = 1
+                    if(code == -1) return
+                    z.string_args.forEach(s1 => {
+                        const target = lib.libs.find(l => l.type == code && l.name == s1)
+                        if(target != undefined) r.libs.push(target)
+                    })
+                })
+            })
+        })
+        return JSON.parse(JSON.stringify(r))
     }
     /**
      * Get the multi-core setting\

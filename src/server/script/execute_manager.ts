@@ -69,6 +69,9 @@ export class ExecuteManager extends ExecuteManager_Runner {
             this.messager_log(`[Execute] Init failed, Format checking error`)
             return -1
         }
+        if(lib != undefined) this.libs = this.filter_lib(record.projects, lib)
+        else this.libs = { libs: [] }
+    
         this.state = ExecuteState.RUNNING
         this.messager_log(`[Execute] Init successfully, Enter process right now`)
         
