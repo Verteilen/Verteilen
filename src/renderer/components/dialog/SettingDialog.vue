@@ -42,24 +42,25 @@ const close = () => {
             </v-card-title>
             <v-card-text v-if="buffer" style="min-height: 50vh;">
                 <v-container fluid class="pa-0 ma-0">
-                    <v-tabs v-model="tag" tabs show-arrows class="bg-grey-darken-4">
-                        <v-tab :value="0">
+                    <v-tabs v-model="tag" tabs show-arrows>
+                        <v-tab :value="0" :style="{ 'fontSize': props.item?.font + 'px' }">
                             {{ $t('settings.system') }}
                         </v-tab>
-                        <v-tab :value="1">
+                        <v-tab :value="1" :style="{ 'fontSize': props.item?.font + 'px' }">
                             {{ $t('settings.appearance') }}
                         </v-tab>
-                        <v-tab :value="2">
+                        <v-tab :value="2" :style="{ 'fontSize': props.item?.font + 'px' }">
                             {{ $t('settings.workflow') }}
                         </v-tab>
                     </v-tabs>
                     <v-tabs-window v-model="tag" class="pt-4">
                         <v-tabs-window-item :value="0">
                             <v-select hide-details :label="$t('menu.language')" v-model="buffer.lan" :items="lan"></v-select>
+                            <br />
                             <v-slider :min="12" :max="36" :step="1" hide-details :label="$t('menu.font') + ' ' + buffer.font" v-model="buffer.font"></v-slider>
                         </v-tabs-window-item>
                         <v-tabs-window-item :value="1">
-                            
+                            <v-select />
                         </v-tabs-window-item>
                         <v-tabs-window-item :value="2">
                             <v-checkbox hide-details :label="$t('menu.log')" v-model="buffer.log"></v-checkbox>
