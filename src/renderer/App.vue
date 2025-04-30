@@ -65,6 +65,7 @@ const load_preference = (x:string) => {
 
 onMounted(() => {
   emitter?.on('modeSelect', modeSelect)
+  emitter?.on('setting', setting)
   backend.value.wait_init().then(() => {
     backend.value.consoleM = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
       on: emitter!.on,
@@ -74,7 +75,6 @@ onMounted(() => {
     
     if(config.value.isElectron){
       backend.value.eventOn('locate', locate)
-      backend.value.eventOn('setting', setting)
       backend.value.invoke('load_preference').then(x => load_preference(x))
     }
   })
@@ -82,9 +82,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  emitter?.on('modeSelect', modeSelect)
+  emitter?.off('modeSelect', modeSelect)
+  emitter?.off('setting', setting)
   backend.value.eventOff('locate', locate)
-  backend.value.eventOff('setting', setting)
 })
 
 </script>
@@ -98,3 +98,7 @@ onUnmounted(() => {
     <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
   </v-container>
 </template>
+
+<style lang="css">
+
+</style>

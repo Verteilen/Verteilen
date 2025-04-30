@@ -239,7 +239,7 @@ onUnmounted(() => {
                     </v-btn>
                 </template>
                 <template v-slot:item.cronjob="{ item }">
-                    <v-chip :color="item.cronjob ? 'success' : 'error'">{{ item.cronjob || item.setupjob }}</v-chip>
+                    <v-chip :color="(item.cronjob || item.setupjob) ? 'success' : 'error'">{{ item.cronjob || item.setupjob }}</v-chip>
                 </template>
                 <template v-slot:item.multi="{ item }">
                     <v-chip :color="item.multi ? 'success' : 'error'">{{ item.multi }}</v-chip>

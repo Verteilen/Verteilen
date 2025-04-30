@@ -7,7 +7,6 @@ import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
 import { Job, Parameter, Preference, Project } from "./interface";
-import { menu_client, menu_server, setupMenu } from "./menu";
 import { i18n } from "./plugins/i18n";
 
 export class BackendEvent {
@@ -41,13 +40,6 @@ export class BackendEvent {
         })
         ipcMain.handle('exist', (event, d:string) => {
             return fs.existsSync(d)
-        })
-        ipcMain.on('menu', (event, on:boolean):void => {
-            if(mainWindow == undefined) return;
-            console.log(`[Backend] Menu Display: ${on}`)
-            this.menu_state = on
-            if(on) mainWindow.setMenu(menu_server!)
-            else mainWindow.setMenu(menu_client!)
         })
         ipcMain.on('lua', (event, content:string) => {
             const lua_messager_feedback = (msg:string, tag?:string) => {
@@ -105,7 +97,6 @@ export class BackendEvent {
                 }
                 fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
                 i18n.global.locale = 'en'
-                setupMenu()
                 return JSON.stringify(record)
             } else {
                 const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
@@ -133,7 +124,6 @@ export class BackendEvent {
         ipcMain.on('locate', (event, data:string) => {
             // @ts-ignore
             i18n.global.locale = data
-            setupMenu()
         })
     }
 

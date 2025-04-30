@@ -35,7 +35,8 @@
         "connection-remove-des": "連線中斷偵測"
     },
     "modeselect": {
-        "title": "你擔任的角色"
+        "title": "你擔任的角色",
+        "titlebar": "角色選擇"
     },
     "error": {
         "title-needed": "名稱不能為空",

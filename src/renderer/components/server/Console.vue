@@ -306,8 +306,8 @@ onUnmounted(() => {
                 </v-tooltip>
             </v-toolbar>
         </div>
-        <v-row style="height: calc(100vh - 150px)" class="w-100">
-            <v-col :cols="data.leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
+        <v-row style="height: calc(100vh - 120px)" class="w-100">
+            <v-col :cols="data.leftSize" class="border border-e-lg">
                 <v-list v-model.number="data.tag" mandatory color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
                     <v-list-item v-if="model != undefined" @click="data.tag = 0" :value="0" :active="data.tag == 0">
                         {{ $t('console.list') }}

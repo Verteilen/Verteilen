@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
 import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
 import { BackendProxy } from '../proxy';
@@ -37,6 +37,8 @@ const data:Ref<DATA> = ref({
     websocket_manager: undefined,
     execute_manager: [],
 
+    drawer: false,
+    title: "",
     page: 0,
     select_manager: 0,
     lanSelect: i18n.global.locale as string,
@@ -54,6 +56,13 @@ const data:Ref<DATA> = ref({
 const util:Util_Server = new Util_Server(data, () => props.backend, emitter!)
 
 const selectExecute = computed(() => data.value.execute_manager[data.value.select_manager])
+
+watch(() => data.value.page, () => {
+  const tab = tabs.value[data.value.page]
+  data.value.page = tab[2]; 
+  data.value.title = tab[1]; 
+  data.value.drawer = false
+})
 
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
@@ -280,6 +289,10 @@ const onAnalysis = (d:BusAnalysis) => {
   data.value.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
 }
 
+const popSetting = () => {
+  emitter?.emit('setting')
+}
+
 onMounted(() => {
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
@@ -291,6 +304,7 @@ onMounted(() => {
 
   props.backend.wait_init().then(() => {
     updateTab()
+    data.value.title = tabs.value[0][1]
     const x = config.value
     if(!x.isExpress){
       const nodeproxy:NodeProxy = {
@@ -387,12 +401,35 @@ onUnmounted(() => {
 
 <template>
   <v-container fluid class="pa-0 ma-0">
-    <v-tabs v-model="data.page" tabs show-arrows style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
-      <v-tab v-for="(tab, index) in tabs" :style="{ 'fontSize': (props.preference.font - 2) + 'px' }" :value="tab[2]" :key="index">
-        <v-icon>{{ tab[0] }}</v-icon>
-        <span>{{ $t(tab[1]) }}</span>
-      </v-tab>
-    </v-tabs>
+    <v-layout>
+      <v-app-bar :elevation="2" class="text-left">
+        <template v-slot:prepend>
+          <v-app-bar-nav-icon @click="data.drawer = true"></v-app-bar-nav-icon>
+        </template>
+        <v-app-bar-title>{{ data.title ? $t(data.title) : '' }}</v-app-bar-title>
+        <template v-slot:append>
+          <v-menu location="left">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" icon="mdi-dots-vertical"></v-btn>
+            </template>
+            <v-list width="120px">
+              <v-list-item @click="popSetting">{{ $t('toolbar.setting') }}</v-list-item>
+            </v-list>
+          </v-menu>
+        </template>
+      </v-app-bar>
+      <v-navigation-drawer temporary v-model="data.drawer">
+        <v-list density="compact" nav>
+          <v-list-item v-for="(tab, index) in tabs" 
+            :style="{ 'fontSize': props.preference.font + 'px' }"
+            :prepend-icon="tab[0]"
+            :value="tab[2]" 
+            :key="index"
+            :active="data.page == tab[2]"
+            @click="data.page = tab[2]">{{ $t(tab[1]) }}</v-list-item>
+        </v-list>
+      </v-navigation-drawer>
+    </v-layout>
     <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
       <v-tabs-window v-model="data.page">
         <v-tabs-window-item :value="0">

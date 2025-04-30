@@ -35,7 +35,8 @@
         "connection-remove-des": "Disconnect detected"
     },
     "modeselect": {
-        "title": "Your role"
+        "title": "Your role",
+        "titlebar": "Role Selection"
     },
     "error": {
         "title-needed": "Title is needed",

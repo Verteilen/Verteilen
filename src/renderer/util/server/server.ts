@@ -20,6 +20,8 @@ export interface DATA {
     websocket_manager: WebsocketManager | undefined
     execute_manager: Array<[ExecuteManager, ExecuteRecord]>
 
+    drawer: boolean
+    title: string
     page:number
     select_manager: number
     lanSelect: string

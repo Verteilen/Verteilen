@@ -1,8 +1,7 @@
-import { app, BrowserWindow, powerSaveBlocker, session } from 'electron';
+import { app, BrowserWindow, globalShortcut, powerSaveBlocker, session } from 'electron';
 import { join } from 'path';
 import './client/client';
 import { backendEvent } from './event';
-import { menu_client } from './menu';
 import './plugins/i18n';
 
 export let mainWindow:BrowserWindow | undefined = undefined
@@ -22,8 +21,6 @@ function createWindow () {
         height: 800,
         minWidth: 1280,
         minHeight: 800,
-        darkTheme: true,
-        backgroundColor: "#212121",
         webPreferences: {
             preload: join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -68,11 +65,15 @@ function createWindow () {
     else {
         mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'));
     }
-    mainWindow.setMenu(menu_client!)
+    mainWindow.setMenu(null)
 }
 
 export function RUN(){
     app.whenReady().then(() => {
+        globalShortcut.register('Alt+CommandOrControl+I', () => {
+            mainWindow?.webContents.openDevTools();
+        })
+    }).then(() => {
     createWindow();
     
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
