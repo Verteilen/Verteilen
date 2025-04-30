@@ -16,6 +16,7 @@ const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
         uuid: uuidv6(),
         title: "Ply 輸出",
         description: "生成 ply 序列!!",
+        setupjob: false,
         cronjob: true,
         cronjobKey: "frameCount",
         multi: true,

@@ -15,6 +15,7 @@ const GetBlenderTemplate_Render = ():Task => {
         uuid: uuidv6(),
         title: "Render frame one by one",
         description: "",
+        setupjob: false,
         cronjob: true,
         cronjobKey: "frameCount",
         multi: false,
