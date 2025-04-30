@@ -6,8 +6,8 @@ import colors from 'vuetify/lib/util/colors.mjs';
 import { AppConfig, BusType, ExecuteRecord, ExecuteState, Log, Parameter, Preference, Project } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { ExecuteManager } from '../../script/execute_manager';
+import ParameterPage from './../components/console/Parameter.vue';
 import LogMenuDialog from './../dialog/LogMenuDialog.vue';
-import ParameterPage from './console/Parameter.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 

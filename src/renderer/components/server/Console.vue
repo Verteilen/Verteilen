@@ -7,10 +7,10 @@ import { WebsocketManager } from '../../script/socket_manager';
 import { DATA, Util_Console } from '../../util/console';
 import ConsoleDialog from '../dialog/ConsoleDialog.vue';
 import NumberDialog from '../dialog/NumberDialog.vue';
-import DebugLog from './console/DebugLog.vue';
-import List from './console/List.vue';
-import ParameterPage from './console/Parameter.vue';
-import Process from './console/Process.vue';
+import DebugLog from './../components/console/DebugLog.vue';
+import List from './../components/console/List.vue';
+import ParameterPage from './../components/console/Parameter.vue';
+import Process from './../components/console/Process.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -34,7 +34,7 @@ const emits = defineEmits<{
 const data:Ref<DATA> = ref({
     leftSize: 3,
     rightSize: 9,
-    tag: 1,
+    tag: 2,
     createModal: false,
     skipModal: false,
 })
