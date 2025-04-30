@@ -85,6 +85,8 @@
         "console-name": "控制台名稱"
     },
     "toolbar": {
+        "server": "伺服器",
+        "editor": "編輯器",
         "project": "專案管理",
         "task": "流程管理",
         "job": "工作管理",

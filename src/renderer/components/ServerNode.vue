@@ -58,7 +58,7 @@ const util:Util_Server = new Util_Server(data, () => props.backend, emitter!)
 const selectExecute = computed(() => data.value.execute_manager[data.value.select_manager])
 
 watch(() => data.value.page, () => {
-  const tab = tabs.value[data.value.page]
+  const tab = tabs.value.find(x => x[2] == data.value.page)!
   data.value.page = tab[2]; 
   data.value.title = tab[1]; 
   data.value.drawer = false
@@ -215,10 +215,12 @@ const updateLocate = () => {
 
 const updateTab = () => {
   tabs.value = [
+    ["", "toolbar.editor", -1],
     ["mdi-cube", "toolbar.project", 0],
     ["mdi-calendar", "toolbar.task", 1],
     ["mdi-hammer", "toolbar.job", 2],
     ["mdi-database", "toolbar.parameter", 3],
+    ["", "toolbar.server", -1],
     ["mdi-network", "toolbar.node", 4],
     ["mdi-console-line", "toolbar.console", 5],
   ]
@@ -304,7 +306,7 @@ onMounted(() => {
 
   props.backend.wait_init().then(() => {
     updateTab()
-    data.value.title = tabs.value[0][1]
+    data.value.title = tabs.value.find(x => x[2] == 0)![1]
     const x = config.value
     if(!x.isExpress){
       const nodeproxy:NodeProxy = {
@@ -420,13 +422,16 @@ onUnmounted(() => {
       </v-app-bar>
       <v-navigation-drawer temporary v-model="data.drawer">
         <v-list density="compact" nav>
-          <v-list-item v-for="(tab, index) in tabs" 
-            :style="{ 'fontSize': props.preference.font + 'px' }"
-            :prepend-icon="tab[0]"
-            :value="tab[2]" 
-            :key="index"
-            :active="data.page == tab[2]"
-            @click="data.page = tab[2]">{{ $t(tab[1]) }}</v-list-item>
+          <div v-for="(tab, index) in tabs" :key="index">
+            <v-list-item v-if="tab[2] >= 0"
+              :style="{ 'fontSize': props.preference.font + 'px' }"
+              :prepend-icon="tab[0]"
+              :value="tab[2]" 
+              :active="data.page == tab[2]"
+              @click="data.page = tab[2]">{{ $t(tab[1]) }}</v-list-item>
+            <v-list-subheader v-else>{{ $t(tab[1]) }}</v-list-subheader>
+          </div>
+          
         </v-list>
       </v-navigation-drawer>
     </v-layout>
