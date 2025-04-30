@@ -159,7 +159,7 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
-        <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
+        <v-data-table style="background: transparent" :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
             <template v-slot:item.state="{ item }">
                 <v-chip :color="translate_state_color(item.state)">{{ translate_state(item.state) }}</v-chip>
             </template>

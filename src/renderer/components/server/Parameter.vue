@@ -260,7 +260,7 @@ onUnmounted(() => {
         </div>
         <div class="py-3 px-5 text-left" style="height: calc(100vh - 130px); overflow-y: auto;">
             <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
-            <v-data-table :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table style="background: transparent" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.detail="{ item }">
                     <v-btn flat icon @click="editParameter(item.name)" size="small">
                         <v-icon>mdi-pencil</v-icon>

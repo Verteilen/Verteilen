@@ -436,7 +436,7 @@ onUnmounted(() => {
         </v-list>
       </v-navigation-drawer>
     </v-layout>
-    <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
+    <div style="width: 100vw; height:100vh; padding-top: 50px;" class="text-white bg">
       <v-tabs-window v-model="data.page">
         <v-tabs-window-item :value="0">
           <ProjectPage
@@ -536,3 +536,9 @@ onUnmounted(() => {
     </div>
   </v-container>
 </template>
+
+<style>
+.bg {
+    background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(33, 45, 40));
+}
+</style>
