@@ -537,8 +537,8 @@ onUnmounted(() => {
   </v-container>
 </template>
 
-<style>
+<style scoped>
 .bg {
-    background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(33, 45, 40));
+    background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(33, 44, 42));
 }
 </style>

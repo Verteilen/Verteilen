@@ -35,7 +35,7 @@ const close = () => {
 
 <template>
     <v-dialog persistent width="600" v-model="modal" class="text-white">
-        <v-card :style="{ 'fontSize': props.item?.font + 'px' }">
+        <v-card :style="{ 'fontSize': props.item?.font + 'px' }" class="bg">
             <v-card-title>
                 <v-icon>mdi-cog</v-icon>
                 {{ $t('toolbar.setting') }}
@@ -79,3 +79,9 @@ const close = () => {
         </v-card>
     </v-dialog>
 </template>
+
+<style scoped>
+.bg {
+    background-image: linear-gradient(to bottom left, rgb(33, 33, 33), rgb(42, 33, 35));
+}
+</style>

@@ -47,7 +47,7 @@ const confirm = () => {
 </script>
 
 <template>
-    <DialogBase width="500" v-model="data">
+    <DialogBase width="500" v-model="data" color="linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))">
         <template #title>
             <div v-if="props.isEdit">
                 <v-icon>mdi-pencil</v-icon>
@@ -75,3 +75,9 @@ const confirm = () => {
         </template>
     </DialogBase>
 </template>
+
+<style scoped>
+.bg {
+    background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(33, 44, 42));
+}
+</style>

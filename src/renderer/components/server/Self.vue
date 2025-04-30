@@ -46,9 +46,9 @@ onUnmounted(() => {
         <v-btn color="primary" @click="clearMessage">{{ $t('clear') }}</v-btn>
       </v-btn-group>
     </div>
-    <div class="flow text-white bg-grey-darken-4" ref="myDiv">
+    <div class="flow text-white" ref="myDiv">
       <v-expansion-panels multiple v-model="panel">
-        <v-expansion-panel v-for="(block, i) in props.messages" :key="i">
+        <v-expansion-panel v-for="(block, i) in props.messages" :key="i" style="background: transparent">
           <v-expansion-panel-title color="grey-darken-3">
             <h3>{{ block.title }}</h3>
           </v-expansion-panel-title>
