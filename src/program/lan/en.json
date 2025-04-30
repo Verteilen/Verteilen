@@ -1,4 +1,14 @@
 {
+    "guides": {
+        "workflow": "Workflow",
+        "core": "Core Mechanism",
+        "ui": "UI Structure",
+        "project": "Project Container",
+        "task": "Task Container",
+        "job": "Job Container",
+        "parameter": "Parameter Binding",
+        "console": "Console"
+    },
     "menu": {
         "file": "File",
         "edit": "Edit",

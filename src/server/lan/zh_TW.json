@@ -1,4 +1,14 @@
 {
+    "guides": {
+        "workflow": "工作流程",
+        "core": "核心運作",
+        "ui": "UI 結構",
+        "project": "專案容器",
+        "task": "流程容器",
+        "job": "工作容器",
+        "parameter": "數據綁定",
+        "console": "控制台"
+    },
     "menu": {
         "file": "檔案",
         "edit": "編輯",

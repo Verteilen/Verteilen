@@ -99,7 +99,7 @@ onUnmounted(() => {
     <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>
     <Messager :preference="preference" />
     <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
-    <GuideDialog v-model="guideModal" :item="preference" />
+    <GuideDialog v-model="guideModal" :preference="preference" />
   </v-container>
 </template>
 
