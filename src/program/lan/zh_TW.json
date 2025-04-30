@@ -87,6 +87,7 @@
     "toolbar": {
         "server": "伺服器",
         "editor": "編輯器",
+        "backend": "後端功能",
         "project": "專案管理",
         "task": "流程管理",
         "job": "工作管理",

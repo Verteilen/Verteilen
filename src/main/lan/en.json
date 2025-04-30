@@ -87,6 +87,7 @@
     "toolbar": {
         "server": "Server",
         "editor": "Editor",
+        "backend": "Backend Feature",
         "project": "Project",
         "task": "Task",
         "job": "Job",

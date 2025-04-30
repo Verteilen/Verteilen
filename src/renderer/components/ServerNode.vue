@@ -225,6 +225,7 @@ const updateTab = () => {
     ["mdi-console-line", "toolbar.console", 5],
   ]
   if(config.value.haveBackend){
+    tabs.value.push(["", "toolbar.backend", -1])
     tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
     tabs.value.push(["mdi-puzzle", "toolbar.library", 7])
     tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
