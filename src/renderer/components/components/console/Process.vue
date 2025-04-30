@@ -49,7 +49,7 @@ const getselect = (r:number):Array<number> => {
 
 <template>
     <v-container v-if="data != undefined" class="pt-4" style="max-height: calc(100vh - 150px); overflow-y: auto;">
-        <v-card v-if="data[1].project_index >= 0">
+        <v-card v-if="data[1].project_index >= 0" style="background-color: transparent">
             <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }" @click="console.log(data)">
                 {{ $t('project') }}: {{ data[1].projects[data[1].project_index]?.title }}
             </v-card-title>
@@ -64,7 +64,11 @@ const getselect = (r:number):Array<number> => {
                 </p>
             </v-card-text>
         </v-card>
-        <v-stepper v-if="data[1].project_index >= 0" :value="getselect(r)" v-for="r in Math.ceil(data[1].task_state.length / totalLength)" :key="r" :mandatory="false" multiple>
+        <v-stepper style="background-color: transparent" class="my-1"
+            v-if="data[1].project_index >= 0" 
+            :value="getselect(r)" 
+            v-for="r in Math.ceil(data[1].task_state.length / totalLength)" 
+            :key="r" :mandatory="false" multiple>
             <v-stepper-header>
                 <template v-for="i in page(r - 1)" :key="i">
                     <v-divider v-if="i - 1" />
@@ -83,8 +87,9 @@ const getselect = (r:number):Array<number> => {
         <br /> 
         <v-expansion-panels v-if="data[1].project_index >= 0" v-model="panelValue" multiple>
             <v-expansion-panel v-for="(task, i) in data[1].task_detail" :key="i"
+                style="background-color: transparent"
                 class="w-100 text-white mb-3 px-4">
-                <v-expansion-panel-title :style="{ 'color': getStateColor(task.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent;">
+                <v-expansion-panel-title :style="{ 'color': getStateColor(task.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent">
                     Index: {{ task.index }}, node: {{ getURL(task.node) }}
                 </v-expansion-panel-title>
                 <v-expansion-panel-text class="py-3" style="min-height: 50px;" :style="{ 'fontSize': props.preference.font + 'px', 'line-height': props.preference.font + 'px' }">

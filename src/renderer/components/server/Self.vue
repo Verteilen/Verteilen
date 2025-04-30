@@ -53,11 +53,9 @@ onUnmounted(() => {
             <h3>{{ block.title }}</h3>
           </v-expansion-panel-title>
           <v-expansion-panel-text>
-            <br />
-            <p class="messages" v-for="(msg, j) in block.text" :key="j">
+            <p class="messages" v-for="(msg, j) in block.text" :key="j" :style="{ 'fontSize': props.preference.font + 'px', 'line-height': (props.preference.font * 2) + 'px' }">
               {{ msg }}
             </p>
-            <br />
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>

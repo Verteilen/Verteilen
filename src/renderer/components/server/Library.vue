@@ -2,12 +2,13 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, Libraries, Library, LibType } from '../../interface';
+import { AppConfig, BusType, Libraries, Library, LibType, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, Util_Lib } from '../../util/lib';
 
 interface PROPS {
     config: AppConfig
+    preference: Preference
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -24,7 +25,7 @@ const model = defineModel<Libraries>()
 const data:Ref<DATA> = ref({
     leftSize: 3,
     rightSize: 9,
-    select: [],
+    select: undefined,
     createModel: false,
     isEdit: false,
     editData: { name: "", type: LibType.LUA },
@@ -37,7 +38,7 @@ const data:Ref<DATA> = ref({
 })
 
 const openBottom = computed(() => data.value.messages.length > 0)
-const selection = computed(() => model.value!.libs.find(x => data.value.select.length > 0 && x.name == data.value.select[0]))
+const selection = computed(() => data.value.select == undefined ? undefined : model.value!.libs.find(x => x.name == data.value.select!.name))
 
 const util:Util_Lib = new Util_Lib(data, () => selection.value)
 
@@ -173,7 +174,11 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="data.leftSize" style="border-right: brown 1px solid;">
-                <v-list :items="model.libs" item-title="name" item-value="name" v-model:selected="data.select"></v-list>
+                <v-list :style="{ 'fontSize': props.preference.font + 'px' }" :items="model.libs" v-model:selected="data.select">
+                    <v-list-item v-for="(lib, i) in model.libs" :key="i" :value="i" @click="data.select = lib">  
+                        {{ lib.name }}
+                    </v-list-item>
+                </v-list>
             </v-col>
             <v-col :cols="data.rightSize">
                 <v-card v-if="selection != undefined" no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">

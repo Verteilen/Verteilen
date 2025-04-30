@@ -27,7 +27,7 @@ onUnmounted(() => {
 
 <template>
     <v-container v-if="data != undefined" class="pt-4" style="max-height: 90vh; overflow-y: auto;">
-        <v-data-table :items="data[1].projects" :headers="fields" :style="{ 'fontSize': props.preference.font + 'px' }">
+        <v-data-table style="background: transparent" :items="data[1].projects" :headers="fields" :style="{ 'fontSize': props.preference.font + 'px' }">
             <template v-slot:item.title="{ index, item }">
                 <span v-if="data[1].project_index == index" class="mr-2"><v-icon icon="mdi-arrow-right"></v-icon></span>
                 <span>{{ item.title }}</span>

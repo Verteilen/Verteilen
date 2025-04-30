@@ -53,8 +53,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <v-container v-if="d != undefined" class="pt-4" style="max-height: 90vh; overflow-y: auto;">
-        <v-data-table :items="d.containers" :headers="fields" item-key="name" :style="{ 'fontSize': props.preference.font + 'px' }">
+    <v-container v-if="d != undefined" class="pt-4" style="max-height: 85vh; overflow-y: auto;">
+        <v-data-table style="background: transparent" :items="d.containers" :headers="fields" item-key="name" :style="{ 'fontSize': props.preference.font + 'px' }">
             <template v-slot:item.type="item">
                 <v-chip>{{ DataTypeTranslate(item.value) }}</v-chip>
             </template>

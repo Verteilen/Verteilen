@@ -11,7 +11,7 @@ export interface CreateField {
 export interface DATA {
     leftSize: number
     rightSize: number
-    select: Array<string>
+    select: Library | undefined
     createModel: boolean
     isEdit: boolean
     editData: CreateField

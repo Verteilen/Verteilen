@@ -494,6 +494,7 @@ onUnmounted(() => {
           <NodePage
             :manager="data.websocket_manager"
             :config="config"
+            :preference="props.preference"
             :nodes="data.nodes" />
         </v-tabs-window-item>
         <v-tabs-window-item :value="5">
@@ -523,6 +524,7 @@ onUnmounted(() => {
         <v-tabs-window-item v-show="config.haveBackend" :value="7">
           <LibraryPage
             :config="config"
+            :preference="props.preference"
             v-model="data.libs"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.haveBackend" :value="8">
