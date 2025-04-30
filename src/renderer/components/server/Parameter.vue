@@ -258,7 +258,7 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
-        <div class="py-3 px-5 text-left">
+        <div class="py-3 px-5 text-left" style="height: calc(100vh - 130px); overflow-y: auto;">
             <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
             <v-data-table :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.detail="{ item }">

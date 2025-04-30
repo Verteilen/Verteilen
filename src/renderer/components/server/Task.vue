@@ -225,7 +225,7 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
-        <div class="py-3">
+        <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
             <v-data-table :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
