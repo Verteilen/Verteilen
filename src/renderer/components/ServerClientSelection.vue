@@ -13,9 +13,8 @@ const emitter:Emitter<BusType> | undefined = inject('emitter');
 const propss = defineProps<PROPS>()
 const data = defineModel<number>()
 
-const popSetting = () => {
-  emitter?.emit('setting')
-}
+const popSetting = () => { emitter?.emit('setting') }
+const popGuide = () => { emitter?.emit('guide') }
 
 const serverClick = () => {
     const d:ToastData = {
@@ -55,6 +54,7 @@ const clientClick = () => {
                     </template>
                     <v-list width="120px">
                     <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
+                    <v-list-item @click="popGuide">{{ $t('guide') }}</v-list-item>
                     </v-list>
                 </v-menu>
                 </template>

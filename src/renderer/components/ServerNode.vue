@@ -292,9 +292,8 @@ const onAnalysis = (d:BusAnalysis) => {
   data.value.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
 }
 
-const popSetting = () => {
-  emitter?.emit('setting')
-}
+const popSetting = () => { emitter?.emit('setting') }
+const popGuide = () => { emitter?.emit('guide') }
 
 onMounted(() => {
   set_feedback(debug_feedback)
@@ -416,7 +415,8 @@ onUnmounted(() => {
               <v-btn v-bind="props" icon="mdi-dots-vertical"></v-btn>
             </template>
             <v-list width="120px">
-              <v-list-item @click="popSetting">{{ $t('toolbar.setting') }}</v-list-item>
+              <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
+              <v-list-item @click="popGuide">{{ $t('guide') }}</v-list-item>
             </v-list>
           </v-menu>
         </template>

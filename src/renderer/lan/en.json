@@ -22,7 +22,7 @@
     "settings": {
         "system": "System",
         "appearance": "Appearance",
-        "workflow": "Wrkflow"
+        "workflow": "Workflow"
     },
     "toast": {
         "server": "Server Mode",
@@ -253,5 +253,7 @@
     "confirm": "Confirm",
     "close": "Close",
     "enter": "Enter",
-    "filters": "Filters"
+    "filters": "Filters",
+    "setting": "Setting",
+    "guide": "Guide"
 }

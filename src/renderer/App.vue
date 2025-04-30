@@ -5,6 +5,7 @@ import ClientNode from './components/ClientNode.vue';
 import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
+import GuideDialog from './components/dialog/GuideDialog.vue';
 import SettingDialog from './components/dialog/SettingDialog.vue';
 import { messager_log } from './debugger';
 import { BusType, Preference } from './interface';
@@ -23,6 +24,7 @@ const config = computed(() => backend.value.config)
 
 const mode = ref(config.value.isElectron ? -1 : 1)
 const settingModal = ref(false)
+const guideModal = ref(false)
 
 backend.value.init().then(() => {
   console.log("isElectron", config.value.isElectron)
@@ -45,9 +47,8 @@ const locate = (v:string) => {
   }
 }
 
-const setting = () => {
-  settingModal.value = true
-}
+const setting = () => { settingModal.value = true }
+const guide = () => { guideModal.value = true }
 
 const preferenceUpdate = (data:Preference) => {
   Object.assign(preference.value, data)
@@ -66,6 +67,7 @@ const load_preference = (x:string) => {
 onMounted(() => {
   emitter?.on('modeSelect', modeSelect)
   emitter?.on('setting', setting)
+  emitter?.on('guide', guide)
   backend.value.wait_init().then(() => {
     backend.value.consoleM = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
       on: emitter!.on,
@@ -84,6 +86,7 @@ onMounted(() => {
 onUnmounted(() => {
   emitter?.off('modeSelect', modeSelect)
   emitter?.off('setting', setting)
+  emitter?.off('guide', guide)
   backend.value.eventOff('locate', locate)
 })
 
@@ -96,6 +99,7 @@ onUnmounted(() => {
     <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>
     <Messager :preference="preference" />
     <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
+    <GuideDialog v-model="guideModal" :item="preference" />
   </v-container>
 </template>
 

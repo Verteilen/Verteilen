@@ -253,5 +253,7 @@
     "confirm": "確認",
     "close": "關閉",
     "enter": "進入",
-    "filters": "篩選"
+    "filters": "篩選",
+    "setting": "設定",
+    "guide": "指南"
 }

@@ -86,6 +86,7 @@ export interface NodeProxy {
  */
 export type BusType = {
     setting: void
+    guide: void
     makeToast: ToastData
     modeSelect: boolean
     createProject: void

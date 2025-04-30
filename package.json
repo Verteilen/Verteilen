@@ -34,7 +34,6 @@
     "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/tcp-port-used": "^1.0.4",
-    "@types/vue-markdown": "^2.2.4",
     "@types/ws": "^8.5.14",
     "@vitejs/plugin-vue": "^4.4.1",
     "@vue/compiler-sfc": "^3.5.13",
@@ -76,7 +75,7 @@
     "vue": "^3.3.8",
     "vue-codemirror": "^6.1.1",
     "vue-i18n": "^10.0.5",
-    "vue-markdown": "^2.2.4",
+    "vue-markdown-render": "^2.2.1",
     "vuetify": "^3.7.11",
     "ws": "^8.18.0"
   }
