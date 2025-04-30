@@ -458,7 +458,8 @@ onUnmounted(() => {
             @delete="e => deleteTask(e)"
             @moveup="e => moveupTask(e)"
             @movedown="e => movedownTask(e)"
-            @parameter="e => goParameter(e)" />
+            @parameter="e => goParameter(e)"
+            @return="data.page = 0"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="2">
           <JobPage
@@ -468,7 +469,8 @@ onUnmounted(() => {
             :libs="data.libs"
             @added="e => addJob(e)" 
             @edit="(e, e2) => editJob(e, e2)" 
-            @delete="e => deleteJob(e)" />
+            @delete="e => deleteJob(e)"
+            @return="data.page = 1"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="3">
           <ParameterPage
@@ -479,7 +481,8 @@ onUnmounted(() => {
             @added="e => addParameter(e)"
             @select="e => selectParameter(e)"
             @edit="e => editParameter(e)" 
-            @delete="e => deleteParameter(e)"/>
+            @delete="e => deleteParameter(e)"
+            @return="data.page = 1"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="4">
           <NodePage

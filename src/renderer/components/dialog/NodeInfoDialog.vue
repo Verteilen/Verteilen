@@ -37,7 +37,7 @@ const netUpload = computed(() => {
 
 <template>
     <v-dialog width="800" v-model="modal" class="text-white text-center">
-        <v-card v-if="props.item">
+        <v-card :loading="props.item == undefined" rounded>
             <v-card-title v-if="props.item != undefined && props.item.system != undefined">
                 <v-icon>mdi-information</v-icon>
                 {{ props.item.ID }}

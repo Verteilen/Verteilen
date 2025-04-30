@@ -27,6 +27,7 @@ const emits = defineEmits<{
     (e: 'keychange', key:string): void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
+    (e: 'return'): void
 }>()
 const createModal = ref(false)
 const createData = ref({category: 0, type: 0, spe_template: 0})
@@ -229,6 +230,10 @@ const updateLocate = () => {
     })
 }
 
+const goreturn = () => {
+    emits('return')
+}
+
 onMounted(() => {
     updateLocate()
     updateJob()
@@ -251,6 +256,7 @@ onUnmounted(() => {
     <div>
         <div class="py-3">
             <v-toolbar density="compact" class="px-3">
+                <v-btn size="sm" class="mr-2" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
                 <p v-if="props.select != undefined" class="mr-4">
                     {{ $t('task') }}: {{ props.select.title }}
                 </p>

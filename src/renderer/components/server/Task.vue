@@ -25,6 +25,7 @@ const emits = defineEmits<{
     (e: 'bind', uuid:string):void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
+    (e: 'return'): void
 }>()
 const data:Ref<DATA> = ref({
     fields: [],
@@ -155,6 +156,10 @@ const updateLocate = () => {
     updateFields()
 }
 
+const goreturn = () => {
+    emits('return')
+}
+
 onMounted(() => {
     updateFields()
     emitter?.on('updateTask', updateTask)
@@ -174,14 +179,15 @@ onUnmounted(() => {
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
-                <p v-if="props.select != undefined" class="mr-4">
+                <v-btn size="sm" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
+                <p v-if="props.select != undefined" class="mx-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
-                <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailOpen" color="success">
+                <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-paperclip" @click="detailOpen" color="success">
                     {{ $t('parameter-setting') }}: {{ para_title }}
                 </v-chip>
                 <v-btn v-if="hasPara && props.select != undefined" variant="text" icon="mdi-select" @click="detailSelect"></v-btn>
-                <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailSelect" color="warning">
+                <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-paperclip" @click="detailSelect" color="warning">
                     {{ $t('parameter-select') }}
                 </v-chip>
                 <v-spacer></v-spacer>

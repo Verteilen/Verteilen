@@ -21,6 +21,7 @@ const emits = defineEmits<{
     (e: 'edit', data:Parameter): void
     (e: 'select', uuid:string): void
     (e: 'delete', uuid:string): void
+    (e: 'return'): void
 }>()
 const fields:Ref<Array<any>> = ref([
     { title: 'Name', align: 'center', key: 'name' },
@@ -165,6 +166,10 @@ const movedown = (name:string) => util.movedown(name)
 const isFirst = (name:string) => util.isFirst(name)
 const isLast = (name:string) => util.isLast(name)
 
+const goreturn = () => {
+    emits('return')
+}
+
 onMounted(() => {
     updateLocate()
     emitter?.on('updateLocate', updateLocate)
@@ -193,10 +198,11 @@ onUnmounted(() => {
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
-                <v-chip class="ml-3" v-if="select == undefined" prepend-icon="mdi-pen" @click="paraSelect" color="warning">
+                <v-btn size="sm" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
+                <v-chip class="mx-3" v-if="select == undefined" prepend-icon="mdi-paperclip" @click="paraSelect" color="warning">
                     {{ $t('parameter-select') }}
                 </v-chip>
-                <v-chip class="ml-3" v-else prepend-icon="mdi-pen" @click="paraSelect" color="success">
+                <v-chip class="ml-3" v-else prepend-icon="mdi-paperclip" @click="paraSelect" color="success">
                     {{ select.title }}
                 </v-chip>
                 <v-btn variant="text" density="comfortable" icon="mdi-plus" @click="paraCreate"></v-btn>
