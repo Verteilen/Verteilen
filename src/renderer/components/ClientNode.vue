@@ -109,7 +109,7 @@ onUnmounted(() => {
           </template>
       </v-app-bar>
     </v-layout>
-    <v-toolbar density="compact" class="pr-3">
+    <v-toolbar density="compact" class="pr-3" style="padding-top: 65px">
       <v-tooltip location="bottom">
           <template v-slot:activator="{ props }">
               <v-btn color="primary" icon v-bind="props" @click="panel = []">
@@ -128,16 +128,12 @@ onUnmounted(() => {
       </v-tooltip>
       <v-tooltip location="bottom">
           <template v-slot:activator="{ props }">
-              <v-btn color="primary" icon v-bind="props" @click="clearMessage">
+              <v-btn color="error" icon v-bind="props" @click="clearMessage">
                   <v-icon>mdi-close</v-icon>
               </v-btn>
           </template>
           {{ $t('clear') }}
       </v-tooltip>
-
-      <v-btn color="primary" @click="panel = []">{{ $t('close-all') }}</v-btn>
-      <v-btn :color="autoScroll ? 'success' : 'error'" @click="autoScroll = !autoScroll">{{ $t('auto-scroll') }}</v-btn>
-      <v-btn color="primary" @click="clearMessage">{{ $t('clear') }}</v-btn>
     </v-toolbar>
     <div class="flow text-white" ref="myDiv">
       <v-expansion-panels multiple v-model="panel">

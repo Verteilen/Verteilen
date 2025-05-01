@@ -38,14 +38,33 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <v-container fluid>
-    <div class="float_button text-white" style="z-index: 5;">
-      <v-btn-group>
-        <v-btn color="primary" @click="panel = []">{{ $t('close-all') }}</v-btn>
-        <v-btn :color="autoScroll ? 'success' : 'error'" @click="autoScroll = !autoScroll">{{ $t('auto-scroll') }}</v-btn>
-        <v-btn color="primary" @click="clearMessage">{{ $t('clear') }}</v-btn>
-      </v-btn-group>
-    </div>
+  <v-container fluid class="ma-0 pa-0 pt-4">
+    <v-toolbar density="compact" class="pr-3">
+      <v-tooltip location="bottom">
+          <template v-slot:activator="{ props }">
+              <v-btn color="primary" icon v-bind="props" @click="panel = []">
+                  <v-icon>mdi-folder-arrow-up</v-icon>
+              </v-btn>
+          </template>
+          {{ $t('close-all') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+          <template v-slot:activator="{ props }">
+              <v-btn icon v-bind="props" :color="autoScroll ? 'success' : 'error'" @click="autoScroll = !autoScroll">
+                  <v-icon>mdi-pan-vertical</v-icon>
+              </v-btn>
+          </template>
+          {{ $t('auto-scroll') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+          <template v-slot:activator="{ props }">
+              <v-btn color="error" icon v-bind="props" @click="clearMessage">
+                  <v-icon>mdi-close</v-icon>
+              </v-btn>
+          </template>
+          {{ $t('clear') }}
+      </v-tooltip>
+    </v-toolbar>
     <div class="flow text-white" ref="myDiv">
       <v-expansion-panels multiple v-model="panel">
         <v-expansion-panel v-for="(block, i) in props.messages" :key="i" style="background: transparent">
