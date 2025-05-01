@@ -322,7 +322,7 @@ onUnmounted(() => {
         <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
             <!-- Property -->
             <div v-if="select != undefined" class="py-3 pb-5 mx-5">
-                <h3> {{ $t('property') }} </h3>
+                <h4 class="text-info"> {{ $t('property') }} </h4>
                 <br />
                 <v-row v-for="(c, i) in items2" :key="i">
                     <v-col cols="3">
@@ -341,7 +341,7 @@ onUnmounted(() => {
             <!-- Job List -->
             <hr class="mx-5 my-2" />
             <div v-if="select != undefined" class="py-3 pb-7">
-                <h3> {{ $t('job') }} </h3>
+                <h4 class="text-info"> {{ $t('job') }} </h4>
                 <br />
                 <v-expansion-panels color="dark" class="px-6">
                     <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2 pl-5">

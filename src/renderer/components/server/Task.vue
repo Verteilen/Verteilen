@@ -114,6 +114,10 @@ const confirmCreate = () => {
     })
 }
 
+const getIndex = (ID:string) => {
+    return items_final.value.findIndex(x => x.ID == ID)
+}
+
 const confirmEdit = () => {
     const p = util.confirmEdit()
     if(p == undefined) return
@@ -143,6 +147,7 @@ const isLast = (uuid:string) => util.isLast(uuid)
 const updateFields = () => {
     data.value.fields = [
         { title: 'ID', align: 'center', key: 'ID' },
+        { title: 'Order', align: 'center', key: 'Order' },
         { title: i18n.global.t('headers.title'), align: 'center', key: 'title' },
         { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
         { title: i18n.global.t('headers.cronjob'), align: 'center', key: 'cronjob' },
@@ -229,6 +234,9 @@ onUnmounted(() => {
             <v-data-table style="background: transparent" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
+                </template>
+                <template v-slot:item.Order="{ item }">
+                    {{ getIndex(item.ID) }}
                 </template>
                 <template v-slot:item.detail="{ item }">
                     <v-btn variant="text" icon @click="datachoose(item.ID)" size="small">

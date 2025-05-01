@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, Ref, ref, watch } from 'vue';
+import { useTheme } from 'vuetify/lib/framework.mjs';
 import { CreateField, DialogDATA } from '../../util/project';
 import DialogBase from './DialogBase.vue';
 
+const theme = useTheme()
 const data = defineModel<boolean>({ required: true })
 const props = defineProps<DialogDATA>()
 const emits = defineEmits<{
@@ -10,6 +12,7 @@ const emits = defineEmits<{
 }>()
 const buffer:Ref<CreateField> = ref({title: "", description: "", usePara: false, useTemp: false, temp: null, parameter: null})
 
+const isDark = computed(() => theme.global.name.value == "dark")
 const paras = computed(() => {
     return props.parameters.map((x, index) => {
         return {
@@ -47,7 +50,9 @@ const confirm = () => {
 </script>
 
 <template>
-    <DialogBase width="500" v-model="data" color="linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))">
+    <DialogBase width="500" v-model="data" :color=" isDark ? 
+        'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 
+        'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'">
         <template #title>
             <div v-if="props.isEdit">
                 <v-icon>mdi-pencil</v-icon>
