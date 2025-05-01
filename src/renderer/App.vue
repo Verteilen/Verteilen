@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { useTheme } from 'vuetify';
 import ClientNode from './components/ClientNode.vue';
 import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
@@ -13,11 +14,14 @@ import { i18n } from './plugins/i18n';
 import { BackendProxy } from './proxy';
 import { ConsoleManager } from './script/console_manager';
 
+const theme = useTheme()
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const preference:Ref<Preference> = ref({
   lan: 'en',
   log: false,
   font: 16,
+  notification: false,
+  theme: "dark"
 })
 const backend:Ref<BackendProxy> = ref(new BackendProxy())
 const config = computed(() => backend.value.config)
@@ -53,15 +57,16 @@ const guide = () => { guideModal.value = true }
 const preferenceUpdate = (data:Preference) => {
   Object.assign(preference.value, data)
   locate(preference.value.lan)
+  theme.global.name.value = data.theme
+  const t = i18n.global
+  // @ts-ignore
+  t.locale = preference.value.lan
 }
 
 const load_preference = (x:string) => {
   preference.value = JSON.parse(x)
-  console.log("lan: ", preference.value)
   window.electronAPI.send('locate', preference.value.lan)
-  const t = i18n.global
-  // @ts-ignore
-  t.locale = preference.value.lan
+  preferenceUpdate(preference.value)
 }
 
 onMounted(() => {

@@ -61,7 +61,7 @@ const real_message = computed(() => messages.value.filter(x => x.ison))
 
 const darken = (color: string) => {
     const e = GetColor(color)
-    return e == undefined ? color : shadeColor(GetColor(color), -50)
+    return e == undefined ? color : (props.preference.theme == "dark" ? shadeColor(GetColor(color), -50) : shadeColor(GetColor(color), 50))
 }
 
 onMounted(() => {

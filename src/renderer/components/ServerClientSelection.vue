@@ -43,7 +43,8 @@ const clientClick = () => {
 </script>
 
 <template>
-    <div class="text-white bg" style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;">
+    <div style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;"
+        :class="{ 'bg-dark': propss.preference.theme == 'dark', 'bg-light': propss.preference.theme == 'light' }">
         <v-layout>
             <v-app-bar :elevation="2">
                 <v-app-bar-title>{{ $t('modeselect.titlebar') }}</v-app-bar-title>
@@ -61,7 +62,7 @@ const clientClick = () => {
             </v-app-bar>
         </v-layout>
 
-        <p :style="{ 'fontSize': (propss.preference.font + 6) + 'px' }">{{ $t('modeselect.title') }}</p>
+        <p class="text-info" :style="{ 'fontSize': (propss.preference.font + 6) + 'px' }">{{ $t('modeselect.title') }}</p>
         <br />
         <v-row>
             <v-col>
@@ -92,15 +93,14 @@ const clientClick = () => {
     </div>
 </template>
 
-<style lang="scss">
-
-</style>
-
 <style scoped>
 .buttonHeight {
     height: 90px
 }
-.bg {
-    background-image: linear-gradient(to bottom right, rgb(33, 33, 33), rgb(33, 40, 48));
+.bg-dark {
+    background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(33, 40, 48));
+}
+.bg-light {
+    background-image: linear-gradient(to bottom, rgb(240, 240, 240), rgb(240, 247, 255));
 }
 </style>

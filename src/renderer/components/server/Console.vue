@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, ExecuteRecord, ExecuteState, Libraries, Node, Parameter, Preference, Project, Record } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
@@ -202,6 +202,9 @@ const clean = () => {
     model.value![1].task_state = []
     model.value![1].task_detail = []
     emits('stop')
+    nextTick(() => {
+        if(props.execute.length == 0) data.value.tag = 2
+    })
 }
 /**
  * It means pause... but i just name it 'stop' anyway. you get the idea\

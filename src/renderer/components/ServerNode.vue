@@ -436,7 +436,8 @@ onUnmounted(() => {
         </v-list>
       </v-navigation-drawer>
     </v-layout>
-    <div style="width: 100vw; height:100vh; padding-top: 50px;" class="text-white bg">
+    <div style="width: 100vw; height:100vh; padding-top: 50px;" class="text-white" 
+      :class="{ 'bg-dark': props.preference.theme == 'dark', 'bg-light': props.preference.theme == 'light' }">
       <v-tabs-window v-model="data.page">
         <v-tabs-window-item :value="0">
           <ProjectPage
@@ -540,7 +541,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.bg {
-    background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(33, 44, 42));
+.bg-dark {
+  background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(33, 44, 42));
+}
+.bg-light {
+  background-image: linear-gradient(to bottom, rgb(240, 240, 240), rgb(240, 255, 245));
 }
 </style>

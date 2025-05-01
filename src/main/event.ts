@@ -94,6 +94,8 @@ export class BackendEvent {
                     lan: 'en',
                     log: true,
                     font: 18,
+                    theme: "dark",
+                    notification: false,
                 }
                 fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
                 i18n.global.locale = 'en'

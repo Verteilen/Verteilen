@@ -12,6 +12,7 @@ const emit = defineEmits<{
     (e: 'update', data:Preference):void,
     (e: 'close'):void
 }>()
+const themes = ref(["dark", "light"])
 
 const buffer:Ref<Preference | undefined> = ref(undefined)
 const lan:Ref<Array<string>> = ref(['en', 'zh_TW'])
@@ -35,7 +36,8 @@ const close = () => {
 
 <template>
     <v-dialog persistent width="600" v-model="modal" class="text-white">
-        <v-card :style="{ 'fontSize': props.item?.font + 'px' }" class="bg">
+        <v-card :style="{ 'fontSize': props.item?.font + 'px' }"
+            :class="{ 'bg-dark': props.item?.theme == 'dark', 'bg-light': props.item?.theme == 'light' }">
             <v-card-title>
                 <v-icon>mdi-cog</v-icon>
                 {{ $t('toolbar.setting') }}
@@ -56,11 +58,11 @@ const close = () => {
                     <v-tabs-window v-model="tag" class="pt-4">
                         <v-tabs-window-item :value="0">
                             <v-select hide-details :label="$t('menu.language')" v-model="buffer.lan" :items="lan"></v-select>
-                            <br />
-                            <v-slider :min="12" :max="36" :step="1" hide-details :label="$t('menu.font') + ' ' + buffer.font" v-model="buffer.font"></v-slider>
                         </v-tabs-window-item>
                         <v-tabs-window-item :value="1">
-                            <v-select />
+                            <v-select v-model="buffer.theme" :items="themes" hide-details />
+                            <br />
+                            <v-slider :min="12" :max="36" :step="1" hide-details :label="$t('menu.font') + ' ' + buffer.font" v-model="buffer.font"></v-slider>
                         </v-tabs-window-item>
                         <v-tabs-window-item :value="2">
                             <v-checkbox hide-details :label="$t('menu.log')" v-model="buffer.log"></v-checkbox>
@@ -81,7 +83,10 @@ const close = () => {
 </template>
 
 <style scoped>
-.bg {
-    background-image: linear-gradient(to bottom left, rgb(33, 33, 33), rgb(42, 33, 35));
+.bg-dark {
+    background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(42, 33, 35));
+}
+.bg-light {
+    background-image: linear-gradient(to bottom, rgb(240, 240, 240), rgb(255, 238, 242));
 }
 </style>
