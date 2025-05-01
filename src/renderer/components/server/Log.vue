@@ -141,7 +141,7 @@ onUnmounted(() => {
                 </v-tooltip>
             </v-toolbar>
         </div>
-        <v-row style="height: calc(100vh - 120px)" class="w-100">
+        <v-row style="height: calc(100vh - 120px);" class="w-100">
             <v-col :cols="leftSize" class="border border-e-lg">
                 <v-list v-model.number="tag" mandatory color="success" style="filter:brightness(1.2)">
                     <v-list-item @click="tag = 0" :value="0" :active="tag == 0">
@@ -165,7 +165,7 @@ onUnmounted(() => {
                     </v-list-item>
                 </v-list>
             </v-col>
-            <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 0 && getselect != undefined">
+            <v-col :cols="rightSize" style="height: calc(100vh - 120px)" v-if="tag == 0 && getselect != undefined">
                 <LogProcess 
                     :preference="props.preference"
                     :config="props.config"
@@ -178,7 +178,7 @@ onUnmounted(() => {
                     @update:panelValue="e => panelValue = e"
                 />
             </v-col>
-            <v-col :cols="rightSize" style="overflow-y: scroll;height: calc(100vh - 120px)" v-if="tag == 1 && getselect != undefined">
+            <v-col :cols="rightSize" style="height: calc(100vh - 120px)" v-if="tag == 1 && getselect != undefined">
                 <ParameterPage v-model="getselect.parameter" :preference="props.preference" />
             </v-col>
         </v-row>
