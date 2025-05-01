@@ -84,6 +84,7 @@
         "parameter-datatype": "Datatype",
         "create-library": "Create Lib",
         "enter-library-name": "Enter Lib Name",
+        "enter-library-type": "Enter Lib Type",
         "new-node": "New Node",
         "enter-node-address": "Enter Node Address",
         "skip-step": "Skip Step",

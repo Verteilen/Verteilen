@@ -84,6 +84,7 @@
         "parameter-datatype": "資料型態",
         "create-library": "新增程式庫",
         "enter-library-name": "輸入程式庫名稱",
+        "enter-library-type": "輸入程式庫類型",
         "new-node": "新增節點",
         "enter-node-address": "輸入節點位址",
         "skip-step": "跳過步驟",

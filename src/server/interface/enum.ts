@@ -158,6 +158,6 @@ export const ProjectTemplateText: { [key:number]:string } = {
 }
 
 export const LibTypeText: { [key:number]:string } = {
-    0: 'enum.jobresult.lua',
-    1: 'enum.jobresult.javascript',
+    0: 'enum.jobtype2.lua',
+    1: 'enum.jobtype2.javascript',
 }

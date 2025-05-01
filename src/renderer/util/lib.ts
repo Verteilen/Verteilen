@@ -8,6 +8,11 @@ export interface CreateField {
     type: LibType
 }
 
+export interface TypeOption {
+    text: string
+    value: number
+}
+
 export interface DATA {
     leftSize: number
     rightSize: number
@@ -16,6 +21,7 @@ export interface DATA {
     isEdit: boolean
     editData: CreateField
     dirty: boolean
+    types: Array<TypeOption>
     titleError: boolean
     renameModal: boolean
     errorMessage: string

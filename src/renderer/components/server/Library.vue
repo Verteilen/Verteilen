@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, Libraries, Library, LibType, Preference } from '../../interface';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { AppConfig, BusType, Libraries, Library, LibType, LibTypeText, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, Util_Lib } from '../../util/lib';
 
@@ -30,6 +30,7 @@ const data:Ref<DATA> = ref({
     isEdit: false,
     editData: { name: "", type: LibType.LUA },
     dirty: false,
+    types: [],
     titleError: false,
     renameModal: false,
     errorMessage: '',
@@ -109,7 +110,22 @@ const save = () => {
     })
 }
 
+const LibTypelateTranslate = (t:number):string => i18n.global.t(LibTypeText[t])
+
+const updateLocate = () => {
+    data.value.types = Object.keys(LibType).filter(key => isNaN(Number(key))).map((x, index) => {
+        return {
+            text: LibTypelateTranslate(index),
+            value: index
+        }
+    })
+}
+
 onMounted(() => {
+    nextTick(() => {
+        updateLocate()
+    })
+    emitter?.on('updateLocate', updateLocate)
     if(!props.config.isElectron) return
     window.electronAPI.eventOn('lua-feedback', luaFeedback)
     window.electronAPI.eventOn('javascript-feedback', javascriptFeedback)
@@ -117,6 +133,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    emitter?.off('updateLocate', updateLocate)
     if(!props.config.isElectron) return
     window.electronAPI.eventOff('lua-feedback', luaFeedback)
     window.electronAPI.eventOff('javascript-feedback', javascriptFeedback)
@@ -132,7 +149,7 @@ onUnmounted(() => {
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="util.createScript" :disabled="data.select == undefined">
+                        <v-btn icon v-bind="props" @click="util.createScript">
                             <v-icon>mdi-plus</v-icon>
                         </v-btn>
                     </template>
@@ -182,7 +199,12 @@ onUnmounted(() => {
             </v-col>
             <v-col :cols="data.rightSize">
                 <v-card v-if="selection != undefined" no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
-                    <codemirror v-model="selection.content" 
+                    <codemirror-lua v-if="selection.type == 1" v-model="selection.content" 
+                        style="text-align:left;"
+                        :style="{ height: openBottom ? 'calc(50vh - 10px)' : 'calc(100vh - 160px)' }"
+                        :hintOptions="{ completeSingle: false }"
+                        @change="setdirty"/>
+                    <codemirror-js v-else-if="selection.type == 0" v-model="selection.content" 
                         style="text-align:left;"
                         :style="{ height: openBottom ? 'calc(50vh - 10px)' : 'calc(100vh - 160px)' }"
                         :hintOptions="{ completeSingle: false }"
@@ -204,7 +226,8 @@ onUnmounted(() => {
                     {{ $t('modal.create-library') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-library-name')" hide-details></v-text-field>
+                    <v-text-field class="mb-2" :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-library-name')" hide-details></v-text-field>
+                    <v-select v-model="data.editData.type" hide-details :label="$t('modal.enter-library-type')" :items="data.types" item-title="text" />
                     <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>
