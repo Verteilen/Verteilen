@@ -4,11 +4,18 @@ import { StreamLanguage } from "@codemirror/language";
 import { lua } from "@codemirror/legacy-modes/mode/lua";
 import { oneDark } from '@codemirror/theme-one-dark';
 import { basicSetup } from 'codemirror';
+import { computed } from 'vue';
 import { Codemirror } from 'vue-codemirror';
+import { useTheme } from 'vuetify/lib/framework.mjs';
 
 const data = defineModel<string>({required: true})
+const theme = useTheme()
 
-const extensions = [basicSetup, StreamLanguage.define(lua), autocompletion(), oneDark]
+const extensions = computed(() => {
+    return theme.global.name.value == "dark" ?
+    [basicSetup, StreamLanguage.define(lua), autocompletion(), oneDark] :
+    [basicSetup, StreamLanguage.define(lua), autocompletion()]
+})
 
 </script>
 <template>
