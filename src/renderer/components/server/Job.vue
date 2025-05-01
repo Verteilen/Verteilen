@@ -343,22 +343,22 @@ onUnmounted(() => {
             <div v-if="select != undefined" class="py-3 pb-7">
                 <h3> {{ $t('job') }} </h3>
                 <br />
-                <v-expansion-panels color="dark" class="px-6 text-white">
-                    <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2" color="blue-darken-4">
+                <v-expansion-panels color="dark" class="px-6">
+                    <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2 pl-5">
                         <v-row>
                             <v-col cols="auto" class="mt-2">
                                 <v-checkbox type="checkbox" v-model="c.s" hide-details width="25" density="compact"></v-checkbox>
                             </v-col>
                             <v-col cols="auto" class="mt-2">
-                                <v-btn size="small" icon flat :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">
+                                <v-btn variant="text" size="small" icon :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">
                                     <v-icon>mdi-arrow-up</v-icon>
                                 </v-btn>
-                                <v-btn class="ml-2" size="small" icon flat :disabled="isLast(c.uuid)" @click="movedown(c.uuid)">
+                                <v-btn variant="text" size="small" icon :disabled="isLast(c.uuid)" @click="movedown(c.uuid)" class="ml-2">
                                     <v-icon>mdi-arrow-down</v-icon>
                                 </v-btn>
                             </v-col>
                             <v-col cols="10">
-                                <v-expansion-panel-title>
+                                <v-expansion-panel-title style="background: transparent">
                                     <v-chip class="mr-1">{{ i }}. {{ c.category == 0 ? JobType2Translate(c.type) : JobTypeTranslate(c.type) }}</v-chip>
                                     <v-chip>{{ c.uuid }}</v-chip>
                                 </v-expansion-panel-title>

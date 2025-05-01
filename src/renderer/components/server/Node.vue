@@ -168,10 +168,10 @@ onUnmounted(() => {
                 {{ item.connection_rate }}
             </template>
             <template v-slot:item.detail="{ item }">
-                <v-btn flat icon @click="showinfo(item.ID)">
-                    <v-icon>mdi-information</v-icon>
+                <v-btn variant="text" icon @click="showinfo(item.ID)">
+                    <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
-                <v-btn flat icon @click="showconsole(item.ID)" :disabled="item.state != 1">
+                <v-btn variant="text" icon @click="showconsole(item.ID)" :disabled="item.state != 1">
                     <v-icon>mdi-console</v-icon>
                 </v-btn>
             </template>

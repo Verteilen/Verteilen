@@ -259,19 +259,19 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="py-3 px-5 text-left" style="height: calc(100vh - 130px); overflow-y: auto;">
-            <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
+            <v-checkbox class="pr-5 text-info" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
             <v-data-table style="background: transparent" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.detail="{ item }">
-                    <v-btn flat icon @click="editParameter(item.name)" size="small">
+                    <v-btn variant="text" icon @click="editParameter(item.name)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
+                    <v-btn variant="text" icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
                         <v-icon>mdi-arrow-up</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
+                    <v-btn variant="text" icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isLast(item.name)" @click="deleteitem(item.name)" size="small">
+                    <v-btn variant="text" icon :disabled="isLast(item.name)" @click="deleteitem(item.name)" size="small">
                         <v-icon>mdi-delete</v-icon>
                     </v-btn>
                 </template>
@@ -292,7 +292,7 @@ onUnmounted(() => {
                 </template>
             </v-data-table>
         </div>
-        <v-dialog width="500" v-model="data.createModal" class="text-white">
+        <v-dialog width="500" v-model="data.createModal">
             <v-card>
                 <v-card-title v-if="!data.editMode">
                     <v-icon>mdi-hammer</v-icon>
@@ -395,5 +395,4 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-
 </style>
