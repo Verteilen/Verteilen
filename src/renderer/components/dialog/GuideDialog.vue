@@ -70,28 +70,28 @@ watch(() => page.value, () => {
 
 
 <style scoped>
-.md ::v-deep ul {
+.md :deep(ul) {
     margin-top: 10px;
     margin-bottom: 10px;
     margin-left: 20px;
 }
-.md ::v-deep li {
+.md :deep(li) {
     padding-left: 10px;
 }
-.md ::v-deep p {
+.md :deep(p) {
     line-height: 30px;
 }
-.md ::v-deep h1 {
+.md :deep(h1) {
     padding-bottom: 10px;
     margin-bottom: 20px;
     border-bottom: 1px solid;
 }
-.md ::v-deep h2 {
+.md :deep(h2) {
     padding-bottom: 10px;
     margin-bottom: 20px;
     border-bottom: 1px solid;
 }
-.md ::v-deep h3 {
+.md :deep(h3) {
     margin-bottom: 10px;
     margin-top: 10px;
 }
