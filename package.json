@@ -66,6 +66,7 @@
     "jsonwebtoken": "^9.0.2",
     "keypair": "^1.0.4",
     "lua-in-js": "file:plugins/lua-in-js",
+    "marked": "^15.0.11",
     "mitt": "^3.0.1",
     "pkg": "^5.8.1",
     "systeminformation": "^5.25.11",
@@ -75,7 +76,6 @@
     "vue": "^3.3.8",
     "vue-codemirror": "^6.1.1",
     "vue-i18n": "^10.0.5",
-    "vue-markdown-render": "^2.2.1",
     "vuetify": "^3.7.11",
     "ws": "^8.18.0"
   }
