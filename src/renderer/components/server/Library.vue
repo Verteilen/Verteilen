@@ -173,7 +173,7 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <v-row style="height: calc(100vh - 120px)" class="w-100">
-            <v-col :cols="data.leftSize" style="border-right: brown 1px solid;">
+            <v-col :cols="data.leftSize" class="border border-e-lg">
                 <v-list :style="{ 'fontSize': props.preference.font + 'px' }" :items="model.libs" v-model:selected="data.select">
                     <v-list-item v-for="(lib, i) in model.libs" :key="i" :value="i" @click="data.select = lib">  
                         {{ lib.name }}
