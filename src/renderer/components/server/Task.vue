@@ -115,7 +115,7 @@ const confirmCreate = () => {
 }
 
 const getIndex = (ID:string) => {
-    return items_final.value.findIndex(x => x.ID == ID)
+    return data.value.items.findIndex(x => x.ID == ID)
 }
 
 const confirmEdit = () => {
