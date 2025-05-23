@@ -29,10 +29,10 @@ export async function Build_Server(){
     return compileTs(nodePath);
 }
 
-export async function PKG_Program(){
+export async function PKG_Program(platform:string){
     const exePath = Path.join(__dirname, '..', 'bin', 'worker.exe');
     const programPath = Path.join(__dirname, '..', 'build', 'program', 'worker.js');
-    return pkg.exec(["-d", "-t", "node16-x64", "-o", exePath, "--public-packages", "*", programPath])
+    return pkg.exec(["-d", "-t", `node16${platform}-x64`, "-o", exePath, "--public-packages", "*", programPath])
 }
 
 export async function PKG_Node(){
