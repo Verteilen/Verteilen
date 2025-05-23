@@ -178,7 +178,7 @@ export class ExecuteManager_Base {
      * @returns The value, if key cannot be found, it will return -1
      */
     protected get_number(key:string){
-        const f = this.localPara!.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression))
+        const f = this.localPara?.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression)) ?? undefined
         if(f == undefined) return -1
         if(f.meta == undefined && f.type == DataType.Expression){
             f.value = 0

@@ -47,6 +47,7 @@ export class Util_Server_Console {
                 state: ExecuteState.NONE
             })
         }
+        model[0].Update()
         return true
     }
 }
@@ -99,6 +100,7 @@ export class Util_Server_Console_Proxy {
         this.model[1].project = ""
         this.model[1].project_state[index].state = ExecuteState.FINISH
     
+        console.log("project finish: ", this.model[1].projects.length - 1, index)
         if(this.model[1].projects.length - 1 == index){
             this.model[1].command.push(['clean'])
             this.model[1].running = false
