@@ -25,5 +25,5 @@ export const vuetify = createVuetify({
 })
 
 export const GetColor = (c:string) => {
-    return vuetify.theme.current.value.colors[c]
+    return vuetify.theme.current.value?.colors[c]
 }
