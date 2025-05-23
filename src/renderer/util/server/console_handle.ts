@@ -13,7 +13,7 @@ export class Util_Server_Console {
     }
 
     receivedPack = (model:[ExecuteManager, ExecuteRecord], record:Record) => {
-        const pass = model[0].Register(record)
+        const pass = model[0].Register()
         if(pass == -1){
             model[1].running = false
             model[1].stop = true
@@ -79,6 +79,7 @@ export class Util_Server_Console_Proxy {
     execute_project_start = (d:Project) => {
         const index = this.model[1].projects.findIndex(x => x.uuid == d.uuid)
         if(index == -1) return
+        console.log("execute_project_start", index)
         this.model[1].project = d.uuid
         this.model[1].project_index = index
         this.model[1].project_state[index].state = ExecuteState.RUNNING
@@ -88,25 +89,34 @@ export class Util_Server_Console_Proxy {
                 state: ExecuteState.NONE
             }
         })
+        this.model[1].task_detail = []
+        const count = this.model[1].projects[this.model[1].project_index]?.task[this.model[1].task_index]?.jobs.length ?? 0
+        for(let i = 0; i < count; i++){
+            this.model[1].task_detail.push({
+                index: i,
+                node: "",
+                message: [],
+                state: ExecuteState.NONE
+            })
+        }
     }
     
     execute_project_finish = (d:Project) => {
-        if(this.model[1].process_type == 1) {
+        if(this.model[1].process_type >= 1) {
             this.model[1].running = false
             this.model[1].stop = true
         }
         const index = this.model[1].projects.findIndex(x => x.uuid == d.uuid)
+        const size = this.model[1].projects.length
         if(index == -1) return
         this.model[1].project = ""
         this.model[1].project_state[index].state = ExecuteState.FINISH
-    
-        console.log("project finish: ", this.model[1].projects.length - 1, index)
-        if(this.model[1].projects.length - 1 == index){
-            this.model[1].command.push(['clean'])
-            this.model[1].running = false
-            this.model[1].stop = true
-        }
         this.model[1].para = undefined
+        console.log("project finish: ", this.model[1].projects.length, index)
+
+        if(index == size - 1){
+            this.model[1].command.push(['clean'])
+        }
     }
     
     execute_task_start = (d:[Task, number]) => {

@@ -44,7 +44,11 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                 this.t_state = ExecuteState.NONE
             }else{
                 // * Case B: Next project
+                this.messager_log(`[Execute] Project Finish ${this.current_p!.uuid}`)
+                this.proxy?.executeProjectFinish(this.current_p!)
                 this.current_p = this.current_projects[index + 1]
+                this.proxy?.executeProjectStart(this.current_p!)
+                this.t_state = ExecuteState.NONE
             }
         }
     }
