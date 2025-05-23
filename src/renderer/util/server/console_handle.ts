@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { ConditionResult, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, MESSAGE_LIMIT, Parameter, Project, Record, Task } from "../../interface"
+import { ConditionResult, ExecuteProxy, ExecuteRecord, ExecuteRecordTask, ExecuteState, FeedBack, Job, JobCategory, MESSAGE_LIMIT, Parameter, Project, Record, Task } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 import { DATA, save_and_update } from "./server"
 
@@ -79,7 +79,6 @@ export class Util_Server_Console_Proxy {
     execute_project_start = (d:Project) => {
         const index = this.model[1].projects.findIndex(x => x.uuid == d.uuid)
         if(index == -1) return
-        console.log("execute_project_start", index)
         this.model[1].project = d.uuid
         this.model[1].project_index = index
         this.model[1].project_state[index].state = ExecuteState.RUNNING
@@ -205,8 +204,10 @@ export class Util_Server_Console_Proxy {
                     if(this.model[1].running == false){
                         clearInterval(timer)
                         const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                        this.model[1].task_state[this.model[1].task_index].state = state
-                        this.model[1].task_detail[d[1]].state = state
+                        const target: ExecuteRecordTask | undefined = this.model[1].task_detail[d[1]]
+                        if(target != undefined) {
+                            target.state = state
+                        }
                         if (cr == ConditionResult.Pause) return
                         if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
                             this.model[1].command.push(['skip', 0, state])

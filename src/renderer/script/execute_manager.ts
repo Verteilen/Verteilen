@@ -11,13 +11,13 @@ export class ExecuteManager extends ExecuteManager_Runner {
      */
     Update = () => {
         if(this.state != ExecuteState.RUNNING) return
-        if(this.current_p == undefined && this.current_projects.length > 0){
+        else if(this.current_p == undefined && this.current_projects.length > 0){
             this.current_p = this.current_projects[0]
             this.messager_log(`[Execute] Project Start ${this.current_p.uuid}`)
             this.proxy?.executeProjectStart(this.current_p)
             this.SyncParameter(this.current_p)
         }
-        if (this.current_p != undefined){
+        else if (this.current_p != undefined){
             if(this.first) this.first = false
             this.ExecuteProject(this.current_p)
         }

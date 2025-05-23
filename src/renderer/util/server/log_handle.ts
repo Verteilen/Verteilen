@@ -1,5 +1,5 @@
 import { v6 as uuid6 } from 'uuid'
-import { AppConfig, ConditionResult, ExecuteProxy, ExecuteRecord, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Task } from "../../interface"
+import { AppConfig, ConditionResult, ExecuteProxy, ExecuteRecord, ExecuteRecordTask, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Task } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 
 export class Util_Server_Log_Proxy {
@@ -149,7 +149,11 @@ export class Util_Server_Log_Proxy {
                 const cr:ConditionResult = task.jobs[index].number_args[0] as ConditionResult
                 if(cr == ConditionResult.None) return
                 const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                currentLog.logs[this.task_index].task_detail[d[1]].state = state
+                const target: ExecuteRecordTask | undefined = this.model[1].task_detail[d[1]]
+                if(target != undefined) {
+                    target.state = state
+                }
+
                 currentLog.logs[this.task_index].task_state.state = state
                 if (cr == ConditionResult.Pause) return
                 if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){

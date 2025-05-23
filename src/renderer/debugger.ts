@@ -9,7 +9,7 @@ export const set_feedback = (_feedback:Function) => {
 
 export const messager = (msg:string, tag?:string) => {
     const text = tag != undefined ? `[${tag}] ${msg}` : `[Normal] ${msg}`
-    console.log(text)
+    if(process.env.NODE_ENV === 'development') console.log(text)
     if (feedback != undefined) feedback(text)
 }
 
