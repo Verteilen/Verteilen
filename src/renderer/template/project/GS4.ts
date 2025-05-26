@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../interface";
+import { DataType, Job, JobCategory, JobType, Parameter, ParameterContainer, Project, Task } from "../../interface";
 import { FUNIQUE_GS4_BLEND_PREPARE, FUNIQUE_GS4_PLYDone, FUNIQUE_GS4_PREPARE } from "./../lua/GS4";
 
 // 從原始資料夾結構 弄成可以工作的樣子
@@ -491,32 +491,7 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
         uuid: uuidv6(),
         title: "GS4_V1 Parameter",
         canWrite: true,
-        containers: [
-            { name: "frameCount", value: 50, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iframe_gap", value: 3, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "core", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "group_size", value: 15, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "blend", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iframe_size", value: 17, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "density_util", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iframe_iteration", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "finetune_iteration", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "gtp", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
-
-            { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "prepare", value: "Prepare", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "before", value: "before", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "after", value: "after", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "CAM", value: "CAM", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "images", value: "images", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "train_command", value: "--resolution 1 --cuda 0 --sh 3 --interval 1", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "videogs", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "conda_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
-        ]
+        containers: GetFUNIQUE_GS4Project_Parameter()
     }
     r.parameter = para
     r.task.push(...[
@@ -533,4 +508,33 @@ export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
         GetFUNIQUE_GS4ProjectTemplate_Blend2()
     ])
     return r
+}
+
+export const GetFUNIQUE_GS4Project_Parameter = ():ParameterContainer[] => {
+    return [
+        { name: "frameCount", value: 50, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "iframe_gap", value: 3, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "core", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "group_size", value: 15, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "blend", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "iframe_size", value: 17, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "density_util", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "iframe_iteration", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "finetune_iteration", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
+        { name: "gtp", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
+
+        { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
+        { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
+        { name: "prepare", value: "Prepare", type: DataType.String, runtimeOnly: false, hidden: true },
+        { name: "before", value: "before", type: DataType.String, runtimeOnly: false, hidden: true },
+        { name: "after", value: "after", type: DataType.String, runtimeOnly: false, hidden: true },
+        { name: "CAM", value: "CAM", type: DataType.String, runtimeOnly: false, hidden: true },
+        { name: "images", value: "images", type: DataType.String, runtimeOnly: false, hidden: true },
+        { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: true },
+        { name: "train_command", value: "--resolution 1 --cuda 0 --sh 3 --interval 1", type: DataType.String, runtimeOnly: false, hidden: false },
+        { name: "videogs", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
+        { name: "conda_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
+    ]
 }
