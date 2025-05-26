@@ -20,6 +20,7 @@ export const CLIENT_UPDATETICK = 3000
  */
 export const RENDER_UPDATETICK = 30
 export const RENDER_FILE_UPDATETICK = 5000
+export const SCROLL_LIMIT = 150
 
 /**
  * The environment character for replacing text
