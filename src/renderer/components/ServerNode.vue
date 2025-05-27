@@ -147,7 +147,6 @@ const libEdit = (oldname:string, newname:string) => {
 }
 const libSave = (file:string, content:string) => { 
   props.backend.send('save_lib', file, content)
-  libFresh()
 }
 const libLoad = (file:string) => {
   const ext = file.split('.').pop()!

@@ -16,7 +16,7 @@ export interface TypeOption {
 export interface DATA {
     leftSize: number
     rightSize: number
-    select: Library | undefined
+    select: number
     createModel: boolean
     isEdit: boolean
     editData: CreateField
