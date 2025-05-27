@@ -1,6 +1,7 @@
 import { v6 as uuidv6 } from 'uuid';
 import { ConditionResult, DataType, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
 import { DEFAULT_JsCronMultiExample, DEFAULT_JsExample, DEFAULT_JsPrintExample, DEFAULT_JsSaveExample } from '../js/Default';
+import { GetDefaultProject_Parameter } from '../parameter/Default';
 
 const GetDefaultProjectTemplate_PrintCustomParameterMulticore = ():Task => {
     const script:Job = {
@@ -266,15 +267,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
         title: "Default Parameter",
         uuid: uuidv6(),
         canWrite: true,
-        containers: [
-            { name: "n1", value: 25, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "n2", value: 4, type: DataType.Number, runtimeOnly: true, hidden: false },
-
-            { name: "path", value: "C:\\Tool", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "s1", value: "Hello World", type: DataType.String, runtimeOnly: false, hidden: false },
-
-            { name: "b1", value: false, type: DataType.Boolean, runtimeOnly: false, hidden: false }
-        ]
+        containers: GetDefaultProject_Parameter()
     }
     r.parameter = para
     r.task = [
