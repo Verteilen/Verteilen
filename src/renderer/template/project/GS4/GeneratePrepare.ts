@@ -51,10 +51,10 @@ export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
     return t
 }
 
-export const GetFUNIQUE_GS4ProjectTemplate = (r:Project):Project => {
+export const GetFUNIQUE_GS4ProjectTemplate_Generate_Prepare = (r:Project):Project => {
     const para:Parameter = {
         uuid: uuidv6(),
-        title: "GS4_V1 Parameter",
+        title: "GS4 Basic Parameter",
         canWrite: true,
         containers: GetFUNIQUE_GS4Project_Parameter()
     }
