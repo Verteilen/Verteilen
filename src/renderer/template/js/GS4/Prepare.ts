@@ -20,19 +20,19 @@ o.createdir(root.."/"..after_folder)
 o.createdir(output_folder)
 
 console.log("Get CAM list")
-prepare_folders = split(o.listdir(root.."/"..prepare_folder.."/"..CAM), "\\n")
+prepare_folders = o.listdir(\`\${root}/\${prepare_folder}/CAM\`)
 
-cam_size = #(prepare_folders)
-console.log("Get CAM count: "..cam_size)
+cam_size = prepare_folders.length
+console.log(\`Get CAM count: \${cam_size}\`)
 
 minus = 0
 
 frame_size = 0
 if (cam_size > 0){
-    f1_files = split(o.listfile(root.."/"..prepare_folder.."/"..CAM.."/"..prepare_folders[1]), "\\n")
-    frame_size = #(f1_files)
+    f1_files = o.listfile(\`\${root}/\${prepare_folder}/CAM/\${prepare_folders[1]}\`)
+    frame_size = f1_files.length
 }
-console.log("Get Frame count: "..frame_size)
+console.log(\`Get Frame count: \${frame_size}\`)
 
 console.log("Copy sparse folder")
 o.copydir(root.."/"..prepare_folder.."/"..sparse, root.."/"..before_folder.."/"..sparse)

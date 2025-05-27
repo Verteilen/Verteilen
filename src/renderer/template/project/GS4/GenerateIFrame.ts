@@ -2,7 +2,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { Task, Job, JobCategory, JobType, Parameter, Project } from '../../../interface';
 import { GetFUNIQUE_GS4Project_Parameter } from '../../parameter/GS4';
 
-export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
+const IFrame = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -14,8 +14,8 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "生成 I Frame",
-        description: "生成完整 Frame",
+        title: "Generate I Frame",
+        description: "heavy calculation",
         setupjob: false,
         cronjob: true,
         cronjobKey: "iframe_size",
@@ -43,7 +43,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrame = ():Task => {
 }
 
 // 把渣渣刪掉 !
-export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
+const Denoise = ():Task => {
     const renamee:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -73,8 +73,8 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "降躁處理",
-        description: "把渣渣刪掉 !",
+        title: "Denoise",
+        description: "Use python script to denoise",
         setupjob: false,
         cronjob: true,
         cronjobKey: "iframe_size",
@@ -96,7 +96,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Denoise = ():Task => {
 }
 
 // 備份 I-Frame
-export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
+const IFrameBackup = ():Task => {
     const backup:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -108,8 +108,8 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "備份 I Frame",
-        description: "將剛完成的 IFrame 進行備份處理",
+        title: "Backup I Frame",
+        description: "Copy IFrame folder",
         setupjob: false,
         cronjob: false,
         cronjobKey: "",
@@ -118,6 +118,96 @@ export const GetFUNIQUE_GS4ProjectTemplate_IFrameBackup = ():Task => {
         properties: [],
         jobs: [
             backup
+        ]
+    }
+    return t
+}
+
+const IFrameGTP_Adjustment = ():Task => {
+    const copy_1:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        script: "",
+        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const copy_2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        script: "",
+        string_args: ["%root%/%before%/%gap_value%", "%root%/%after%/liar/%gap_value_two%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const command2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COMMAND,
+        script: "",
+        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_end% --iframe 0 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval 1 --group_size %iframe_gap% --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const deleteJob:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.DELETE_DIR,
+        script: "",
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const copyJob:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COPY_DIR,
+        script: "",
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const deleteJob2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.DELETE_DIR,
+        script: "",
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "GTP 修正",
+        description: "將剛完成的 IFrame GTP 進行修正",
+        setupjob: false,
+        cronjob: true,
+        cronjobKey: "iframe_size",
+        multi: false,
+        multiKey: "",
+        properties: [
+            {
+                name: 'gap_value',
+                expression: '(ck - 1) * iframe_gap + 1'
+            },
+            {
+                name: 'gap_value_two',
+                expression: '(ck - 1) * iframe_gap + 2'
+            },
+            {
+                name: 'gap_value_end',
+                expression: '(ck - 1) * iframe_gap + 3'
+            }
+        ],
+        jobs: [
+            copy_1,
+            copy_2,
+            command2,
+            deleteJob,
+            copyJob,
+            deleteJob2
         ]
     }
     return t
@@ -133,9 +223,10 @@ export const GetFUNIQUE_GS4ProjectTemplate_Generate_IFrame = (r:Project):Project
     }
     r.parameter = para
     r.task = [
-        GetFUNIQUE_GS4ProjectTemplate_IFrame(),
-        GetFUNIQUE_GS4ProjectTemplate_Denoise(),
-        GetFUNIQUE_GS4ProjectTemplate_IFrameBackup(),
+        IFrame(),
+        Denoise(),
+        IFrameBackup(),
+        IFrameGTP_Adjustment(),
     ]
     return r;
 }

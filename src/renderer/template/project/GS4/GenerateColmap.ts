@@ -2,7 +2,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { Job, JobCategory, JobType, Parameter, Project, Task } from '../../../interface';
 import { GetFUNIQUE_GS4Project_Parameter } from '../../parameter/GS4';
 
-export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
+const Colmap = ():Task => {
     const createsp:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -70,7 +70,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Colmap = ():Task => {
     return t
 }
 
-export const GetFUNIQUE_GS4ProjectTemplate_Generate_Prepare = (r:Project):Project => {
+export const GetFUNIQUE_GS4ProjectTemplate_Colmap = (r:Project):Project => {
     const para:Parameter = {
         uuid: uuidv6(),
         title: "GS4 Basic Parameter",
@@ -79,7 +79,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Generate_Prepare = (r:Project):Projec
     }
     r.parameter = para
     r.task = [
-        GetFUNIQUE_GS4ProjectTemplate_Colmap(),
+        Colmap(),
     ]
     return r;
 }

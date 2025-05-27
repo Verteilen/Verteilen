@@ -1,7 +1,10 @@
 import { v6 as uuidv6 } from 'uuid';
-import { ConditionResult, DataType, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
-import { DEFAULT_JsCronMultiExample, DEFAULT_JsExample, DEFAULT_JsPrintExample, DEFAULT_JsSaveExample } from '../js/Default';
-import { GetDefaultProject_Parameter } from '../parameter/Default';
+import { ConditionResult, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../../interface";
+import { GetDefaultProject_Parameter } from '../../parameter/Default';
+import { DEFAULT_JsCronMultiExample } from '../../js/Default/CronMultiExample';
+import { DEFAULT_JsExample } from '../../js/Default/Example';
+import { DEFAULT_JsPrintExample } from '../../js/Default/PrintExample';
+import { DEFAULT_JsSaveExample } from '../../js/Default/SaveExample';
 
 const GetDefaultProjectTemplate_PrintCustomParameterMulticore = ():Task => {
     const script:Job = {

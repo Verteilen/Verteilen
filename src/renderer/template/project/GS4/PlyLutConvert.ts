@@ -1,5 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
-import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../interface";
+import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../../interface";
+import { GetFUNIQUE_GS4Project_Parameter } from '../../parameter/GS4';
 
 // Lut convert !!
 const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
@@ -14,8 +15,8 @@ const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Ply 輸出",
-        description: "生成 ply 序列!!",
+        title: "Lut Apply",
+        description: "Generate ply Sequences!!",
         setupjob: false,
         cronjob: true,
         cronjobKey: "frameCount",
@@ -29,19 +30,12 @@ const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
     return t
 }
 
-export const GetFUNIQUE_GS4LUTProjectTemplate = (r:Project):Project => {
+export const GetFUNIQUE_GS4ProjectTemplate_LUT = (r:Project):Project => {
     const para:Parameter = {
-        title: "GS4_Lut Parameter",
+        title: "GS4 Lut Convert",
         uuid: uuidv6(),
         canWrite: true,
-        containers: [
-            { name: "frameCount", value: 50, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "core", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
-
-            { name: "root", value: "", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "output", value: "", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "lut", value: "", type: DataType.String, runtimeOnly: false, hidden: false },
-        ]
+        containers: GetFUNIQUE_GS4Project_Parameter()
     }
     r.parameter = para
     r.task.push(...[

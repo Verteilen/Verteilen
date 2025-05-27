@@ -1,10 +1,10 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Job, JobCategory, JobType, Parameter, Project, Task } from "../../../interface";
 import { GetFUNIQUE_GS4Project_Parameter } from '../../parameter/GS4';
-import { FUNIQUE_GS4_PREPARE } from '../../js/GS4/GS4_GeneratePrepare';
+import { FUNIQUE_GS4_PREPARE } from '../../js/GS4/Prepare';
 
 // 從原始資料夾結構 弄成可以工作的樣子
-export const GetFUNIQUE_GS4ProjectTemplate_Prepare = ():Task => {
+const Prepare = ():Task => {
     const sortjob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -60,7 +60,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Generate_Prepare = (r:Project):Projec
     }
     r.parameter = para
     r.task = [
-        GetFUNIQUE_GS4ProjectTemplate_Prepare(),
+        Prepare(),
     ]
     return r;
 }
