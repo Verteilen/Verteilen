@@ -1,6 +1,9 @@
 export const FUNIQUE_GS4_PREPARE:string = `
 console.log("Env Init");
 
+// This get call at start of the process
+// Colmap data prepare
+
 root = env.getstring("root");
 prepare_folder = env.getstring("prepare");
 before_folder = env.getstring("before");
@@ -12,6 +15,7 @@ CAM = env.getstring("CAM");
 images = env.getstring("images");
 sparse = env.getstring("sparse");
 
+// Handle folders
 o.deletedir(root.."/"..before_folder);
 o.deletedir(root.."/"..after_folder);
 o.deletedir(output_folder);
@@ -37,9 +41,14 @@ console.log(\`Get Frame count: \${frame_size}\`);
 console.log("Copy sparse folder");
 o.copydir(\`\${root}/\${prepare_folder}/\${sparse}\`, \`\${root}/\${before_folder}/\${sparse}\`);
 
+// Moving source folder content to prepare folder
+// The content here means image files .jpg
 for (key = 1; key < frame_size; key++){
+    // root/before/0/images
     o.createdir(\`\${root}/\${before_folder}/\${key - minus}/images\`);
     for (key2 = 1; key2 < cam_size; key2++){
+        // from: root/prepare/CAM/0001/000005.jpg
+        // to: root/before/5/images/0001.jpg
         from = \`\${root}/\${prepare_folder}/CAM/\${key2.toString().padString(4, "0")}/\${key.toString().padString(6, "0")}.jpg\`;
         to = \`\${root}/\${before_folder}/\${key - minus}/images/\${key2.toString().padString(4, "0")}.jpg\`;
         o.copyfile(from, to);
@@ -48,5 +57,5 @@ for (key = 1; key < frame_size; key++){
 }
 
 env.setnumber("frameCount", frame_size);
-env.setnumber("iframe_size", math.ceil(frame_size / iframe_gap));
+env.setnumber("iframe_size", Math.ceil(frame_size / iframe_gap));
 `

@@ -32,13 +32,13 @@ for(i = 0; i < blend; i++){
         ];
         exists.forEach((value2, key2) => {
             if (value2) {
-                o.copyfile(plyPaths[key2], \`\${output_folder_seq}/\${value}.ply\`)
-                count = count + 1
-                return
+                o.copyfile(plyPaths[key2], \`\${output_folder_seq}/\${value}.ply\`);
+                count = count + 1;
+                return;
             }
         })
     })
 
-    m.messager_log(\`Total file copy: \${count}, to path: \${output_folder_seq}\`)
+    console.log(\`Total file copy: \${count}, to path: \${output_folder_seq}\`);
 }
 `
