@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch, watchEffect } from 'vue';
 import { AppConfig, BusType, Libraries, Library, LibType, LibTypeText, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Lib } from '../../util/lib';
@@ -18,7 +18,8 @@ const emits = defineEmits<{
     (e: 'save', file:string, data:string): void
     (e: 'load', file:string): void
     (e: 'delete', file:string): void
-    (e: 'delete-all'): void
+    (e: 'execute-lua', content:string):void
+    (e: 'execute-js', content:string):void
 }>()
 const model = defineModel<Libraries>()
 const data:Ref<DATA> = ref({
@@ -40,6 +41,18 @@ const data:Ref<DATA> = ref({
 const openBottom = computed(() => data.value.messages.length > 0)
 const selection = computed(() => data.value.select < 0 ? undefined : model.value?.libs[data.value.select])
 
+watch(() => data.value.select, (oldv, newv) => {
+    if(model.value == undefined) return
+    if(oldv >= 0){
+        model.value.libs[oldv].load = false
+        model.value.libs[oldv].content = ""
+    }
+    if(newv >= 0){
+        const target = model.value?.libs[data.value.select];
+        emits('load', target.name + typeToExtension(target.type))
+    }
+})
+
 const util:Util_Lib = new Util_Lib(data, () => selection.value)
 
 const typeToExtension = (type:LibType) => {
@@ -53,8 +66,9 @@ const typeToExtension = (type:LibType) => {
 }
 
 const execute = () => {
-    if(!props.config.isElectron || selection.value == undefined) return
-    window.electronAPI.send('lua', selection.value.content)
+    if(selection.value == undefined) return
+    if(selection.value.type == 0) emits('execute-lua', selection.value.content)
+    if(selection.value.type == 1) emits('execute-js', selection.value.content)
 }
 
 const clean = () => {
@@ -161,7 +175,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
-                        <v-btn icon v-bind="pro.props" color="success" @click="execute" v-if="props.config.isElectron" :disabled="selection == undefined">
+                        <v-btn icon v-bind="pro.props" color="success" v-if="props.config.isElectron" :disabled="selection == undefined" @click="execute">
                             <v-icon>mdi-play</v-icon>
                         </v-btn>
                     </template>

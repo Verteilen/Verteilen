@@ -171,7 +171,8 @@ const libDelete = (file:string) => {
   })
   allUpdate()
 }
-const libDeleteAll = () => {}
+const libLua = (code:string) => { props.backend.send('lua', code) }
+const libJs = (code:string) => { props.backend.send('javascript', code) }
 //#endregion
 
 //#region Console
@@ -580,7 +581,8 @@ onUnmounted(() => {
             @save="(d, d1) => libSave(d, d1)"
             @load="d => libLoad(d)"
             @delete="d => libDelete(d)"
-            @delete-all="libDeleteAll"
+            @execute-lua="d => libLua(d)"
+            @execute-js="d => libJs(d)"
             v-model="data.libs"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.haveBackend" :value="8">
