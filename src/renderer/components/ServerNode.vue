@@ -3,7 +3,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
+import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, LibType, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -121,13 +121,50 @@ const libRename = (d:Rename) => {
   })
   allUpdate()
 }
-
-const libDelete = (name:string) => {
+const libFresh = () => {
+  props.backend.invoke('list_all_lib').then(x => {
+    const texts:Array<any> = JSON.parse(x)
+    console.log("list_all_lib", texts) 
+    data.value.libs = { libs: texts.map(y => {
+      const ext = y.name.split('.').pop()
+      let t = 0
+      if(ext == "js") t = LibType.JAVASCRIPT
+      else if(ext == "lua") t = LibType.LUA
+      const r = {
+        name: y.name.slice(0, -(ext.length + 1)),
+        load: false,
+        type: t,
+        content: ""
+      }
+      return r
+    })}
+    console.log("Libs", data.value.libs)
+  })
+}
+const libEdit = (oldname:string, newname:string) => { 
+  props.backend.send("rename_lib", oldname, newname) 
+  libFresh()
+}
+const libSave = (file:string, content:string) => { 
+  props.backend.send('save_lib', file, content)
+  libFresh()
+}
+const libLoad = (file:string) => {
+  const ext = file.split('.').pop()!
+  const name = file.slice(0, -(ext.length + 1))
+  props.backend.invoke('load_lib', file).then(r => {
+    const target = data.value.libs.libs.find(x => x.name == name)
+    if(target == undefined) return
+    target.load = true
+    target.content = r
+  }).catch(err => console.error(err))
+}
+const libDelete = (file:string) => {
   data.value.projects.forEach(x => {
     x.task.forEach(y => {
       y.jobs.forEach(z => {
         if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
-          const index = z.string_args.findIndex(x => x == name)
+          const index = z.string_args.findIndex(x => x == file)
           if(index != -1) z.string_args.splice(index, 1)
         }
       })
@@ -135,6 +172,7 @@ const libDelete = (name:string) => {
   })
   allUpdate()
 }
+const libDeleteAll = () => {}
 //#endregion
 
 //#region Console
@@ -326,9 +364,22 @@ onMounted(() => {
       const texts:Array<string> = JSON.parse(x)
       data.value.nodes.push(...texts.map(y => JSON.parse(y)))
     })
-    const p2 = props.backend.invoke('load_all_lib').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.libs = { libs: texts.map(y => JSON.parse(y)) }
+    const p2 = props.backend.invoke('list_all_lib').then(x => {
+      const texts:Array<any> = JSON.parse(x)
+      console.log("list_all_lib", texts) 
+      data.value.libs = { libs: texts.map(y => {
+        const ext = y.name.split('.').pop()
+        let t = 0
+        if(ext == "js") t = LibType.JAVASCRIPT
+        else if(ext == "lua") t = LibType.LUA
+        const r = {
+          name: y.name.slice(0, -(ext.length + 1)),
+          load: false,
+          type: t,
+          content: ""
+        }
+        return r
+      })}
       console.log("Libs", data.value.libs)
     })
     const p3 = props.backend.invoke('load_all_record').then(x => {
@@ -526,6 +577,11 @@ onUnmounted(() => {
           <LibraryPage
             :config="config"
             :preference="props.preference"
+            @edit="(d, d1) => libEdit(d, d1)"
+            @save="(d, d1) => libSave(d, d1)"
+            @load="d => libLoad(d)"
+            @delete="d => libDelete(d)"
+            @delete-all="libDeleteAll"
             v-model="data.libs"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.haveBackend" :value="8">

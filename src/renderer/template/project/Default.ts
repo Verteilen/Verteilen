@@ -1,13 +1,13 @@
 import { v6 as uuidv6 } from 'uuid';
 import { ConditionResult, DataType, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../interface";
-import { DEFAULT_LuaCronMultiExample, DEFAULT_LuaExample, DEFAULT_LuaPrintExample, DEFAULT_LuaSaveExample } from '../lua/Default';
+import { DEFAULT_JsCronMultiExample, DEFAULT_JsExample, DEFAULT_JsPrintExample, DEFAULT_JsSaveExample } from '../js/Default';
 
 const GetDefaultProjectTemplate_PrintCustomParameterMulticore = ():Task => {
     const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.LUA,
-        script: DEFAULT_LuaPrintExample,
+        type: JobType.JAVASCRIPT,
+        script: DEFAULT_JsPrintExample,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -33,8 +33,8 @@ const GetDefaultProjectTemplate_PrintCustomParameter = ():Task => {
     const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.LUA,
-        script: DEFAULT_LuaPrintExample,
+        type: JobType.JAVASCRIPT,
+        script: DEFAULT_JsPrintExample,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -60,8 +60,8 @@ const GetDefaultProjectTemplate_SaveCustomParameter = ():Task => {
     const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.LUA,
-        script: DEFAULT_LuaSaveExample,
+        type: JobType.JAVASCRIPT,
+        script: DEFAULT_JsSaveExample,
         string_args: [],
         number_args: [],
         boolean_args: []
@@ -83,19 +83,19 @@ const GetDefaultProjectTemplate_SaveCustomParameter = ():Task => {
     return t
 }
 
-const GetDefaultProjectTemplate_CronLua = ():Task => {
+const GetDefaultProjectTemplate_CronJs = ():Task => {
     const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.LUA,
-        script: DEFAULT_LuaCronMultiExample,
+        type: JobType.JAVASCRIPT,
+        script: DEFAULT_JsCronMultiExample,
         string_args: [],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Run Multiple Lua",
+        title: "Run Multiple Js",
         description: "",
         setupjob: false,
         cronjob: true,
@@ -111,19 +111,19 @@ const GetDefaultProjectTemplate_CronLua = ():Task => {
 }
 
 
-const GetDefaultProjectTemplate_Lua = ():Task => {
+const GetDefaultProjectTemplate_Js = ():Task => {
     const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.LUA,
-        script: DEFAULT_LuaExample,
+        type: JobType.JAVASCRIPT,
+        script: DEFAULT_JsExample,
         string_args: [],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Run Lua",
+        title: "Run Js",
         description: "",
         setupjob: false,
         cronjob: false,
@@ -282,8 +282,8 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
         GetDefaultProjectTemplate_OS(),
         GetDefaultProjectTemplate_Pnumber(),
         GetDefaultProjectTemplate_Pnumber2(),
-        GetDefaultProjectTemplate_Lua(),
-        GetDefaultProjectTemplate_CronLua(),
+        GetDefaultProjectTemplate_Js(),
+        GetDefaultProjectTemplate_CronJs(),
         GetDefaultProjectTemplate_SaveCustomParameter(),
         GetDefaultProjectTemplate_PrintCustomParameter(),
         GetDefaultProjectTemplate_PrintCustomParameterMulticore(),

@@ -229,7 +229,7 @@ export class ClientJavascript {
      * @param libs Libraries header names
      * @returns Calcuate result
      */
-    JavascriptExecuteWithLib = (lua:string, libs:Array<string>) => {
+    JavascriptExecuteWithLib = (javascript:string, libs:Array<string>) => {
         const context = this.getJavascriptEnv()
         let script = ''
 
@@ -241,9 +241,8 @@ export class ClientJavascript {
             })
         }
         
-        script += ('\n' + lua)
-        const execc = safeEval(script, context)
-        const r = execc.exec()
+        script += ('\n' + javascript)
+        const r = safeEval(script, context)
         return r
     }
 
@@ -267,6 +266,7 @@ export class ClientJavascript {
         if((flags & JavascriptLib.ENV) == JavascriptLib.ENV) javascriptEnv = Object.assign(javascriptEnv, { env: this.env })
         if((flags & JavascriptLib.MESSAGE) == JavascriptLib.MESSAGE) javascriptEnv = Object.assign(javascriptEnv, { m: this.message })
         if((flags & JavascriptLib.HTTP) == JavascriptLib.HTTP) javascriptEnv = Object.assign(javascriptEnv, { http: this.http })
+        javascriptEnv = Object.assign(javascriptEnv, {console: { log: this.message['messager_log'] }})
         return javascriptEnv
     }
     private copyfile(from:string, to:string){

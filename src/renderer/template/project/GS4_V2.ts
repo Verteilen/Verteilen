@@ -2,6 +2,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../interface";
 import { FUNIQUE_GS4_V2_BLEND_PREPARE, FUNIQUE_GS4_V2_COLMAP_COPY, FUNIQUE_GS4_V2_PLYDone } from '../lua/GS4_V2';
 import { GetFUNIQUE_GS4ProjectTemplate_Blend1, GetFUNIQUE_GS4ProjectTemplate_Blend2, GetFUNIQUE_GS4ProjectTemplate_Colmap, GetFUNIQUE_GS4ProjectTemplate_Denoise, GetFUNIQUE_GS4ProjectTemplate_IFrame, GetFUNIQUE_GS4ProjectTemplate_IFrameBackup, GetFUNIQUE_GS4ProjectTemplate_IFrameGTP_Adjustment, GetFUNIQUE_GS4ProjectTemplate_Prepare } from './GS4';
+import { GetFUNIQUE_GS4Project_Parameter } from '../parameter/GS4';
 
 // 排序改變 優化品質做的準備
 // Colmap 的結構複製一個負的出來
@@ -184,35 +185,7 @@ export const GetFUNIQUE_GS4Project_V2_Template = (r:Project):Project => {
         uuid: uuidv6(),
         title: "GS4_V2 Parameter",
         canWrite: true,
-        containers: [
-            { name: "frameCount", value: 50, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iframe_gap", value: 3, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "core", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "group_size", value: 15, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "blend", value: 5, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "contribute", value: 1, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iframe_size", value: 17, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "denoise", value: 0, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "gop_positive", value: 7, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "gop_negative", value: 7, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "density_util", value: 2000, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "densify_grad", value: 0.0002, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "iframe_iteration", value: 7000, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "finetune_iteration", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
-            { name: "gtp", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
-
-            { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "prepare", value: "Prepare", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "before", value: "before", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "after", value: "after", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "CAM", value: "CAM", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "images", value: "images", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: true },
-            { name: "train_command", value: "--resolution 1 --cuda 0 --sh 3", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "videogs", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
-            { name: "conda_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
-        ]
+        containers: GetFUNIQUE_GS4Project_Parameter()
     }
     r.parameter = para
     r.task.push(...[

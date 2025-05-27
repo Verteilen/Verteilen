@@ -143,7 +143,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                 })
             }
             const index = model.value![0].SkipProject()
-            console.log("Skip project", index)
+            console.log("Skip project, index: %d, next count: %d", index, count)
         }
     }else if (type == 1){
         // Task
@@ -166,7 +166,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                 })
             }
             const index = model.value![0].SkipTask()
-            console.log("Skip task", index)
+            console.log("Skip task, index: %d, next count: %d", index, count)
         }
     }else if (type == 2){
         data.value.skipModal = true

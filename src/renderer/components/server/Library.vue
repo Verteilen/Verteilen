@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { AppConfig, BusType, Libraries, Library, LibType, LibTypeText, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, DATA, Util_Lib } from '../../util/lib';
+import { DATA, Util_Lib } from '../../util/lib';
 
 interface PROPS {
     config: AppConfig
@@ -14,9 +14,8 @@ interface PROPS {
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
-    (e: 'create', data:CreateField): void
-    (e: 'edit', olddata:CreateField, newdata:CreateField): void
-    (e: 'save', data:Library): void
+    (e: 'edit', oldname:string, newname:string): void
+    (e: 'save', file:string, data:string): void
     (e: 'load', file:string): void
     (e: 'delete', file:string): void
     (e: 'delete-all'): void
@@ -39,9 +38,19 @@ const data:Ref<DATA> = ref({
 })
 
 const openBottom = computed(() => data.value.messages.length > 0)
-const selection = computed(() => data.value.select == undefined ? undefined : model.value!.libs.find(x => x.name == data.value.select!.name))
+const selection = computed(() => data.value.select)
 
 const util:Util_Lib = new Util_Lib(data, () => selection.value)
+
+const typeToExtension = (type:LibType) => {
+    switch(type){
+        case LibType.LUA:
+            return ".lua";
+        default:
+        case LibType.JAVASCRIPT:
+            return ".js";
+    }
+}
 
 const execute = () => {
     if(!props.config.isElectron || selection.value == undefined) return
@@ -84,7 +93,7 @@ const confirmCreate = () => {
         return
     }
     data.value.createModel = false
-    emits('create', { name: data.value.editData.name, type: data.value.editData.type })
+    emits('save', data.value.editData.name + typeToExtension(data.value.editData.type) , "")
 }
 
 const confirmEdit = () => {
@@ -95,15 +104,14 @@ const confirmEdit = () => {
         return
     }
     data.value.createModel = false
-    emits('edit', 
-        { name: selection.value.name, type: selection.value.type },
-        { name: data.value.editData.name, type: data.value.editData.type })
+    emits('edit', selection.value.name + typeToExtension(selection.value.type), 
+        data.value.editData.name + typeToExtension(data.value.editData.type))
 }
 
 const save = () => {
     if(selection.value == undefined) return
     data.value.dirty = false
-    emits('save', selection.value)
+    emits('save', selection.value.name + typeToExtension(selection.value.type) , selection.value.content)
     if(!props.config.isElectron) return
     model.value?.libs.forEach(x => {
         window.electronAPI.send('save_lib', x.name, JSON.stringify(x, null, 4))
@@ -119,6 +127,12 @@ const updateLocate = () => {
             value: index
         }
     })
+}
+
+const selectLib = (lib:Library) => {
+    data.value.select = lib
+    if(lib.load) return
+    emits('load', lib.name + typeToExtension(lib.type))
 }
 
 onMounted(() => {
@@ -192,19 +206,19 @@ onUnmounted(() => {
         <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="data.leftSize" class="border border-e-lg">
                 <v-list :style="{ 'fontSize': props.preference.font + 'px' }" :items="model.libs" v-model:selected="data.select">
-                    <v-list-item v-for="(lib, i) in model.libs" :key="i" :value="i" @click="data.select = lib">  
+                    <v-list-item v-for="(lib, i) in model.libs" :key="i" :value="i" @click="selectLib(lib)">  
                         {{ lib.name }}
                     </v-list-item>
                 </v-list>
             </v-col>
             <v-col :cols="data.rightSize">
                 <v-card v-if="selection != undefined" no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
-                    <codemirror-lua v-if="selection.type == 1" v-model="selection.content" 
+                    <codemirror-lua v-if="selection.type == 0" v-model="selection.content" 
                         style="text-align:left;"
                         :style="{ height: openBottom ? 'calc(50vh - 10px)' : 'calc(100vh - 160px)' }"
                         :hintOptions="{ completeSingle: false }"
                         @change="setdirty"/>
-                    <codemirror-js v-else-if="selection.type == 0" v-model="selection.content" 
+                    <codemirror-js v-else-if="selection.type == 1" v-model="selection.content" 
                         style="text-align:left;"
                         :style="{ height: openBottom ? 'calc(50vh - 10px)' : 'calc(100vh - 160px)' }"
                         :hintOptions="{ completeSingle: false }"

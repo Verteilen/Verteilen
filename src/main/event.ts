@@ -74,7 +74,7 @@ export class BackendEvent {
         this.Loader('parameter', 'parameter')
         this.Loader('node', 'node')
         this.Loader('log', 'log')
-        this.Loader('lib', 'lib')
+        this.Loader('lib', 'lib', '')
 
         ipcMain.handle('load_record_obsolete', (e) => {
             if(!fs.existsSync('record.json')) return undefined
@@ -129,7 +129,7 @@ export class BackendEvent {
         })
     }
 
-    Loader = (key:string, folder:string) => {
+    Loader = (key:string, folder:string, ext:string = ".json") => {
         ipcMain.handle(`load_all_${key}`, (e) => {
             const root = path.join("data", folder)
             if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
@@ -151,20 +151,22 @@ export class BackendEvent {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             const ps = fs.readdirSync(root, { withFileTypes: false })
-            ps.map(x => {
-                const stat = fs.statSync(path.join(root, x))
-                return {
+            const r:any = []
+            for(let i = 0; i < ps.length; i++){
+                const x = ps[i]
+                const stat = fs.statSync(path.join(root, x.toString()))
+                r.push({
                     name: x,
                     size: stat.size,
                     time: stat.ctime
-                }
-            })
-            return JSON.stringify(ps)
+                })
+            }
+            return JSON.stringify(r)
         })
         ipcMain.on(`save_${key}`, (e, name:string, data:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            let filename = name + ".json"
+            let filename = name + ext
             let p = path.join(root, filename)
             fs.writeFileSync(p, data)
         })
@@ -177,7 +179,7 @@ export class BackendEvent {
         ipcMain.on(`delete_${key}`, (e, name:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ".json"
+            const filename = name + ext
             const p = path.join(root, filename)
             if (fs.existsSync(p)) fs.rmSync(p)
         })
@@ -190,10 +192,10 @@ export class BackendEvent {
         ipcMain.handle(`load_${key}`, (e, name:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ".json"
+            const filename = name + ext
             const p = path.join(root, filename)
             if (fs.existsSync(p)){
-                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+                const file = fs.readFileSync(p, { encoding: 'utf8', flag: 'r' })
                 return file.toString()
             }else{
                 return undefined

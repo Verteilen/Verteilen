@@ -84,6 +84,7 @@ export interface Preference {
 
 export interface Library {
     name: string
+    load: boolean
     type: LibType
     content: string
 }

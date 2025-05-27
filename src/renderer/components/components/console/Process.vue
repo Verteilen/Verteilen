@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, Ref, ref } from 'vue';
+import { computed, Ref, ref, watch } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
 import { ExecuteRecord, ExecuteState, Preference, SCROLL_LIMIT } from '../../../interface';
 import { ExecuteManager } from '../../../script/execute_manager';
@@ -22,6 +22,11 @@ const gap = ref(0)
 const current_range = computed(() => {
     if(data.value?.[1] == undefined) return
     return data.value[1].task_detail.slice(start.value, end.value)
+})
+watch(() => data.value?.[1].task_index, () => {
+    start.value = 0
+    end.value = 0
+    gap.value = 0
 })
 
 const getStateColor = (state:number):string => {
@@ -55,11 +60,10 @@ const getselect = (r:number):Array<number> => {
 }
 const load = async (o:any) => {
     if(data.value?.[1] == undefined) return
-    console.log(o.side);
 
     if(o.side == "start"){
         if(start.value == 0){
-            o.done('error')
+            o.done('ok')
         }else{
             start.value -= SCROLL_LIMIT
             gap.value += 1
@@ -76,7 +80,7 @@ const load = async (o:any) => {
     else if (o.side == "end"){
         const size = data.value[1].task_detail.length
         if(end.value == size){
-            o.done('error')
+            o.done('ok')
         }else{
             end.value += SCROLL_LIMIT
             gap.value += 1
@@ -89,6 +93,9 @@ const load = async (o:any) => {
             myDiv.value?.scrollTo(0, myDiv.value?.scrollTop - SCROLL_LIMIT * 10);
             o.done('ok')
         }
+    }
+    else{
+        o.done('error')
     }
 }
 
@@ -133,14 +140,31 @@ const load = async (o:any) => {
                 </v-stepper-header>
             </v-stepper>
             <br /> 
-            <v-expansion-panels v-if="data[1].project_index >= 0" v-model="panelValue" multiple>
-                <v-infinite-scroll :key="data[1].task_index" :items="current_range" @load="load" class="w-100 h-100"
-                    side="both"
-                >
+            <v-infinite-scroll v-if="current_range" :key="data[1].project + data[1].task_index" :items="current_range" style="overflow-y: hidden;" @load="load" class="w-100 h-100" side="both">
+                <template v-slot:empty></template>
+                <template v-slot:load-more></template>
+                <template v-slot:loading></template>
+                <template v-for="(item, index) in current_range" :key="index">
+                    <details
+                        style="background-color: transparent;"
+                        class="w-100 text-white mb-3 px-4 text-left">
+                        <summary :style="{ 'color': getStateColor(item.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent">
+                            Index: {{ item.index }}, node: {{ getURL(item.node) }}
+                        </summary>
+                        <div class="py-3" style="min-height: 50px;" :style="{ 'fontSize': props.preference.font + 'px', 'line-height': props.preference.font + 'px' }">
+                            <p style="margin: 3px; text-align: left;" v-for="(text, j) in item.message" :key="j"> {{ text }} </p>    
+                        </div>
+                    </details>
+                </template>
+            </v-infinite-scroll>
+            <!----
+            <v-expansion-panels v-if="data[1].project_index >= 0" v-model="panelValue" multiple eager flat>
+                <v-infinite-scroll v-if="current_range" :key="data[1].task_index" :items="current_range" style="overflow-y: hidden;" @load="load" class="w-100 h-100" side="both">
                     <template v-slot:empty></template>
                     <template v-slot:load-more></template>
+                    <template v-slot:loading></template>
                     <template v-for="(item, index) in current_range" :key="index">
-                        <v-expansion-panel
+                        <v-expansion-panel eager accordion
                             style="background-color: transparent;"
                             class="w-100 text-white mb-3 px-4">
                             <v-expansion-panel-title :style="{ 'color': getStateColor(item.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent">
@@ -153,6 +177,7 @@ const load = async (o:any) => {
                     </template>
                 </v-infinite-scroll>
             </v-expansion-panels>
+            -->
             <br /> <br />
         </div>
     </v-container>

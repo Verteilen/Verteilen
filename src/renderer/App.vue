@@ -33,6 +33,7 @@ const guideModal = ref(false)
 backend.value.init().then(() => {
   console.log("isElectron", config.value.isElectron)
   console.log("isExpress", config.value.isExpress)
+  console.log("env", process.env.NODE_ENV)
   if (config.value.isElectron) window.electronAPI.send('message', 'Welcome Compute Tool');
 })
 
