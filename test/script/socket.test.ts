@@ -4,7 +4,14 @@ describe("Execute Manager Test", () => {
     let socket:WebsocketManager | undefined
 
     beforeAll(() => {
-        socket = new WebsocketManager(() => {}, () => {}, () => {}, () => {})
+        socket = new WebsocketManager(
+            () => {}, 
+            () => {}, 
+            () => {}, 
+            () => {}, {
+                shellReply: (d) => {},
+                folderReply: (d) => {}
+            })
     })
     afterAll(() => {
         socket = undefined

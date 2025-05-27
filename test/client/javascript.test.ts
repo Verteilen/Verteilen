@@ -1,11 +1,11 @@
 import { ClientJobParameter } from '../../src/share/client/job_parameter';
-import { ClientLua } from '../../src/share/client/lua';
+import { ClientJavascript } from '../../src/share/client/javascript';
 import { ClientOS } from '../../src/share/client/os';
 import { DataType, Job, Libraries, Parameter } from '../../src/share/interface';
 
 
-describe("Lua Test", () => {
-    let lua:ClientLua | undefined = undefined
+describe("JS Test", () => {
+    let js:ClientJavascript | undefined = undefined
     let job:Job | undefined = undefined
     let os:ClientOS | undefined = undefined
     let para:ClientJobParameter | undefined = undefined
@@ -24,11 +24,11 @@ describe("Lua Test", () => {
                 { name: "b1", type: DataType.Boolean, value: true, hidden: false, runtimeOnly: false },
             ]
         }
-        lua = new ClientLua(
+        js = new ClientJavascript(
             (str) => console.log(str), 
             (str) => console.log(str), 
             () => job)
-        ClientLua.Init(
+        ClientJavascript.Init(
             (str) => console.log(str), 
             (str) => console.log(str),
             os,
@@ -39,22 +39,22 @@ describe("Lua Test", () => {
         )
     })
     afterAll(() => {
-        lua = undefined
+        js = undefined
     })
     test("Env test getter", () => {
-        expect(lua!.LuaExecuteWithLib(`return env.getnumber("n1")`, [])).toBe(7)
-        expect(lua!.LuaExecuteWithLib(`return env.getstring("s1")`, [])).toBe("Hello World")
-        expect(lua!.LuaExecuteWithLib(`return env.getboolean("b1")`, [])).toBe(true)
-        expect(lua!.LuaExecuteWithLib(`return env.getnumber("nnn")`, [])).toBe(0)
-        expect(lua!.LuaExecuteWithLib(`return env.getstring("sss")`, [])).toBe("")
-        expect(lua!.LuaExecuteWithLib(`return env.getboolean("bbb")`, [])).toBe(false)
+        expect(js!.JavascriptExecuteWithLib(`result = env.getnumber("n1")`, [])).toBe(7)
+        expect(js!.JavascriptExecuteWithLib(`result = env.getstring("s1")`, [])).toBe("Hello World")
+        expect(js!.JavascriptExecuteWithLib(`result = env.getboolean("b1")`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`result = env.getnumber("nnn")`, [])).toBe(0)
+        expect(js!.JavascriptExecuteWithLib(`result = env.getstring("sss")`, [])).toBe("")
+        expect(js!.JavascriptExecuteWithLib(`result = env.getboolean("bbb")`, [])).toBe(false)
     })
     test("Env test has", () => {
-        expect(lua!.LuaExecuteWithLib(`return env.hasnumber("n1")`, [])).toBe(true)
-        expect(lua!.LuaExecuteWithLib(`return env.hasstring("s1")`, [])).toBe(true)
-        expect(lua!.LuaExecuteWithLib(`return env.hasboolean("b1")`, [])).toBe(true)
-        expect(lua!.LuaExecuteWithLib(`return env.hasnumber("nnn")`, [])).toBe(false)
-        expect(lua!.LuaExecuteWithLib(`return env.hasstring("sss")`, [])).toBe(false)
-        expect(lua!.LuaExecuteWithLib(`return env.hasboolean("bbb")`, [])).toBe(false)
+        expect(js!.JavascriptExecuteWithLib(`result = env.hasnumber("n1")`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`result = env.hasstring("s1")`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`result = env.hasboolean("b1")`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`result = env.hasnumber("nnn")`, [])).toBe(false)
+        expect(js!.JavascriptExecuteWithLib(`result = env.hasstring("sss")`, [])).toBe(false)
+        expect(js!.JavascriptExecuteWithLib(`result = env.hasboolean("bbb")`, [])).toBe(false)
     })
 })

@@ -46,107 +46,6 @@ let para:ClientJobParameter | undefined = undefined
 const tag = () => getjob!?.()?.uuid ?? 'unknown'
 const runtime = () => getjob!?.()?.runtime_uuid ?? 'unknown'
 
-
-//#region Parameters
-async function wait(time:number){
-    return new Promise((resolve) => setTimeout(resolve, time * 1000))
-}
-async function sleep(n:number){
-    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, n*1000);
-}
-function hasboolean(key:string){
-    const p = getpara?.() ?? undefined
-    if(p == undefined) return false
-    return p.containers.findIndex(x => x.name == key && x.type == DataType.Boolean) != -1
-}
-function hasnumber(key:string){
-    if(key == 'ck') return true
-    const p = getpara?.() ?? undefined
-    if(p == undefined) return false
-    return p.containers.findIndex(x => x.name == key && x.type == DataType.Number) != -1
-}
-function hasstring(key:string){
-    const p = getpara?.() ?? undefined
-    if(p == undefined) return false
-    return p.containers.findIndex(x => x.name == key && x.type == DataType.String) != -1
-}
-function getboolean(key:string){
-    const p = getpara?.() ?? undefined
-    if(p == undefined) return false
-    return p.containers.find(x => x.name == key && x.type == DataType.Boolean)?.value ?? false
-}
-function getnumber(key:string){
-    if(key == 'ck'){
-        return getjob?.()?.index
-    }
-    const p = getpara?.() ?? undefined
-    if(p == undefined) return 0
-    return p.containers.find(x => x.name == key && x.type == DataType.Number)?.value ?? 0
-}
-function getstring(key:string){
-    const p = getpara?.() ?? undefined
-    if(p == undefined) return ""
-    return p.containers.find(x => x.name == key && x.type == DataType.String)?.value ?? ""
-}
-function setboolean(key:string, value:boolean){
-    const p = getpara?.() ?? undefined
-    if(p == undefined) return
-    const target = p.containers.find(x => x.name == key && x.type == DataType.Boolean)
-    if(target == undefined && !p.canWrite) return
-    if(target != undefined) target.value = value
-    
-    messager_log(`[Boolean feedback] ${key} = ${value}`, tag(), runtime())
-    para?.feedbackboolean({key:key,value:value})
-}
-function setnumber(key:string, value:number){
-    if(key == 'ck') {
-        messager_log("Trying to set a constant ck...", tag(), runtime())
-        return
-    }
-    const p = getpara?.() ?? undefined
-    if(p == undefined) return
-    const target = p.containers.find(x => x.name == key && x.type == DataType.Number)
-    if(target == undefined && !p.canWrite) return
-    if(target != undefined) target.value = value
-    messager_log(`[Number feedback] ${key} = ${value}`, tag(), runtime())
-    para?.feedbacknumber({key:key,value:value})
-}
-function setstring(key:string, value:string){
-    const p = getpara?.() ?? undefined
-    if(p == undefined) return
-    const target = p.containers.find(x => x.name == key && x.type == DataType.String)
-    if(target == undefined && !p.canWrite) return
-    if(target != undefined) target.value = value
-    messager_log(`[String feedback] ${key} = ${value}`, tag(), runtime())
-    para?.feedbackstring({key:key,value:value})
-}
-//#endregion
-//#endregion
-//#region Http
-async function httpGet(url:string, p: any){
-    return httpGo('GET', url, p.toObject())
-}
-async function httpPost(url:string, p: any){
-    return httpGo('POST', url, p.toObject())
-}
-async function httpDelete(url:string, p: any){
-    return httpGo('DELETE', url, p.toObject())
-}
-async function httpPatch(url:string, p: any){
-    return httpGo('PATCH', url, p.toObject())
-}
-async function httpPut(url:string, p: any){
-    return httpGo('PUT', url, p.toObject())
-}
-async function httpGo(method:string, url:string, p: any) {
-    return fetch(url, {
-        method: method,
-        body: p
-    })
-}
-//#endregion
-
-
 export class ClientJavascript {
 
     os:any
@@ -158,51 +57,49 @@ export class ClientJavascript {
         messager = _messager
         messager_log = _messager_log
         this.os = {
-            "sleep": sleep,
-            "copyfile": this.copyfile,
-            "copydir": this.copydir,
-            "deletefile": this.deletefile,
-            "deletedir": this.deletedir,
-            "exist": this.exist,
-            "listfile": this.listfile,
-            "listdir": this.listdir,
-            "createdir": this.createdir,
-            "writefile": this.writefile,
-            "readfile": this.readfile,
-            "rename": this.rename,
+            copyfile: this.copyfile,
+            copydir: this.copydir,
+            deletefile: this.deletefile,
+            deletedir: this.deletedir,
+            exist: this.exist,
+            listfile: this.listfile,
+            listdir: this.listdir,
+            createdir: this.createdir,
+            writefile: this.writefile,
+            readfile: this.readfile,
+            rename: this.rename,
         }
         
         this.env = {
-            "wait": wait,
-            "hasboolean": hasboolean, 
-            "getboolean": getboolean, 
-            "setboolean": setboolean,
+            hasboolean: this.hasboolean, 
+            getboolean: this.getboolean, 
+            setboolean: this.setboolean,
 
-            "hasnumber": hasnumber, 
-            "getnumber": getnumber, 
-            "setnumber": setnumber,
+            hasnumber: this.hasnumber, 
+            getnumber: this.getnumber, 
+            setnumber: this.setnumber,
 
-            "hasstring": hasstring, 
-            "getstring": getstring, 
-            "setstring": setstring,
+            hasstring: this.hasstring, 
+            getstring: this.getstring, 
+            setstring: this.setstring,
         }
         
         this.message = {
-            "messager": (m:any) => messager(m.toString(), tag()), 
-            "messager_log": (m:any) => messager_log(m.toString(), tag(), runtime()),
+            messager: (m:any) => _messager(m.toString(), tag()), 
+            messager_log: (m:any) => _messager_log(m.toString(), tag(), runtime()),
         }
         
         this.http = {
-            "get": httpGet,
-            "post": httpPost,
-            "put": httpPut,
-            "delete": httpDelete,
-            "patch": httpPatch,
+            get: this.httpGet,
+            post: this.httpPost,
+            put: this.httpPut,
+            delete: this.httpDelete,
+            patch: this.httpPatch,
         }
     }
 
     /**
-     * Before running the lua scripts, We must init first.\
+     * Before running the js scripts, We must init first.\
      * ! Otherwise it won't work or throw error
      * @param _messager Message habndle
      * @param _messager_log Message habndle with print on screen feature
@@ -223,14 +120,16 @@ export class ClientJavascript {
     }
 
     /**
-     * Running lua\
+     * Running js\
      * With reference libraries\
-     * @param lua Lua script text
+     * @param js js script text
      * @param libs Libraries header names
      * @returns Calcuate result
      */
     JavascriptExecuteWithLib = (javascript:string, libs:Array<string>) => {
-        const context = this.getJavascriptEnv()
+        let context = this.getJavascriptEnv()
+        let result = 0
+        context = Object.assign(context, { result: result })
         let script = ''
 
         const p = getlib?.() ?? undefined
@@ -247,26 +146,38 @@ export class ClientJavascript {
     }
 
     /**
-     * Running lua
-     * @param lua Lua script text
+     * Running js
+     * @param js js script text
      * @returns Calcuate result
      */
     JavascriptExecute = (javascript:string) => {
-        const context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE | JavascriptLib.HTTP)
+        let context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE | JavascriptLib.HTTP)
+        let result = 0
+        context = Object.assign(context, { result: result })
         const r = safeEval(javascript, context)
         return r
     }
 
     private getJavascriptEnv(flags:JavascriptLib = JavascriptLib.ALL){
         const isbin = process.cwd().endsWith('bin')
-        const root = isbin ? path.join(process.cwd(), 'lua') : path.join(process.cwd(), 'bin', 'lua')
+        const root = isbin ? path.join(process.cwd(), 'js') : path.join(process.cwd(), 'bin', 'js')
         if (!fs.existsSync(root)) fs.mkdirSync(root)
         let javascriptEnv = {}
         if((flags & JavascriptLib.OS) == JavascriptLib.OS) javascriptEnv = Object.assign(javascriptEnv, { o: this.os })
         if((flags & JavascriptLib.ENV) == JavascriptLib.ENV) javascriptEnv = Object.assign(javascriptEnv, { env: this.env })
         if((flags & JavascriptLib.MESSAGE) == JavascriptLib.MESSAGE) javascriptEnv = Object.assign(javascriptEnv, { m: this.message })
         if((flags & JavascriptLib.HTTP) == JavascriptLib.HTTP) javascriptEnv = Object.assign(javascriptEnv, { http: this.http })
-        javascriptEnv = Object.assign(javascriptEnv, {console: { log: this.message['messager_log'] }})
+        javascriptEnv = Object.assign(javascriptEnv, {
+            setTimeout: setTimeout,
+            wait: this.wait,
+            sleep: this.sleep,
+            console: { log: messager_log },
+            JSON: {
+                parse: JSON.parse,
+                stringify: JSON.stringify
+            }
+        })
+    
         return javascriptEnv
     }
     private copyfile(from:string, to:string){
@@ -302,4 +213,103 @@ export class ClientJavascript {
     private readfile(path:string){
         return clientos?.file_read({path:path})
     }
+
+    //#region Parameters
+    private async wait(time:number){
+        return new Promise((resolve) => setTimeout(resolve, time * 1000))
+    }
+    private async sleep(n:number){
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, n*1000);
+    }
+    private hasboolean(key:string){
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return false
+        return p.containers.findIndex(x => x.name == key && x.type == DataType.Boolean) != -1
+    }
+    private hasnumber(key:string){
+        if(key == 'ck') return true
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return false
+        return p.containers.findIndex(x => x.name == key && x.type == DataType.Number) != -1
+    }
+    private hasstring(key:string){
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return false
+        return p.containers.findIndex(x => x.name == key && x.type == DataType.String) != -1
+    }
+    private getboolean(key:string){
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return false
+        return p.containers.find(x => x.name == key && x.type == DataType.Boolean)?.value ?? false
+    }
+    private getnumber(key:string){
+        if(key == 'ck'){
+            return getjob?.()?.index
+        }
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return 0
+        return p.containers.find(x => x.name == key && x.type == DataType.Number)?.value ?? 0
+    }
+    private getstring(key:string){
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return ""
+        return p.containers.find(x => x.name == key && x.type == DataType.String)?.value ?? ""
+    }
+    private setboolean(key:string, value:boolean){
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return
+        const target = p.containers.find(x => x.name == key && x.type == DataType.Boolean)
+        if(target == undefined && !p.canWrite) return
+        if(target != undefined) target.value = value
+        
+        messager_log(`[Boolean feedback] ${key} = ${value}`, tag(), runtime())
+        para?.feedbackboolean({key:key,value:value})
+    }
+    private setnumber(key:string, value:number){
+        if(key == 'ck') {
+            messager_log("Trying to set a constant ck...", tag(), runtime())
+            return
+        }
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return
+        const target = p.containers.find(x => x.name == key && x.type == DataType.Number)
+        if(target == undefined && !p.canWrite) return
+        if(target != undefined) target.value = value
+        messager_log(`[Number feedback] ${key} = ${value}`, tag(), runtime())
+        para?.feedbacknumber({key:key,value:value})
+    }
+    private setstring(key:string, value:string){
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return
+        const target = p.containers.find(x => x.name == key && x.type == DataType.String)
+        if(target == undefined && !p.canWrite) return
+        if(target != undefined) target.value = value
+        messager_log(`[String feedback] ${key} = ${value}`, tag(), runtime())
+        para?.feedbackstring({key:key,value:value})
+    }
+    //#endregion
+    //#endregion
+    //#region Http
+    private async httpGet(url:string, p: any){
+        return this.httpGo('GET', url, p.toObject())
+    }
+    private async httpPost(url:string, p: any){
+        return this.httpGo('POST', url, p.toObject())
+    }
+    private async httpDelete(url:string, p: any){
+        return this.httpGo('DELETE', url, p.toObject())
+    }
+    private async httpPatch(url:string, p: any){
+        return this.httpGo('PATCH', url, p.toObject())
+    }
+    private async httpPut(url:string, p: any){
+        return this.httpGo('PUT', url, p.toObject())
+    }
+    private async httpGo(method:string, url:string, p: any) {
+        return fetch(url, {
+            method: method,
+            body: p
+        })
+    }
+    //#endregion
 }

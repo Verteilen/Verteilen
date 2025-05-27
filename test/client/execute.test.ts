@@ -16,7 +16,7 @@ describe("Client Execute Test", () => {
             runtime_uuid: "Runtime",
             category: JobCategory.Condition,
             type: JobType2.CHECK_PATH,
-            lua: "",
+            script: "",
             string_args: ["Not Exist"],
             number_args: [],
             boolean_args: []
@@ -36,7 +36,7 @@ describe("Client Execute Test", () => {
             runtime_uuid: "Runtime",
             category: JobCategory.Condition,
             type: JobType2.CHECK_PATH,
-            lua: "",
+            script: "",
             string_args: [process.cwd()],
             number_args: [],
             boolean_args: []
