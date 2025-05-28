@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Task, Job, JobCategory, JobType, Project, Parameter } from '../../../interface';
-import { GetFUNIQUE_GS4Project_Parameter } from '../../parameter/GS4';
+import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 
 const Checkpoint_Position = ():Task => {
     const command1:Job = {
@@ -96,7 +96,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_BlendResult = (r:Project):Project => 
         title: "GS4 Blend Prepare",
         uuid: uuidv6(),
         canWrite: true,
-        containers: GetFUNIQUE_GS4Project_Parameter()
+        containers: GetFUNIQUE_GS4Project_Parameter_Builder()
     }
     r.parameter = para
     r.task.push(...[

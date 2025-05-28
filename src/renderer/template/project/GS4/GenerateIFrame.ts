@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Task, Job, JobCategory, JobType, Parameter, Project } from '../../../interface';
-import { GetFUNIQUE_GS4Project_Parameter } from '../../parameter/GS4';
+import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 
 const IFrame = ():Task => {
     const command1:Job = {
@@ -219,7 +219,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_Generate_IFrame = (r:Project):Project
         uuid: uuidv6(),
         title: "GS4 Basic Parameter",
         canWrite: true,
-        containers: GetFUNIQUE_GS4Project_Parameter()
+        containers: GetFUNIQUE_GS4Project_Parameter_Builder()
     }
     r.parameter = para
     r.task = [

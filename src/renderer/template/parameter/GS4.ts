@@ -1,6 +1,6 @@
 import { ParameterContainer, DataType } from "../../interface"
 
-export const GetFUNIQUE_GS4Project_Parameter = ():ParameterContainer[] => {
+export const GetFUNIQUE_GS4Project_Parameter_Builder = ():ParameterContainer[] => {
     return [
         { name: "frameCount", value: 50, type: DataType.Number, runtimeOnly: false, hidden: false },
         { name: "iframe_gap", value: 3, type: DataType.Number, runtimeOnly: false, hidden: false },

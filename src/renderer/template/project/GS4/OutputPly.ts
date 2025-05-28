@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Task, Job, JobCategory, JobType, Project, Parameter } from '../../../interface';
-import { GetFUNIQUE_GS4Project_Parameter } from '../../parameter/GS4';
+import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 import { FUNIQUE_GS4_PLYDone_V2 } from '../../js/GS4/PlyDone_V2';
 
 const PlyList = ():Task => {
@@ -35,7 +35,7 @@ export const GetFUNIQUE_GS4ProjectTemplate_PLYOutput = (r:Project):Project => {
         title: "GS4 Ply Output",
         uuid: uuidv6(),
         canWrite: true,
-        containers: GetFUNIQUE_GS4Project_Parameter()
+        containers: GetFUNIQUE_GS4Project_Parameter_Builder()
     }
     r.parameter = para
     r.task.push(...[
