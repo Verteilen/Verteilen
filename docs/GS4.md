@@ -156,46 +156,104 @@ Colmap will get call
         * 0
 ```
 
-## 生成 I Frame
+## Sorting
 
-這裡會在 after 生成 GOP_20_I 的資料夾 此為 IFrame\
-這個時候 videogs 會被呼叫
+Before calculation, The scripts will follow the setting\
+Copy files from before folders to after folders\
+Then reference them later in the command execution
 
-## 降躁處理
+```md
+# Generate folders structure below
+* root
+  * after 
+      # Copy from I-Frame, cross copying
+    * BLEND_[Blend Time]_I[P or N]
+      # Copy from data source, from before folders
+    * DATASET_[P or N]_[Blend Time]
 
-每個 I Frame 下的 ply 運算結果會被 ply_denoise.exe 給降躁\
-原理是把 r,g,b 零以下的值刪除掉 (參數: denoise)
+# Example:
+* root
+  * after
+    * Blend_0_IP
+    * Blend_5_IP
+    * Blend_10_IP
+    * Blend_15_IP
+    * Blend_0_IN
+    * Blend_5_IN
+    * Blend_10_IN
+    * Blend_15_IN
+    * DATASET_P_0
+    * DATASET_P_5
+    * DATASET_P_10
+    * DATASET_P_15
+    * DATASET_N_0
+    * DATASET_N_5
+    * DATASET_N_10
+    * DATASET_N_15
+```
 
-## 備份 I Frame
+## Generate I-Frame
 
-單純只是複製 GOP_20_I 到 GOP_20_I_Backup 而已
+The python environment will use in this stage\
+And use it to compute the result
 
-## GTP 修正
+> [!NOTE] 
+> This stage needs to reference the folders which generate by the Sorting stage
 
-運算過程中發現 train.py 與 train_dynamic.py 之間的差異\
-* train: 單純 IFrame
-* train_dynamic: 中間張
+```md
+# Generate folder below
+* root
+  * after
+    * GOP_[Blend Time]_I
+```
 
-train_dynamic 出來的品質比較好 並且包含 gtp 的運算結果, Iframe 則沒有\
-修正這個問題就是複製 Iframe 的來源到新的 before 資料夾, 並且算中間張\
-然後覆蓋原本的 IFrame
 
-## 排序改變
+## Denoise
 
-這裡會生成
-* BLEND_\[Blend 數目\]_I\[P/N\]: Blend 序列資料夾, 交叉放 Iframe 進來
-* DATASET_\[P/N\]_\[Blend 數目\]: Data 來源, 從 before 複製過來
+The ply files under I-Frame folder will get denoise by ply_denoise.exe\
+It will filtering out [r,g,b] value below zero\
+parameter reference: denoise
 
-## Blend 資料準備
+## GTP Fixed
+
+For fixing train.py and train_dynamic.py difference
+
+* train: I-Frame
+* train_dynamic: Middle-Frame
+
+train_dynamic Have better quality, and it contain gtp results, 
+But I-frame have none of that\
+In order to fix this problem, We simply copy I-frame to new before folder, 
+Then calculate middle-frame\
+After that we overwrite the original I-Frame
+
+## Blend Compute
 
 在 BLEND_\[Blend 數目\]_I\[P/N\] 直接演算\
 把中間偵算出來
 
-## ply 輸出
+## ply Output
 
-複製 Ply 序列到 Output 資料夾中的 (輸出資料夾)/raw/Sequence_\[Blend 數目\] 中
+Copy ply files to output folders
 
-## Blending 透明度
+```md
+# Generate folders below
+* Output
+  * raw
+    * Sequence_[Blend Time]
+
+# Example
+* Output
+  * raw
+    * Sequence_0
+      * 0.ply
+      * 1.ply
+      * 2.ply
+    * Sequence_5
+    * Sequence_10
+```
+
+## Blending Opacity
 
 raw 資料夾的偵 套用透明度設定, 並且輸出到 (輸出資料夾)/trans/Sequence_\[Blend 數目\] 中
 
@@ -203,7 +261,7 @@ raw 資料夾的偵 套用透明度設定, 並且輸出到 (輸出資料夾)/tra
 假設 contribution 為 3, 然後得到的 sin wave 分別為 [0.5, 1.0]\
 則輸出則會為 [1.0, 2.0]
 
-## Blending 合併
+## Blending Merge
 
 trans 資料夾的偵 套用透明度設定. 並且輸出到 (輸出資料夾)/final 中
 
