@@ -145,8 +145,16 @@ The rule of the convertion shows below, This is for colmap
 
 ## COLMAP Execute
 
-Colmap 會被呼叫, 會在 before/\[時間\]/sparse/0 生成資料庫\
-生成完需要的 bin 後會刪除 database.db 優化空間跟運算時間
+Colmap will get call
+
+```md
+# Generate .bin database at here
+* root
+  * before
+    * [Timecode]
+      * sparse
+        * 0
+```
 
 ## 生成 I Frame
 
