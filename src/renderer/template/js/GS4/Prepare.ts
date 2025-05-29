@@ -9,8 +9,8 @@ prepare_folder = env.getstring("prepare");
 before_folder = env.getstring("before");
 after_folder = env.getstring("after");
 output_folder = env.getstring("output");
-
 iframe_gap = env.getnumber("iframe_gap");
+
 CAM = env.getstring("CAM");
 images = env.getstring("images");
 sparse = env.getstring("sparse");
@@ -29,8 +29,6 @@ prepare_folders = o.listdir(\`\${root}/\${prepare_folder}/CAM\`);
 cam_size = prepare_folders.length;
 console.log(\`Get CAM count: \${cam_size}\`);
 
-minus = 0;
-
 frame_size = 0;
 if (cam_size > 0){
     f1_files = o.listfile(\`\${root}/\${prepare_folder}/CAM/\${prepare_folders[1]}\`);
@@ -43,14 +41,17 @@ o.copydir(\`\${root}/\${prepare_folder}/\${sparse}\`, \`\${root}/\${before_folde
 
 // Moving source folder content to prepare folder
 // The content here means image files .jpg
-for (key = 1; key < frame_size; key++){
+for (key = 0; key < frame_size; key++){
     // root/before/0/images
-    o.createdir(\`\${root}/\${before_folder}/\${key - minus}/images\`);
-    for (key2 = 1; key2 < cam_size; key2++){
+    o.createdir(\`\${root}/\${before_folder}/\${key}/images\`);
+    for (key2 = 0; key2 < cam_size; key2++){
         // from: root/prepare/CAM/0001/000005.jpg
         // to: root/before/5/images/0001.jpg
         from = \`\${root}/\${prepare_folder}/CAM/\${key2.toString().padString(4, "0")}/\${key.toString().padString(6, "0")}.jpg\`;
         to = \`\${root}/\${before_folder}/\${key - minus}/images/\${key2.toString().padString(4, "0")}.jpg\`;
+        if (!o.exist(from)) {
+            continue;
+        }
         o.copyfile(from, to);
         console.log_log(\`Copy file: \${from}   to   \${to}\`);
     }
