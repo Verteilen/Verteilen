@@ -8,7 +8,7 @@ const Prepare = ():Task => {
     const sortjob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.LUA,
+        type: JobType.JAVASCRIPT,
         script: FUNIQUE_GS4_PREPARE,
         string_args: [],
         number_args: [],

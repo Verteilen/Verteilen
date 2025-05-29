@@ -16,11 +16,8 @@ images = env.getstring("images");
 sparse = env.getstring("sparse");
 
 // Handle folders
-o.deletedir(root.."/"..before_folder);
-o.deletedir(root.."/"..after_folder);
-o.deletedir(output_folder);
-o.createdir(root.."/"..before_folder);
-o.createdir(root.."/"..after_folder);
+o.createdir(\`\${root}/\${before_folder}\`);
+o.createdir(\`\${root}/\${after_folder}\`);
 o.createdir(output_folder);
 
 console.log("Get CAM list");

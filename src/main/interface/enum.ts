@@ -57,13 +57,19 @@ export enum JobType2 {
 }
 
 export enum ProjectTemplate {
-    DEFAULT,
-    FUNIQUE_GS4,
-    FUNIQUE_GS42,
-    FUNIQUE_LUT,
-    FFmpeg_Concat,
-    Blender,
-    AfterEffect
+    DEFAULT = 0,
+
+    GS4_PREPARE = 100,
+    GS4_COLMAP = 101,
+    GS4_IFRAME = 102,
+    GS4_BLEND_PREPARE = 103,
+    GS4_BLEND = 104,
+    GS4_OUTPUT = 105,
+    GS4_LUT = 106,
+
+    FFmpeg_Concat = 200,
+    Blender = 300,
+    AfterEffect = 400,
 }
 
 export enum ExecuteState {
@@ -149,12 +155,16 @@ export const JobType2Text: { [key:number]:string } = {
 
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
-    10: 'enum.project.gs4',
-    11: 'enum.project.gs4-2',
-    12: 'enum.project.gs4-lut',
-    20: 'enum.project.concat',
-    30: 'enum.project.blender',
-    40: 'enum.project.aftereffect',
+    100: 'enum.project.gs4-prepare',
+    101: 'enum.project.gs4-colmap',
+    102: 'enum.project.gs4-iframe',
+    103: 'enum.project.gs4-blend-prepare',
+    104: 'enum.project.gs4-blend',
+    105: 'enum.project.gs4-output',
+    106: 'enum.project.gs4-lut',
+    200: 'enum.project.concat',
+    300: 'enum.project.blender',
+    400: 'enum.project.aftereffect',
 }
 
 export const LibTypeText: { [key:number]:string } = {

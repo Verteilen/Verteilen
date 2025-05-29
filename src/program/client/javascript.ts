@@ -199,10 +199,10 @@ export class ClientJavascript {
         return clientos?.fs_exist({path:path})
     }
     private listfile(path:string){
-        return clientos?.dir_files({path:path}).join('\n')
+        return clientos?.dir_files({path:path})
     }
     private listdir(path:string){
-        return clientos?.dir_dirs({path:path}).join('\n')
+        return clientos?.dir_dirs({path:path})
     }
     private createdir(path:string){
         clientos?.dir_create({path:path})

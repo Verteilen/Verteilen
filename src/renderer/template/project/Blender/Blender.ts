@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../interface";
+import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../../interface";
 
 const GetBlenderTemplate_Render = ():Task => {
     const render:Job = {
