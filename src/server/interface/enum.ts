@@ -128,13 +128,13 @@ export const JobTypeText: { [key:number]:string } = {
     4: 'enum.jobtype.create-file',
     5: 'enum.jobtype.create-dir',
     6: 'enum.jobtype.rename',
-    8: 'enum.jobtype.javascript',
-    9: 'enum.jobtype.command'
+    7: 'enum.jobtype.javascript',
+    8: 'enum.jobtype.command'
 }
 
 export const JobType2Text: { [key:number]:string } = {
     0: 'enum.jobtype2.check-path',
-    2: 'enum.jobtype.javascript',
+    1: 'enum.jobtype.javascript',
 }
 
 export const ProjectTemplateText: { [key:number]:string } = {
