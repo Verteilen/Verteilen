@@ -159,9 +159,13 @@
         },
         "project": {
             "default": "Example",
-            "gs4": "Funique GS4",
-            "gs4-2": "Funique GS4 V2",
-            "gs4-lut": "Funique Lut Ply",
+            "gs4-prepare": "Funique GS4 Prepare",
+            "gs4-colmap": "Funique GS4 Colmap",
+            "gs4-iframe": "Funique GS4 I-Frame",
+            "gs4-blend-prepare": "Funique GS4 Blend Prepare",
+            "gs4-blend": "Funique GS4 Blend Result",
+            "gs4-output": "Funique GS4 Output Ply",
+            "gs4-lut": "Funique GS4 Apply Lut",
             "concat": "FFmpeg concat",
             "blender": "Blender Render",
             "aftereffect": "After Effect Render"

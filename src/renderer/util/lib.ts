@@ -1,11 +1,10 @@
 import { Ref } from "vue"
-import { Library, LibType } from "../interface"
+import { Library } from "../interface"
 
 type Selection = () => Library | undefined
 
 export interface CreateField {
     name: string
-    type: LibType
 }
 
 export interface TypeOption {
@@ -41,7 +40,7 @@ export class Util_Lib {
     createScript = () => {
         this.data.value.createModel = true
         this.data.value.isEdit = false
-        this.data.value.editData = { name: "", type: LibType.LUA }
+        this.data.value.editData = { name: "" }
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
     }
@@ -50,7 +49,7 @@ export class Util_Lib {
         if(this.select() == undefined) return
         this.data.value.createModel = true
         this.data.value.isEdit = false
-        this.data.value.editData = { name: this.select()!.name, type: this.select()!.type }
+        this.data.value.editData = { name: this.select()!.name }
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
     }

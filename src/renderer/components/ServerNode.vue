@@ -3,7 +3,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, LibType, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
+import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -108,32 +108,15 @@ const goParameter = (e:string) => {
 //#endregion
 
 //#region Lib
-const libRename = (d:Rename) => {
-  data.value.projects.forEach(x => {
-    x.task.forEach(y => {
-      y.jobs.forEach(z => {
-        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
-          const index = z.string_args.findIndex(x => x == d.oldname)
-          if(index != -1) z.string_args[index] = d.newname
-        }
-      })
-    })
-  })
-  allUpdate()
-}
 const libFresh = () => {
   props.backend.invoke('list_all_lib').then(x => {
     const texts:Array<any> = JSON.parse(x)
     console.log("list_all_lib", texts) 
     data.value.libs = { libs: texts.map(y => {
       const ext = y.name.split('.').pop()
-      let t = 0
-      if(ext == "js") t = LibType.JAVASCRIPT
-      else if(ext == "lua") t = LibType.LUA
       const r = {
         name: y.name.slice(0, -(ext.length + 1)),
         load: false,
-        type: t,
         content: ""
       }
       return r
@@ -145,8 +128,9 @@ const libEdit = (oldname:string, newname:string) => {
   props.backend.send("rename_lib", oldname, newname) 
   libFresh()
 }
-const libSave = (file:string, content:string) => { 
+const libSave = (file:string, content:string, refresh: boolean) => { 
   props.backend.send('save_lib', file, content)
+  if(refresh) libFresh()
 }
 const libLoad = (file:string) => {
   const ext = file.split('.').pop()!
@@ -159,10 +143,11 @@ const libLoad = (file:string) => {
   }).catch(err => console.error(err))
 }
 const libDelete = (file:string) => {
+  props.backend.send('delete_lib', file)
   data.value.projects.forEach(x => {
     x.task.forEach(y => {
       y.jobs.forEach(z => {
-        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
+        if((z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT) || (z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT)){
           const index = z.string_args.findIndex(x => x == file)
           if(index != -1) z.string_args.splice(index, 1)
         }
@@ -171,7 +156,6 @@ const libDelete = (file:string) => {
   })
   allUpdate()
 }
-const libLua = (code:string) => { props.backend.send('lua', code) }
 const libJs = (code:string) => { props.backend.send('javascript', code) }
 //#endregion
 
@@ -338,7 +322,6 @@ onMounted(() => {
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
   slowUpdateHandle = setInterval(() => emitter?.emit('slowUpdateHandle'), RENDER_FILE_UPDATETICK);
   emitter?.on('updateNode', server_clients_update)
-  emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
   emitter?.on('updateLocate', updateLocate)
 
@@ -369,13 +352,9 @@ onMounted(() => {
       console.log("list_all_lib", texts) 
       data.value.libs = { libs: texts.map(y => {
         const ext = y.name.split('.').pop()
-        let t = 0
-        if(ext == "js") t = LibType.JAVASCRIPT
-        else if(ext == "lua") t = LibType.LUA
         const r = {
           name: y.name.slice(0, -(ext.length + 1)),
           load: false,
-          type: t,
           content: ""
         }
         return r
@@ -438,7 +417,6 @@ onMounted(() => {
 onUnmounted(() => {
   data.value.execute_manager = []
   emitter?.off('updateNode', server_clients_update)
-  emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
   emitter?.off('updateLocate', updateLocate)
   if(updateHandle != undefined) clearInterval(updateHandle)
@@ -578,10 +556,9 @@ onUnmounted(() => {
             :config="config"
             :preference="props.preference"
             @edit="(d, d1) => libEdit(d, d1)"
-            @save="(d, d1) => libSave(d, d1)"
+            @save="(d, d1, d2) => libSave(d, d1, d2)"
             @load="d => libLoad(d)"
             @delete="d => libDelete(d)"
-            @execute-lua="d => libLua(d)"
             @execute-js="d => libJs(d)"
             v-model="data.libs"/>
         </v-tabs-window-item>

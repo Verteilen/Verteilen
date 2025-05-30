@@ -23,11 +23,6 @@ export enum JobCategory {
     Execution
 }
 
-export enum LibType {
-    LUA,
-    JAVASCRIPT,
-}
-
 export enum ConditionResult {
     None,
     SkipProject,
@@ -45,14 +40,12 @@ export enum JobType {
     CREATE_FILE,
     CREATE_DIR,
     RENAME,
-    LUA,
     JAVASCRIPT,
     COMMAND
 }
 
 export enum JobType2 {
     CHECK_PATH,
-    LUA,
     JAVASCRIPT,
 }
 
@@ -81,13 +74,6 @@ export enum RenderUpdateType {
     Project = 1 << 0, 
     Node = 1 << 1, 
     Parameter = 1 << 2
-}
-
-export enum LuaLib {
-    ALL = ~(~0 << 7),
-    OS = 1 << 0, 
-    ENV = 1 << 1, 
-    MESSAGE = 1 << 2,
 }
 
 export enum JavascriptLib {
@@ -142,14 +128,12 @@ export const JobTypeText: { [key:number]:string } = {
     4: 'enum.jobtype.create-file',
     5: 'enum.jobtype.create-dir',
     6: 'enum.jobtype.rename',
-    7: 'enum.jobtype.lua',
     8: 'enum.jobtype.javascript',
     9: 'enum.jobtype.command'
 }
 
 export const JobType2Text: { [key:number]:string } = {
     0: 'enum.jobtype2.check-path',
-    1: 'enum.jobtype.lua',
     2: 'enum.jobtype.javascript',
 }
 
@@ -165,9 +149,4 @@ export const ProjectTemplateText: { [key:number]:string } = {
     200: 'enum.project.concat',
     300: 'enum.project.blender',
     400: 'enum.project.aftereffect',
-}
-
-export const LibTypeText: { [key:number]:string } = {
-    0: 'enum.jobtype2.lua',
-    1: 'enum.jobtype2.javascript',
 }

@@ -3,7 +3,6 @@ import fs from "fs";
 import path from "path";
 import { Client } from "./client/client";
 import { ClientJavascript } from "./client/javascript";
-import { ClientLua } from "./client/lua";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
 import { Job, Parameter, Preference, Project } from "./interface";
@@ -40,19 +39,6 @@ export class BackendEvent {
         })
         ipcMain.handle('exist', (event, d:string) => {
             return fs.existsSync(d)
-        })
-        ipcMain.on('lua', (event, content:string) => {
-            const lua_messager_feedback = (msg:string, tag?:string) => {
-                messager(msg, tag)
-                event.sender.send('lua-feedback', msg)
-            }
-            const lua_messager_log_feedback = (msg:string, tag?:string) => {
-                messager_log(msg, tag)
-                event.sender.send('lua-feedback', msg)
-            }
-            const lua:ClientLua = new ClientLua(lua_messager_feedback, lua_messager_log_feedback, () => this.job)
-            const r = lua.LuaExecute(content)
-            event.sender.send('lua-feedback', r?.toString() ?? '')
         })
         ipcMain.on('javascript', (event, content:string) => {
             const javascript_messager_feedback = (msg:string, tag?:string) => {

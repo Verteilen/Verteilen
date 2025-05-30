@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch, watchEffect } from 'vue';
-import { AppConfig, BusType, Libraries, Library, LibType, LibTypeText, Preference } from '../../interface';
+import { computed, inject, onMounted, onUnmounted, Ref, ref, watch, watchEffect } from 'vue';
+import { AppConfig, BusType, Libraries, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Lib } from '../../util/lib';
 
@@ -15,10 +15,9 @@ const emitter:Emitter<BusType> | undefined = inject('emitter');
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'edit', oldname:string, newname:string): void
-    (e: 'save', file:string, data:string): void
+    (e: 'save', file:string, data:string, fresh:boolean): void
     (e: 'load', file:string): void
     (e: 'delete', file:string): void
-    (e: 'execute-lua', content:string):void
     (e: 'execute-js', content:string):void
 }>()
 const model = defineModel<Libraries>()
@@ -28,7 +27,7 @@ const data:Ref<DATA> = ref({
     select: -1,
     createModel: false,
     isEdit: false,
-    editData: { name: "", type: LibType.LUA },
+    editData: { name: "" },
     dirty: false,
     types: [],
     titleError: false,
@@ -41,34 +40,23 @@ const data:Ref<DATA> = ref({
 const openBottom = computed(() => data.value.messages.length > 0)
 const selection = computed(() => data.value.select < 0 ? undefined : model.value?.libs[data.value.select])
 
-watch(() => data.value.select, (oldv, newv) => {
-    if(model.value == undefined) return
-    if(oldv >= 0){
+watch(() => data.value.select, (newv:any, oldv:any) => {
+    if(model.value == undefined || oldv == newv) return
+    if(oldv && oldv[0] >= 0){
         model.value.libs[oldv].load = false
         model.value.libs[oldv].content = ""
     }
-    if(newv >= 0){
+    if(newv && newv[0] >= 0){
         const target = model.value?.libs[data.value.select];
-        emits('load', target.name + typeToExtension(target.type))
+        emits('load', target.name + '.js')
     }
 })
 
 const util:Util_Lib = new Util_Lib(data, () => selection.value)
 
-const typeToExtension = (type:LibType) => {
-    switch(type){
-        case LibType.LUA:
-            return ".lua";
-        default:
-        case LibType.JAVASCRIPT:
-            return ".js";
-    }
-}
-
 const execute = () => {
     if(selection.value == undefined) return
-    if(selection.value.type == 0) emits('execute-lua', selection.value.content)
-    if(selection.value.type == 1) emits('execute-js', selection.value.content)
+    emits('execute-js', selection.value.content)
 }
 
 const clean = () => {
@@ -81,10 +69,16 @@ const setdirty = () => {
 
 const remove = () => {
     if(selection.value == undefined) return
-    emitter?.emit('deleteScript', selection.value!.name)
+    model.value?.libs.forEach(x => {
+        x.load = false
+        x.content = ""
+    })
+    emits('delete', selection.value!.name + '.js')
     model.value!.libs = model.value!.libs.filter(x => x.name != selection.value!.name)
-    data.value.dirty = true
+    data.value.dirty = false
     clean()
+    const target = model.value?.libs[data.value.select];
+    if(target) emits('load', target.name + '.js')
 }
 
 const submit = () => {
@@ -107,7 +101,7 @@ const confirmCreate = () => {
         return
     }
     data.value.createModel = false
-    emits('save', data.value.editData.name + typeToExtension(data.value.editData.type) , "")
+    emits('save', data.value.editData.name + '.js' , "", true)
 }
 
 const confirmEdit = () => {
@@ -118,32 +112,17 @@ const confirmEdit = () => {
         return
     }
     data.value.createModel = false
-    emits('edit', selection.value.name + typeToExtension(selection.value.type), 
-        data.value.editData.name + typeToExtension(data.value.editData.type))
+    emits('edit', selection.value.name + '.js', 
+        data.value.editData.name + '.js')
 }
 
 const save = () => {
     if(selection.value == undefined) return
     data.value.dirty = false
-    emits('save', selection.value.name + typeToExtension(selection.value.type), selection.value.content)
-}
-
-const LibTypelateTranslate = (t:number):string => i18n.global.t(LibTypeText[t])
-
-const updateLocate = () => {
-    data.value.types = Object.keys(LibType).filter(key => isNaN(Number(key))).map((x, index) => {
-        return {
-            text: LibTypelateTranslate(index),
-            value: index
-        }
-    })
+    emits('save', selection.value.name + '.js', selection.value.content, false)
 }
 
 onMounted(() => {
-    nextTick(() => {
-        updateLocate()
-    })
-    emitter?.on('updateLocate', updateLocate)
     if(!props.config.isElectron) return
     window.electronAPI.eventOn('lua-feedback', luaFeedback)
     window.electronAPI.eventOn('javascript-feedback', javascriptFeedback)
@@ -151,7 +130,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-    emitter?.off('updateLocate', updateLocate)
     if(!props.config.isElectron) return
     window.electronAPI.eventOff('lua-feedback', luaFeedback)
     window.electronAPI.eventOff('javascript-feedback', javascriptFeedback)
@@ -211,20 +189,14 @@ onUnmounted(() => {
             <v-col :cols="data.leftSize" class="border border-e-lg">
                 <v-list :style="{ 'fontSize': props.preference.font + 'px' }" :items="model.libs" v-model:selected="data.select">
                     <v-list-item v-for="(lib, i) in model.libs" :key="i" :value="i">  
-                        {{ lib.name }}{{ typeToExtension(lib.type) }}
+                        {{ lib.name }}.js
                     </v-list-item>
                 </v-list>
             </v-col>
             <v-col :cols="data.rightSize">
                 <v-card v-if="selection" no-body bg-variant="dark" border-variant="success" class="text-white mb-3 py-1 px-2 mx-6">
-                    <p v-if="selection.type == 0">Lua</p>
-                    <codemirror-lua v-if="selection.type == 0" v-model="selection.content" 
-                        style="text-align:left;"
-                        :style="{ height: openBottom ? 'calc(50vh - 10px)' : 'calc(100vh - 160px)' }"
-                        :hintOptions="{ completeSingle: false }"
-                        @change="setdirty"/>
-                    <p v-if="selection.type == 1">Javascript</p>
-                    <codemirror-js v-if="selection.type == 1" v-model="selection.content" 
+                    <p>Javascript</p>
+                    <codemirror-js v-model="selection.content" 
                         style="text-align:left;"
                         :style="{ height: openBottom ? 'calc(50vh - 10px)' : 'calc(100vh - 160px)' }"
                         :hintOptions="{ completeSingle: false }"
@@ -247,7 +219,6 @@ onUnmounted(() => {
                 </v-card-title>
                 <v-card-text>
                     <v-text-field class="mb-2" :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-library-name')" hide-details></v-text-field>
-                    <v-select v-model="data.editData.type" hide-details :label="$t('modal.enter-library-type')" :items="data.types" item-title="text" />
                     <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>
