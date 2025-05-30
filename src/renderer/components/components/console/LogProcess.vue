@@ -26,10 +26,8 @@ const gap = ref(0)
 const items = computed(() => props.logs.logs.filter(x => x.output))
 const getselect = computed(() => items.value.length == 0 ? undefined : items.value[props.selection])
 const getselectTask = computed(() => getselect.value == undefined || props.current == -1 ? undefined : getselect.value.logs[props.current])
-
 const current_range = computed(() => {
-    if(props.logs.logs?.[1] == undefined) return
-    return props.logs.logs[1].logs[props.current].task_detail.slice(start.value, end.value)
+    return getselectTask.value?.task_detail.slice(start.value, end.value)
 })
 watch(() => props.current, () => {
     start.value = 0
