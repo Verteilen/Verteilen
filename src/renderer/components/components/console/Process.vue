@@ -146,38 +146,17 @@ const load = async (o:any) => {
                 <template v-slot:loading></template>
                 <template v-for="(item, index) in current_range" :key="index">
                     <details
-                        style="background-color: transparent;"
+                        :style="{ 'background-color': getStateColor(item.state) + '15'}"
                         class="w-100 text-white mb-3 px-4 text-left">
                         <summary :style="{ 'color': getStateColor(item.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent">
                             Index: {{ item.index }}, node: {{ getURL(item.node) }}
                         </summary>
                         <div class="py-3" style="min-height: 50px;" :style="{ 'fontSize': props.preference.font + 'px', 'line-height': props.preference.font + 'px' }">
-                            <p style="margin: 3px; text-align: left;" v-for="(text, j) in item.message" :key="j"> {{ text }} </p>    
+                            <p style="margin: 3px 1.5em; text-align: left;" v-for="(text, j) in item.message" :key="j"> {{ text }} </p>    
                         </div>
                     </details>
                 </template>
             </v-infinite-scroll>
-            <!----
-            <v-expansion-panels v-if="data[1].project_index >= 0" v-model="panelValue" multiple eager flat>
-                <v-infinite-scroll v-if="current_range" :key="data[1].task_index" :items="current_range" style="overflow-y: hidden;" @load="load" class="w-100 h-100" side="both">
-                    <template v-slot:empty></template>
-                    <template v-slot:load-more></template>
-                    <template v-slot:loading></template>
-                    <template v-for="(item, index) in current_range" :key="index">
-                        <v-expansion-panel eager accordion
-                            style="background-color: transparent;"
-                            class="w-100 text-white mb-3 px-4">
-                            <v-expansion-panel-title :style="{ 'color': getStateColor(item.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent">
-                                Index: {{ item.index }}, node: {{ getURL(item.node) }}
-                            </v-expansion-panel-title>
-                            <v-expansion-panel-text class="py-3" style="min-height: 50px;" :style="{ 'fontSize': props.preference.font + 'px', 'line-height': props.preference.font + 'px' }">
-                                <p style="margin: 3px; text-align: left;" v-for="(text, j) in item.message" :key="j"> {{ text }} </p>    
-                            </v-expansion-panel-text>
-                        </v-expansion-panel>
-                    </template>
-                </v-infinite-scroll>
-            </v-expansion-panels>
-            -->
             <br /> <br />
         </div>
     </v-container>

@@ -70,6 +70,26 @@ button:hover {
   border-color: #646cff;
 }
 
+details {
+  border-radius: 4px;
+  padding: 0.5em 0.5em 0;
+  border-radius: 20px;
+}
+
+summary {
+  font-weight: bold;
+  margin: -0.5em 0em 0;
+  padding: 0.5em;
+}
+
+details:open {
+  padding: 0.5em;
+}
+
+details {
+  padding-left: 1.5em;
+}
+
 .card {
   padding: 2em;
 }

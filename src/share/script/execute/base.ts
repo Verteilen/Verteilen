@@ -140,11 +140,10 @@ export class ExecuteManager_Base {
             x.task.forEach(y => {
                 y.jobs.forEach(z => {
                     let code = -1
-                    if((z.category == JobCategory.Execution && z.type == JobType.LUA) || (z.category == JobCategory.Condition && z.type == JobType2.LUA)) code = 0
-                    else if((z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT) || (z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT)) code = 1
+                    if((z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT) || (z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT)) code = 0
                     if(code == -1) return
                     z.string_args.forEach(s1 => {
-                        const target = lib.libs.find(l => l.type == code && l.name == s1)
+                        const target = lib.libs.find(l => l.name == s1)
                         if(target != undefined) r.libs.push(target)
                     })
                 })

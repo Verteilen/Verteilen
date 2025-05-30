@@ -145,13 +145,13 @@ const load = async (o:any) => {
                 <template v-slot:loading></template>
                 <template v-for="(item, index) in current_range" :key="index">
                     <details
-                        style="background-color: transparent;"
+                        :style="{ 'background-color': getStateColor(item.state) + '15'}"
                         class="w-100 text-white mb-3 px-4 text-left">
                         <summary :style="{ 'color': getStateColor(item.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent">
                             Index: {{ item.index }}
                         </summary>
                         <div class="py-3" style="min-height: 50px;" :style="{ 'fontSize': props.preference.font + 'px', 'line-height': props.preference.font + 'px' }">
-                            <p style="margin: 3px; text-align: left;" v-for="(text, j) in item.message" :key="j"> {{ text }} </p>    
+                            <p style="margin: 3px 1.5em; text-align: left;" v-for="(text, j) in item.message" :key="j"> {{ text }} </p>    
                         </div>
                     </details>
                 </template>

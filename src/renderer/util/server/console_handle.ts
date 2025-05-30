@@ -38,7 +38,8 @@ export class Util_Server_Console {
         })
         model[1].task_state[0].state = ExecuteState.RUNNING
         model[1].task_detail = []
-        const count = model[1].projects[model[1].project_index]?.task[model[1].task_index]?.jobs.length ?? 0
+        const task = model[1].projects[model[1].project_index]?.task[model[1].task_index]
+        const count = task.cronjob ? (task?.jobs.length ?? 0) : 1
         for(let i = 0; i < count; i++){
             model[1].task_detail.push({
                 index: i,
@@ -89,7 +90,8 @@ export class Util_Server_Console_Proxy {
             }
         })
         this.model[1].task_detail = []
-        const count = this.model[1].projects[this.model[1].project_index]?.task[this.model[1].task_index]?.jobs.length ?? 0
+        const task = this.model[1].projects[this.model[1].project_index]?.task[this.model[1].task_index]
+        const count = task.cronjob ? (task?.jobs.length ?? 0) : 1
         for(let i = 0; i < count; i++){
             this.model[1].task_detail.push({
                 index: i,
