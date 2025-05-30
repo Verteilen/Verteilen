@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, Ref, ref, watch } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { AppConfig, ExecuteState, Log, Preference } from '../../../interface';
+import { AppConfig, ExecuteState, Log, Preference, SCROLL_LIMIT } from '../../../interface';
 
 interface PROPS {
     preference: Preference
@@ -18,11 +18,24 @@ const emits = defineEmits<{
     (e: 'setEnable', index:number):void
     (e: 'update:panelValue', value:Array<number>):void
 }>()
+const myDiv:Ref<HTMLDivElement | null> = ref(null);
+const start = ref(0)
+const end = ref(0)
+const gap = ref(0)
 
 const items = computed(() => props.logs.logs.filter(x => x.output))
 const getselect = computed(() => items.value.length == 0 ? undefined : items.value[props.selection])
 const getselectTask = computed(() => getselect.value == undefined || props.current == -1 ? undefined : getselect.value.logs[props.current])
 
+const current_range = computed(() => {
+    if(props.logs.logs?.[1] == undefined) return
+    return props.logs.logs[1].logs[props.current].task_detail.slice(start.value, end.value)
+})
+watch(() => props.current, () => {
+    start.value = 0
+    end.value = 0
+    gap.value = 0
+})
 const getEnable = (r:number):Array<number> => {
     if(getselect.value == undefined || props.current == -1) return []
     const k = props.current % props.totalLength
@@ -57,47 +70,95 @@ const updatePanel = (v:unknown) => {
     emits('update:panelValue', v as Array<number>)
 }
 
+const load = async (o:any) => {
+    if(getselectTask.value == undefined) return
+    if(o.side == "start"){
+        if(start.value == 0){
+            o.done('ok')
+        }else{
+            start.value -= SCROLL_LIMIT
+            gap.value += 1
+
+            if(gap.value >= 3) {
+                end.value -= SCROLL_LIMIT
+                gap.value -= 1
+            }
+            if(start.value < 0) start.value = 0;
+            myDiv.value?.scrollTo(0, myDiv.value?.scrollTop + SCROLL_LIMIT * 10);
+            o.done('ok')
+        }
+    }
+    else if (o.side == "end"){
+        const size = getselectTask.value.task_detail.length
+        if(end.value == size){
+            o.done('ok')
+        }else{
+            end.value += SCROLL_LIMIT
+            gap.value += 1
+
+            if(gap.value >= 3) {
+                start.value += SCROLL_LIMIT
+                gap.value -= 1
+            }
+            if(end.value > size) end.value = size;
+            myDiv.value?.scrollTo(0, myDiv.value?.scrollTop - SCROLL_LIMIT * 10);
+            o.done('ok')
+        }
+    }
+    else{
+        o.done('error')
+    }
+}
+
 </script>
 
 <template>
-    <v-container v-if="getselect" class="pt-4" style="max-height: calc(100vh - 150px); overflow-y: auto;">
-        <v-card style="background-color: transparent" class="mb-2 pb-2">
-            <v-card-title @click="console.log(props.logs, getselect)">
-                {{ getselect.project.title }}
-            </v-card-title>
-            <v-card-subtitle>
-                {{ getselect.project.uuid }}
-            </v-card-subtitle>
-        </v-card>
-        <v-stepper style="background-color: transparent" class="my-1"
-            :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
-            <v-stepper-header>
-                <template v-for="i in page(r - 1)" :key="i">
-                    <v-divider v-if="i - 1" />
-                    <v-stepper-item 
-                        @click="setEnable(getindex(r, i))"
-                        class="px-4 py-3 my-1"
+    <v-container v-if="getselect" class="pt-4" style="max-height: calc(100vh - 150px);">
+        <div ref="myDiv" style="max-height: calc(100vh - 150px); overflow-y: auto;">
+            <v-card style="background-color: transparent" class="mb-2 pb-2">
+                <v-card-title @click="console.log(props.logs, getselect)">
+                    {{ getselect.project.title }}
+                </v-card-title>
+                <v-card-subtitle>
+                    {{ getselect.project.uuid }}
+                </v-card-subtitle>
+            </v-card>
+            <v-stepper style="background-color: transparent" class="my-1"
+                :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
+                <v-stepper-header>
+                    <template v-for="i in page(r - 1)" :key="i">
+                        <v-divider v-if="i - 1" />
+                        <v-stepper-item 
+                            @click="setEnable(getindex(r, i))"
+                            class="px-4 py-3 my-1"
+                            style="background-color: transparent;"
+                            :style="{ 'color': getStateColor(getselect.logs[getindex(r, i)]?.task_state.state ?? 0) }"
+                            :value="getindex(r, i)"
+                            :title="getselect.project.task[getindex(r, i)]?.title ?? ''"
+                            :complete="(getselect.logs[getindex(r, i)]?.task_state.state ?? 0) == 2">
+                        </v-stepper-item>
+                    </template>
+                </v-stepper-header>
+            </v-stepper>
+            <br /> 
+            <v-infinite-scroll v-if="getselectTask" :key="getselect.uuid + current" :items="current_range" style="overflow-y: hidden;" @load="load" class="w-100 h-100" side="both">
+                <template v-slot:empty></template>
+                <template v-slot:load-more></template>
+                <template v-slot:loading></template>
+                <template v-for="(item, index) in current_range" :key="index">
+                    <details
                         style="background-color: transparent;"
-                        :style="{ 'color': getStateColor(getselect.logs[getindex(r, i)]?.task_state.state ?? 0) }"
-                        :value="getindex(r, i)"
-                        :title="getselect.project.task[getindex(r, i)]?.title ?? ''"
-                        :complete="(getselect.logs[getindex(r, i)]?.task_state.state ?? 0) == 2">
-                    </v-stepper-item>
+                        class="w-100 text-white mb-3 px-4 text-left">
+                        <summary :style="{ 'color': getStateColor(item.state), 'fontSize': props.preference.font + 'px' }" style="background-color: transparent">
+                            Index: {{ item.index }}
+                        </summary>
+                        <div class="py-3" style="min-height: 50px;" :style="{ 'fontSize': props.preference.font + 'px', 'line-height': props.preference.font + 'px' }">
+                            <p style="margin: 3px; text-align: left;" v-for="(text, j) in item.message" :key="j"> {{ text }} </p>    
+                        </div>
+                    </details>
                 </template>
-            </v-stepper-header>
-        </v-stepper>
-        <br /> 
-        <v-expansion-panels v-if="getselectTask != undefined" model-value="panelValue" @update:model-value="updatePanel" multiple>
-            <v-expansion-panel v-for="(task, i) in getselectTask.task_detail" :key="i" style="background-color: transparent"
-                class="w-100 text-white mb-3 px-4">
-                <v-expansion-panel-title :style="{ 'color': getStateColor(task.state) }" style="background-color: transparent;">
-                    Index: {{ task.index }}
-                </v-expansion-panel-title>
-                <v-expansion-panel-text class="py-3" style="min-height: 50px;">
-                    <p style="line-height: 15px; margin: 3px; text-align: left;" v-for="(text, j) in task.message" :key="j"> {{ text }} </p>    
-                </v-expansion-panel-text>
-            </v-expansion-panel>
-        </v-expansion-panels>
-        <br /> <br />
+            </v-infinite-scroll>
+            <br /> <br />
+        </div>
     </v-container>
 </template>
