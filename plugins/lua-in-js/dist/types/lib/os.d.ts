@@ -1,5 +1,0 @@
-import { Table } from '../Table';
-import { Config } from '../utils';
-declare const getLibOS: (cfg: Config) => Table;
-export { getLibOS };
-//# sourceMappingURL=os.d.ts.map

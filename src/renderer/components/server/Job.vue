@@ -64,11 +64,9 @@ const checkPatterm = (category:number, type:number, checker:string):boolean => {
         (checker == 'OnePath' && ( type === JobType.DELETE_DIR || type === JobType.DELETE_FILE || type === JobType.CREATE_DIR )) ||
         (checker == 'Command' && ( type === JobType.COMMAND )) ||
         (checker == 'Writer' && ( type === JobType.CREATE_FILE )) ||
-        (checker == 'Lua' && (type == JobType.LUA)) ||
         (checker == 'Javascript' && (type == JobType.JAVASCRIPT))
     );
     const e2 = category == JobCategory.Condition && (
-        (checker == 'Lua_n' && (type == JobType2.LUA)) ||
         (checker == 'Javascript_n' && (type == JobType2.JAVASCRIPT)) ||
         (checker == 'OnePath_n' && (type == JobType2.CHECK_PATH))
     )
@@ -154,7 +152,7 @@ const scriptExist = (name:string) => {
 
 const libRename = (d:Rename) => {
     items.value.forEach(z => {
-        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
+        if((z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT) || (z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT)){
             const index = z.string_args.findIndex(x => x == d.oldname)
             if(index != -1) z.string_args[index] = d.newname
         }
@@ -163,7 +161,7 @@ const libRename = (d:Rename) => {
 
 const libDelete = (name:string) => {
     items.value.forEach(z => {
-        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
+        if((z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT) || (z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT)){
             const index = z.string_args.findIndex(x => x == name)
             if(index != -1) z.string_args.splice(index, 1)
         }
@@ -368,9 +366,9 @@ onUnmounted(() => {
                         <v-expansion-panel-text>
                             <v-card flat>
                                 <v-card-text>
-                                    <div v-if="checkPatterm(c.category, c.type, 'Lua_n')">
+                                    <div v-if="checkPatterm(c.category, c.type, 'Javascript_n')">
                                         <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
-                                        <codemirror-lua v-model="c.script" 
+                                        <codemirror-js v-model="c.script" 
                                             style="text-align:left;"
                                             :style="{ height: '40vh' }"
                                             @change="setdirty"/>
@@ -380,13 +378,6 @@ onUnmounted(() => {
                                                 <v-chip v-else closable color="danger">{{item.title}}</v-chip>
                                             </template>
                                         </v-select>
-                                    </div>
-                                    <div v-if="checkPatterm(c.category, c.type, 'Javascript_n')">
-                                        <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
-                                        <codemirror-js v-model="c.script" 
-                                            style="text-align:left;"
-                                            :style="{ height: '40vh' }"
-                                            @change="setdirty"/>
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
                                         <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
@@ -409,8 +400,8 @@ onUnmounted(() => {
                                         <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
                                         <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
                                     </div>
-                                    <div v-else-if="checkPatterm(c.category, c.type, 'Lua')">
-                                        <codemirror-lua v-model="c.script"
+                                    <div v-else-if="checkPatterm(c.category, c.type, 'Javascript')">
+                                        <codemirror-js v-model="c.script"
                                             style="text-align:left;"
                                             :style="{ height: '40vh' }"
                                             @change="setdirty"/>
@@ -420,12 +411,6 @@ onUnmounted(() => {
                                                 <v-chip v-else closable color="danger">{{item.title}}</v-chip>
                                             </template>
                                         </v-select>
-                                    </div>
-                                    <div v-else-if="checkPatterm(c.category, c.type, 'Javascript')">
-                                        <codemirror-js v-model="c.script"
-                                            style="text-align:left;"
-                                            :style="{ height: '40vh' }"
-                                            @change="setdirty"/>
                                     </div>
                                 </v-card-text>
                             </v-card>

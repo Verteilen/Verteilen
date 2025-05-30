@@ -1,4 +1,0 @@
-import { Table } from '../Table';
-declare const libMath: Table;
-export { libMath };
-//# sourceMappingURL=math.d.ts.map
