@@ -59,6 +59,7 @@
         "show-runtime": "Runtime"
     },
     "modal": {
+        "project-template-select": "Select Template",
         "new-project": "New Project",
         "modify-project": "Modify Project",
         "delete-project": "Delete Project",

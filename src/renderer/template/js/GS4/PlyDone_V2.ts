@@ -15,8 +15,8 @@ iframe_iteration = env.getnumber("iframe_iteration");
 finetune_iteration = env.getnumber("finetune_iteration");
 
 // current value [1, 2, 3, 4]
-o.createdir(\`\${output_folder}/final\`);
-o.createdir(\`\${output_folder}/trans\`);
+os.createdir(\`\${output_folder}/final\`);
+os.createdir(\`\${output_folder}/trans\`);
 
 copyToTarget = (src, output) => {
     prefix = \`\${src}/point_cloud/\`;
@@ -26,12 +26,12 @@ copyToTarget = (src, output) => {
         \`\${prefix}iteration_\${finetune_iteration}suffix\`
     ];
     exists = [
-        o.exist(plyPaths[1]), 
-        o.exist(plyPaths[2]) 
+        os.exist(plyPaths[1]), 
+        os.exist(plyPaths[2]) 
     ];
     exists.forEach((value2, key2) => {
         if (value2) {
-            o.copyfile(plyPaths[key2], output);
+            os.copyfile(plyPaths[key2], output);
             count = count + 1;
             return;
         }
@@ -44,11 +44,11 @@ for(i = 0; i < blend; i++){
     source_folder = "";
     starter = ((i+1) * iframe_gap) + 1;
     count = 0;
-    o.createdir(output_folder_seq);
+    os.createdir(output_folder_seq);
 
     // Positive
     source_folder = \`\${source_root_folder}/BLEND_\${i * iframe_gap}_IP/checkpoint\`;
-    allfolder = o.listdir(source_folder);
+    allfolder = os.listdir(source_folder);
     console.log(\`total file: \${allfolder.length} in \${source_folder}\`);
     
     allfolder.forEach((value, key) => {
@@ -66,7 +66,7 @@ for(i = 0; i < blend; i++){
 
     // Negative
     source_folder = \`\${source_root_folder}/BLEND_\${i * iframe_gap}_IN/checkpoint\`
-    allfolder = o.listdir(source_folder);
+    allfolder = os.listdir(source_folder);
     console.log(\`total file: \${allfolder.length} in \${source_folder}\`);
     c_starter = Math.floor((frame_size - 1) / group_size) * group_size + 1 + (i * iframe_gap)
 

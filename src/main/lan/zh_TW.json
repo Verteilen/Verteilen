@@ -59,6 +59,7 @@
         "show-runtime": "唯獨運行"
     },
     "modal": {
+        "project-template-select": "樣板選擇",
         "new-project": "新增專案",
         "modify-project": "編輯專案",
         "delete-project": "刪除專案",

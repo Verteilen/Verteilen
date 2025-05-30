@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { exec, spawn } from 'child_process';
 import fs from "fs";
 import { Messager, Messager_log, OnePath, TwoPath } from "../interface";
 
@@ -169,7 +169,29 @@ export class ClientOS {
             child.stderr.on('data', (chunk) => {
                 this.messager_log(`[Command Error] : ${chunk.toString()}`, this.tag())
             })
-            
+        })
+    }
+
+    command_exec = (command:string, args:string, cwd?:string) => {
+        const child = exec(`${command} ${args}`, { 
+                cwd: cwd, 
+                windowsHide: true
+        })
+
+        child.on('spawn', () => {
+            this.messager_log(`[Command] Spawn process`, this.tag())
+        })
+        child.on('error', (err) => {
+            this.messager_log(`[Command] Error: ${err}`, this.tag())
+        })
+        child.on('exit', (code, signal) => {
+            this.messager_log(`[Command] Process Exit: ${code}`, this.tag())
+        })
+        child.on('message', (message, sendHandle) => {
+            this.messager_log(`[Command] : ${message.toString()}`, this.tag())
+        })
+        child.on('close', (code, signal) => {
+            this.messager_log(`[Command] Process Close: ${code}`, this.tag())
         })
     }
 }

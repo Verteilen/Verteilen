@@ -33,16 +33,16 @@ env.setnumber("gop_negative", gap_n);
 
 copy_to_positive = (p_folder) => {
     to = \`\${p_folder}/\${p_count}\`;
-    if (o.exist(from)){
-        o.copydir(from, to);
+    if (os.exist(from)){
+        os.copydir(from, to);
     }
     p_count = p_count + 1;
 }
 
 copy_to_negative = (n_folder) => {
     to = \`\${n_folder}/\${p_count}\`;
-    if (o.exist(from)){
-        o.copydir(from, to);
+    if (os.exist(from)){
+        os.copydir(from, to);
     }
     n_count = n_count + 1;
 }
@@ -51,7 +51,7 @@ copy_to_negative = (n_folder) => {
 for(i = 0; i < blend; i++)
     // Folder name: DATASET_P_0, DATASET_P_5, DATASET_P_10
     p_folder = \`\${root}/\${after}/DATASET_P_\${i * iframe_gap}\`;
-    o.createdir(p_folder);
+    os.createdir(p_folder);
 
     // 0 or 1
     starter = (i * iframe_gap) + 1;
@@ -74,7 +74,7 @@ end
 for(i = 0; i < blend; i++)
     // Folder name: DATASET_N_0, DATASET_N_5, DATASET_N_10
     n_folder = \`\${root}/\${after}/DATASET_N_\${i * iframe_gap}\`;
-    o.createdir(n_folder);
+    os.createdir(n_folder);
 
     // 0 or 1
     starter = (i * iframe_gap) + 1;

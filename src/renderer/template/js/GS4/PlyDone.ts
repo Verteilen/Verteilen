@@ -8,15 +8,15 @@ iframe_gap = env.getnumber("iframe_gap");
 iframe_iteration = env.getnumber(iframe_iteration);
 finetune_iteration = env.getnumber(finetune_iteration);
 
-o.createdir(\`\${output_folder}/final\`);
-o.createdir(\`\${output_folder}/trans\`);
+os.createdir(\`\${output_folder}/final\`);
+os.createdir(\`\${output_folder}/trans\`);
 
 for(i = 0; i < blend; i++){
     output_folder_seq = \`\${output_folder}/raw/Sequence_\${i * iframe_gap}\`;
     source_folder = \`\${root}/\${after_folder}/BLEND_\${i * iframe_gap}_I/checkpoint\`;
-    o.createdir(output_folder_seq);
+    os.createdir(output_folder_seq);
 
-    allfolder = o.listdir(source_folder);
+    allfolder = os.listdir(source_folder);
     count = 0;
 
     allfolder.forEach((value, key) => {
@@ -27,12 +27,12 @@ for(i = 0; i < blend; i++){
             \`\${prefix}iteration_\${finetune_iteration}suffix\`
         ];
         exists = [
-            o.exist(plyPaths[1]), 
-            o.exist(plyPaths[2]) 
+            os.exist(plyPaths[1]), 
+            os.exist(plyPaths[2]) 
         ];
         exists.forEach((value2, key2) => {
             if (value2) {
-                o.copyfile(plyPaths[key2], \`\${output_folder_seq}/\${value}.ply\`);
+                os.copyfile(plyPaths[key2], \`\${output_folder_seq}/\${value}.ply\`);
                 count = count + 1;
                 return;
             }

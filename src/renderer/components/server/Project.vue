@@ -192,7 +192,7 @@ const updateLocate = () => {
     data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: ProjectTemplateTranslate(IndexToValue(index)),
-            group: ValueToGroupName(index) ?? '',
+            group: ValueToGroupName(IndexToValue(index)) ?? '',
             value: IndexToValue(index)
         }
     })

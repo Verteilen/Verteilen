@@ -17,8 +17,8 @@ for(i = 0; i < blend; i++){
     path2 = \`\${root}/\${after_folder}/BLEND_\${i * iframe_gap}_IN/checkpoint\`;
     m.messager(\`Create folder: \${path1}\`);
     m.messager(\`Create folder: \${path2}\`);
-    o.createdir(path1);
-    o.createdir(path2);
+    os.createdir(path1);
+    os.createdir(path2);
 }
 
 for(i = 1; i < iframe_size; i++){
@@ -37,8 +37,8 @@ for(i = 1; i < iframe_size; i++){
     to_foldername = (recur * gap_p) + delta + 1 + recur.toString();
     to = \`\${root}/\${after_folder}/BLEND_\${(step * iframe_gap)}_IP/checkpoint/\${to_foldername}\`;
 
-    if (o.exist(from)){
-        o.copydir(from, to);
+    if (os.exist(from)){
+        os.copydir(from, to);
     }
 
     if (i <= blend){
@@ -49,14 +49,14 @@ for(i = 1; i < iframe_size; i++){
     // N0, N1, N2
     to_foldername = \`N\${recur - 1}\`;
     to = \`\${root}/\${after_folder}/BLEND_\${step * iframe_gap}_IN/checkpoint/\${to_foldername}\`;
-    if (o.exist(from)){
-        o.copydir(from, to);
+    if (os.exist(from)){
+        os.copydir(from, to);
     }
 }
 
 for(i = 1; i < blend; i++){
     folder = \`\${root}/\${after_folder}/BLEND_\${i * iframe_gap}_IN/checkpoint/\`
-    target_folder = o.listdir(folder);
+    target_folder = os.listdir(folder);
     count = target_folder.length;
     delta = i * iframe_gap;
 
@@ -67,8 +67,8 @@ for(i = 1; i < blend; i++){
         to_foldername = (rindex * gap_n) + delta + 1 + rindex;
         to = \`\${folder}\${to_foldername}\`;
 
-        o.copydir(from, to)
-        o.deletedir(from)
+        os.copydir(from, to)
+        os.deletedir(from)
     })
 }
 `

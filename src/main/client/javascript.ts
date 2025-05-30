@@ -57,6 +57,7 @@ export class ClientJavascript {
         messager = _messager
         messager_log = _messager_log
         this.os = {
+            exec: this.exec,
             copyfile: this.copyfile,
             copydir: this.copydir,
             deletefile: this.deletefile,
@@ -163,7 +164,7 @@ export class ClientJavascript {
         const root = isbin ? path.join(process.cwd(), 'js') : path.join(process.cwd(), 'bin', 'js')
         if (!fs.existsSync(root)) fs.mkdirSync(root)
         let javascriptEnv = {}
-        if((flags & JavascriptLib.OS) == JavascriptLib.OS) javascriptEnv = Object.assign(javascriptEnv, { o: this.os })
+        if((flags & JavascriptLib.OS) == JavascriptLib.OS) javascriptEnv = Object.assign(javascriptEnv, { os: this.os })
         if((flags & JavascriptLib.ENV) == JavascriptLib.ENV) javascriptEnv = Object.assign(javascriptEnv, { env: this.env })
         if((flags & JavascriptLib.MESSAGE) == JavascriptLib.MESSAGE) javascriptEnv = Object.assign(javascriptEnv, { m: this.message })
         if((flags & JavascriptLib.HTTP) == JavascriptLib.HTTP) javascriptEnv = Object.assign(javascriptEnv, { http: this.http })
@@ -179,6 +180,9 @@ export class ClientJavascript {
         })
     
         return javascriptEnv
+    }
+    private exec(command:string, args:string, cwd?:string){
+        clientos?.command_exec(command, args, cwd)
     }
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})
