@@ -44,13 +44,13 @@ for (key = 0; key < frame_size; key++){
     for (key2 = 0; key2 < cam_size; key2++){
         // from: root/prepare/CAM/0001/000001.jpg
         // to: root/before/0/images/0000.jpg
-        from = \`\${root}/\${prepare_folder}/CAM/\${(key2 + 1).toString().padString(4, "0")}/\${(key + 1).toString().padString(6, "0")}.jpg\`;
-        to = \`\${root}/\${before_folder}/\${key}/images/\${key2.toString().padString(4, "0")}.jpg\`;
+        from = \`\${root}/\${prepare_folder}/CAM/\${String(key2 + 1).padStart(4, "0")}/\${String(key + 1).padStart(6, "0")}.jpg\`;
+        to = \`\${root}/\${before_folder}/\${key}/images/\${String(key2).padStart(4, "0")}.jpg\`;
         if (!os.exist(from)) {
             continue;
         }
         os.copyfile(from, to);
-        console.log_log(\`Copy file: \${from}   to   \${to}\`);
+        console.log(\`Copy file: \${from}   to   \${to}\`);
     }
 }
 

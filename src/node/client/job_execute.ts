@@ -15,7 +15,7 @@ export class ClientJobExecute {
      */
     parameter:Parameter | undefined
     /**
-     * User library for lua scripts
+     * User library for scripts
      */
     libraries:Libraries | undefined
     /**
