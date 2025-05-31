@@ -5,7 +5,7 @@ import { DataType, JavascriptLib, Job, Libraries, Messager, Messager_log, Parame
 import { ClientJobParameter } from './job_parameter';
 import { ClientOS } from './os';
 
-const safeEval = (code:string, context?:any, opts?:vm.RunningCodeInNewContextOptions | string) => {
+export const safeEval = (code:string, context?:any, opts?:vm.RunningCodeInNewContextOptions | string) => {
     let sandbox = {}
     let resultKey = 'SAFE_EVAL_' + Math.floor(Math.random() * 1000000)
     sandbox[resultKey] = {}

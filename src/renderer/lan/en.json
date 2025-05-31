@@ -202,7 +202,8 @@
         "number": "Number",
         "string": "String",
         "boolean": "Boolean",
-        "expression": "Expression"
+        "expression": "Expression",
+        "object": "Object"
     },
     "expression": {
         "title": "Title",

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { autocompletion } from '@codemirror/autocomplete';
-import { StreamLanguage } from "@codemirror/language";
-import { lua } from "@codemirror/legacy-modes/mode/lua";
+import { json } from '@codemirror/lang-json';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { basicSetup } from 'codemirror';
 import { computed } from 'vue';
@@ -13,8 +12,8 @@ const theme = useTheme()
 
 const extensions = computed(() => {
     return theme.global.name.value == "dark" ?
-    [basicSetup, StreamLanguage.define(lua), autocompletion(), oneDark] :
-    [basicSetup, StreamLanguage.define(lua), autocompletion()]
+    [basicSetup, json(), autocompletion(), oneDark] :
+    [basicSetup, json(), autocompletion()]
 })
 
 </script>

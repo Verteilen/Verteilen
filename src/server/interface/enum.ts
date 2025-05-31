@@ -2,7 +2,8 @@ export enum DataType {
     Boolean, 
     Number, 
     String,
-    Expression
+    Expression,
+    Object,
 }
 
 export enum ResourceType {
@@ -89,6 +90,7 @@ export const DataTypeText: { [key:number]:string } = {
     1: 'types.number',
     2: 'types.string',
     3: 'types.expression',
+    4: 'types.object',
 }
 
 export const ExecuteStateText: { [key:number]:string } = {

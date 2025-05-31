@@ -220,7 +220,6 @@ onUnmounted(() => {
         window.electronAPI.eventOff('createProject', createProject)
     }
 })
-
 </script>
 
 <template>

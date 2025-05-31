@@ -2,7 +2,7 @@ import mitt, { Emitter } from 'mitt';
 import { createApp } from 'vue';
 import App from './App.vue';
 import JavascriptView from "./components/components/code/JavascriptView.vue";
-import LuaView from "./components/components/code/LuaView.vue";
+import JsonView from "./components/components/code/JsonView.vue";
 import { BusType } from './interface';
 import { i18n } from "./plugins/i18n";
 import { vuetify } from "./plugins/vuetify";
@@ -16,5 +16,5 @@ app.provide('emitter', emitter)
 app.use(vuetify)
 app.use(i18n)
 app.component('codemirror-js', JavascriptView)
-app.component('codemirror-lua', LuaView)
+app.component('codemirror-json', JsonView)
 app.mount('#app');

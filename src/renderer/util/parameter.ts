@@ -34,6 +34,8 @@ export interface DialogDATA {
 }
 
 export interface DATA {
+    objectModal: boolean
+    objectTarget: ParameterContainer | undefined
     selectModal: boolean
     selectSearch: string | undefined
     createModal: boolean
