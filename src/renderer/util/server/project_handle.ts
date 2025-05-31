@@ -54,15 +54,17 @@ export class Util_Server_Project {
                 })
                 this.data.value.projects.splice(index, 1)
 
-                const index2 = this.data.value.parameters.findIndex(x => x.uuid == target.parameter_uuid)
-                if(index2 != -1){
-                    const target2 = this.data.value.parameters[index2]
-                    if(this.data.value.selectParameter?.uuid == target2.uuid){
-                        this.data.value.selectParameter = undefined
-                    }
-                    this.data.value.parameters.splice(index2, 1)
-                    if(this.config().config.isElectron){
-                        window.electronAPI.send('delete_parameter', target2.uuid)
+                if(bind){
+                    const index2 = this.data.value.parameters.findIndex(x => x.uuid == target.parameter_uuid)
+                    if(index2 != -1){
+                        const target2 = this.data.value.parameters[index2]
+                        if(this.data.value.selectParameter?.uuid == target2.uuid){
+                            this.data.value.selectParameter = undefined
+                        }
+                        this.data.value.parameters.splice(index2, 1)
+                        if(this.config().config.isElectron){
+                            window.electronAPI.send('delete_parameter', target2.uuid)
+                        }
                     }
                 }
             }
