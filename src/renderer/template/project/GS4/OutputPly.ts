@@ -7,7 +7,7 @@ const PlyList = ():Task => {
     const sequenceJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.LUA,
+        type: JobType.JAVASCRIPT,
         script: FUNIQUE_GS4_PLYDone_V2,
         string_args: [],
         number_args: [],
@@ -32,7 +32,7 @@ const PlyList = ():Task => {
 
 export const GetFUNIQUE_GS4ProjectTemplate_PLYOutput = (r:Project):Project => {
     const para:Parameter = {
-        title: "GS4 Ply Output",
+        title: "GS4 Ply Output Parameter",
         uuid: uuidv6(),
         canWrite: true,
         containers: GetFUNIQUE_GS4Project_Parameter_Builder()

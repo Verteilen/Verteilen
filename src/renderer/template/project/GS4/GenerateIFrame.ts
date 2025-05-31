@@ -217,7 +217,7 @@ const IFrameGTP_Adjustment = ():Task => {
 export const GetFUNIQUE_GS4ProjectTemplate_Generate_IFrame = (r:Project):Project => {
     const para:Parameter = {
         uuid: uuidv6(),
-        title: "GS4 Basic Parameter",
+        title: "GS4 I-Frame Parameter",
         canWrite: true,
         containers: GetFUNIQUE_GS4Project_Parameter_Builder()
     }

@@ -93,7 +93,7 @@ const Checkpoint_Negative = ():Task => {
 
 export const GetFUNIQUE_GS4ProjectTemplate_BlendResult = (r:Project):Project => {
     const para:Parameter = {
-        title: "GS4 Blend Prepare",
+        title: "GS4 Blend Result Parameter",
         uuid: uuidv6(),
         canWrite: true,
         containers: GetFUNIQUE_GS4Project_Parameter_Builder()

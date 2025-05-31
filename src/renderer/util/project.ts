@@ -163,7 +163,6 @@ export class Util_Project {
                 buffer.parameter = undefined
             } else console.error("Cannot find parameter template by id", this.data.value.editData.parameter)
         }
-        console.log(buffer)
         return buffer
     }
 
