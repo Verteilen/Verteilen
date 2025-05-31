@@ -111,7 +111,7 @@ const confirm = () => {
             <p v-if="propss.errorMessage.length > 0" class="mt-3 text-red">{{ propss.errorMessage }}</p>
 
 
-            <DialogBase width="500" v-model="selectTempModel" :color="isDark ? 
+            <DialogBase width="500" height="50%" v-model="selectTempModel" :color="isDark ? 
                 'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 
                 'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'">
                 <template #title>
