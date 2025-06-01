@@ -190,7 +190,7 @@ export class ClientJavascript {
         clientos?.command_exec(command, args, cwd)
     }
     private command(command:string, args:string, cwd?:string){
-        clientos?.command(command, args, cwd)
+        clientos?.command_sync(command, args, cwd)
     }
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})

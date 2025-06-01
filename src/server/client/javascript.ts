@@ -58,6 +58,7 @@ export class ClientJavascript {
         messager_log = _messager_log
         this.os = {
             exec: this.exec,
+            command: this.command,
             copyfile: this.copyfile,
             copydir: this.copydir,
             deletefile: this.deletefile,
@@ -83,6 +84,10 @@ export class ClientJavascript {
             hasstring: this.hasstring, 
             getstring: this.getstring, 
             setstring: this.setstring,
+
+            hasobject: this.hasobject, 
+            getobject: this.getobject, 
+            setobject: this.setobject,
         }
         
         this.message = {
@@ -184,6 +189,9 @@ export class ClientJavascript {
     private exec(command:string, args:string, cwd?:string){
         clientos?.command_exec(command, args, cwd)
     }
+    private command(command:string, args:string, cwd?:string){
+        clientos?.command_sync(command, args, cwd)
+    }
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})
     }
@@ -234,12 +242,17 @@ export class ClientJavascript {
         if(key == 'ck') return true
         const p = getpara?.() ?? undefined
         if(p == undefined) return false
-        return p.containers.findIndex(x => x.name == key && x.type == DataType.Number) != -1
+        return p.containers.findIndex(x => x.name == key && ( x.type == DataType.Number || x.type == DataType.Expression )) != -1
     }
     private hasstring(key:string){
         const p = getpara?.() ?? undefined
         if(p == undefined) return false
         return p.containers.findIndex(x => x.name == key && x.type == DataType.String) != -1
+    }
+    private hasobject(key:string){
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return false
+        return p.containers.findIndex(x => x.name == key && x.type == DataType.Object) != -1
     }
     private getboolean(key:string){
         const p = getpara?.() ?? undefined
@@ -252,12 +265,17 @@ export class ClientJavascript {
         }
         const p = getpara?.() ?? undefined
         if(p == undefined) return 0
-        return p.containers.find(x => x.name == key && x.type == DataType.Number)?.value ?? 0
+        return p.containers.find(x => x.name == key && ( x.type == DataType.Number || x.type == DataType.Expression ))?.value ?? 0
     }
     private getstring(key:string){
         const p = getpara?.() ?? undefined
         if(p == undefined) return ""
         return p.containers.find(x => x.name == key && x.type == DataType.String)?.value ?? ""
+    }
+    private getobject(key:string){
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return ""
+        return p.containers.find(x => x.name == key && x.type == DataType.Object)?.value ?? ""
     }
     private setboolean(key:string, value:boolean){
         const p = getpara?.() ?? undefined
@@ -290,6 +308,15 @@ export class ClientJavascript {
         if(target != undefined) target.value = value
         messager_log(`[String feedback] ${key} = ${value}`, tag(), runtime())
         para?.feedbackstring({key:key,value:value})
+    }
+    private setobject(key:string, value:any){
+        const p = getpara?.() ?? undefined
+        if(p == undefined) return
+        const target = p.containers.find(x => x.name == key && x.type == DataType.Object)
+        if(target == undefined && !p.canWrite) return
+        if(target != undefined) target.value = value
+        messager_log(`[Object feedback] ${key} = ${value}`, tag(), runtime())
+        para?.feedbackobject({key:key,value:value})
     }
     //#endregion
     //#endregion

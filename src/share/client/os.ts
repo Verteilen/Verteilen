@@ -172,6 +172,10 @@ export class ClientOS {
         })
     }
 
+    command_sync = (command:string, args:string, cwd?:string):string => {
+        return Promise.all([this.command(command, args, cwd)])[0]
+    }
+
     command_exec = (command:string, args:string, cwd?:string) => {
         const child = exec(`${command} ${args}`, { 
                 cwd: cwd, 

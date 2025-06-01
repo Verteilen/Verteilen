@@ -124,7 +124,7 @@ export class ClientOS {
      * @param args Arguments, It will split by space afterward
      * @returns 
      */
-    command = async (cwd:string, command:string, args:string):Promise<string> => {
+    command = async (command:string, args:string, cwd?:string):Promise<string> => {
         this.messager_log(`[OS Action] Command cwd: ${cwd}`, this.tag())
         this.messager_log(`[OS Action] Command command: ${command}`, this.tag())
         this.messager_log(`[OS Action] Command args: ${args}`, this.tag())
@@ -170,6 +170,10 @@ export class ClientOS {
                 this.messager_log(`[Command Error] : ${chunk.toString()}`, this.tag())
             })
         })
+    }
+
+    command_sync = (command:string, args:string, cwd?:string):string => {
+        return Promise.all([this.command(command, args, cwd)])[0]
     }
 
     command_exec = (command:string, args:string, cwd?:string) => {
