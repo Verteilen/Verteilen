@@ -1,4 +1,5 @@
 import { DataType } from "./enum"
+import { LocalPermiision } from "./struct"
 
 export interface ParameterContainer {
     s?: boolean
@@ -24,6 +25,7 @@ export interface Parameter {
 
 export interface Job {
     s?: boolean
+    permission?: LocalPermiision
     index?:number
     uuid: string
     runtime_uuid?: string
@@ -36,6 +38,7 @@ export interface Job {
 }
 
 export interface Task {
+    permission?: LocalPermiision
     uuid: string
     title: string
     description: string
@@ -49,6 +52,7 @@ export interface Task {
 }
 
 export interface Project {
+    permission?: LocalPermiision
     uuid: string
     title: string
     description: string
@@ -58,6 +62,7 @@ export interface Project {
 }
 
 export interface Node {
+    permission?: LocalPermiision
     ID: string
     url: string
 }

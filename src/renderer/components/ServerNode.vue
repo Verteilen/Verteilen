@@ -161,44 +161,54 @@ const libJs = (code:string) => { props.backend.send('javascript', code) }
 
 //#region Console
 const consoleAdded = (name:string, record:Record) => {
-  const em:ExecuteManager = new ExecuteManager(
-    name,
-    data.value.websocket_manager!, 
-    messager_log, 
-    JSON.parse(JSON.stringify(record))
-  )
-  const er:ExecuteRecord = {
-    ...record,
-    running: false,
-    stop: true,
-    process_type: -1,
-    useCron: false,
-    para: undefined,
-    command: [],
-    project: '',
-    task: '',
-    project_index: -1,
-    task_index: -1,
-    project_state: [],
-    task_state: [],
-    task_detail: [],
+  let r:boolean = false
+  if(false){
+    // If we have backend, the instance should be place in the backend
+    props.backend.send('console_add', JSON.stringify({
+      name: name,
+      record: record
+    }));
+  }else{
+    const em:ExecuteManager = new ExecuteManager(
+      name,
+      data.value.websocket_manager!, 
+      messager_log, 
+      JSON.parse(JSON.stringify(record))
+    )
+    const er:ExecuteRecord = {
+      ...record,
+      running: false,
+      stop: true,
+      process_type: -1,
+      useCron: false,
+      para: undefined,
+      command: [],
+      project: '',
+      task: '',
+      project_index: -1,
+      task_index: -1,
+      project_state: [],
+      task_state: [],
+      task_detail: [],
+    }
+    em.libs = data.value.libs
+    const p:[ExecuteManager, ExecuteRecord] = [em, er]
+    const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
+    const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference, config.value)
+    em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
+    r = util.console.receivedPack(p, record)
+    if(r){
+      data.value.execute_manager.push(p)
+      data.value.select_manager = data.value.execute_manager.length - 1
+    }
   }
-  em.libs = data.value.libs
-  const p:[ExecuteManager, ExecuteRecord] = [em, er]
-  const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
-  const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference, config.value)
-  em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
-  const r = util.console.receivedPack(p, record)
   if(!r){
     emitter?.emit('makeToast', {
         title: 'Execute Failed',
         message: 'Project execute failed !\nYou can see detail in Console/DebugLog',
         type: 'warning'
     })
-    return
   }
-  data.value.execute_manager.push(p)
-  data.value.select_manager = data.value.execute_manager.length - 1
 }
 const consoleStop = () => {
   nextTick(() => {

@@ -175,17 +175,18 @@ export interface TemplateGroup {
 }
 
 export interface GlobalPermission {
-    project: LobalPermiision
-    task: LobalPermiision
-    job: LobalPermiision
-    parameter: LobalPermiision
-    lib: LobalPermiision
-    log: LobalPermiision
+    project: LocalPermiision
+    task: LocalPermiision
+    node: LocalPermiision
+    job: LocalPermiision
+    parameter: LocalPermiision
+    lib: LocalPermiision
+    log: LocalPermiision
 
     execute_job: boolean
 }
 
-export interface LobalPermiision {
+export interface LocalPermiision {
     view: boolean
     create: boolean
     edit: boolean

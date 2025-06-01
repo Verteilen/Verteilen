@@ -5,13 +5,18 @@ import { Client } from "./client/client";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
-import { Job, Parameter, Preference, Project } from "./interface";
+import { ExecuteRecord, Job, Parameter, Preference, Project, Record } from "./interface";
 import { i18n } from "./plugins/i18n";
+import { ExecuteManager } from "./script/execute_manager";
+import { Util_Server_Console_Proxy } from "./util/server/console_handle";
+import { Util_Server } from "./util/server/server";
+import { Util_Server_Log_Proxy } from "./util/server/log_handle";
 
 export class BackendEvent {
     menu_state = false
     client:Client | undefined = undefined
     job: Job | undefined
+    util: Util_Server = new Util_Server(this)
 
     Init = () => {
         if(this.client != undefined) return
@@ -27,6 +32,48 @@ export class BackendEvent {
     }
 
     EventInit = () => {
+        this.AppInit()
+        this.ExecuteInit()
+    }
+
+    ExecuteInit = () => {
+        ipcMain.handle('console_add', (event, data:string) => {
+            const _data:any = JSON.parse(data)
+            const name:string = _data.name
+            const record:Record =_data.record
+            const em:ExecuteManager = new ExecuteManager(
+                name,
+                this.util.websocket_manager!, 
+                messager_log, 
+                JSON.parse(JSON.stringify(record))
+            )
+            const er:ExecuteRecord = {
+                ...record,
+                running: false,
+                stop: true,
+                process_type: -1,
+                useCron: false,
+                para: undefined,
+                command: [],
+                project: '',
+                task: '',
+                project_index: -1,
+                task_index: -1,
+                project_state: [],
+                task_state: [],
+                task_detail: [],
+            }
+            em.libs = this.util.libs
+            const p:[ExecuteManager, ExecuteRecord] = [em, er]
+            const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
+            const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, this.util.logs, this.util.preference!)
+            em.proxy = this.util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
+            const r = this.util.console.receivedPack(p, record)
+            return r;
+        })
+    }
+
+    AppInit = () => {
         ipcMain.on('client_start', (event, content:string) => {
             this.Init()
         })
@@ -88,7 +135,9 @@ export class BackendEvent {
                 return JSON.stringify(record)
             } else {
                 const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
+                const jsonString = file.toString()
+                this.util.preference = JSON.parse(jsonString)
+                return jsonString
             }
         })
         ipcMain.on('export_projects', (event, data:string) => {

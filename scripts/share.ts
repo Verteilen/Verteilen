@@ -20,7 +20,7 @@ const copyToWhere = (index) => {
         case 3: // plugins
             return [0, 1, 2, 3, 4]
         case 4: // script
-            return [2, 3]
+            return [0, 2, 3]
     }
 }
 
