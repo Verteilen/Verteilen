@@ -62,16 +62,6 @@ export async function Copy_PackageJson2Server() {
     return copyFile(from, to)
 }
 
-export async function Copy_Plugins2Node() {
-    const from = Path.join(__dirname, '..', 'plugins', 'lua-in-js');
-    const from2 = Path.join(__dirname, '..', 'plugins', 'luaparse');
-    const to = Path.join(__dirname, '..', 'build', 'node', 'plugins', 'lua-in-js');
-    const to2 = Path.join(__dirname, '..', 'build', 'node', 'plugins', 'luaparse');
-    const cp1 = cp(from, to, {recursive: true})
-    const cp2 = cp(from2, to2, {recursive: true})
-    return Promise.all([cp1, cp2])
-}
-
 export async function Copy_Render2Server() {
     const source = Path.join(__dirname, '..', 'build', 'renderer')
     const p = Path.join(__dirname, '..', 'build', 'server', 'public')
