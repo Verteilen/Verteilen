@@ -58,6 +58,7 @@ export class ClientJavascript {
         messager_log = _messager_log
         this.os = {
             exec: this.exec,
+            command: this.command,
             copyfile: this.copyfile,
             copydir: this.copydir,
             deletefile: this.deletefile,
@@ -187,6 +188,9 @@ export class ClientJavascript {
     }
     private exec(command:string, args:string, cwd?:string){
         clientos?.command_exec(command, args, cwd)
+    }
+    private command(command:string, args:string, cwd?:string){
+        clientos?.command(command, args, cwd)
     }
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})
