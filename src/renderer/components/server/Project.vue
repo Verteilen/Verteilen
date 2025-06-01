@@ -112,7 +112,7 @@ const DialogSubmit = (p:CreateField) => {
 const confirmCreate = () => {
     const buffer = util.confirmCreate()
     if(buffer == undefined) return
-    data.value.importModal = false
+    data.value.dialogModal = false
     emits('added', 
         [buffer]
     )
@@ -124,7 +124,7 @@ const confirmCreate = () => {
 const confirmEdit = () => {
     const selectp = util.confirmEdit()
     if(selectp == undefined) return
-    data.value.importModal = false
+    data.value.dialogModal = false
     emits('edit', 
     data.value.editUUID,
         { 
@@ -192,7 +192,7 @@ const updateLocate = () => {
     data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: ProjectTemplateTranslate(IndexToValue(index)),
-            group: ValueToGroupName(index) ?? '',
+            group: ValueToGroupName(IndexToValue(index)) ?? '',
             value: IndexToValue(index)
         }
     })
@@ -220,7 +220,6 @@ onUnmounted(() => {
         window.electronAPI.eventOff('createProject', createProject)
     }
 })
-
 </script>
 
 <template>
@@ -272,7 +271,8 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="pt-3">
-            <v-data-table :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
+            {{ data.importModal }}
+            <v-data-table style="background: transparent" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>

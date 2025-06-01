@@ -22,6 +22,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             'feedback_string': this.feedback_string,
             'feedback_boolean': this.feedback_boolean,
             'feedback_number': this.feedback_number,
+            'feedback_object': this.feedback_object,
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
@@ -153,6 +154,21 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
         if(index != -1) this.localPara!.containers[index].value = data.value
         else this.localPara!.containers.push({ name: data.key, value: data.value, type: DataType.Number, hidden: true, runtimeOnly: true })
         this.messager_log(`[Number Feedback] ${data.key} = ${data.value}`)
+        // Sync to other
+        const d:Header = { name: 'set_parameter', data: this.localPara!}
+        this.current_nodes.forEach(x => x.websocket.send(JSON.stringify(d)))
+        this.proxy?.updateParameter(this.localPara!)
+    }
+    /**
+     * When one of the node decide to change the parameter of object value
+     * @param data The assigner
+     */
+    private feedback_object = (data:Setter) => {
+        if(this.current_p == undefined) return
+        const index = this.localPara!.containers.findIndex(x => x.name == data.key && x.type == DataType.Object)
+        if(index != -1) this.localPara!.containers[index].value = data.value
+        else this.localPara!.containers.push({ name: data.key, value: data.value, type: DataType.Object, hidden: true, runtimeOnly: true })
+        this.messager_log(`[Object Feedback] ${data.key}`)
         // Sync to other
         const d:Header = { name: 'set_parameter', data: this.localPara!}
         this.current_nodes.forEach(x => x.websocket.send(JSON.stringify(d)))

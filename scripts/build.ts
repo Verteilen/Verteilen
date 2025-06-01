@@ -1,15 +1,20 @@
 import Chalk from 'chalk';
 import { rmSync } from 'fs';
+import { cp } from 'fs/promises';
 import Path from 'path';
 import Vite from 'vite';
 import compileTs from './private/tsc';
 
-function buildRenderer() {
-    return Vite.build({
+async function buildRenderer() {
+    await Vite.build({
         configFile: Path.join(__dirname, '..', 'vite.config.js'),
         base: './',
         mode: 'production'
     });
+    await cp(
+        Path.join(__dirname, '..', 'src', 'renderer', 'assets', 'guide'), 
+        Path.join(__dirname, '..', 'build', 'renderer', 'guide'), 
+        { recursive: true })
 }
 
 function buildMain() {

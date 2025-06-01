@@ -13,7 +13,8 @@
         "runAfterFinish": false
     },
     "linux":  {
-        "target": ["snap"]
+        "target": "deb",
+        "maintainer": "Elly"
     },
     "extraFiles": [
         "README.md",

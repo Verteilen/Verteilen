@@ -70,6 +70,9 @@ const clearMessage = () => {
   panel.value = [0]
 }
 
+const popSetting = () => { emitter?.emit('setting') }
+const popGuide = () => { emitter?.emit('guide') }
+
 onMounted(() => {
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
   props.backend.wait_init().then(() => {
@@ -89,28 +92,64 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="float_button text-white" style="z-index: 5;">
-    <v-btn-group>
-      <v-btn color="primary" @click="panel = []">{{ $t('close-all') }}</v-btn>
-      <v-btn :color="autoScroll ? 'success' : 'error'" @click="autoScroll = !autoScroll">{{ $t('auto-scroll') }}</v-btn>
-      <v-btn color="primary" @click="clearMessage">{{ $t('clear') }}</v-btn>
-    </v-btn-group>
-  </div>
-  <div class="flow text-white bg-grey-darken-4" ref="myDiv">
-    <v-expansion-panels multiple v-model="panel">
-      <v-expansion-panel v-for="(block, i) in messages" :key="i">
-        <v-expansion-panel-title color="grey-darken-3">
-          <h3>{{ block.title }}</h3>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
-          <br />
-          <p class="messages" v-for="(msg, j) in block.text" :key="j">
-            {{ msg }}
-          </p>
-          <br />
-        </v-expansion-panel-text>
-      </v-expansion-panel>
-    </v-expansion-panels>
+  <div class="text-white bg" style="margin: 0; width: 100vw; height: 100vh; place-items: center;">
+    <v-layout>
+      <v-app-bar :elevation="2">
+          <v-app-bar-title>{{ $t('node') }}</v-app-bar-title>
+          <template v-slot:append>
+          <v-menu location="left">
+              <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" icon="mdi-dots-vertical"></v-btn>
+              </template>
+              <v-list width="120px">
+              <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
+              <v-list-item @click="popGuide">{{ $t('guide') }}</v-list-item>
+              </v-list>
+          </v-menu>
+          </template>
+      </v-app-bar>
+    </v-layout>
+    <v-toolbar density="compact" class="pr-3" style="padding-top: 65px">
+      <v-tooltip location="bottom">
+          <template v-slot:activator="{ props }">
+              <v-btn color="primary" icon v-bind="props" @click="panel = []">
+                  <v-icon>mdi-folder-arrow-up</v-icon>
+              </v-btn>
+          </template>
+          {{ $t('close-all') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+          <template v-slot:activator="{ props }">
+              <v-btn icon v-bind="props" :color="autoScroll ? 'success' : 'error'" @click="autoScroll = !autoScroll">
+                  <v-icon>mdi-pan-vertical</v-icon>
+              </v-btn>
+          </template>
+          {{ $t('auto-scroll') }}
+      </v-tooltip>
+      <v-tooltip location="bottom">
+          <template v-slot:activator="{ props }">
+              <v-btn color="error" icon v-bind="props" @click="clearMessage">
+                  <v-icon>mdi-close</v-icon>
+              </v-btn>
+          </template>
+          {{ $t('clear') }}
+      </v-tooltip>
+    </v-toolbar>
+    <div class="flow text-white" ref="myDiv">
+      <v-expansion-panels multiple v-model="panel">
+        <v-expansion-panel v-for="(block, i) in messages" :key="i" style="background: transparent">
+          <v-expansion-panel-title color="grey-darken-3">
+            <h3>{{ block.title }}</h3>
+          </v-expansion-panel-title>
+          <v-expansion-panel-text>
+            <p class="messages" v-for="(msg, j) in block.text" :key="j" 
+              :style="{ 'fontSize': props.preference.font + 'px', 'line-height': (props.preference.font) + 'px' }">
+              {{ msg }}
+            </p>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
+    </div>
   </div>
 </template>
 
@@ -130,5 +169,8 @@ onUnmounted(() => {
 }
 .messages {
   line-height: 18px;
+}
+.bg {
+    background-image: linear-gradient(to bottom right, rgb(33, 33, 33), rgb(33, 40, 48));
 }
 </style>

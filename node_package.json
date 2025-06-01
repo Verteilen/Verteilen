@@ -1,11 +1,10 @@
 {
     "name": "compute_tool_node",
-    "version": "0.7.4",
+    "version": "0.8.0",
     "description": "Compute tool for multi computer",
     "main": "index.js",
     "repository": "https://github.com/Elly2018/Compute-Tool",
     "dependencies": {
-        "lua-in-js": "file:plugins/lua-in-js",
         "tcp-port-used": "^1.0.2",
         "ws": "^8.18.0",
         "vue-i18n": "^10.0.5"

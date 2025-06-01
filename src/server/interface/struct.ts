@@ -41,6 +41,10 @@ export interface Header {
      */
     message?: string
     /**
+     * Resource channel
+     */
+    channel?:string
+    /**
      * The data content
      */
     data?: any
@@ -168,4 +172,23 @@ export interface TemplateGroup {
     value: number
     group: string
     template: ProjectCall
+}
+
+export interface GlobalPermission {
+    project: LocalPermiision
+    task: LocalPermiision
+    node: LocalPermiision
+    job: LocalPermiision
+    parameter: LocalPermiision
+    lib: LocalPermiision
+    log: LocalPermiision
+
+    execute_job: boolean
+}
+
+export interface LocalPermiision {
+    view: boolean
+    create: boolean
+    edit: boolean
+    delete: boolean
 }

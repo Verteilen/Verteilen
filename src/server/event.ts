@@ -2,9 +2,9 @@ import fs from "fs";
 import path from "path";
 import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
-import { ClientLua } from "./client/lua";
+import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, Header, Job, Libraries, Parameter, Preference, Project, ShellFolder, Single, Task, WebsocketPack } from "./interface";
+import { BusAnalysis, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Header, Job, Libraries, NodeProxy, Parameter, Preference, Project, Record, ShellFolder, Single, Task, WebsocketPack } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { ExecuteManager } from "./script/execute_manager";
@@ -15,15 +15,15 @@ type TypeMap = { [key:string]:Function }
 export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
     websocket_manager:WebsocketManager
-    execute_manager:ExecuteManager
+    execute_manager:Array<[ExecuteManager, ExecuteRecord]> = []
     
-    lubCall:ClientLua
+    jsCall:ClientJavascript
+    proxy: ExecuteProxy
     libs:Libraries = {libs: []}
     
     constructor(){
-        this.lubCall = new ClientLua(messager, messager_log, () => undefined)
-
-        const proxy:ExecuteProxy = {
+        this.jsCall = new ClientJavascript(messager, messager_log, () => undefined)
+        this.proxy = {
             executeProjectStart: (data:Project):void => { this.Boradcasting('executeProjectStart', data) },
             executeProjectFinish: (data:Project):void => { this.Boradcasting('executeProjectFinish', data) },
             executeTaskStart: (data:[Task, number]):void => { this.Boradcasting('executeTaskStart', data) },
@@ -35,26 +35,24 @@ export class BackendEvent {
             executeJobFinish: (data:[Job, number, string, number]):void => { this.Boradcasting('executeJobFinish', data) },
             feedbackMessage: (data:FeedBack):void => { this.Boradcasting('feedbackMessage', data) },
             updateParameter: (data:Parameter) => { this.Boradcasting('updateParameter', data) },
+        }
+        const proxy2:NodeProxy = {
             shellReply: (data:Single) => { this.Boradcasting('shellReply', data) },
             folderReply: (data:ShellFolder) => { this.Boradcasting('folderReply', data) },
         }
-
-        this.websocket_manager = new WebsocketManager(this.newConnect, this.disconnect, this.analysis, messager_log)
-        this.execute_manager = new ExecuteManager(this.websocket_manager, messager_log)
-        this.execute_manager.libs = this.libs
-        this.execute_manager.proxy = proxy
-        this.websocket_manager.newConnect = this.newConnect
-        this.websocket_manager.disconnect = this.disconnect
-        this.websocket_manager.onAnalysis = this.execute_manager.Analysis
+        this.websocket_manager = new WebsocketManager(this.newConnect, this.disconnect, this.analysis, messager_log, proxy2)
     }
 
+    // The new manager enter the hood
     NewConsole = (socket:ws.WebSocket) => {
         const typeMap:TypeMap = {
-            'lua': this.lua,
+            'lua': this.js,
             'message': this.message,
             'load_record_obsolete': this.load_record_obsolete,
             'save_preference': this.save_preference,
             'load_preference': this.load_preference,
+            // Unique
+            'console_add': this.ConsoleAdd
         }
         this.Loader(typeMap, 'record', 'record')
         this.Loader(typeMap, 'parameter', 'parameter')
@@ -166,31 +164,33 @@ export class BackendEvent {
     //#region Server Side
     private newConnect = (x:WebsocketPack) => {
         this.Boradcasting('makeToast', {
-            title: "連線建立",
+            title: i18n.global.t('toast.connection-create-title'),
             type: 'success',
-            message: `建立新的連線: ${x.websocket.url} \n${x.uuid}`
+            message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
         })
-        this.execute_manager?.NewConnection(x)
+        this.execute_manager.forEach(y => {
+            y[0].NewConnection(x)
+        })
     }
 
     private disconnect = (x:WebsocketPack) => {
         this.Boradcasting('makeToast', {
-            title: "連線中斷",
-            type: 'error',
-            message: `連線中斷偵測: ${x.websocket.url} \n${x.uuid}`
+            title: i18n.global.t('toast.connection-remove-title'),
+            type: 'danger',
+            message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
         })
     }
 
-    private analysis = (b:BusAnalysis) => {
-        this.execute_manager?.Analysis(b)
+    private analysis = (d:BusAnalysis) => {
+        this.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
     }
     //#endregion
 
     //#region Manager Side
-    private lua = (content:string, socket:ws.WebSocket) => {
-        const r = this.lubCall.LuaExecute(content)
+    private js = (content:string, socket:ws.WebSocket) => {
+        const r = this.jsCall.JavascriptExecute(content)
         const d:Header = {
-            name: 'lua-feedback',
+            name: 'js-feedback',
             data: r?.toString() ?? ''
         }
         socket.send(JSON.stringify(d))
@@ -220,6 +220,8 @@ export class BackendEvent {
                 lan: 'en',
                 log: true,
                 font: 18,
+                theme: "dark",
+                notification: false,
             }
             fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
             i18n.global.locale = 'en'
@@ -264,6 +266,11 @@ export class BackendEvent {
         })
     }
     //#endregion
+
+    ConsoleAdd = (data:any, socket:ws.WebSocket) => {
+        const n:string = data.name
+        const r:Record = data.record
+    }
 }
 
 

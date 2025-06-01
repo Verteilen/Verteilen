@@ -1,4 +1,14 @@
 {
+    "guides": {
+        "workflow": "Workflow",
+        "core": "Core Mechanism",
+        "ui": "UI Structure",
+        "project": "Project Container",
+        "task": "Task Container",
+        "job": "Job Container",
+        "parameter": "Parameter Binding",
+        "console": "Console"
+    },
     "menu": {
         "file": "File",
         "edit": "Edit",
@@ -19,6 +29,11 @@
         "log": "Log",
         "font": "Font Size"
     },
+    "settings": {
+        "system": "System",
+        "appearance": "Appearance",
+        "workflow": "Workflow"
+    },
     "toast": {
         "server": "Server Mode",
         "node": "Node Mode",
@@ -30,7 +45,8 @@
         "connection-remove-des": "Disconnect detected"
     },
     "modeselect": {
-        "title": "Your role"
+        "title": "Your role",
+        "titlebar": "Role Selection"
     },
     "error": {
         "title-needed": "Title is needed",
@@ -43,6 +59,7 @@
         "show-runtime": "Runtime"
     },
     "modal": {
+        "project-template-select": "Select Template",
         "new-project": "New Project",
         "modify-project": "Modify Project",
         "delete-project": "Delete Project",
@@ -66,6 +83,9 @@
         "import-parameter": "Delete Parameter",
         "delete-parameter-confirm": "Are you sure delete parameter you selected",
         "parameter-datatype": "Datatype",
+        "create-library": "Create Lib",
+        "enter-library-name": "Enter Lib Name",
+        "enter-library-type": "Enter Lib Type",
         "new-node": "New Node",
         "enter-node-address": "Enter Node Address",
         "skip-step": "Skip Step",
@@ -77,6 +97,9 @@
         "console-name": "Console Name"
     },
     "toolbar": {
+        "server": "Server",
+        "editor": "Editor",
+        "backend": "Backend Feature",
         "project": "Project",
         "task": "Task",
         "job": "Job",
@@ -117,11 +140,13 @@
             "create-dir": "Create Dir",
             "rename": "Rename Path",
             "lua": "Lua",
+            "javascript": "Javascript",
             "command": "Command"
         },
         "jobtype2": {
             "check-path": "Check Path",
-            "lua": "Lua"
+            "lua": "Lua",
+            "javascript": "Javascript"
         },
         "jobresult": {
             "none": "None",
@@ -135,9 +160,13 @@
         },
         "project": {
             "default": "Example",
-            "gs4": "Funique GS4",
-            "gs4-2": "Funique GS4 V2",
-            "gs4-lut": "Funique Lut Ply",
+            "gs4-prepare": "Funique GS4 Prepare",
+            "gs4-colmap": "Funique GS4 Colmap",
+            "gs4-iframe": "Funique GS4 I-Frame",
+            "gs4-blend-prepare": "Funique GS4 Blend Prepare",
+            "gs4-blend": "Funique GS4 Blend Result",
+            "gs4-output": "Funique GS4 Output Ply",
+            "gs4-lut": "Funique GS4 Apply Lut",
             "concat": "FFmpeg concat",
             "blender": "Blender Render",
             "aftereffect": "After Effect Render"
@@ -173,7 +202,8 @@
         "number": "Number",
         "string": "String",
         "boolean": "Boolean",
-        "expression": "Expression"
+        "expression": "Expression",
+        "object": "Object"
     },
     "expression": {
         "title": "Title",
@@ -232,6 +262,7 @@
     "close-all": "Close All",
     "clean": "Clean",
     "cronjob": "Distribute",
+    "setupjob": "Setup",
     "multicore": "Multicore",
     "recover": "Recover",
     "cancel": "Cancel",
@@ -239,5 +270,7 @@
     "confirm": "Confirm",
     "close": "Close",
     "enter": "Enter",
-    "filters": "Filters"
+    "filters": "Filters",
+    "setting": "Setting",
+    "guide": "Guide"
 }

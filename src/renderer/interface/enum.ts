@@ -2,7 +2,8 @@ export enum DataType {
     Boolean, 
     Number, 
     String,
-    Expression
+    Expression,
+    Object,
 }
 
 export enum ResourceType {
@@ -40,23 +41,29 @@ export enum JobType {
     CREATE_FILE,
     CREATE_DIR,
     RENAME,
-    LUA,
+    JAVASCRIPT,
     COMMAND
 }
 
 export enum JobType2 {
     CHECK_PATH,
-    LUA
+    JAVASCRIPT,
 }
 
 export enum ProjectTemplate {
-    DEFAULT,
-    FUNIQUE_GS4,
-    FUNIQUE_GS42,
-    FUNIQUE_LUT,
-    FFmpeg_Concat,
-    Blender,
-    AfterEffect
+    DEFAULT = 0,
+
+    GS4_PREPARE = 100,
+    GS4_COLMAP = 101,
+    GS4_IFRAME = 102,
+    GS4_BLEND_PREPARE = 103,
+    GS4_BLEND = 104,
+    GS4_OUTPUT = 105,
+    GS4_LUT = 106,
+
+    FFmpeg_Concat = 200,
+    Blender = 300,
+    AfterEffect = 400,
 }
 
 export enum ExecuteState {
@@ -70,7 +77,7 @@ export enum RenderUpdateType {
     Parameter = 1 << 2
 }
 
-export enum LuaLib {
+export enum JavascriptLib {
     ALL = ~(~0 << 7),
     OS = 1 << 0, 
     ENV = 1 << 1, 
@@ -83,6 +90,7 @@ export const DataTypeText: { [key:number]:string } = {
     1: 'types.number',
     2: 'types.string',
     3: 'types.expression',
+    4: 'types.object',
 }
 
 export const ExecuteStateText: { [key:number]:string } = {
@@ -122,21 +130,25 @@ export const JobTypeText: { [key:number]:string } = {
     4: 'enum.jobtype.create-file',
     5: 'enum.jobtype.create-dir',
     6: 'enum.jobtype.rename',
-    7: 'enum.jobtype.lua',
+    7: 'enum.jobtype.javascript',
     8: 'enum.jobtype.command'
 }
 
 export const JobType2Text: { [key:number]:string } = {
     0: 'enum.jobtype2.check-path',
-    1: 'enum.jobtype.lua'
+    1: 'enum.jobtype.javascript',
 }
 
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
-    10: 'enum.project.gs4',
-    11: 'enum.project.gs4-2',
-    12: 'enum.project.gs4-lut',
-    20: 'enum.project.concat',
-    30: 'enum.project.blender',
-    40: 'enum.project.aftereffect',
+    100: 'enum.project.gs4-prepare',
+    101: 'enum.project.gs4-colmap',
+    102: 'enum.project.gs4-iframe',
+    103: 'enum.project.gs4-blend-prepare',
+    104: 'enum.project.gs4-blend',
+    105: 'enum.project.gs4-output',
+    106: 'enum.project.gs4-lut',
+    200: 'enum.project.concat',
+    300: 'enum.project.blender',
+    400: 'enum.project.aftereffect',
 }

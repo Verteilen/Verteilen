@@ -7,11 +7,11 @@ const props = defineProps<DialogDATA>()
     const emits = defineEmits<{
     (e: 'submit', d:CreateField): void
 }>()
-const buffer:Ref<CreateField> = ref({cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""})
+const buffer:Ref<CreateField> = ref({cronjob: false, cronjobKey: "", title: "", description: "", setupjob: false, multi: false, multiKey: ""})
 
 watch(() => data.value, () => {
     if(props.isEdit) buffer.value = props.editData
-    else buffer.value = {cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""}
+    else buffer.value = {cronjob: false, cronjobKey: "", title: "", description: "", setupjob: false, multi: false, multiKey: ""}
 })
 
 const confirm = () => emits('submit', buffer.value)
@@ -32,11 +32,12 @@ const confirm = () => emits('submit', buffer.value)
                 <v-text-field :error="titleError" v-model="buffer.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
                 <v-text-field class="mt-3" v-model="buffer.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
                 <br />
-                <v-checkbox v-model="buffer.cronjob" :label="$t('cronjob')" hide_details></v-checkbox>
-                <v-select v-if="buffer.cronjob" v-model="buffer.cronjobKey" :items="para_keys" hide-details></v-select>
-                <br />
-                <v-checkbox v-if="buffer.cronjob" v-model="buffer.multi" :label="$t('multicore')" hide_details></v-checkbox>
-                <v-select v-if="buffer.cronjob && buffer.multi" v-model="buffer.multiKey" :items="props.para_keys" hide-details></v-select>
+                <v-checkbox v-model="buffer.setupjob" :label="$t('setupjob')" hide_details></v-checkbox>
+                <v-checkbox v-if="!buffer.setupjob" v-model="buffer.cronjob" :label="$t('cronjob')" hide_details></v-checkbox>
+                <v-select v-if="!buffer.setupjob && buffer.cronjob" v-model="buffer.cronjobKey" :items="para_keys" hide-details></v-select>
+                <br v-if="!buffer.setupjob" />
+                <v-checkbox v-if="!buffer.setupjob && buffer.cronjob" v-model="buffer.multi" :label="$t('multicore')" hide_details></v-checkbox>
+                <v-select v-if="!buffer.setupjob && buffer.cronjob && buffer.multi" v-model="buffer.multiKey" :items="props.para_keys" hide-details></v-select>
                 <p v-if="errorMessage.length > 0" class="mt-3 text-red">{{ errorMessage }}</p>
             </v-card-text>
             <template v-slot:actions>

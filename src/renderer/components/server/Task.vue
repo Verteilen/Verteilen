@@ -25,13 +25,14 @@ const emits = defineEmits<{
     (e: 'bind', uuid:string):void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
+    (e: 'return'): void
 }>()
 const data:Ref<DATA> = ref({
     fields: [],
     paraModal: false,
     dialogModal: false,
     isEdit: false,
-    editData: {cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""},
+    editData: {cronjob: false, cronjobKey: "", title: "", description: "", setupjob: false, multi: false, multiKey: ""},
     editUUID: '',
     deleteModal: false,
     deleteData: [],
@@ -109,8 +110,12 @@ const confirmCreate = () => {
     emits('added', p)
     nextTick(() => {
         updateTask();
-        data.value.editData = {cronjob: false, cronjobKey: "", title: "", description: "", multi: false, multiKey: ""};
+        data.value.editData = {cronjob: false, cronjobKey: "", title: "", description: "", setupjob: false, multi: false, multiKey: ""};
     })
+}
+
+const getIndex = (ID:string) => {
+    return data.value.items.findIndex(x => x.ID == ID)
 }
 
 const confirmEdit = () => {
@@ -142,6 +147,7 @@ const isLast = (uuid:string) => util.isLast(uuid)
 const updateFields = () => {
     data.value.fields = [
         { title: 'ID', align: 'center', key: 'ID' },
+        { title: 'Order', align: 'center', key: 'Order' },
         { title: i18n.global.t('headers.title'), align: 'center', key: 'title' },
         { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
         { title: i18n.global.t('headers.cronjob'), align: 'center', key: 'cronjob' },
@@ -153,6 +159,10 @@ const updateFields = () => {
 
 const updateLocate = () => {
     updateFields()
+}
+
+const goreturn = () => {
+    emits('return')
 }
 
 onMounted(() => {
@@ -174,14 +184,15 @@ onUnmounted(() => {
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
-                <p v-if="props.select != undefined" class="mr-4">
+                <v-btn size="sm" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
+                <p v-if="props.select != undefined" class="mx-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
-                <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailOpen" color="success">
+                <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-paperclip" @click="detailOpen" color="success">
                     {{ $t('parameter-setting') }}: {{ para_title }}
                 </v-chip>
                 <v-btn v-if="hasPara && props.select != undefined" variant="text" icon="mdi-select" @click="detailSelect"></v-btn>
-                <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-pen" @click="detailSelect" color="warning">
+                <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-paperclip" @click="detailSelect" color="warning">
                     {{ $t('parameter-select') }}
                 </v-chip>
                 <v-spacer></v-spacer>
@@ -219,27 +230,30 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
-        <div class="py-3">
-            <v-data-table :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
+        <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
+            <v-data-table style="background: transparent" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
+                <template v-slot:item.Order="{ item }">
+                    {{ getIndex(item.ID) }}
+                </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-btn flat icon @click="datachoose(item.ID)" size="small">
+                    <v-btn variant="text" icon @click="datachoose(item.ID)" size="small">
                         <v-icon>mdi-location-enter</v-icon>
                     </v-btn>
-                    <v-btn flat icon @click="dataedit(item.ID)" size="small">
+                    <v-btn variant="text" icon @click="dataedit(item.ID)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
+                    <v-btn variant="text" icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
                         <v-icon>mdi-arrow-up</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
+                    <v-btn variant="text" icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
                 </template>
                 <template v-slot:item.cronjob="{ item }">
-                    <v-chip :color="item.cronjob ? 'success' : 'error'">{{ item.cronjob }}</v-chip>
+                    <v-chip :color="(item.cronjob || item.setupjob) ? 'success' : 'error'">{{ item.cronjob || item.setupjob }}</v-chip>
                 </template>
                 <template v-slot:item.multi="{ item }">
                     <v-chip :color="item.multi ? 'success' : 'error'">{{ item.multi }}</v-chip>

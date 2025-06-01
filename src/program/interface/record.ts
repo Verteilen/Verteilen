@@ -69,17 +69,22 @@ export interface Preference {
      * Language setting
      */
     lan: string
+    notification: boolean
+
+    theme: string
+    font: number
+    
     /**
      * You can turn off the logging\
      * To prevent IO works to slowdown your works\
      * ![NOTICE] there will be no log to recover your works
      */
     log: boolean
-    font: number
 }
 
 export interface Library {
     name: string
+    load: boolean
     content: string
 }
 

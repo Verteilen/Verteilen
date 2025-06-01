@@ -1,4 +1,14 @@
 {
+    "guides": {
+        "workflow": "工作流程",
+        "core": "核心運作",
+        "ui": "UI 結構",
+        "project": "專案容器",
+        "task": "流程容器",
+        "job": "工作容器",
+        "parameter": "數據綁定",
+        "console": "控制台"
+    },
     "menu": {
         "file": "檔案",
         "edit": "編輯",
@@ -19,6 +29,11 @@
         "log": "紀錄",
         "font": "字型大小"
     },
+    "settings": {
+        "system": "系統",
+        "appearance": "外觀",
+        "workflow": "流程"
+    },
     "toast": {
         "server": "伺服器模式",
         "node": "節點模式",
@@ -30,7 +45,8 @@
         "connection-remove-des": "連線中斷偵測"
     },
     "modeselect": {
-        "title": "你擔任的角色"
+        "title": "你擔任的角色",
+        "titlebar": "角色選擇"
     },
     "error": {
         "title-needed": "名稱不能為空",
@@ -43,6 +59,7 @@
         "show-runtime": "唯獨運行"
     },
     "modal": {
+        "project-template-select": "樣板選擇",
         "new-project": "新增專案",
         "modify-project": "編輯專案",
         "delete-project": "刪除專案",
@@ -66,6 +83,9 @@
         "import-parameter": "刪除參數",
         "delete-parameter-confirm": "確認刪除選擇參數嗎?",
         "parameter-datatype": "資料型態",
+        "create-library": "新增程式庫",
+        "enter-library-name": "輸入程式庫名稱",
+        "enter-library-type": "輸入程式庫類型",
         "new-node": "新增節點",
         "enter-node-address": "輸入節點位址",
         "skip-step": "跳過步驟",
@@ -77,6 +97,9 @@
         "console-name": "控制台名稱"
     },
     "toolbar": {
+        "server": "伺服器",
+        "editor": "編輯器",
+        "backend": "後端功能",
         "project": "專案管理",
         "task": "流程管理",
         "job": "工作管理",
@@ -117,11 +140,13 @@
             "create-dir": "建立資料夾",
             "rename": "改名",
             "lua": "LUA 腳本",
+            "javascript": "Javascript 腳本",
             "command": "指令執行"
         },
         "jobtype2": {
             "check-path": "檢查路徑",
-            "lua": "LUA 腳本"
+            "lua": "LUA 腳本",
+            "javascript": "Javascript 腳本"
         },
         "jobresult": {
             "none": "無",
@@ -135,9 +160,13 @@
         },
         "project": {
             "default": "範例",
-            "gs4": "睿智 GS4",
-            "gs4-2": "睿智 GS4 V2",
-            "gs4-lut": "睿智 Lut Ply",
+            "gs4-prepare": "睿智 GS4 準備階段",
+            "gs4-colmap": "睿智 GS4 Colmap",
+            "gs4-iframe": "睿智 GS4 I-Frame",
+            "gs4-blend-prepare": "睿智 GS4 Blend 準備階段",
+            "gs4-blend": "睿智 GS4 Blend 運算",
+            "gs4-output": "睿智 GS4 輸出 Ply",
+            "gs4-lut": "睿智 GS4 套用 Lut",
             "concat": "FFmpeg 合成影片",
             "blender": "Blender 渲染",
             "aftereffect": "After Effect 渲染"
@@ -173,7 +202,8 @@
         "number": "數字",
         "string": "字串",
         "boolean": "布林",
-        "expression": "表達式"
+        "expression": "表達式",
+        "object": "物件"
     },
     "expression": {
         "title": "標題",
@@ -232,6 +262,7 @@
     "close-all": "全部關閉",
     "clean": "清除",
     "cronjob": "分散運算",
+    "setupjob": "設置作業",
     "multicore": "多核運算",
     "recover": "恢復",
     "cancel": "取消",
@@ -239,5 +270,7 @@
     "confirm": "確認",
     "close": "關閉",
     "enter": "進入",
-    "filters": "篩選"
+    "filters": "篩選",
+    "setting": "設定",
+    "guide": "指南"
 }

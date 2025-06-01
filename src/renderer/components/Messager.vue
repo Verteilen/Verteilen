@@ -46,7 +46,7 @@ const shadeColor = (color:string, percent:number) => {
     let GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
     let BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
 
-    return "#"+RR+GG+BB;
+    return "#"+RR+GG+BB+"50";
 }
 
 const update = () => {
@@ -61,7 +61,7 @@ const real_message = computed(() => messages.value.filter(x => x.ison))
 
 const darken = (color: string) => {
     const e = GetColor(color)
-    return e == undefined ? color : shadeColor(GetColor(color), -50)
+    return e == undefined ? color : (props.preference.theme == "dark" ? shadeColor(GetColor(color), -50) : shadeColor(GetColor(color), 50))
 }
 
 onMounted(() => {
@@ -86,7 +86,7 @@ onUnmounted(() => {
             v-model="m.ison" 
             :timeout="m.timer" 
             color="transparent">
-            <v-card class="pa-2 ma-0" variant="flat" elevation="16" :color="darken(m.variant)" style="border-width: 2px;">
+            <v-card class="pa-2 ma-0" variant="elevated" elevation="16" :color="darken(m.variant)" style="border-width: 2px;">
                 <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }">
                     {{ m.title }}
                 </v-card-title>

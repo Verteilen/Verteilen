@@ -2,17 +2,21 @@ import { dialog, ipcMain } from "electron";
 import fs from "fs";
 import path from "path";
 import { Client } from "./client/client";
-import { ClientLua } from "./client/lua";
+import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
 import { mainWindow } from "./electron";
-import { Job, Parameter, Preference, Project } from "./interface";
-import { menu_client, menu_server, setupMenu } from "./menu";
+import { ExecuteRecord, Job, Parameter, Preference, Project, Record } from "./interface";
 import { i18n } from "./plugins/i18n";
+import { ExecuteManager } from "./script/execute_manager";
+import { Util_Server_Console_Proxy } from "./util/server/console_handle";
+import { Util_Server } from "./util/server/server";
+import { Util_Server_Log_Proxy } from "./util/server/log_handle";
 
 export class BackendEvent {
     menu_state = false
     client:Client | undefined = undefined
     job: Job | undefined
+    util: Util_Server = new Util_Server(this)
 
     Init = () => {
         if(this.client != undefined) return
@@ -28,6 +32,48 @@ export class BackendEvent {
     }
 
     EventInit = () => {
+        this.AppInit()
+        this.ExecuteInit()
+    }
+
+    ExecuteInit = () => {
+        ipcMain.handle('console_add', (event, data:string) => {
+            const _data:any = JSON.parse(data)
+            const name:string = _data.name
+            const record:Record =_data.record
+            const em:ExecuteManager = new ExecuteManager(
+                name,
+                this.util.websocket_manager!, 
+                messager_log, 
+                JSON.parse(JSON.stringify(record))
+            )
+            const er:ExecuteRecord = {
+                ...record,
+                running: false,
+                stop: true,
+                process_type: -1,
+                useCron: false,
+                para: undefined,
+                command: [],
+                project: '',
+                task: '',
+                project_index: -1,
+                task_index: -1,
+                project_state: [],
+                task_state: [],
+                task_detail: [],
+            }
+            em.libs = this.util.libs
+            const p:[ExecuteManager, ExecuteRecord] = [em, er]
+            const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
+            const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, this.util.logs, this.util.preference!)
+            em.proxy = this.util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
+            const r = this.util.console.receivedPack(p, record)
+            return r;
+        })
+    }
+
+    AppInit = () => {
         ipcMain.on('client_start', (event, content:string) => {
             this.Init()
         })
@@ -41,24 +87,17 @@ export class BackendEvent {
         ipcMain.handle('exist', (event, d:string) => {
             return fs.existsSync(d)
         })
-        ipcMain.on('menu', (event, on:boolean):void => {
-            if(mainWindow == undefined) return;
-            console.log(`[Backend] Menu Display: ${on}`)
-            this.menu_state = on
-            if(on) mainWindow.setMenu(menu_server!)
-            else mainWindow.setMenu(menu_client!)
-        })
-        ipcMain.on('lua', (event, content:string) => {
-            const lua_messager_feedback = (msg:string, tag?:string) => {
+        ipcMain.on('javascript', (event, content:string) => {
+            const javascript_messager_feedback = (msg:string, tag?:string) => {
                 messager(msg, tag)
                 event.sender.send('lua-feedback', msg)
             }
-            const lua_messager_log_feedback = (msg:string, tag?:string) => {
+            const javascript_messager_log_feedback = (msg:string, tag?:string) => {
                 messager_log(msg, tag)
                 event.sender.send('lua-feedback', msg)
             }
-            const lua:ClientLua = new ClientLua(lua_messager_feedback, lua_messager_log_feedback, () => this.job)
-            const r = lua.LuaExecute(content)
+            const javascript:ClientJavascript = new ClientJavascript(javascript_messager_feedback, javascript_messager_log_feedback, () => this.job)
+            const r = javascript.JavascriptExecute(content)
             event.sender.send('lua-feedback', r?.toString() ?? '')
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {
@@ -68,7 +107,7 @@ export class BackendEvent {
         this.Loader('parameter', 'parameter')
         this.Loader('node', 'node')
         this.Loader('log', 'log')
-        this.Loader('lib', 'lib')
+        this.Loader('lib', 'lib', '')
 
         ipcMain.handle('load_record_obsolete', (e) => {
             if(!fs.existsSync('record.json')) return undefined
@@ -88,14 +127,17 @@ export class BackendEvent {
                     lan: 'en',
                     log: true,
                     font: 18,
+                    theme: "dark",
+                    notification: false,
                 }
                 fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
                 i18n.global.locale = 'en'
-                setupMenu()
                 return JSON.stringify(record)
             } else {
                 const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
-                return file.toString()
+                const jsonString = file.toString()
+                this.util.preference = JSON.parse(jsonString)
+                return jsonString
             }
         })
         ipcMain.on('export_projects', (event, data:string) => {
@@ -119,11 +161,10 @@ export class BackendEvent {
         ipcMain.on('locate', (event, data:string) => {
             // @ts-ignore
             i18n.global.locale = data
-            setupMenu()
         })
     }
 
-    Loader = (key:string, folder:string) => {
+    Loader = (key:string, folder:string, ext:string = ".json") => {
         ipcMain.handle(`load_all_${key}`, (e) => {
             const root = path.join("data", folder)
             if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
@@ -145,20 +186,22 @@ export class BackendEvent {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
             const ps = fs.readdirSync(root, { withFileTypes: false })
-            ps.map(x => {
-                const stat = fs.statSync(path.join(root, x))
-                return {
+            const r:any = []
+            for(let i = 0; i < ps.length; i++){
+                const x = ps[i]
+                const stat = fs.statSync(path.join(root, x.toString()))
+                r.push({
                     name: x,
                     size: stat.size,
                     time: stat.ctime
-                }
-            })
-            return JSON.stringify(ps)
+                })
+            }
+            return JSON.stringify(r)
         })
         ipcMain.on(`save_${key}`, (e, name:string, data:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            let filename = name + ".json"
+            let filename = name + ext
             let p = path.join(root, filename)
             fs.writeFileSync(p, data)
         })
@@ -171,7 +214,7 @@ export class BackendEvent {
         ipcMain.on(`delete_${key}`, (e, name:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ".json"
+            const filename = name + ext
             const p = path.join(root, filename)
             if (fs.existsSync(p)) fs.rmSync(p)
         })
@@ -184,10 +227,10 @@ export class BackendEvent {
         ipcMain.handle(`load_${key}`, (e, name:string) => {
             const root = path.join("data", folder)
             if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ".json"
+            const filename = name + ext
             const p = path.join(root, filename)
             if (fs.existsSync(p)){
-                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+                const file = fs.readFileSync(p, { encoding: 'utf8', flag: 'r' })
                 return file.toString()
             }else{
                 return undefined

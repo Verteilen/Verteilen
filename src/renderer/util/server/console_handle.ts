@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { ConditionResult, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, JobCategory, MESSAGE_LIMIT, Parameter, Project, Record, Task } from "../../interface"
+import { ConditionResult, ExecuteProxy, ExecuteRecord, ExecuteRecordTask, ExecuteState, FeedBack, Job, JobCategory, MESSAGE_LIMIT, Parameter, Project, Record, Task } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 import { DATA, save_and_update } from "./server"
 
@@ -13,7 +13,7 @@ export class Util_Server_Console {
     }
 
     receivedPack = (model:[ExecuteManager, ExecuteRecord], record:Record) => {
-        const pass = model[0].Register(record)
+        const pass = model[0].Register()
         if(pass == -1){
             model[1].running = false
             model[1].stop = true
@@ -38,7 +38,8 @@ export class Util_Server_Console {
         })
         model[1].task_state[0].state = ExecuteState.RUNNING
         model[1].task_detail = []
-        const count = model[1].projects[model[1].project_index]?.task[model[1].task_index]?.jobs.length ?? 0
+        const task = model[1].projects[model[1].project_index]?.task[model[1].task_index]
+        const count = task.cronjob ? (task?.jobs.length ?? 0) : 1
         for(let i = 0; i < count; i++){
             model[1].task_detail.push({
                 index: i,
@@ -47,6 +48,7 @@ export class Util_Server_Console {
                 state: ExecuteState.NONE
             })
         }
+        model[0].Update()
         return true
     }
 }
@@ -87,24 +89,35 @@ export class Util_Server_Console_Proxy {
                 state: ExecuteState.NONE
             }
         })
+        this.model[1].task_detail = []
+        const task = this.model[1].projects[this.model[1].project_index]?.task[this.model[1].task_index]
+        const count = task.cronjob ? (task?.jobs.length ?? 0) : 1
+        for(let i = 0; i < count; i++){
+            this.model[1].task_detail.push({
+                index: i,
+                node: "",
+                message: [],
+                state: ExecuteState.NONE
+            })
+        }
     }
     
     execute_project_finish = (d:Project) => {
-        if(this.model[1].process_type == 1) {
+        if(this.model[1].process_type >= 1) {
             this.model[1].running = false
             this.model[1].stop = true
         }
         const index = this.model[1].projects.findIndex(x => x.uuid == d.uuid)
+        const size = this.model[1].projects.length
         if(index == -1) return
         this.model[1].project = ""
         this.model[1].project_state[index].state = ExecuteState.FINISH
-    
-        if(this.model[1].projects.length - 1 == index){
-            this.model[1].command.push(['clean'])
-            this.model[1].running = false
-            this.model[1].stop = true
-        }
         this.model[1].para = undefined
+        console.log("project finish: ", this.model[1].projects.length, index)
+
+        if(index == size - 1){
+            this.model[1].command.push(['clean'])
+        }
     }
     
     execute_task_start = (d:[Task, number]) => {
@@ -193,8 +206,10 @@ export class Util_Server_Console_Proxy {
                     if(this.model[1].running == false){
                         clearInterval(timer)
                         const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                        this.model[1].task_state[this.model[1].task_index].state = state
-                        this.model[1].task_detail[d[1]].state = state
+                        const target: ExecuteRecordTask | undefined = this.model[1].task_detail[d[1]]
+                        if(target != undefined) {
+                            target.state = state
+                        }
                         if (cr == ConditionResult.Pause) return
                         if (cr == ConditionResult.SkipProject || cr == ConditionResult.ThrowProject){
                             this.model[1].command.push(['skip', 0, state])

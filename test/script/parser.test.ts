@@ -13,7 +13,7 @@ describe('Parser testing (Replace Text Feature)', () => {
 describe('Parser testing (ToKeyValue)', () => {
     let p:Parameter | undefined = undefined
     beforeAll(() => {
-        p = { canWrite: true, containers: [
+        p = { uuid: '', title: '', canWrite: true, containers: [
             { name: 'n1', value: 0, type: DataType.Number, hidden: false, runtimeOnly: false },
             { name: 's1', value: "Test", type: DataType.Number, hidden: false, runtimeOnly: false },
             { name: 'b1', value: true, type: DataType.Number, hidden: false, runtimeOnly: false },
@@ -38,7 +38,7 @@ describe('Parser testing (replacePara)', () => {
     let p:Parameter | undefined = undefined
     let e:Util_Parser | undefined = undefined
     beforeAll(() => {
-        p = { canWrite: true, containers: [
+        p = { uuid: '', title: '', canWrite: true, containers: [
             { name: 'n1', value: 7, type: DataType.Number, hidden: false, runtimeOnly: false },
             { name: 'n2', value: 9, type: DataType.Number, hidden: false, runtimeOnly: false },
             { name: 's1', value: "Test", type: DataType.Number, hidden: false, runtimeOnly: false },

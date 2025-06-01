@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
+import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -37,6 +37,8 @@ const data:Ref<DATA> = ref({
     websocket_manager: undefined,
     execute_manager: [],
 
+    drawer: false,
+    title: "",
     page: 0,
     select_manager: 0,
     lanSelect: i18n.global.locale as string,
@@ -54,6 +56,13 @@ const data:Ref<DATA> = ref({
 const util:Util_Server = new Util_Server(data, () => props.backend, emitter!)
 
 const selectExecute = computed(() => data.value.execute_manager[data.value.select_manager])
+
+watch(() => data.value.page, () => {
+  const tab = tabs.value.find(x => x[2] == data.value.page)!
+  data.value.page = tab[2]; 
+  data.value.title = tab[1]; 
+  data.value.drawer = false
+})
 
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
@@ -99,26 +108,47 @@ const goParameter = (e:string) => {
 //#endregion
 
 //#region Lib
-const libRename = (d:Rename) => {
-  data.value.projects.forEach(x => {
-    x.task.forEach(y => {
-      y.jobs.forEach(z => {
-        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
-          const index = z.string_args.findIndex(x => x == d.oldname)
-          if(index != -1) z.string_args[index] = d.newname
-        }
-      })
-    })
+const libFresh = () => {
+  props.backend.invoke('list_all_lib').then(x => {
+    const texts:Array<any> = JSON.parse(x)
+    console.log("list_all_lib", texts) 
+    data.value.libs = { libs: texts.map(y => {
+      const ext = y.name.split('.').pop()
+      const r = {
+        name: y.name.slice(0, -(ext.length + 1)),
+        load: false,
+        content: ""
+      }
+      return r
+    })}
+    console.log("Libs", data.value.libs)
   })
-  allUpdate()
 }
-
-const libDelete = (name:string) => {
+const libEdit = (oldname:string, newname:string) => { 
+  props.backend.send("rename_lib", oldname, newname) 
+  libFresh()
+}
+const libSave = (file:string, content:string, refresh: boolean) => { 
+  props.backend.send('save_lib', file, content)
+  if(refresh) libFresh()
+}
+const libLoad = (file:string) => {
+  const ext = file.split('.').pop()!
+  const name = file.slice(0, -(ext.length + 1))
+  props.backend.invoke('load_lib', file).then(r => {
+    const target = data.value.libs.libs.find(x => x.name == name)
+    if(target == undefined) return
+    target.load = true
+    target.content = r
+  }).catch(err => console.error(err))
+}
+const libDelete = (file:string) => {
+  props.backend.send('delete_lib', file)
   data.value.projects.forEach(x => {
     x.task.forEach(y => {
       y.jobs.forEach(z => {
-        if((z.category == JobCategory.Condition && z.type == JobType2.LUA) || (z.category == JobCategory.Execution && z.type == JobType.LUA)){
-          const index = z.string_args.findIndex(x => x == name)
+        if((z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT) || (z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT)){
+          const index = z.string_args.findIndex(x => x == file)
           if(index != -1) z.string_args.splice(index, 1)
         }
       })
@@ -126,51 +156,63 @@ const libDelete = (name:string) => {
   })
   allUpdate()
 }
+const libJs = (code:string) => { props.backend.send('javascript', code) }
 //#endregion
 
 //#region Console
 const consoleAdded = (name:string, record:Record) => {
-  const em:ExecuteManager = new ExecuteManager(
-    name,
-    data.value.websocket_manager!, 
-    messager_log, 
-    JSON.parse(JSON.stringify(record))
-  )
-  const er:ExecuteRecord = {
-    ...record,
-    running: false,
-    stop: true,
-    process_type: -1,
-    useCron: false,
-    para: undefined,
-    command: [],
-    project: '',
-    task: '',
-    project_index: -1,
-    task_index: -1,
-    project_state: [],
-    task_state: [],
-    task_detail: [],
+  let r:boolean = false
+  if(false){
+    // If we have backend, the instance should be place in the backend
+    props.backend.send('console_add', JSON.stringify({
+      name: name,
+      record: record
+    }));
+  }else{
+    const em:ExecuteManager = new ExecuteManager(
+      name,
+      data.value.websocket_manager!, 
+      messager_log, 
+      JSON.parse(JSON.stringify(record))
+    )
+    const er:ExecuteRecord = {
+      ...record,
+      running: false,
+      stop: true,
+      process_type: -1,
+      useCron: false,
+      para: undefined,
+      command: [],
+      project: '',
+      task: '',
+      project_index: -1,
+      task_index: -1,
+      project_state: [],
+      task_state: [],
+      task_detail: [],
+    }
+    em.libs = data.value.libs
+    const p:[ExecuteManager, ExecuteRecord] = [em, er]
+    const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
+    const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference, config.value)
+    em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
+    r = util.console.receivedPack(p, record)
+    if(r){
+      data.value.execute_manager.push(p)
+      data.value.select_manager = data.value.execute_manager.length - 1
+    }
   }
-  em.libs = data.value.libs
-  const p:[ExecuteManager, ExecuteRecord] = [em, er]
-  const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
-  const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference, config.value)
-  em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
-  const r = util.console.receivedPack(p, record)
   if(!r){
     emitter?.emit('makeToast', {
         title: 'Execute Failed',
         message: 'Project execute failed !\nYou can see detail in Console/DebugLog',
         type: 'warning'
     })
-    return
   }
-  data.value.execute_manager.push(p)
-  data.value.select_manager = data.value.execute_manager.length - 1
 }
 const consoleStop = () => {
   nextTick(() => {
+    data.value.execute_manager[data.value.select_manager][0].Release()
     data.value.execute_manager.splice(data.value.select_manager, 1)
     if(data.value.execute_manager.length == 0) data.value.select_manager = -1
     else data.value.select_manager = 0
@@ -205,14 +247,17 @@ const updateLocate = () => {
 
 const updateTab = () => {
   tabs.value = [
+    ["", "toolbar.editor", -1],
     ["mdi-cube", "toolbar.project", 0],
     ["mdi-calendar", "toolbar.task", 1],
     ["mdi-hammer", "toolbar.job", 2],
     ["mdi-database", "toolbar.parameter", 3],
+    ["", "toolbar.server", -1],
     ["mdi-network", "toolbar.node", 4],
     ["mdi-console-line", "toolbar.console", 5],
   ]
   if(config.value.haveBackend){
+    tabs.value.push(["", "toolbar.backend", -1])
     tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
     tabs.value.push(["mdi-puzzle", "toolbar.library", 7])
     tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
@@ -279,17 +324,20 @@ const onAnalysis = (d:BusAnalysis) => {
   data.value.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
 }
 
+const popSetting = () => { emitter?.emit('setting') }
+const popGuide = () => { emitter?.emit('guide') }
+
 onMounted(() => {
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
   slowUpdateHandle = setInterval(() => emitter?.emit('slowUpdateHandle'), RENDER_FILE_UPDATETICK);
   emitter?.on('updateNode', server_clients_update)
-  emitter?.on('renameScript', libRename)
   emitter?.on('deleteScript', libDelete)
   emitter?.on('updateLocate', updateLocate)
 
   props.backend.wait_init().then(() => {
     updateTab()
+    data.value.title = tabs.value.find(x => x[2] == 0)![1]
     const x = config.value
     if(!x.isExpress){
       const nodeproxy:NodeProxy = {
@@ -309,9 +357,18 @@ onMounted(() => {
       const texts:Array<string> = JSON.parse(x)
       data.value.nodes.push(...texts.map(y => JSON.parse(y)))
     })
-    const p2 = props.backend.invoke('load_all_lib').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.libs = { libs: texts.map(y => JSON.parse(y)) }
+    const p2 = props.backend.invoke('list_all_lib').then(x => {
+      const texts:Array<any> = JSON.parse(x)
+      console.log("list_all_lib", texts) 
+      data.value.libs = { libs: texts.map(y => {
+        const ext = y.name.split('.').pop()
+        const r = {
+          name: y.name.slice(0, -(ext.length + 1)),
+          load: false,
+          content: ""
+        }
+        return r
+      })}
       console.log("Libs", data.value.libs)
     })
     const p3 = props.backend.invoke('load_all_record').then(x => {
@@ -370,7 +427,6 @@ onMounted(() => {
 onUnmounted(() => {
   data.value.execute_manager = []
   emitter?.off('updateNode', server_clients_update)
-  emitter?.off('renameScript', libRename)
   emitter?.off('deleteScript', libDelete)
   emitter?.off('updateLocate', updateLocate)
   if(updateHandle != undefined) clearInterval(updateHandle)
@@ -386,13 +442,41 @@ onUnmounted(() => {
 
 <template>
   <v-container fluid class="pa-0 ma-0">
-    <v-tabs v-model="data.page" tabs show-arrows style="position: fixed; z-index: 1; width: 100vw; height:50px;" class="bg-grey-darken-4">
-      <v-tab v-for="(tab, index) in tabs" :style="{ 'fontSize': (props.preference.font - 2) + 'px' }" :value="tab[2]" :key="index">
-        <v-icon>{{ tab[0] }}</v-icon>
-        <span>{{ $t(tab[1]) }}</span>
-      </v-tab>
-    </v-tabs>
-    <div style="width: 100vw; height:100vh; padding-top: 50px; background-color: red;" class="bg-grey-darken-4 text-white">
+    <v-layout>
+      <v-app-bar :elevation="2" class="text-left">
+        <template v-slot:prepend>
+          <v-app-bar-nav-icon @click="data.drawer = true"></v-app-bar-nav-icon>
+        </template>
+        <v-app-bar-title>{{ data.title ? $t(data.title) : '' }}</v-app-bar-title>
+        <template v-slot:append>
+          <v-menu location="left">
+            <template v-slot:activator="{ props }">
+              <v-btn v-bind="props" icon="mdi-dots-vertical"></v-btn>
+            </template>
+            <v-list width="120px">
+              <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
+              <v-list-item @click="popGuide">{{ $t('guide') }}</v-list-item>
+            </v-list>
+          </v-menu>
+        </template>
+      </v-app-bar>
+      <v-navigation-drawer temporary v-model="data.drawer">
+        <v-list density="compact" nav>
+          <div v-for="(tab, index) in tabs" :key="index">
+            <v-list-item v-if="tab[2] >= 0"
+              :style="{ 'fontSize': props.preference.font + 'px' }"
+              :prepend-icon="tab[0]"
+              :value="tab[2]" 
+              :active="data.page == tab[2]"
+              @click="data.page = tab[2]">{{ $t(tab[1]) }}</v-list-item>
+            <v-list-subheader v-else>{{ $t(tab[1]) }}</v-list-subheader>
+          </div>
+          
+        </v-list>
+      </v-navigation-drawer>
+    </v-layout>
+    <div style="width: 100vw; height:100vh; padding-top: 50px;" class="text-white" 
+      :class="{ 'bg-dark': props.preference.theme == 'dark', 'bg-light': props.preference.theme == 'light' }">
       <v-tabs-window v-model="data.page">
         <v-tabs-window-item :value="0">
           <ProjectPage
@@ -420,7 +504,8 @@ onUnmounted(() => {
             @delete="e => deleteTask(e)"
             @moveup="e => moveupTask(e)"
             @movedown="e => movedownTask(e)"
-            @parameter="e => goParameter(e)" />
+            @parameter="e => goParameter(e)"
+            @return="data.page = 0"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="2">
           <JobPage
@@ -430,7 +515,8 @@ onUnmounted(() => {
             :libs="data.libs"
             @added="e => addJob(e)" 
             @edit="(e, e2) => editJob(e, e2)" 
-            @delete="e => deleteJob(e)" />
+            @delete="e => deleteJob(e)"
+            @return="data.page = 1"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="3">
           <ParameterPage
@@ -441,12 +527,14 @@ onUnmounted(() => {
             @added="e => addParameter(e)"
             @select="e => selectParameter(e)"
             @edit="e => editParameter(e)" 
-            @delete="e => deleteParameter(e)"/>
+            @delete="e => deleteParameter(e)"
+            @return="data.page = 1"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="4">
           <NodePage
             :manager="data.websocket_manager"
             :config="config"
+            :preference="props.preference"
             :nodes="data.nodes" />
         </v-tabs-window-item>
         <v-tabs-window-item :value="5">
@@ -476,6 +564,12 @@ onUnmounted(() => {
         <v-tabs-window-item v-show="config.haveBackend" :value="7">
           <LibraryPage
             :config="config"
+            :preference="props.preference"
+            @edit="(d, d1) => libEdit(d, d1)"
+            @save="(d, d1, d2) => libSave(d, d1, d2)"
+            @load="d => libLoad(d)"
+            @delete="d => libDelete(d)"
+            @execute-js="d => libJs(d)"
             v-model="data.libs"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.haveBackend" :value="8">
@@ -489,3 +583,12 @@ onUnmounted(() => {
     </div>
   </v-container>
 </template>
+
+<style scoped>
+.bg-dark {
+  background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(33, 44, 42));
+}
+.bg-light {
+  background-image: linear-gradient(to bottom, rgb(240, 240, 240), rgb(240, 255, 245));
+}
+</style>

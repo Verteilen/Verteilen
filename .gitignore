@@ -7,7 +7,6 @@ preference.json
 lib.json
 data
 mytest
-.vscode
 .idea
 bin
 util/ply_tool/build

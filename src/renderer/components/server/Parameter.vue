@@ -2,9 +2,10 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, DataType, DataTypeText, Parameter, Preference } from '../../interface';
+import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Parameter } from '../../util/parameter';
+import DialogBase from '../dialog/DialogBase.vue'
 
 interface PROPS {
     config: AppConfig
@@ -21,6 +22,7 @@ const emits = defineEmits<{
     (e: 'edit', data:Parameter): void
     (e: 'select', uuid:string): void
     (e: 'delete', uuid:string): void
+    (e: 'return'): void
 }>()
 const fields:Ref<Array<any>> = ref([
     { title: 'Name', align: 'center', key: 'name' },
@@ -32,6 +34,8 @@ const fields:Ref<Array<any>> = ref([
 ])
 
 const data:Ref<DATA> = ref({
+    objectModal: false,
+    objectTarget: undefined,
     selectModal: false,
     selectSearch: '',
     createModal: false,
@@ -160,10 +164,24 @@ const paraEdit = () => {
     data.value.editData.name = props.select.title
 }
 
+const modifyContent = (d:ParameterContainer) => {
+    data.value.objectModal = true
+    data.value.objectTarget = d
+}
+
+const confirmObjectModify = () => {
+    data.value.objectModal = false
+    saveParameter()
+}
+
 const moveup = (name:string) => util.moveup(name)
 const movedown = (name:string) => util.movedown(name)
 const isFirst = (name:string) => util.isFirst(name)
 const isLast = (name:string) => util.isLast(name)
+
+const goreturn = () => {
+    emits('return')
+}
 
 onMounted(() => {
     updateLocate()
@@ -193,10 +211,11 @@ onUnmounted(() => {
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
-                <v-chip class="ml-3" v-if="select == undefined" prepend-icon="mdi-pen" @click="paraSelect" color="warning">
+                <v-btn size="sm" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
+                <v-chip class="mx-3" v-if="select == undefined" prepend-icon="mdi-paperclip" @click="paraSelect" color="warning">
                     {{ $t('parameter-select') }}
                 </v-chip>
-                <v-chip class="ml-3" v-else prepend-icon="mdi-pen" @click="paraSelect" color="success">
+                <v-chip class="ml-3" v-else prepend-icon="mdi-paperclip" @click="paraSelect" color="success">
                     {{ select.title }}
                 </v-chip>
                 <v-btn variant="text" density="comfortable" icon="mdi-plus" @click="paraCreate"></v-btn>
@@ -252,28 +271,29 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
-        <div class="py-3 px-5 text-left">
-            <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
-            <v-data-table :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
+        <div class="py-3 px-5 text-left" style="height: calc(100vh - 130px); overflow-y: auto;">
+            <v-checkbox class="pr-5 text-info" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
+            <v-data-table style="background: transparent" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.detail="{ item }">
-                    <v-btn flat icon @click="editParameter(item.name)" size="small">
+                    <v-btn variant="text" icon @click="editParameter(item.name)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
+                    <v-btn variant="text" icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
                         <v-icon>mdi-arrow-up</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
+                    <v-btn variant="text" icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
-                    <v-btn flat icon :disabled="isLast(item.name)" @click="deleteitem(item.name)" size="small">
+                    <v-btn variant="text" icon :disabled="isLast(item.name)" @click="deleteitem(item.name)" size="small">
                         <v-icon>mdi-delete</v-icon>
                     </v-btn>
                 </template>
                 <template v-slot:item.value="{ item }">
                     <v-checkbox density="compact" hide-details v-if="item.type == 0" v-model="item.value" @input="setdirty"></v-checkbox>
-                    <v-text-field density="compact" hide-details v-if="item.type == 1" type="number" v-model.number="item.value" @input="setdirty"></v-text-field>
-                    <v-text-field density="compact" hide-details v-if="item.type == 2" v-model="item.value" @input="setdirty"></v-text-field>
-                    <v-text-field density="compact" hide-details v-if="item.type == 3" v-model="item.meta" @input="setdirty"></v-text-field>
+                    <v-text-field density="compact" hide-details v-else-if="item.type == 1" type="number" v-model.number="item.value" @input="setdirty"></v-text-field>
+                    <v-text-field density="compact" hide-details v-else-if="item.type == 2" v-model="item.value" @input="setdirty"></v-text-field>
+                    <v-text-field density="compact" hide-details v-else-if="item.type == 3" v-model="item.meta" @input="setdirty"></v-text-field>
+                    <v-btn class="w-100" color="primary" variant="text" density="compact" hide-details v-else-if="item.type == 4" @click="modifyContent(item)">{{ $t("modify") }}</v-btn>
                 </template>
                 <template v-slot:item.hidden="{ item }">
                     <v-chip :color="item.hidden ? 'success' : 'error'">{{ item.hidden }}</v-chip>
@@ -286,48 +306,44 @@ onUnmounted(() => {
                 </template>
             </v-data-table>
         </div>
-        <v-dialog width="500" v-model="data.createModal" class="text-white">
-            <v-card>
-                <v-card-title v-if="!data.editMode">
-                    <v-icon>mdi-hammer</v-icon>
-                    {{ $t('modal.new-parameter') }}
-                </v-card-title>
-                <v-card-title v-else>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.edit-parameter') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field :error="data.titleError" v-model="data.createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-                    <v-select class="mt-3" v-model="data.createData.type" :items="only_options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
-                    <v-checkbox :label="$t('filter.show-hidden')" v-model="data.createData.hidden" hide-details></v-checkbox>
-                    <v-checkbox :label="$t('filter.show-runtime')" v-model="data.createData.runtimeOnly" hide-details></v-checkbox>
-                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreate">{{ $t('create') }}</v-btn>
-                    <v-btn class="mt-3" color="primary" v-else @click="confirmEdit">{{ $t('modify') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
-        <v-dialog width="500" v-model="data.createParameterModal" class="text-white">
-            <v-card>
-                <v-card-title v-if="!data.editMode">
-                    <v-icon>mdi-hammer</v-icon>
-                    {{ $t('modal.new-parameter-set') }}
-                </v-card-title>
-                <v-card-title v-else>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.edit-parameter-set') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreateSet">{{ $t('create') }}</v-btn>
-                    <v-btn class="mt-3" color="primary" v-else @click="confirmEditSet">{{ $t('modify') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
+        <DialogBase width="500" v-model="data.createModal">
+            <template #title v-if="!data.editMode">
+                <v-icon>mdi-hammer</v-icon>
+                {{ $t('modal.new-parameter') }}
+            </template>
+            <template #title v-else>
+                <v-icon>mdi-pencil</v-icon>
+                {{ $t('modal.edit-parameter') }}
+            </template>
+            <template #text>
+                <v-text-field :error="data.titleError" v-model="data.createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+                <v-select class="mt-3" v-model="data.createData.type" :items="only_options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
+                <v-checkbox :label="$t('filter.show-hidden')" v-model="data.createData.hidden" hide-details></v-checkbox>
+                <v-checkbox :label="$t('filter.show-runtime')" v-model="data.createData.runtimeOnly" hide-details></v-checkbox>
+                <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreate">{{ $t('create') }}</v-btn>
+                <v-btn class="mt-3" color="primary" v-else @click="confirmEdit">{{ $t('modify') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase width="500" v-model="data.createParameterModal">
+            <template #title v-if="!data.editMode">
+                <v-icon>mdi-hammer</v-icon>
+                {{ $t('modal.new-parameter-set') }}
+            </template>
+            <template #title v-else>
+                <v-icon>mdi-pencil</v-icon>
+                {{ $t('modal.edit-parameter-set') }}
+            </template>
+            <template #text>
+                <v-text-field :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreateSet">{{ $t('create') }}</v-btn>
+                <v-btn class="mt-3" color="primary" v-else @click="confirmEditSet">{{ $t('modify') }}</v-btn>
+            </template>
+        </DialogBase>
         <v-dialog width="500" v-model="data.selectModal" class="text-white">
             <v-card>
                 <v-card-title>
@@ -370,6 +386,21 @@ onUnmounted(() => {
                 </template>
             </v-card>
         </v-dialog>
+        <DialogBase :persistent="true" width="800" v-model="data.objectModal" class="text-white">
+            <template #title>
+                <v-icon>mdi-pen</v-icon>
+                {{ $t('types.object') }}
+            </template>
+            <template #text v-if="data.objectTarget != undefined">
+                <codemirror-json v-model="data.objectTarget.value" 
+                    style="text-align:left;"
+                    :style="{ height: '40vh' }"
+                    @change="setdirty"/>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="confirmObjectModify">{{ $t('confirm') }}</v-btn>
+            </template>
+        </DialogBase>
         <v-dialog width="500" v-model="data.deleteModal" class="text-white">
             <v-card>
                 <v-card-title>
@@ -389,5 +420,4 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-
 </style>

@@ -15,7 +15,6 @@ export class ClientJobParameter {
         }
         console.log(JSON.stringify(p))
     }
-
     feedbackboolean = (data:Setter) => {
         const p:Header = {
             name: "feedbackboolean",
@@ -26,10 +25,19 @@ export class ClientJobParameter {
         }
         console.log(JSON.stringify(p))
     }
-
     feedbackstring = (data:Setter) => {
         const p:Header = {
             name: "feedbackstring",
+            data: {
+                key: data.key,
+                value: data.value
+            }
+        }
+        console.log(JSON.stringify(p))
+    }
+    feedbackobject = (data:Setter) => {
+        const p:Header = {
+            name: "feedbackobject",
             data: {
                 key: data.key,
                 value: data.value

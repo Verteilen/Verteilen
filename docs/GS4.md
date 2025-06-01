@@ -1,116 +1,121 @@
-# GS4 樣板說明
+# GS4 Template Guide
 
-透過一連串的演算, 從 gaussian splatting 3d 到 gaussian splatting 4d 的方法論
+The core concept is:\
+Camera pictures -> colmap -> gaussian splatting 3d -> gaussian splatting 4d
 
-<details>
-<summary>環境設置</summary>
+<details style="margin-bottom:20px;">
+<summary>Environment</summary>
 <div style="padding-left:20px">
 
-## 需求前提
+## Requirement
 
-需要 conda.exe 路徑加入至環境變數 Path 中\
-在環境變數 videogs 中有 train_sequence_Good_Full_Train_densify_until_2000_i7000.py 檔案存在\
-需要 plytool 的所有 exe 路徑加入至環境變數 Path 中\
-安裝 Colmap 並且把 colmap.exe 路徑加入環境變數中
+* Installed conda.exe and add to environment path
+* Installed Colmap.exe and add to environment path
+* videogs folder contain train_sequence_Good_Full_Train_densify_until_2000_i7000.py file exists
+* plytool exe install and add to environment path
 
-## 參數說明
+## parameter
 
 <details>
-<summary>字串變數</summary>
+<summary>String Parameter</summary>
 <div style="padding-left:20px">
 
 ### root
 
-根目錄
+The root folder in the project
 
 ### output
 
-輸出資料夾位置
+The output folder destination
 
 ### prepare
 
-原生的資料夾名稱
+The folder name for source data, such as camera shots or other data\
+This folder should exists in the root folder
 
 ### before
 
-準備的資料夾名稱
+The folder name for colmap result\
+This folder should exists in the root folder
 
 ### after
 
-運算結果的資料夾名稱
+The folder name for compute result\
+This folder should exists in the root folder
 
 ### CAM
 
-複製參考攝影機資料夾前墜
+The folder name for prepare data which store camera pictures\
+Default should be "CAM"
 
 ### images
 
-複製參考影像資料夾名稱
+The folder name for before data which contain timecode pictures\
+Default should be "images"
 
 ### sparse
 
-Colmap 運算結果資料庫的資料夾名稱
+The colmap database folder\
+Default should be "sparse"
 
 ### videogs
 
-演算 python 運行的位置
+Compute python folder location
 
 ### conda_env
 
-Conda 用的環境變數名稱
+Conda Use environment name
 
 </div>
 </details>
 
 
 <details>
-<summary>數字變數</summary>
+<summary>Number Parameter</summary>
 <div style="padding-left:20px">
 
 ### frameCount 
 
-總共的偵數
+The total frame count
 
 ### iframe_gap
 
-I Frame 在被 blend 計算後的間隔\
-假設 GOP 是 20 但是要 Blend 4 次\
-這個值就會是 5
+The gap for I-Frame after blend compute\
+If GOP is 20 and Blend 4 times\
+This value will be 5
 
-### lut_thread
+### core
 
-Lut 階段時單一電腦最大使用核心數上限
+The multi-core task use core upper limit
 
 ### group_size
 
-影像 GOP 範圍
+The GOP size
 
 ### blend
 
-Blend 次數
+Blend times
 
 ### contribute
 
-貢獻度, 這在 Blend 的階段會影響透明度
+This will effect opacity during the Blend stage
 
 ### iframe_size
 
-I Frame 生成後的總數目
+I-Frame total size
 
 ### denoise
 
-設定去躁 r g b 的最小值
+Lower limit for [r g b]
 
 </div>
 </details>
 
 <details>
-<summary>布林參數</summary>
+<summary>Boolean Parameter</summary>
 <div style="padding-left:20px">
 
-### start_at_0
-
-這邊會影響生成數字要以 0 還是 1 為起始點
+None
 
 </div>
 </details>
@@ -119,67 +124,136 @@ I Frame 生成後的總數目
 </details>
 
 
-<details>
-<summary>流程說明</summary>
+<details style="margin-bottom:20px;">
+<summary>Compute Guide</summary>
 <div style="padding-left:20px">
 
-## 整理階段
+## Prepare Stage
 
-這裡會把原生資料 Prepare 丟到 before 資料夾並且排序好\
-切換的原則如下, 這樣是為了 Colmap 方便運算處理
+This will put pictures in prepare folders to before folders\
+The rule of the convertion shows below, This is for colmap
 
-* 原生資料結構
-  * 攝影機 ID
-    * 影像按照時間排序
-* 準備資料結構
-  * 時間排序
-    * 每個攝影機的角度 ID
+```md
+* root
+  * prepare (copy from)
+    * [CameraID]
+      * [TimeCode]
+  * before (destination)
+    * [Timecode] 
+      * [CameraID]
+```
 
-## 運算資料準備 (COLMAP)
+## COLMAP Execute
 
-Colmap 會被呼叫, 會在 before/\[時間\]/sparse/0 生成資料庫\
-生成完需要的 bin 後會刪除 database.db 優化空間跟運算時間
+Colmap will get call
 
-## 生成 I Frame
+```md
+# Generate .bin database at here
+* root
+  * before
+    * [Timecode]
+      * sparse
+        * 0
+```
 
-這裡會在 after 生成 GOP_20_I 的資料夾 此為 IFrame\
-這個時候 videogs 會被呼叫
+## Sorting
 
-## 降躁處理
+Before calculation, The scripts will follow the setting\
+Copy files from before folders to after folders\
+Then reference them later in the command execution
 
-每個 I Frame 下的 ply 運算結果會被 ply_denoise.exe 給降躁\
-原理是把 r,g,b 零以下的值刪除掉 (參數: denoise)
+```md
+# Generate folders structure below
+* root
+  * after 
+      # Copy from I-Frame, cross copying
+    * BLEND_[Blend Time]_I[P or N]
+      # Copy from data source, from before folders
+    * DATASET_[P or N]_[Blend Time]
 
-## 備份 I Frame
+# Example:
+* root
+  * after
+    * Blend_0_IP
+    * Blend_5_IP
+    * Blend_10_IP
+    * Blend_15_IP
+    * Blend_0_IN
+    * Blend_5_IN
+    * Blend_10_IN
+    * Blend_15_IN
+    * DATASET_P_0
+    * DATASET_P_5
+    * DATASET_P_10
+    * DATASET_P_15
+    * DATASET_N_0
+    * DATASET_N_5
+    * DATASET_N_10
+    * DATASET_N_15
+```
 
-單純只是複製 GOP_20_I 到 GOP_20_I_Backup 而已
+## Generate I-Frame
 
-## GTP 修正
+The python environment will use in this stage\
+And use it to compute the result
 
-運算過程中發現 train.py 與 train_dynamic.py 之間的差異\
-* train: 單純 IFrame
-* train_dynamic: 中間張
+> [!NOTE] 
+> This stage needs to reference the folders which generate by the Sorting stage
 
-train_dynamic 出來的品質比較好 並且包含 gtp 的運算結果, Iframe 則沒有\
-修正這個問題就是複製 Iframe 的來源到新的 before 資料夾, 並且算中間張\
-然後覆蓋原本的 IFrame
+```md
+# Generate folder below
+* root
+  * after
+    * GOP_[Blend Time]_I
+```
 
-## 排序改變
 
-這裡會生成
-* BLEND_\[Blend 數目\]_I\[P/N\]: Blend 序列資料夾, 交叉放 Iframe 進來
-* DATASET_\[P/N\]_\[Blend 數目\]: Data 來源, 從 before 複製過來
+## Denoise
 
-## Blend 資料準備
+The ply files under I-Frame folder will get denoise by ply_denoise.exe\
+It will filtering out [r,g,b] value below zero\
+parameter reference: denoise
+
+## GTP Fixed
+
+For fixing train.py and train_dynamic.py difference
+
+* train: I-Frame
+* train_dynamic: Middle-Frame
+
+train_dynamic Have better quality, and it contain gtp results, 
+But I-frame have none of that\
+In order to fix this problem, We simply copy I-frame to new before folder, 
+Then calculate middle-frame\
+After that we overwrite the original I-Frame
+
+## Blend Compute
 
 在 BLEND_\[Blend 數目\]_I\[P/N\] 直接演算\
 把中間偵算出來
 
-## ply 輸出
+## ply Output
 
-複製 Ply 序列到 Output 資料夾中的 (輸出資料夾)/raw/Sequence_\[Blend 數目\] 中
+Copy ply files to output folders
 
-## Blending 透明度
+```md
+# Generate folders below
+* Output
+  * raw
+    * Sequence_[Blend Time]
+
+# Example
+* Output
+  * raw
+    * Sequence_0
+      * 0.ply
+      * 1.ply
+      * 2.ply
+    * Sequence_5
+    * Sequence_10
+```
+
+## Blending Opacity
 
 raw 資料夾的偵 套用透明度設定, 並且輸出到 (輸出資料夾)/trans/Sequence_\[Blend 數目\] 中
 
@@ -187,7 +261,7 @@ raw 資料夾的偵 套用透明度設定, 並且輸出到 (輸出資料夾)/tra
 假設 contribution 為 3, 然後得到的 sin wave 分別為 [0.5, 1.0]\
 則輸出則會為 [1.0, 2.0]
 
-## Blending 合併
+## Blending Merge
 
 trans 資料夾的偵 套用透明度設定. 並且輸出到 (輸出資料夾)/final 中
 

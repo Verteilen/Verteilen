@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { CronJobState, DataType, ExecuteState, Header, Job, Project, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ExecuteState, Header, Job, Project, Task, WebsocketPack } from "../../interface";
 import { ExecuteManager_Feedback } from "./feedback";
 import { Util_Parser } from './util_parser';
 
@@ -44,7 +44,11 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                 this.t_state = ExecuteState.NONE
             }else{
                 // * Case B: Next project
+                this.messager_log(`[Execute] Project Finish ${this.current_p!.uuid}`)
+                this.proxy?.executeProjectFinish(this.current_p!)
                 this.current_p = this.current_projects[index + 1]
+                this.proxy?.executeProjectStart(this.current_p!)
+                this.t_state = ExecuteState.NONE
             }
         }
     }
@@ -76,7 +80,13 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             return
         }
 
-        allJobFinish = task.cronjob ? this.ExecuteTask_Cronjob(project, task, this.current_task_count) : this.ExecuteTask_Single(project, task, this.current_task_count)
+        if(task.setupjob){
+            allJobFinish = this.ExecuteTask_Setup(project, task, this.current_task_count)
+        } else if (task.cronjob){
+            allJobFinish = this.ExecuteTask_Cronjob(project, task, this.current_task_count)
+        } else {
+            allJobFinish = this.ExecuteTask_Single(project, task, this.current_task_count)
+        }
 
         if (allJobFinish){
             this.ExecuteTask_AllFinish(project, task)
@@ -117,11 +127,6 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             const fullLoadUUID = counter.filter(x => x[1] >= this.current_multithread).map(x => x[0])
             ns = ns.filter(x => !fullLoadUUID.includes(x.uuid))
         }
-        
-        const allworks:Array<WorkState> = []
-        this.current_cron.forEach(x => {
-            allworks.push(...x.work)
-        })
         
         if(this.check_all_cron_end()){
             allJobFinish = true
@@ -199,6 +204,38 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         return allJobFinish
     }
 
+    private ExecuteTask_Setup(project:Project, task:Task, taskCount:number):boolean {
+        let ns:Array<WebsocketPack> = this.get_idle_open()
+        let allJobFinish = false
+
+        /**
+         * if current_cron length is zero\
+         * this means the init process has not been run yet
+         */
+        if(this.current_cron.length == 0){
+            // First time
+            this.Init_CronContainer(task, taskCount)
+            this.messager_log(`[Execute] TaskCount: ${taskCount}`)
+            for(let i = 0; i < this.current_cron.length; i++){
+                this.current_cron[i].uuid = this.current_nodes[i].uuid
+            }
+        }
+        
+        if(this.check_all_cron_end()){
+            allJobFinish = true
+        }else{
+            const single = this.current_cron.filter(x => x.uuid != '')
+            // Execute
+            for(var cronwork of single){
+                const index = this.current_nodes.findIndex(x => x.uuid == cronwork.uuid)
+                if(index != -1){
+                    this.ExecuteCronTask(project, task, cronwork, this.current_nodes[index])
+                }
+            }
+        }
+        return allJobFinish
+    }
+
     private ExecuteTask_AllFinish(project:Project, task:Task){
         this.proxy?.executeTaskFinish(task)
         this.messager_log(`[Execute] Task Finish ${task.uuid}`)
@@ -252,6 +289,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         }
         const h:Header = {
             name: 'execute_job',
+            channel: this.uuid,
             data: job
         }
         wss.current_job.push(job.runtime_uuid!)
@@ -300,7 +338,6 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             d.work.forEach((x, j) => x.runtime = uuidv6({}, undefined, i * taskCount + j))
             this.current_cron.push(d)
         }
-        console.log("Init cron container", this.current_cron, taskCount, task)
         this.proxy?.executeTaskStart([task, taskCount ])
     }
 }

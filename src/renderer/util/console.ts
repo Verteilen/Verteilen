@@ -20,8 +20,4 @@ export class Util_Console {
         this.model = _model
         this.data = _data
     }
-
-    update_runtime_parameter = (d:Parameter, ) => {
-        this.data.value.para = d
-    }
 }

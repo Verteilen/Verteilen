@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuid6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { AppConfig, BusType, ConnectionText, Header, NodeTable } from '../../interface';
+import { AppConfig, BusType, ConnectionText, Header, NodeTable, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { WebsocketManager } from '../../script/socket_manager';
 import NodeInfoDialog from '../dialog/NodeInfoDialog.vue';
@@ -14,6 +14,7 @@ interface PROPS {
     nodes: Array<NodeTable>
     manager: WebsocketManager | undefined
     config: AppConfig
+    preference: Preference
 }
 
 const props = defineProps<PROPS>()
@@ -159,7 +160,7 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
-        <v-data-table :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
+        <v-data-table :style="{ 'fontSize': props.preference.font + 'px' }" style="background: transparent" :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
             <template v-slot:item.state="{ item }">
                 <v-chip :color="translate_state_color(item.state)">{{ translate_state(item.state) }}</v-chip>
             </template>
@@ -167,10 +168,10 @@ onUnmounted(() => {
                 {{ item.connection_rate }}
             </template>
             <template v-slot:item.detail="{ item }">
-                <v-btn flat icon @click="showinfo(item.ID)">
-                    <v-icon>mdi-information</v-icon>
+                <v-btn variant="text" icon @click="showinfo(item.ID)">
+                    <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
-                <v-btn flat icon @click="showconsole(item.ID)" :disabled="item.state != 1">
+                <v-btn variant="text" icon @click="showconsole(item.ID)" :disabled="item.state != 1">
                     <v-icon>mdi-console</v-icon>
                 </v-btn>
             </template>

@@ -13,7 +13,7 @@ export class Client {
 
     private messager:Messager
     private messager_log:Messager_log
-    private analysis:ClientAnalysis
+    private analysis:Array<ClientAnalysis>
     private updatehandle 
 
     public get count() : number {
@@ -27,7 +27,7 @@ export class Client {
     constructor(_messager:Messager, _messager_log:Messager_log){
         this.messager = _messager
         this.messager_log = _messager_log
-        this.analysis = new ClientAnalysis(_messager, _messager_log, this)
+        this.analysis = []
         this.updatehandle = setInterval(this.update, CLIENT_UPDATETICK);
     }
 
@@ -60,15 +60,18 @@ export class Client {
         })
         this.client.on('close', () => {
             this.messager_log('[Server] Close !')
+            this.Release()
         })
         this.client.on('connection', (ws, request) => {
+            const a = new ClientAnalysis(this.messager, this.messager_log, this)
+            this.analysis.push(a)
             this.sources.push(ws)
             this.messager_log(`[Server] New Connection detected, ${ws.url}`)
             ws.on('close', (code, reason) => {
                 const index = this.sources.findIndex(x => x == ws)
                 if(index != -1) this.sources.splice(index, 1)
                 this.messager_log(`[Source] Close ${code} ${reason}`)
-                this.analysis.disconnect(ws)
+                a.disconnect(ws)
             })
             ws.on('error', (err) => {
                 this.messager_log(`[Source] Error ${err.name}\n\t${err.message}\n\t${err.stack}`)
@@ -78,7 +81,7 @@ export class Client {
             })
             ws.on('message', (data, isBinery) => {
                 const h:Header | undefined = JSON.parse(data.toString());
-                this.analysis.analysis(h, ws);
+                a.analysis(h, ws);
             })
         })
     }
@@ -88,7 +91,12 @@ export class Client {
         this.client.close((err) => {
             this.messager_log(`[Client] Close error ${err}`)
         })
-        this.analysis.stop_all()
+        this.Release()
+    }
+
+    Release = () => {
+        this.analysis.forEach(x => x.stop_all())
+        this.analysis = []
     }
 
     /**
@@ -96,7 +104,7 @@ export class Client {
      * * Send system info to cluster server
      */
     private update = () => {
-        this.analysis.update(this)
+        this.analysis.forEach(x => x.update(this))
     }
 
     public static workerPath = () => {
@@ -123,7 +131,6 @@ export class Client {
             workerExe = path.join(__dirname, "bin", "worker.exe")
             p = 4
         }
-        console.log(`worker path: ${p} ${workerExe}`)
         return workerExe
     }
 }

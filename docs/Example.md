@@ -2,6 +2,18 @@
 
 The purpose of this template is to show all the features this application support
 
-## Task
+<details style="margin-bottom:20px;">
+<summary>Compute Guide</summary>
+<div style="padding-left:20px">
 
-...to be continued
+## Function Call
+
+## JS Script
+
+## CronJob
+
+## CronJob + Multicore
+
+</div>
+</summary>
+</details>

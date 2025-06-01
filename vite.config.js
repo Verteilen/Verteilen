@@ -14,6 +14,7 @@ const config = defineConfig({
     publicDir: 'public',
     server: {
         port: 8080,
+        open: false
     },
     open: false,
     build: {

@@ -1,4 +1,4 @@
-import { ExecuteState, Header, Record, WebsocketPack } from "../interface";
+import { ExecuteState, Header, Libraries, Record, WebsocketPack } from "../interface";
 import { ExecuteManager_Runner } from "./execute/runner";
 
 /**
@@ -11,13 +11,13 @@ export class ExecuteManager extends ExecuteManager_Runner {
      */
     Update = () => {
         if(this.state != ExecuteState.RUNNING) return
-        if(this.current_p == undefined && this.current_projects.length > 0){
+        else if(this.current_p == undefined && this.current_projects.length > 0){
             this.current_p = this.current_projects[0]
             this.messager_log(`[Execute] Project Start ${this.current_p.uuid}`)
             this.proxy?.executeProjectStart(this.current_p)
             this.SyncParameter(this.current_p)
         }
-        if (this.current_p != undefined){
+        else if (this.current_p != undefined){
             if(this.first) this.first = false
             this.ExecuteProject(this.current_p)
         }
@@ -45,10 +45,10 @@ export class ExecuteManager extends ExecuteManager_Runner {
      * @param projects Target
      * @returns -1: register failed, 0: successfully
      */
-    Register = (record:Record):number => {
-        this.current_projects = record.projects
+    Register = (lib?:Libraries):number => {
+        this.current_projects = this.record.projects
         this.current_nodes = []
-        record.nodes.forEach(x => {
+        this.record.nodes.forEach(x => {
             const n = this.websocket_manager.targets.find(y => y.uuid == x.ID)
             if(n != undefined) this.current_nodes.push(n)
         })
@@ -69,8 +69,11 @@ export class ExecuteManager extends ExecuteManager_Runner {
             this.messager_log(`[Execute] Init failed, Format checking error`)
             return -1
         }
+        if(lib != undefined) this.libs = this.filter_lib(this.record.projects, lib)
+        else this.libs = { libs: [] }
+
         this.state = ExecuteState.RUNNING
-        this.messager_log(`[Execute] Init successfully, Enter process right now`)
+        this.messager_log(`[Execute] Init successfully, Enter process right now, length: ${this.current_projects.length}`)
         
         let i = 0
         for(const x of this.current_projects){
@@ -92,8 +95,16 @@ export class ExecuteManager extends ExecuteManager_Runner {
         this.current_t = undefined
         this.current_cron = []
         this.current_job = []
+        this.current_nodes = []
         this.current_multithread = 1
         this.state = ExecuteState.NONE
+    }
+
+    /**
+     * Tell clients release lib and parameter data
+     */
+    Release = () => {
+        this.current_nodes.forEach(x => this.release(x))
     }
 
     /**

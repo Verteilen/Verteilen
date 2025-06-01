@@ -23,6 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--overwrite', type=int, default=0)
     parser.add_argument('--iteration', type=int, default=7000)
     parser.add_argument('--dynamic', type=int, default=500)
+    parser.add_argument('--grad', type=int, default=0.0002)
     parser.add_argument('--density', type=int, default=2000)
     parser.add_argument('--gtp', type=int, default=500)
     args = parser.parse_args()
@@ -66,7 +67,7 @@ if __name__ == '__main__':
             frame_model_path = os.path.join(gaussian_output_path, str(i))
             first_frame_iteration = args.iteration
             first_frame_save_iterations = first_frame_iteration
-            first_gaussian_command = f"python train.py -s {frame_path} -m {frame_model_path} --densify_until_iter {args.density} --iterations {first_frame_iteration} --save_iterations {first_frame_save_iterations} --sh_degree {sh} -r {resolution_scale} --port 600{card_id}"
+            first_gaussian_command = f"python train.py -s {frame_path} -m {frame_model_path} --densify_grad_threshold {args.grad} --densify_until_iter {args.density} --iterations {first_frame_iteration} --save_iterations {first_frame_save_iterations} --sh_degree {sh} -r {resolution_scale} --port 600{card_id}"
             os.system(first_gaussian_command)
 
         first_frame_iteration = args.dynamic

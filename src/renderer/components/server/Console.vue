@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, ExecuteRecord, ExecuteState, Libraries, Node, Parameter, Preference, Project, Record } from '../../interface';
 import { ExecuteManager } from '../../script/execute_manager';
 import { WebsocketManager } from '../../script/socket_manager';
 import { DATA, Util_Console } from '../../util/console';
 import ConsoleDialog from '../dialog/ConsoleDialog.vue';
 import NumberDialog from '../dialog/NumberDialog.vue';
-import DebugLog from './console/DebugLog.vue';
-import List from './console/List.vue';
-import ParameterPage from './console/Parameter.vue';
-import Process from './console/Process.vue';
+import DebugLog from './../components/console/DebugLog.vue';
+import List from './../components/console/List.vue';
+import ParameterPage from './../components/console/Parameter.vue';
+import Process from './../components/console/Process.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -34,7 +34,7 @@ const emits = defineEmits<{
 const data:Ref<DATA> = ref({
     leftSize: 3,
     rightSize: 9,
-    tag: 1,
+    tag: 2,
     createModal: false,
     skipModal: false,
 })
@@ -90,7 +90,7 @@ const updateHandle = () => {
 const createConsole = () => {
     data.value.createModal = true
 }
-//#endregion
+//#end1on
 
 //#region UI Events
 /**
@@ -143,7 +143,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                 })
             }
             const index = model.value![0].SkipProject()
-            console.log("Skip project", index)
+            console.log("Skip project, index: %d, next count: %d", index, count)
         }
     }else if (type == 1){
         // Task
@@ -166,7 +166,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                 })
             }
             const index = model.value![0].SkipTask()
-            console.log("Skip task", index)
+            console.log("Skip task, index: %d, next count: %d", index, count)
         }
     }else if (type == 2){
         data.value.skipModal = true
@@ -202,6 +202,9 @@ const clean = () => {
     model.value![1].task_state = []
     model.value![1].task_detail = []
     emits('stop')
+    nextTick(() => {
+        if(props.execute.length == 0) data.value.tag = 2
+    })
 }
 /**
  * It means pause... but i just name it 'stop' anyway. you get the idea\
@@ -306,8 +309,8 @@ onUnmounted(() => {
                 </v-tooltip>
             </v-toolbar>
         </div>
-        <v-row style="height: calc(100vh - 150px)" class="w-100">
-            <v-col :cols="data.leftSize" style="border-right: brown 1px solid; filter:brightness(1.2)">
+        <v-row style="height: calc(100vh - 120px)" class="w-100">
+            <v-col :cols="data.leftSize" class="border border-e-lg">
                 <v-list v-model.number="data.tag" mandatory color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
                     <v-list-item v-if="model != undefined" @click="data.tag = 0" :value="0" :active="data.tag == 0">
                         {{ $t('console.list') }}

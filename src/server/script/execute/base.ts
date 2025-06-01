@@ -1,5 +1,5 @@
 import { v6 as uuid6 } from 'uuid';
-import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, JobCategory, JobType, JobType2, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 import { Util_Parser } from './util_parser';
 
@@ -48,14 +48,24 @@ export class ExecuteManager_Base {
     protected sync_para = (target:Parameter, source:WebsocketPack) => {
         const h:Header = {
             name: 'set_parameter',
+            channel: this.uuid,
             data: target
         }
         const h2:Header = {
             name: 'set_libs',
+            channel: this.uuid,
             data: this.libs
         }
         source.websocket.send(JSON.stringify(h))
         source.websocket.send(JSON.stringify(h2))
+    }
+    protected release = (source:WebsocketPack) => {
+        const h:Header = {
+            name: 'release',
+            channel: this.uuid,
+            data: 0
+        }
+        source.websocket.send(JSON.stringify(h))
     }
     /**
      * Check all the cronjob is finish or not
@@ -124,6 +134,23 @@ export class ExecuteManager_Base {
         })
         return true
     }
+    protected filter_lib = (projects:Array<Project>, lib:Libraries):Libraries => {
+        const r:Libraries = { libs: [] }
+        projects.forEach(x => {
+            x.task.forEach(y => {
+                y.jobs.forEach(z => {
+                    let code = -1
+                    if((z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT) || (z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT)) code = 0
+                    if(code == -1) return
+                    z.string_args.forEach(s1 => {
+                        const target = lib.libs.find(l => l.name == s1)
+                        if(target != undefined) r.libs.push(target)
+                    })
+                })
+            })
+        })
+        return JSON.parse(JSON.stringify(r))
+    }
     /**
      * Get the multi-core setting\
      * Find in the parameter setting
@@ -138,11 +165,9 @@ export class ExecuteManager_Base {
      * Get the task's cronjob count
      */
     public get_task_state_count(t:Task){
-        if (t.cronjob){
-            return this.get_number(t.cronjobKey)
-        }else{
-            return 1
-        }
+        if(t.setupjob) return this.current_nodes.length
+        if (t.cronjob) return this.get_number(t.cronjobKey)
+        else return 1
     }
 
     /**
@@ -152,7 +177,7 @@ export class ExecuteManager_Base {
      * @returns The value, if key cannot be found, it will return -1
      */
     protected get_number(key:string){
-        const f = this.localPara!.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression))
+        const f = this.localPara?.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression)) ?? undefined
         if(f == undefined) return -1
         if(f.meta == undefined && f.type == DataType.Expression){
             f.value = 0

@@ -27,7 +27,7 @@ export const messager_feedback = (msg:string, meta?:string) => {
 */
 export const messager_log = (msg:string, tag?:string, meta?:string) => {
     messager(msg, tag);
-    console.log(msg);
+    if(process.env.NODE_ENV === 'development') console.log(msg)
     messager_feedback(msg, meta)
 }
 
@@ -39,7 +39,7 @@ export const messager_log = (msg:string, tag?:string, meta?:string) => {
 */
 export const message_broadcast = (msg:string, wss:Array<WebsocketPack>) => {
     messager(msg);
-    console.log(msg);
+    if(process.env.NODE_ENV === 'development') console.log(msg)
     wss.forEach(s => {
         const d:Header = { name: 'message', message: msg}
         s.websocket.send(JSON.stringify(d))

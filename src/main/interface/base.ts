@@ -1,4 +1,5 @@
 import { DataType } from "./enum"
+import { LocalPermiision } from "./struct"
 
 export interface ParameterContainer {
     s?: boolean
@@ -24,21 +25,24 @@ export interface Parameter {
 
 export interface Job {
     s?: boolean
+    permission?: LocalPermiision
     index?:number
     uuid: string
     runtime_uuid?: string
     category: number
     type: number
-    lua: string
+    script: string
     string_args: Array<string>
     number_args: Array<number>
     boolean_args: Array<boolean>
 }
 
 export interface Task {
+    permission?: LocalPermiision
     uuid: string
     title: string
     description: string
+    setupjob: boolean
     cronjob: boolean
     cronjobKey: string
     multi: boolean
@@ -48,6 +52,7 @@ export interface Task {
 }
 
 export interface Project {
+    permission?: LocalPermiision
     uuid: string
     title: string
     description: string
@@ -57,6 +62,7 @@ export interface Project {
 }
 
 export interface Node {
+    permission?: LocalPermiision
     ID: string
     url: string
 }

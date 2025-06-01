@@ -85,6 +85,8 @@ export interface NodeProxy {
  * Emitter events container for Primary use
  */
 export type BusType = {
+    setting: void
+    guide: void
     makeToast: ToastData
     modeSelect: boolean
     createProject: void

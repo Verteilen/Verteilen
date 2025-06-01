@@ -13,6 +13,9 @@ const emitter:Emitter<BusType> | undefined = inject('emitter');
 const propss = defineProps<PROPS>()
 const data = defineModel<number>()
 
+const popSetting = () => { emitter?.emit('setting') }
+const popGuide = () => { emitter?.emit('guide') }
+
 const serverClick = () => {
     const d:ToastData = {
         title: i18n.global.t("toast.server"),
@@ -40,14 +43,32 @@ const clientClick = () => {
 </script>
 
 <template>
-    <div class="text-white bg-grey-darken-4" style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;">
-        <h3 :style="{ 'fontSize': (propss.preference.font + 6) + 'px' }">{{ $t('modeselect.title') }}</h3>
+    <div style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;"
+        :class="{ 'bg-dark': propss.preference.theme == 'dark', 'bg-light': propss.preference.theme == 'light' }">
+        <v-layout>
+            <v-app-bar :elevation="2">
+                <v-app-bar-title>{{ $t('modeselect.titlebar') }}</v-app-bar-title>
+                <template v-slot:append>
+                <v-menu location="left">
+                    <template v-slot:activator="{ props }">
+                    <v-btn v-bind="props" icon="mdi-dots-vertical"></v-btn>
+                    </template>
+                    <v-list width="120px">
+                    <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
+                    <v-list-item @click="popGuide">{{ $t('guide') }}</v-list-item>
+                    </v-list>
+                </v-menu>
+                </template>
+            </v-app-bar>
+        </v-layout>
+
+        <p class="text-info" :style="{ 'fontSize': (propss.preference.font + 6) + 'px' }">{{ $t('modeselect.title') }}</p>
         <br />
         <v-row>
             <v-col>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn color="primary" v-bind="props" id="tooltip-server-1" class="w-100 mx-1" @click="serverClick()">
+                        <v-btn variant="outlined" color="primary" v-bind="props" prepend-icon="mdi-server" stacked class="buttonHeight w-100 mx-1" @click="serverClick()">
                             <span :style="{ 'fontSize': propss.preference.font + 'px' }">
                                 {{ $t('server') }}
                             </span>
@@ -59,7 +80,7 @@ const clientClick = () => {
             <v-col>
                 <v-tooltip location="bottom" text="Tooltip">
                     <template v-slot:activator="{ props }">
-                        <v-btn color="primary" v-bind="props" class="w-100 mx-1" @click="clientClick()">
+                        <v-btn variant="outlined" color="secondary" v-bind="props" prepend-icon="mdi-network" stacked class="buttonHeight w-100 mx-1" @click="clientClick()">
                             <span :style="{ 'fontSize': propss.preference.font + 'px' }">
                                 {{ $t('node') }}
                             </span>
@@ -72,12 +93,14 @@ const clientClick = () => {
     </div>
 </template>
 
-<style lang="scss">
-
-</style>
-
 <style scoped>
-body {
-    place-items: center;
+.buttonHeight {
+    height: 90px
+}
+.bg-dark {
+    background-image: linear-gradient(to bottom, rgb(33, 33, 33), rgb(33, 40, 48));
+}
+.bg-light {
+    background-image: linear-gradient(to bottom, rgb(240, 240, 240), rgb(240, 247, 255));
 }
 </style>

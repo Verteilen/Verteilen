@@ -29,10 +29,10 @@ export async function Build_Server(){
     return compileTs(nodePath);
 }
 
-export async function PKG_Program(){
+export async function PKG_Program(platform:string){
     const exePath = Path.join(__dirname, '..', 'bin', 'worker.exe');
     const programPath = Path.join(__dirname, '..', 'build', 'program', 'worker.js');
-    return pkg.exec(["-d", "-t", "node16-x64", "-o", exePath, "--public-packages", "*", programPath])
+    return pkg.exec(["-d", "-t", `node16${platform}-x64`, "-o", exePath, "--public-packages", "*", programPath])
 }
 
 export async function PKG_Node(){
@@ -60,16 +60,6 @@ export async function Copy_PackageJson2Server() {
     await SyncVersionName(from, '_server')
     const to = Path.join(__dirname, '..', 'build', 'server', 'package.json');
     return copyFile(from, to)
-}
-
-export async function Copy_Plugins2Node() {
-    const from = Path.join(__dirname, '..', 'plugins', 'lua-in-js');
-    const from2 = Path.join(__dirname, '..', 'plugins', 'luaparse');
-    const to = Path.join(__dirname, '..', 'build', 'node', 'plugins', 'lua-in-js');
-    const to2 = Path.join(__dirname, '..', 'build', 'node', 'plugins', 'luaparse');
-    const cp1 = cp(from, to, {recursive: true})
-    const cp2 = cp(from2, to2, {recursive: true})
-    return Promise.all([cp1, cp2])
 }
 
 export async function Copy_Render2Server() {
