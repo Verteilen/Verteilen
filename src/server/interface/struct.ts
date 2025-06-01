@@ -173,3 +173,21 @@ export interface TemplateGroup {
     group: string
     template: ProjectCall
 }
+
+export interface GlobalPermission {
+    project: LobalPermiision
+    task: LobalPermiision
+    job: LobalPermiision
+    parameter: LobalPermiision
+    lib: LobalPermiision
+    log: LobalPermiision
+
+    execute_job: boolean
+}
+
+export interface LobalPermiision {
+    view: boolean
+    create: boolean
+    edit: boolean
+    delete: boolean
+}
