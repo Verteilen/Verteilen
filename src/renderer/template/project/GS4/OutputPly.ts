@@ -3,7 +3,7 @@ import { Task, Job, JobCategory, JobType, Project, Parameter } from '../../../in
 import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 import { FUNIQUE_GS4_PLYDone_V2 } from '../../js/GS4/PlyDone_V2';
 
-const PlyList = ():Task => {
+export const PlyList = ():Task => {
     const sequenceJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,

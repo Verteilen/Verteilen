@@ -2,7 +2,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { Task, Job, JobCategory, JobType, Parameter, Project } from '../../../interface';
 import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 
-const IFrame = ():Task => {
+export const IFrame = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -43,7 +43,7 @@ const IFrame = ():Task => {
 }
 
 // 把渣渣刪掉 !
-const Denoise = ():Task => {
+export const Denoise = ():Task => {
     const renamee:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -96,7 +96,7 @@ const Denoise = ():Task => {
 }
 
 // 備份 I-Frame
-const IFrameBackup = ():Task => {
+export const IFrameBackup = ():Task => {
     const backup:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -123,7 +123,7 @@ const IFrameBackup = ():Task => {
     return t
 }
 
-const IFrameGTP_Adjustment = ():Task => {
+export const IFrameGTP_Adjustment = ():Task => {
     const copy_1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,

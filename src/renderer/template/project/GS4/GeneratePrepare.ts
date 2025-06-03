@@ -4,7 +4,7 @@ import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 import { FUNIQUE_GS4_PREPARE } from '../../js/GS4/Prepare';
 
 // 從原始資料夾結構 弄成可以工作的樣子
-const Prepare = ():Task => {
+export const Prepare = ():Task => {
     const sortjob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,

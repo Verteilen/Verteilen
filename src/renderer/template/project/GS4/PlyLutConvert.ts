@@ -3,7 +3,7 @@ import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from ".
 import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 
 // Lut convert !!
-const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
+export const GetFUNIQUE_GS4ProjectTemplate_Lut = ():Task => {
     const sequenceJob:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,

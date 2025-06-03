@@ -1,24 +1,40 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Task, Job, JobCategory, JobType, Parameter, Project } from '../../../interface';
 import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
-import { FUNIQUE_GS4_BLEND_PREPARE_V2 } from '../../js/GS4/BlendPrepare_V2';
-import { FUNIQUE_GS4_COLMAP_COPY_V2 } from '../../js/GS4/ColmapCopy';
 
 // 排序改變 優化品質做的準備
 // Colmap 的結構複製一個負的出來
-export const BlendPrepare = ():Task => {
-    const copyhelper:Job = {
+export const CallMask = ():Task => {
+    const folder1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.JAVASCRIPT,
-        script: FUNIQUE_GS4_COLMAP_COPY_V2,
-        string_args: [],
+        type: JobType.CREATE_DIR,
+        script: "",
+        string_args: ["%root%/%mask%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const folder2:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.CREATE_DIR,
+        script: "",
+        string_args: ["%root%/%CAM%"],
+        number_args: [],
+        boolean_args: []
+    }
+    const maskJob:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COMMAND,
+        script: "",
+        string_args: ["%mask_env_folder%", "python", "BiRefNet.py -i %root%/%unmask% -o %root%/%mask%"],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Sorting",
+        title: "Masking",
         description: "Prepare PN Dataset",
         setupjob: false,
         cronjob: false,
@@ -27,7 +43,9 @@ export const BlendPrepare = ():Task => {
         multiKey: "",
         properties: [],
         jobs: [
-            copyhelper,
+            folder1,
+            folder2,
+            maskJob,
         ]
     }
     return t
@@ -35,23 +53,23 @@ export const BlendPrepare = ():Task => {
 
 // 排序改變 優化品質做的準備
 // Colmap 的結構複製一個負的出來
-export const BlendPrepare2 = ():Task => {
+export const MaskFFmpeg = ():Task => {
     const copyhelper2:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.JAVASCRIPT,
-        script: FUNIQUE_GS4_BLEND_PREPARE_V2,
-        string_args: [],
+        type: JobType.COMMAND,
+        script: "",
+        string_args: ["%mask_env_folder%", "ffmpeg", "-i %root%/%unmask%/%ck% -i %root%/%mask%/%ck% -filter_complex \"blend=all_mode=multiply\" %root%/%CAM%/%ck%.png"],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Sorting 2",
-        description: "Prepare Blend PN Folders",
+        title: "Use Background",
+        description: "Apply background",
         setupjob: false,
-        cronjob: false,
-        cronjobKey: "",
+        cronjob: true,
+        cronjobKey: "frameCount",
         multi: false,
         multiKey: "",
         properties: [],
@@ -62,17 +80,17 @@ export const BlendPrepare2 = ():Task => {
     return t
 }
 
-export const GetFUNIQUE_GS4ProjectTemplate_BlendPrepare = (r:Project):Project => {
+export const GetFUNIQUE_GS4ProjectTemplate_Mask = (r:Project):Project => {
     const para:Parameter = {
-        title: "GS4 Blend Prepare Parameter",
+        title: "GS4 Blend Mask Parameter",
         uuid: uuidv6(),
         canWrite: true,
         containers: GetFUNIQUE_GS4Project_Parameter_Builder()
     }
     r.parameter = para
     r.task.push(...[
-        BlendPrepare(),
-        BlendPrepare2(),
+        CallMask(),
+        MaskFFmpeg(),
     ])
     return r
 }
