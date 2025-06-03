@@ -55,6 +55,12 @@ export async function Copy_PackageJson2NodeBuild() {
     return copyFile(from, to)
 }
 
+export async function Copy_Bin2Server() {
+    const from = Path.join(__dirname, '..', 'bin');
+    const to = Path.join(__dirname, '..', 'build', 'server', 'bin');
+    return cp(from, to, {recursive: true})
+}
+
 export async function Copy_PackageJson2Server() {
     const from = Path.join(__dirname, '..', 'server_package.json');
     await SyncVersionName(from, '_server')

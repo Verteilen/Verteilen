@@ -3,7 +3,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
+import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -20,6 +20,7 @@ import ParameterPage from './server/Parameter.vue';
 import ProjectPage from './server/Project.vue';
 import SelfPage from './server/Self.vue';
 import TaskPage from './server/Task.vue';
+import { ConsoleManager } from '../script/console_manager';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
@@ -327,6 +328,94 @@ const onAnalysis = (d:BusAnalysis) => {
 const popSetting = () => { emitter?.emit('setting') }
 const popGuide = () => { emitter?.emit('guide') }
 
+const dataset_init = () => {
+  updateTab()
+  data.value.title = tabs.value.find(x => x[2] == 0)![1]
+  const x = config.value
+  if(!x.isExpress){
+    const nodeproxy:NodeProxy = {
+      shellReply: data => { emitter?.emit('shellReply', data) },
+      folderReply: data => { emitter?.emit('folderReply', data) },
+    }
+    data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
+  }
+
+  props.backend.eventOn('msgAppend', msgAppend)
+  props.backend.send('menu', true)
+  props.backend.eventOn('createProject', menuCreateProject)
+  props.backend.eventOn('menu_export_project', menu_export_project)
+  props.backend.eventOn('import_project_feedback', import_project_feedback)
+  props.backend.send('client_start');
+  const p1 = props.backend.invoke('load_all_node').then(x => {
+    const texts:Array<string> = JSON.parse(x)
+    data.value.nodes.push(...texts.map(y => JSON.parse(y)))
+  })
+  const p2 = props.backend.invoke('list_all_lib').then(x => {
+    const texts:Array<any> = JSON.parse(x)
+    console.log("list_all_lib", texts) 
+    data.value.libs = { libs: texts.map(y => {
+      const ext = y.name.split('.').pop()
+      const r = {
+        name: y.name.slice(0, -(ext.length + 1)),
+        load: false,
+        content: ""
+      }
+      return r
+    })}
+    console.log("Libs", data.value.libs)
+  })
+  const p3 = props.backend.invoke('load_all_record').then(x => {
+    const texts:Array<string> = JSON.parse(x)
+    data.value.projects.push(...texts.map(y => JSON.parse(y)))
+  })
+  const p4 = props.backend.invoke('load_record_obsolete').then(x => {
+    if(x == undefined) return
+    const texts:Record = JSON.parse(x)
+    const n:Array<NodeTable> = texts.nodes.map(y => {
+      return Object.assign(y, {
+        s: false,
+        state: 0,
+        connection_rate: 0
+      })
+    })
+    data.value.nodes.push(...n)
+    texts.projects.forEach(y => {
+      const p:Parameter = JSON.parse(JSON.stringify(y.parameter))
+      p.title = y.title
+      p.uuid = uuidv6()
+      data.value.parameters.push(p)
+      y.parameter = undefined
+      y.parameter_uuid = p.uuid
+      data.value.projects.push(y)
+    })
+  })
+  const p5 = props.backend.invoke('load_all_parameter').then(x => {
+    const texts:Array<string> = JSON.parse(x)
+    data.value.parameters = texts.map(y => JSON.parse(y))
+    console.log("Parameters", data.value.libs)
+  })
+  const p6 = props.backend.invoke('load_all_log').then(x => {
+      const stringlist:Array<string> = JSON.parse(x)
+      const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
+      ll.forEach(x => x.output = true)
+      console.log("Logs", ll)
+      data.value.logs.logs = ll
+  })
+  Promise.all([p1, p2, p3, p4, p5, p6]).then(() => {
+    data.value.nodes = data.value.nodes.map(y => {
+      return Object.assign(y, {
+        s: false,
+        state: 0,
+        connection_rate: 0
+      })
+    })
+    data.value.nodes.forEach(y => {
+      data.value.websocket_manager?.server_start(y.url, y.ID)
+    })
+    nextTick(() => allUpdate())
+  })
+}
+
 onMounted(() => {
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
@@ -336,91 +425,18 @@ onMounted(() => {
   emitter?.on('updateLocate', updateLocate)
 
   props.backend.wait_init().then(() => {
-    updateTab()
-    data.value.title = tabs.value.find(x => x[2] == 0)![1]
-    const x = config.value
-    if(!x.isExpress){
-      const nodeproxy:NodeProxy = {
-        shellReply: data => { emitter?.emit('shellReply', data) },
-        folderReply: data => { emitter?.emit('folderReply', data) },
-      }
-      data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
-    }
+    props.backend.consoleM = new ConsoleManager(`ws://${window.location.host}:${WebPORT}/server`, messager_log, {
+      on: emitter!.on,
+      off: emitter!.off,
+      emit: emitter!.emit
+    })
 
-    props.backend.eventOn('msgAppend', msgAppend)
-    props.backend.send('menu', true)
-    props.backend.eventOn('createProject', menuCreateProject)
-    props.backend.eventOn('menu_export_project', menu_export_project)
-    props.backend.eventOn('import_project_feedback', import_project_feedback)
-    props.backend.send('client_start');
-    const p1 = props.backend.invoke('load_all_node').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.nodes.push(...texts.map(y => JSON.parse(y)))
-    })
-    const p2 = props.backend.invoke('list_all_lib').then(x => {
-      const texts:Array<any> = JSON.parse(x)
-      console.log("list_all_lib", texts) 
-      data.value.libs = { libs: texts.map(y => {
-        const ext = y.name.split('.').pop()
-        const r = {
-          name: y.name.slice(0, -(ext.length + 1)),
-          load: false,
-          content: ""
-        }
-        return r
-      })}
-      console.log("Libs", data.value.libs)
-    })
-    const p3 = props.backend.invoke('load_all_record').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.projects.push(...texts.map(y => JSON.parse(y)))
-    })
-    const p4 = props.backend.invoke('load_record_obsolete').then(x => {
-      if(x == undefined) return
-      const texts:Record = JSON.parse(x)
-      const n:Array<NodeTable> = texts.nodes.map(y => {
-        return Object.assign(y, {
-          s: false,
-          state: 0,
-          connection_rate: 0
-        })
-      })
-      data.value.nodes.push(...n)
-      texts.projects.forEach(y => {
-        const p:Parameter = JSON.parse(JSON.stringify(y.parameter))
-        p.title = y.title
-        p.uuid = uuidv6()
-        data.value.parameters.push(p)
-        y.parameter = undefined
-        y.parameter_uuid = p.uuid
-        data.value.projects.push(y)
-      })
-    })
-    const p5 = props.backend.invoke('load_all_parameter').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.parameters = texts.map(y => JSON.parse(y))
-      console.log("Parameters", data.value.libs)
-    })
-    const p6 = props.backend.invoke('load_all_log').then(x => {
-        const stringlist:Array<string> = JSON.parse(x)
-        const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
-        ll.forEach(x => x.output = true)
-        console.log("Logs", ll)
-        data.value.logs.logs = ll
-    })
-    Promise.all([p1, p2, p3, p4, p5, p6]).then(() => {
-      data.value.nodes = data.value.nodes.map(y => {
-        return Object.assign(y, {
-          s: false,
-          state: 0,
-          connection_rate: 0
-        })
-      })
-      data.value.nodes.forEach(y => {
-        data.value.websocket_manager?.server_start(y.url, y.ID)
-      })
-      nextTick(() => allUpdate())
-    })
+    const inter = setInterval(() => {
+      if(props.backend.consoleM?.ws.readyState == 1){
+        dataset_init()
+        clearInterval(inter)
+      }
+    }, 500);    
   })
 })
 

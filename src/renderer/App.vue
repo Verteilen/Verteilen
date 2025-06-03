@@ -8,11 +8,9 @@ import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
 import GuideDialog from './components/dialog/GuideDialog.vue';
 import SettingDialog from './components/dialog/SettingDialog.vue';
-import { messager_log } from './debugger';
 import { BusType, Preference, WebPORT } from './interface';
 import { i18n } from './plugins/i18n';
 import { BackendProxy } from './proxy';
-import { ConsoleManager } from './script/console_manager';
 
 const theme = useTheme()
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -75,12 +73,6 @@ onMounted(() => {
   emitter?.on('setting', setting)
   emitter?.on('guide', guide)
   backend.value.wait_init().then(() => {
-    backend.value.consoleM = new ConsoleManager(`ws://${window.location.host}:${WebPORT}/server`, messager_log, {
-      on: emitter!.on,
-      off: emitter!.off,
-      emit: emitter!.emit
-    })
-    
     if(config.value.isElectron){
       backend.value.eventOn('locate', locate)
       backend.value.invoke('load_preference').then(x => load_preference(x))

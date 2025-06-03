@@ -43,7 +43,8 @@ export class BackendEvent {
 
     // The new manager enter the hood
     NewConsoleConsole = (socket:ws.WebSocket) => {
-        const typeMap:TypeMap = {
+        console.log(`New Connection ${socket.url}`)
+        let typeMap:TypeMap = {
             'javascript': this.javascript,
             'message': this.message,
             'load_record_obsolete': this.load_record_obsolete,
@@ -60,6 +61,7 @@ export class BackendEvent {
         Loader(typeMap, 'user', 'user')
         const n = new ConsoleServerManager(socket, messager_log, typeMap)
         this.manager.push(n)
+        return n
     }
 
     DropConsoleConsole = (socket:ws.WebSocket) => {
@@ -68,8 +70,14 @@ export class BackendEvent {
     }
 
     ConsoleAnalysis = (socket:ws.WebSocket, h:Header) => {
+        console.log("Hey", h)
         const index = this.manager.findIndex(x => x.ws == socket)
-        if(index != -1) this.manager[index].Analysis(h)
+        if(index != -1) {
+            this.manager[index].Analysis(h)
+        } else {
+            const n = this.NewConsoleConsole(socket)
+            n.Analysis(h)
+        }
     }
 
     //#region Server Side

@@ -34,6 +34,10 @@ export class ConsoleManager {
         }
     }
 
+    public get connected() : boolean {
+        return this.ws.readyState === 1
+    }
+
     on = (channel: string, listener: Listener) => {
         const index = this.events.findIndex(x => x[0] == channel)
         if(index == -1){

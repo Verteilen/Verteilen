@@ -81,23 +81,20 @@ export class Util_Server {
     saveRecord = (type:RenderUpdateType = RenderUpdateType.All) => {
         if((type & RenderUpdateType.Project) == RenderUpdateType.Project){
             this.data.value.projects.forEach(x => {
-                if(!this.config().config.isElectron) return
                 const text = JSON.stringify(x)
-                window.electronAPI.send('save_record', x.uuid, text)
+                this.config().send('save_record', x.uuid, text)
             })
         }
         if((type & RenderUpdateType.Node) == RenderUpdateType.Node){
             this.data.value.nodes.forEach(x => {
-                if(!this.config().config.isElectron) return
                 const text = JSON.stringify(x)
-                window.electronAPI.send('save_node', x.ID, text)
+                this.config().send('save_node', x.ID, text)
             })
         }
         if((type & RenderUpdateType.Parameter) == RenderUpdateType.Parameter){
             this.data.value.parameters.forEach(x => {
-                if(!this.config().config.isElectron) return
                 const text = JSON.stringify(x)
-                window.electronAPI.send('save_parameter', x.uuid, text)
+                this.config().send('save_parameter', x.uuid, text)
             })
         }
     }

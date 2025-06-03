@@ -6,7 +6,7 @@ import { Header } from "../interface";
 export type TypeMap = { [key:string]:Function }
 
 export const Loader = (typeMap:TypeMap, key:string, folder:string, ext:string = ".json") => {
-    typeMap[`load_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
+    typeMap[`load_all_${key}`] = (socket:ws.WebSocket) => {
         const root = path.join("data", folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const r:Array<string> = []
@@ -22,14 +22,14 @@ export const Loader = (typeMap:TypeMap, key:string, folder:string, ext:string = 
         }
         socket.send(JSON.stringify(d))
     }
-    typeMap[`delete_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
+    typeMap[`delete_all_${key}`] = (socket:ws.WebSocket) => {
         const root = path.join("data", folder)
-        if (fs.existsSync(root)) fs.rmSync(root, {recursive: true})
+        if (!fs.existsSync(root)) fs.rmSync(root, {recursive: true})
         fs.mkdirSync(root, {recursive: true})
     }
-    typeMap[`list_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
+    typeMap[`list_all_${key}`] = (socket:ws.WebSocket) => {
         const root = path.join("data", folder)
-        if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+        if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const ps = fs.readdirSync(root, { withFileTypes: false })
         ps.map(x => {
             const stat = fs.statSync(path.join(root, x))
@@ -45,35 +45,35 @@ export const Loader = (typeMap:TypeMap, key:string, folder:string, ext:string = 
         }
         socket.send(JSON.stringify(d))
     }
-    typeMap[`save_${key}`] = (d:{name:string, data:string}, socket:ws.WebSocket) => {
+    typeMap[`save_${key}`] = (socket:ws.WebSocket, name:string, data:string) => {
         const root = path.join("data", folder)
-        if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-        let filename = d.name + ext
+        if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+        let filename = name + ext
         let p = path.join(root, filename)
-        fs.writeFileSync(p, d.data)
+        fs.writeFileSync(p, data)
     }
-    typeMap[`rename_${key}`] = (d:{name:string, newname:string}, socket:ws.WebSocket) => {
+    typeMap[`rename_${key}`] = (socket:ws.WebSocket, name:string, newname:string) => {
         const root = path.join("data", folder)
-        if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-        fs.cpSync(path.join(root, `${d.name}.json`), path.join(root, `${d.newname}.json`), { recursive: true })
-        fs.rmdirSync(path.join(root, `${d.name}.json`))
+        if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+        fs.cpSync(path.join(root, `${name}.json`), path.join(root, `${newname}.json`), { recursive: true })
+        fs.rmdirSync(path.join(root, `${name}.json`))
     }
-    typeMap[`delete_${key}`] = (name:string, socket:ws.WebSocket) => {
+    typeMap[`delete_${key}`] = (socket:ws.WebSocket, name:string) => {
         const root = path.join("data", folder)
-        if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+        if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const filename = name + ext
         const p = path.join(root, filename)
         if (fs.existsSync(p)) fs.rmSync(p)
     }
-    typeMap[`delete_all_${key}`] = (name:string, socket:ws.WebSocket) => {
+    typeMap[`delete_all_${key}`] = (socket:ws.WebSocket, name:string) => {
         const root = path.join("data", folder)
-        if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+        if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const ps = fs.readdirSync(root, { withFileTypes: false })
         ps.forEach(x => fs.rmSync(path.join(root, x)))
     }
-    typeMap[`load_${key}`] = (name:string, socket:ws.WebSocket) => {
+    typeMap[`load_${key}`] = (socket:ws.WebSocket, name:string) => {
         const root = path.join("data", folder)
-        if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
+        if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const filename = name + ext
         const p = path.join(root, filename)
         if (fs.existsSync(p)){
