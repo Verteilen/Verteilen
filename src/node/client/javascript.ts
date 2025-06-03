@@ -165,9 +165,6 @@ export class ClientJavascript {
     }
 
     private getJavascriptEnv(flags:JavascriptLib = JavascriptLib.ALL){
-        const isbin = process.cwd().endsWith('bin')
-        const root = isbin ? path.join(process.cwd(), 'js') : path.join(process.cwd(), 'bin', 'js')
-        if (!fs.existsSync(root)) fs.mkdirSync(root)
         let javascriptEnv = {}
         if((flags & JavascriptLib.OS) == JavascriptLib.OS) javascriptEnv = Object.assign(javascriptEnv, { os: this.os })
         if((flags & JavascriptLib.ENV) == JavascriptLib.ENV) javascriptEnv = Object.assign(javascriptEnv, { env: this.env })
