@@ -97,7 +97,9 @@
         "log-recover-project-title": "新專案名稱",
         "log-recover-parameter-title": "新參數名稱",
         "console-create": "建立控制台",
-        "console-name": "控制台名稱"
+        "console-name": "控制台名稱",
+        "delete-library": "刪除程式腳本",
+        "delete-library-confirm": "確定刪除選取的程式腳本嗎?"
     },
     "toolbar": {
         "server": "伺服器",

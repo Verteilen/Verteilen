@@ -25,6 +25,8 @@ const model = defineModel<Libraries>()
 const data:Ref<DATA> = ref({
     leftSize: 3,
     rightSize: 9,
+    deleteModal: false,
+    deleteData: "",
     select: -1,
     createModel: false,
     isEdit: false,
@@ -70,6 +72,12 @@ const setdirty = () => {
 
 const remove = () => {
     if(selection.value == undefined) return
+    data.value.deleteData = selection.value.name
+    data.value.deleteModal = true
+}
+
+const deleteConfirm = () => {
+    if(selection.value == undefined) return
     model.value?.libs.forEach(x => {
         x.load = false
         x.content = ""
@@ -80,6 +88,7 @@ const remove = () => {
     clean()
     const target = model.value?.libs[data.value.select];
     if(target) emits('load', target.name + '.js')
+    data.value.deleteModal = false
 }
 
 const submit = () => {
@@ -215,6 +224,23 @@ onUnmounted(() => {
                 </v-card-text>
                 <template v-slot:actions>
                     <v-btn color="primary" @click="submit">{{ $t('confirm') }}</v-btn>
+                </template>
+            </v-card>
+        </v-dialog>
+        <v-dialog width="500" v-model="data.deleteModal" class="text-white">
+            <v-card>
+                <v-card-title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.delete-library') }}
+                </v-card-title>
+                <v-card-text>
+                    <p>{{ $t('modal.delete-library-confirm') }}</p>
+                    <br />
+                    <p>deleteData</p>
+                </v-card-text>
+                <template v-slot:actions>
+                    <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
                 </template>
             </v-card>
         </v-dialog>

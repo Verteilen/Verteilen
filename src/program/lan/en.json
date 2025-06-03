@@ -97,7 +97,9 @@
         "log-recover-project-title": "New Project Title",
         "log-recover-parameter-title": "New Parameter Title",
         "console-create": "Create Console",
-        "console-name": "Console Name"
+        "console-name": "Console Name",
+        "delete-library": "Library Delete",
+        "delete-library-confirm": "Are you sure delete this script"
     },
     "toolbar": {
         "server": "Server",

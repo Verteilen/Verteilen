@@ -114,9 +114,9 @@ const libFresh = () => {
     const texts:Array<any> = JSON.parse(x)
     console.log("list_all_lib", texts) 
     data.value.libs = { libs: texts.map(y => {
-      const ext = y.name.split('.').pop()
+      const ext = y.split('.').pop()
       const r = {
-        name: y.name.slice(0, -(ext.length + 1)),
+        name: y.slice(0, -(ext.length + 1)),
         load: false,
         content: ""
       }
