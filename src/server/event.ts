@@ -70,7 +70,6 @@ export class BackendEvent {
     }
 
     ConsoleAnalysis = (socket:ws.WebSocket, h:Header) => {
-        console.log("Hey", h)
         const index = this.manager.findIndex(x => x.ws == socket)
         if(index != -1) {
             this.manager[index].Analysis(h)
