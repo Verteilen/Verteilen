@@ -70,7 +70,7 @@ export async function Copy_Render2Server() {
 
 export async function Copy_Render2Server_DEV() {
     const source = Path.join(__dirname, '..', 'build', 'renderer')
-    const p = Path.join(__dirname, '..', 'src', 'server', 'public')
+    const p = Path.join(__dirname, '..', 'build', 'server', 'public')
     return cp(source, p, { recursive: true })
 }
 
