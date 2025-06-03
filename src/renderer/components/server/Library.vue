@@ -87,11 +87,7 @@ const submit = () => {
     else confirmCreate()
 }
 
-const luaFeedback = (e:IpcRendererEvent, str:string) => {
-    data.value.messages.push(str)
-}
-
-const javascriptFeedback = (e:IpcRendererEvent, str:string) => {
+const javascriptFeedback = (str:string) => {
     data.value.messages.push(str)
 }
 
@@ -124,12 +120,10 @@ const save = () => {
 }
 
 onMounted(() => {
-    props.backend.eventOn('lua-feedback', luaFeedback)
     props.backend.eventOn('javascript-feedback', javascriptFeedback)
 })
 
 onUnmounted(() => {
-    props.backend.eventOff('lua-feedback', luaFeedback)
     props.backend.eventOff('javascript-feedback', javascriptFeedback)
 })
 

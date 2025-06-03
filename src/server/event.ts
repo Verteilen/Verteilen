@@ -106,9 +106,17 @@ export class BackendEvent {
 
     //#region Manager Side
     private javascript = (socket:ws.WebSocket, content:string) => {
-        const r = this.jsCall.JavascriptExecute(content)
+        const javascript_messager_feedback = (msg:string, tag?:string) => {
+            messager(msg, tag)
+            const d:Header = {
+                name: 'javascript-feedback',
+                data: msg
+            }
+            socket.send(JSON.stringify(d))
+        }
+        const r = this.jsCall.JavascriptExecute(content, javascript_messager_feedback)
         const d:Header = {
-            name: 'js-feedback',
+            name: 'javascript-feedback',
             data: r?.toString() ?? ''
         }
         socket.send(JSON.stringify(d))

@@ -90,15 +90,15 @@ export class BackendEvent {
         ipcMain.on('javascript', (event, content:string) => {
             const javascript_messager_feedback = (msg:string, tag?:string) => {
                 messager(msg, tag)
-                event.sender.send('lua-feedback', msg)
+                event.sender.send('javascript-feedback', msg)
             }
             const javascript_messager_log_feedback = (msg:string, tag?:string) => {
                 messager_log(msg, tag)
-                event.sender.send('lua-feedback', msg)
+                event.sender.send('javascript-feedback', msg)
             }
             const javascript:ClientJavascript = new ClientJavascript(javascript_messager_feedback, javascript_messager_log_feedback, () => this.job)
             const r = javascript.JavascriptExecute(content)
-            event.sender.send('lua-feedback', r?.toString() ?? '')
+            event.sender.send('javascript-feedback', r?.toString() ?? '')
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {
             console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);

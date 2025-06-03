@@ -88,14 +88,28 @@ export class ConsoleManager {
         const index2 = this.events_once.findIndex(x => x[0] == h.name)
         if(index != -1){
             const castingFunc = this.events[index][1]
-            castingFunc.forEach(x => x(h.data))
+            castingFunc.forEach(x => {
+                if(h.data instanceof Array){
+                    if(h.data.length == 1) x(h.data[0])
+                    else x(...h.data)
+                }else{
+                    x(h.data)
+                }
+            })
         }else{
             this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
         }
 
         if(index2 != -1){
             const castingFunc = this.events_once[index2][1]
-            castingFunc.forEach(x => x(h.data))
+            castingFunc.forEach(x => {
+                if(h.data instanceof Array){
+                    if(h.data.length == 1) x(h.data[0])
+                    else x(...h.data)
+                }else{
+                    x(h.data)
+                }
+            })
             this.events_once.splice(index2, 1)
         }else{
             this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)

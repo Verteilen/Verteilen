@@ -28,7 +28,12 @@ export class ConsoleServerManager {
         if (h.data == undefined) return
         if(this.typeMap.hasOwnProperty(h.name)){
             const castingFunc = this.typeMap[h.name]
-            castingFunc(this.ws, ...h.data)
+            if(h.data instanceof Array){
+                if(h.data.length == 1) castingFunc(this.ws, h.data[0])
+                else castingFunc(this.ws, ...h.data)
+            }else{
+                castingFunc(this.ws, h.data)
+            }
         }else{
             this.messager_log(`[Source Analysis] Failed, Unknown, name: ${h.name}, meta: ${h.meta}`)
         }
