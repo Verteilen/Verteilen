@@ -261,7 +261,9 @@ export class ClientJavascript {
     }
     private getnumber(key:string){
         if(key == 'ck'){
-            return getjob?.()?.index
+            const r = getjob?.()?.index
+            if(r != undefined) return r - 1
+            return 0
         }
         const p = getpara?.() ?? undefined
         if(p == undefined) return 0

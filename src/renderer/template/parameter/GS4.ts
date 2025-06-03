@@ -28,6 +28,7 @@ export const GetFUNIQUE_GS4Project_Parameter_Builder = ():ParameterContainer[] =
         { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: true },
         { name: "train_command", value: "--resolution 1 --cuda 0 --sh 3 --interval 1", type: DataType.String, runtimeOnly: false, hidden: false },
 
+        { name: "train_script", value: "train_sequence_Good_Full_Train_densify_until_2000_i7000.py", type: DataType.String, runtimeOnly: false, hidden: true },
         { name: "iframe_env_folder", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
         { name: "iframe_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
         { name: "middle_env_folder", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
