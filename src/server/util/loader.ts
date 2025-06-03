@@ -31,14 +31,6 @@ export const Loader = (typeMap:TypeMap, key:string, folder:string, ext:string = 
         const root = path.join("data", folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const ps = fs.readdirSync(root, { withFileTypes: false })
-        ps.map(x => {
-            const stat = fs.statSync(path.join(root, x))
-            return {
-                name: x,
-                size: stat.size,
-                time: stat.ctime
-            }
-        })
         const d:Header = {
             name: `list_all_${key}-feedback`,
             data: JSON.stringify(ps)

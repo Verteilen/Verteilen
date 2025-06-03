@@ -27,12 +27,7 @@ export const Loader = (key:string, folder:string, ext:string = ".json") => {
         const r:any = []
         for(let i = 0; i < ps.length; i++){
             const x = ps[i]
-            const stat = fs.statSync(path.join(root, x.toString()))
-            r.push({
-                name: x,
-                size: stat.size,
-                time: stat.ctime
-            })
+            r.push(x)
         }
         return JSON.stringify(r)
     })

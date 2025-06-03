@@ -73,7 +73,7 @@ onMounted(() => {
   emitter?.on('setting', setting)
   emitter?.on('guide', guide)
   backend.value.wait_init().then(() => {
-    if(config.value.isElectron){
+    if(config.value.isElectron){w
       backend.value.eventOn('locate', locate)
       backend.value.invoke('load_preference').then(x => load_preference(x))
     }
