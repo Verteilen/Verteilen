@@ -50,7 +50,10 @@
     },
     "error": {
         "title-needed": "Title is needed",
-        "title-repeat": "Cannot use title which already exists"
+        "title-repeat": "Cannot use title which already exists",
+        "project-empty": "Project list cannot be zero",
+        "parameter-empty": "Project must binding with parameter",
+        "node-empty": "node list cannot be zero"
     },
     "filter": {
         "type": "Datatype",
