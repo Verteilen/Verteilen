@@ -1,16 +1,16 @@
-import { dialog, ipcMain } from "electron";
+import { ipcMain } from "electron";
 import fs from "fs";
-import path from "path";
+import { Loader } from './util/loader'
 import { Client } from "./client/client";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { mainWindow } from "./electron";
 import { ExecuteRecord, Job, Parameter, Preference, Project, Record } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { ExecuteManager } from "./script/execute_manager";
 import { Util_Server_Console_Proxy } from "./util/server/console_handle";
 import { Util_Server } from "./util/server/server";
 import { Util_Server_Log_Proxy } from "./util/server/log_handle";
+import { ExportProjects, ImportProject, ExportProject, ImportParameter, ExportParameter } from "./util/io";
 
 export class BackendEvent {
     menu_state = false
@@ -103,11 +103,11 @@ export class BackendEvent {
         ipcMain.on('message', (event, message:string, tag?:string) => {
             console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
         })
-        this.Loader('record', 'record')
-        this.Loader('parameter', 'parameter')
-        this.Loader('node', 'node')
-        this.Loader('log', 'log')
-        this.Loader('lib', 'lib', '')
+        Loader('record', 'record')
+        Loader('parameter', 'parameter')
+        Loader('node', 'node')
+        Loader('log', 'log')
+        Loader('lib', 'lib', '')
 
         ipcMain.handle('load_record_obsolete', (e) => {
             if(!fs.existsSync('record.json')) return undefined
@@ -142,181 +142,25 @@ export class BackendEvent {
         })
         ipcMain.on('export_projects', (event, data:string) => {
             const p:Array<Project> = JSON.parse(data)
-            this.ExportProjects(p)
+            ExportProjects(p)
         })
         ipcMain.on('import_project', (event) => {
-            this.ImportProject()
+            ImportProject()
         })
         ipcMain.on('export_project', (event, data:string) => {
             const p:Project = JSON.parse(data)
-            this.ExportProject(p)
+            ExportProject(p)
         })
         ipcMain.on('import_parameter', (event) => {
-            this.ImportParameter()
+            ImportParameter()
         })
         ipcMain.on('export_parameter', (event, data:string) => {
             const p:Parameter = JSON.parse(data)
-            this.ExportParameter(p)
+            ExportParameter(p)
         })
         ipcMain.on('locate', (event, data:string) => {
             // @ts-ignore
             i18n.global.locale = data
-        })
-    }
-
-    Loader = (key:string, folder:string, ext:string = ".json") => {
-        ipcMain.handle(`load_all_${key}`, (e) => {
-            const root = path.join("data", folder)
-            if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const r:Array<string> = []
-            const ffs = fs.readdirSync(root, {withFileTypes: true})
-            ffs.forEach(x => {
-                if(!x.isFile()) return
-                const file = fs.readFileSync(path.join(root, x.name), { encoding: 'utf8', flag: 'r' })
-                r.push(file)
-            })
-            return JSON.stringify(r)
-        })
-        ipcMain.on(`delete_all_${key}`, (e) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.rmSync(root, {recursive: true})
-            fs.mkdirSync(root, {recursive: true})
-        })
-        ipcMain.handle(`list_all_${key}`, (e) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const ps = fs.readdirSync(root, { withFileTypes: false })
-            const r:any = []
-            for(let i = 0; i < ps.length; i++){
-                const x = ps[i]
-                const stat = fs.statSync(path.join(root, x.toString()))
-                r.push({
-                    name: x,
-                    size: stat.size,
-                    time: stat.ctime
-                })
-            }
-            return JSON.stringify(r)
-        })
-        ipcMain.on(`save_${key}`, (e, name:string, data:string) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            let filename = name + ext
-            let p = path.join(root, filename)
-            fs.writeFileSync(p, data)
-        })
-        ipcMain.on(`rename_${key}`, (e, name:string, newname:string) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            fs.cpSync(path.join(root, `${name}.json`), path.join(root, `${newname}.json`), { recursive: true })
-            fs.rmdirSync(path.join(root, `${name}.json`))
-        })
-        ipcMain.on(`delete_${key}`, (e, name:string) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ext
-            const p = path.join(root, filename)
-            if (fs.existsSync(p)) fs.rmSync(p)
-        })
-        ipcMain.on(`delete_all_${key}`, (e, name:string) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const ps = fs.readdirSync(root, { withFileTypes: false })
-            ps.forEach(x => fs.rmSync(path.join(root, x)))
-        })
-        ipcMain.handle(`load_${key}`, (e, name:string) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ext
-            const p = path.join(root, filename)
-            if (fs.existsSync(p)){
-                const file = fs.readFileSync(p, { encoding: 'utf8', flag: 'r' })
-                return file.toString()
-            }else{
-                return undefined
-            }
-        })
-    }
-
-    ImportProject = () => {
-        if(mainWindow == undefined) return;
-        dialog.showOpenDialog(mainWindow, {
-            properties: ['openFile', 'multiSelections'],
-            filters: [
-                { name: 'JSON', extensions: ['json'] },
-            ]
-        }).then(v => {
-            if (v.canceled) return
-            if(mainWindow == undefined) return;
-            const p:Array<any> = []
-            for(const x of v.filePaths){
-                p.push(JSON.parse(fs.readFileSync(x).toString()))
-            }
-            mainWindow.webContents.send('import_project_feedback', JSON.stringify(p))
-        })
-    }
-    
-    ExportProject = (value:Project) => {
-        if(mainWindow == undefined) return;
-        dialog.showSaveDialog(mainWindow, {
-            filters: [
-                {
-                    name: "JSON",
-                    extensions: ['json']
-                }
-            ]
-        }).then(v => {
-            if (v.canceled || v.filePath.length == 0) return
-            const path = v.filePath
-            console.log("Export project to path: ", path)
-            fs.writeFileSync(path, JSON.stringify(value, null, 4))
-        })
-    }
-    
-    ExportProjects = (value:Array<Project>) => {
-        if(mainWindow == undefined) return;
-        dialog.showOpenDialog(mainWindow, {
-            properties: ['openDirectory']
-        }).then(v => {
-            if (v.canceled || v.filePaths.length == 0) return
-            if(mainWindow == undefined) return;
-            const path = v.filePaths[0]
-            for(var x of value){
-                fs.writeFileSync(`${path}/${x.title}.json`, JSON.stringify(x, null, 4))
-            }
-        })
-    }
-
-    ImportParameter = () => {
-        if(mainWindow == undefined) return;
-        dialog.showOpenDialog(mainWindow, {
-            properties: ['openFile', 'multiSelections'],
-            filters: [
-                { name: 'JSON', extensions: ['json'] },
-            ]
-        }).then(v => {
-            if (v.canceled) return
-            if(mainWindow == undefined) return;
-            if(v.filePaths.length < 1) return;
-            const p = JSON.parse(fs.readFileSync(v.filePaths[0]).toString())
-            mainWindow.webContents.send('import_parameter_feedback', JSON.stringify(p))
-        })
-    }
-
-    ExportParameter = (value:Parameter) => {
-        if(mainWindow == undefined) return;
-        dialog.showSaveDialog(mainWindow, {
-            filters: [
-                {
-                    name: "JSON",
-                    extensions: ['json']
-                }
-            ]
-        }).then(v => {
-            if (v.canceled || v.filePath.length == 0) return
-            const path = v.filePath
-            console.log("Export project to path: ", path)
-            fs.writeFileSync(path, JSON.stringify(value, null, 4))
         })
     }
 }

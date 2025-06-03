@@ -9,7 +9,7 @@ import ServerNode from './components/ServerNode.vue';
 import GuideDialog from './components/dialog/GuideDialog.vue';
 import SettingDialog from './components/dialog/SettingDialog.vue';
 import { messager_log } from './debugger';
-import { BusType, Preference } from './interface';
+import { BusType, Preference, WebPORT } from './interface';
 import { i18n } from './plugins/i18n';
 import { BackendProxy } from './proxy';
 import { ConsoleManager } from './script/console_manager';
@@ -75,7 +75,7 @@ onMounted(() => {
   emitter?.on('setting', setting)
   emitter?.on('guide', guide)
   backend.value.wait_init().then(() => {
-    backend.value.consoleM = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
+    backend.value.consoleM = new ConsoleManager(`ws://${window.location.host}:${WebPORT}/server`, messager_log, {
       on: emitter!.on,
       off: emitter!.off,
       emit: emitter!.emit

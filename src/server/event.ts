@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
 import { ClientJavascript } from "./client/javascript";
@@ -9,8 +8,7 @@ import { i18n } from "./plugins/i18n";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { ExecuteManager } from "./script/execute_manager";
 import { WebsocketManager } from "./script/socket_manager";
-
-type TypeMap = { [key:string]:Function }
+import { Loader, TypeMap } from "./util/loader";
 
 export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
@@ -44,9 +42,9 @@ export class BackendEvent {
     }
 
     // The new manager enter the hood
-    NewConsole = (socket:ws.WebSocket) => {
+    NewConsoleConsole = (socket:ws.WebSocket) => {
         const typeMap:TypeMap = {
-            'lua': this.js,
+            'javascript': this.javascript,
             'message': this.message,
             'load_record_obsolete': this.load_record_obsolete,
             'save_preference': this.save_preference,
@@ -54,109 +52,22 @@ export class BackendEvent {
             // Unique
             'console_add': this.ConsoleAdd
         }
-        this.Loader(typeMap, 'record', 'record')
-        this.Loader(typeMap, 'parameter', 'parameter')
-        this.Loader(typeMap, 'node', 'node')
-        this.Loader(typeMap, 'log', 'log')
-        this.Loader(typeMap, 'lib', 'lib')
+        Loader(typeMap, 'record', 'record')
+        Loader(typeMap, 'parameter', 'parameter')
+        Loader(typeMap, 'node', 'node')
+        Loader(typeMap, 'log', 'log')
+        Loader(typeMap, 'lib', 'lib', '')
+        Loader(typeMap, 'user', 'user')
         const n = new ConsoleServerManager(socket, messager_log, typeMap)
         this.manager.push(n)
     }
 
-    Loader = (typeMap:TypeMap, key:string, folder:string) => {
-        typeMap[`load_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const r:Array<string> = []
-            const ffs = fs.readdirSync(root, {withFileTypes: true})
-            ffs.forEach(x => {
-                if(!x.isFile()) return
-                const file = fs.readFileSync(path.join(root, x.name), { encoding: 'utf8', flag: 'r' })
-                r.push(file)
-            })
-            const d:Header = {
-                name: `load_all_${key}-feedback`,
-                data: JSON.stringify(r)
-            }
-            socket.send(JSON.stringify(d))
-        }
-        typeMap[`delete_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.rmSync(root, {recursive: true})
-            fs.mkdirSync(root, {recursive: true})
-        }
-        typeMap[`list_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const ps = fs.readdirSync(root, { withFileTypes: false })
-            ps.map(x => {
-                const stat = fs.statSync(path.join(root, x))
-                return {
-                    name: x,
-                    size: stat.size,
-                    time: stat.ctime
-                }
-            })
-            const d:Header = {
-                name: `list_all_${key}-feedback`,
-                data: JSON.stringify(ps)
-            }
-            socket.send(JSON.stringify(d))
-        }
-        typeMap[`save_${key}`] = (d:{name:string, data:string}, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            let filename = d.name + ".json"
-            let p = path.join(root, filename)
-            fs.writeFileSync(p, d.data)
-        }
-        typeMap[`rename_${key}`] = (d:{name:string, newname:string}, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            fs.cpSync(path.join(root, `${d.name}.json`), path.join(root, `${d.newname}.json`), { recursive: true })
-            fs.rmdirSync(path.join(root, `${d.name}.json`))
-        }
-        typeMap[`delete_${key}`] = (name:string, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ".json"
-            const p = path.join(root, filename)
-            if (fs.existsSync(p)) fs.rmSync(p)
-        }
-        typeMap[`delete_all_${key}`] = (name:string, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const ps = fs.readdirSync(root, { withFileTypes: false })
-            ps.forEach(x => fs.rmSync(path.join(root, x)))
-        }
-        typeMap[`load_${key}`] = (name:string, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ".json"
-            const p = path.join(root, filename)
-            if (fs.existsSync(p)){
-                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
-                const d:Header = {
-                    name: `load_${key}-feedback`,
-                    data: file.toString()
-                }
-                socket.send(JSON.stringify(d))
-            }else{
-                const d:Header = {
-                    name: `load_${key}-feedback`,
-                    data: undefined
-                }
-                socket.send(JSON.stringify(d))
-            }
-        }
-    }
-
-    DropConsole = (socket:ws.WebSocket) => {
+    DropConsoleConsole = (socket:ws.WebSocket) => {
         const index = this.manager.findIndex(x => x.ws == socket)
         if(index != -1) this.manager.splice(index, 1)
     }
 
-    Analysis = (socket:ws.WebSocket, h:Header) => {
+    ConsoleAnalysis = (socket:ws.WebSocket, h:Header) => {
         const index = this.manager.findIndex(x => x.ws == socket)
         if(index != -1) this.manager[index].Analysis(h)
     }
@@ -187,7 +98,7 @@ export class BackendEvent {
     //#endregion
 
     //#region Manager Side
-    private js = (content:string, socket:ws.WebSocket) => {
+    private javascript = (content:string, socket:ws.WebSocket) => {
         const r = this.jsCall.JavascriptExecute(content)
         const d:Header = {
             name: 'js-feedback',
