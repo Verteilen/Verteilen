@@ -2,12 +2,13 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch, watchEffect } from 'vue';
-import { AppConfig, BusType, Libraries, Preference } from '../../interface';
+import { BusType, Libraries, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Lib } from '../../util/lib';
+import { BackendProxy } from '../../proxy';
 
 interface PROPS {
-    config: AppConfig
+    backend: BackendProxy
     preference: Preference
 }
 
@@ -123,16 +124,13 @@ const save = () => {
 }
 
 onMounted(() => {
-    if(!props.config.isElectron) return
-    window.electronAPI.eventOn('lua-feedback', luaFeedback)
-    window.electronAPI.eventOn('javascript-feedback', javascriptFeedback)
-    
+    props.backend.eventOn('lua-feedback', luaFeedback)
+    props.backend.eventOn('javascript-feedback', javascriptFeedback)
 })
 
 onUnmounted(() => {
-    if(!props.config.isElectron) return
-    window.electronAPI.eventOff('lua-feedback', luaFeedback)
-    window.electronAPI.eventOff('javascript-feedback', javascriptFeedback)
+    props.backend.eventOff('lua-feedback', luaFeedback)
+    props.backend.eventOff('javascript-feedback', javascriptFeedback)
 })
 
 </script>
@@ -153,7 +151,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
-                        <v-btn icon v-bind="pro.props" color="success" v-if="props.config.isElectron" :disabled="selection == undefined" @click="execute">
+                        <v-btn icon v-bind="pro.props" color="success" v-if="props.backend.config.haveBackend" :disabled="selection == undefined" @click="execute">
                             <v-icon>mdi-play</v-icon>
                         </v-btn>
                     </template>

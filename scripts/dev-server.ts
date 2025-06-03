@@ -42,6 +42,7 @@ async function startElectron() {
         Path.join(__dirname, '..', 'node_modules', 'electron', 'cli.js'),
         Path.join(__dirname, '..', 'build', 'main', 'main.js'),
         rendererPort!.toString(),
+        "--no-sandbox"
     ];
     electronProcess = spawn('node', args);
     electronProcessLocker = false;
@@ -74,10 +75,6 @@ function restartElectron() {
     }
 }
 
-function copyStaticFiles() {
-    copy('static');
-}
-
 /*
 The working dir of Electron is build/main instead of src/main because of TS.
 tsc does not copy static files, so copy them over manually for dev server.
@@ -105,7 +102,6 @@ async function main() {
     const devServer = await startRenderer();
     rendererPort = devServer.config.server.port;
 
-    copyStaticFiles();
     startElectron();
 
     const path = Path.join(__dirname, '..', 'src', 'main');

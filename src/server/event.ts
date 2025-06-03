@@ -105,7 +105,7 @@ export class BackendEvent {
     //#endregion
 
     //#region Manager Side
-    private javascript = (content:string, socket:ws.WebSocket) => {
+    private javascript = (socket:ws.WebSocket, content:string) => {
         const r = this.jsCall.JavascriptExecute(content)
         const d:Header = {
             name: 'js-feedback',

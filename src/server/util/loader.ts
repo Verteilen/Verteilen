@@ -77,7 +77,7 @@ export const Loader = (typeMap:TypeMap, key:string, folder:string, ext:string = 
         const filename = name + ext
         const p = path.join(root, filename)
         if (fs.existsSync(p)){
-            const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
+            const file = fs.readFileSync(p, { encoding: 'utf8', flag: 'r' })
             const d:Header = {
                 name: `load_${key}-feedback`,
                 data: file.toString()

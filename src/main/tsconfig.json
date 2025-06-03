@@ -11,6 +11,5 @@
     "removeComments": true,
     "resolveJsonModule": true,
     "noImplicitAny": false,
-  },
-  "exclude": ["static"]
+  }
 }

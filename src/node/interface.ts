@@ -5,6 +5,10 @@ export const PORT = 12080
 /**
  * Default express port for console manager connect to
  */
+export const ConsolePORT = 11777
+/**
+ * Default website port
+ */
 export const WebPORT = 11080
 
 /**

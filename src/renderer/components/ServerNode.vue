@@ -3,7 +3,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT } from '../interface';
+import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ConsolePORT } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -138,6 +138,7 @@ const libLoad = (file:string) => {
   const name = file.slice(0, -(ext.length + 1))
   props.backend.invoke('load_lib', file).then(r => {
     const target = data.value.libs.libs.find(x => x.name == name)
+    console.log(r)
     if(target == undefined) return
     target.load = true
     target.content = r
@@ -354,9 +355,9 @@ const dataset_init = () => {
     const texts:Array<any> = JSON.parse(x)
     console.log("list_all_lib", texts) 
     data.value.libs = { libs: texts.map(y => {
-      const ext = y.name.split('.').pop()
+      const ext = y.split('.').pop()
       const r = {
-        name: y.name.slice(0, -(ext.length + 1)),
+        name: y.slice(0, -(ext.length + 1)),
         load: false,
         content: ""
       }
@@ -367,27 +368,7 @@ const dataset_init = () => {
   const p3 = props.backend.invoke('load_all_record').then(x => {
     const texts:Array<string> = JSON.parse(x)
     data.value.projects.push(...texts.map(y => JSON.parse(y)))
-  })
-  const p4 = props.backend.invoke('load_record_obsolete').then(x => {
-    if(x == undefined) return
-    const texts:Record = JSON.parse(x)
-    const n:Array<NodeTable> = texts.nodes.map(y => {
-      return Object.assign(y, {
-        s: false,
-        state: 0,
-        connection_rate: 0
-      })
-    })
-    data.value.nodes.push(...n)
-    texts.projects.forEach(y => {
-      const p:Parameter = JSON.parse(JSON.stringify(y.parameter))
-      p.title = y.title
-      p.uuid = uuidv6()
-      data.value.parameters.push(p)
-      y.parameter = undefined
-      y.parameter_uuid = p.uuid
-      data.value.projects.push(y)
-    })
+    console.log(data.value.projects)
   })
   const p5 = props.backend.invoke('load_all_parameter').then(x => {
     const texts:Array<string> = JSON.parse(x)
@@ -401,7 +382,7 @@ const dataset_init = () => {
       console.log("Logs", ll)
       data.value.logs.logs = ll
   })
-  Promise.all([p1, p2, p3, p4, p5, p6]).then(() => {
+  Promise.all([p1, p2, p3, p5, p6]).then(() => {
     data.value.nodes = data.value.nodes.map(y => {
       return Object.assign(y, {
         s: false,
@@ -425,18 +406,21 @@ onMounted(() => {
   emitter?.on('updateLocate', updateLocate)
 
   props.backend.wait_init().then(() => {
-    props.backend.consoleM = new ConsoleManager(`ws://${window.location.host}:${WebPORT}/server`, messager_log, {
-      on: emitter!.on,
-      off: emitter!.off,
-      emit: emitter!.emit
-    })
-
-    const inter = setInterval(() => {
-      if(props.backend.consoleM?.ws.readyState == 1){
-        dataset_init()
-        clearInterval(inter)
-      }
-    }, 500);    
+    if(props.backend.config.isExpress){
+      props.backend.consoleM = new ConsoleManager(`ws://${window.location.hostname}:${ConsolePORT}/server`, messager_log, {
+        on: emitter!.on,
+        off: emitter!.off,
+        emit: emitter!.emit
+      })
+      const inter = setInterval(() => {
+        if(props.backend.consoleM?.ws.readyState == 1){
+          dataset_init()
+          clearInterval(inter)
+        }
+      }, 500);   
+    }else{
+      dataset_init()
+    }
   })
 })
 
@@ -579,7 +563,7 @@ onUnmounted(() => {
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.haveBackend" :value="7">
           <LibraryPage
-            :config="config"
+            :backend="props.backend"
             :preference="props.preference"
             @edit="(d, d1) => libEdit(d, d1)"
             @save="(d, d1, d2) => libSave(d, d1, d2)"

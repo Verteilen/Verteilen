@@ -2,14 +2,14 @@ import Chalk from 'chalk'
 import express from 'express'
 import ws from 'ws'
 import { backendEvent } from './event'
-import { Header, WebPORT } from './interface'
+import { ConsolePORT, Header, WebPORT } from './interface'
 import path from 'path'
 
 let wsServer: ws.Server | undefined = undefined
 let app:express.Express | undefined = undefined
 
-const webport = backendEvent.PortAvailable(80)
-const socketport = backendEvent.PortAvailable(WebPORT)
+const webport = backendEvent.PortAvailable(WebPORT)
+const socketport = backendEvent.PortAvailable(ConsolePORT)
 
 webport.then(p => {
     app = express()
