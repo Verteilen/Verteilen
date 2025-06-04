@@ -346,6 +346,11 @@ const dataset_init = () => {
     }
     data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
   }
+  else
+  {
+    props.backend.eventOn('shellReply', (data) => emitter?.emit('shellReply', data) )
+    props.backend.eventOn('folderReply', (data) => emitter?.emit('folderReply', data) )
+  }
 
   props.backend.eventOn('msgAppend', msgAppend)
   props.backend.send('menu', true)

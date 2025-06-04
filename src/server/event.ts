@@ -181,8 +181,7 @@ export class BackendEvent {
         this.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
     }
 
-    private shellReply = (data:Single, w?:WebSocket) => {
-        const p = this.websocket_manager.targets.find(x => x.websocket == w)
+    private shellReply = (data:Single, p?:WebsocketPack) => {
         if(p == undefined) return
         if(this.shellBind.has(p.uuid)){
             const k:Array<ws.WebSocket> = this.shellBind.get(p.uuid)
@@ -195,8 +194,7 @@ export class BackendEvent {
         }
     }
 
-    private folderReply = (data:ShellFolder, w?:WebSocket) => {
-        const p = this.websocket_manager.targets.find(x => x.websocket == w)
+    private folderReply = (data:ShellFolder, p?:WebsocketPack) => {
         if(p == undefined) return
         if(this.shellBind.has(p.uuid)){
             const k:Array<ws.WebSocket> = this.shellBind.get(p.uuid)

@@ -152,7 +152,7 @@ export class WebsocketManager {
         }
         client.onmessage = (ev) => {
             const h:Header | undefined = JSON.parse(ev.data.toString());
-            const c = this.targets.find(x => x.websocket == client)
+            const c = this.targets.find(x => x.uuid == uuid)
             this.analysis(h, c)
         }
         return client
@@ -255,13 +255,13 @@ export class WebsocketManager {
     /**
      * Recevied the shell text from client node
      */
-    private shell_reply = (data:Single, w:WebSocket) => {
+    private shell_reply = (data:Single, w?:WebsocketPack) => {
         this.proxy?.shellReply(data, w)
     }
     /**
      * Recevied the folders from client node
      */
-    private shell_folder_reply = (data:ShellFolder, w:WebSocket) => {
+    private shell_folder_reply = (data:ShellFolder, w?:WebsocketPack) => {
         this.proxy?.folderReply(data, w)
     }
     /**

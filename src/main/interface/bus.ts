@@ -78,8 +78,8 @@ export interface ExecuteProxy {
 }
 
 export interface NodeProxy { 
-    shellReply: (data:Single, w?:WebSocket) => void
-    folderReply: (data:ShellFolder, w?:WebSocket) => void
+    shellReply: (data:Single, w?:WebsocketPack) => void
+    folderReply: (data:ShellFolder, w?:WebsocketPack) => void
 }
 
 /**
