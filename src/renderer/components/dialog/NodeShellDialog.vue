@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, NodeTable, ShellFolder, Single } from '../../interface';
+import { BusType, Header, NodeTable, ShellFolder, Single } from '../../interface';
 import { WebsocketManager } from '../../script/socket_manager';
+import { BackendProxy } from '../../proxy';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     item: NodeTable | undefined
+    backend: BackendProxy
     manager: WebsocketManager | undefined
 }
 
@@ -42,7 +44,14 @@ const splitS = () => {
 const closeConsole = () => {
     if(props.item == undefined) return
     modal.value = false
-    props.manager?.shell_close(props.item.ID)
+    if(props.backend.config.haveBackend){
+        const h:Header = {
+            name: "shell_close", data: props.item.ID
+        }
+        props.backend.send(JSON.stringify(h))
+    }else{
+        props.manager?.shell_close(props.item.ID)
+    }
 }
 
 const cleanConsole = () => {
@@ -56,7 +65,14 @@ const sendCommand = () => {
         consoleCommand.value = ""
         return
     }
-    props.manager?.shell_enter(props.item.ID, consoleCommand.value)
+    if(props.backend.config.haveBackend){
+        const h:Header = {
+            name: "shell_enter", data: [props.item.ID, consoleCommand.value]
+        }
+        props.backend.send(JSON.stringify(h))
+    }else{
+        props.manager?.shell_enter(props.item.ID, consoleCommand.value)
+    }
     histroy.value.push(consoleCommand.value)
     cursor.value = histroy.value.length - 1
     consoleCommand.value = ""
@@ -88,7 +104,14 @@ const folderReply = (data:ShellFolder) => {
 
 const enterPath = () => {
     if(props.item == undefined) return
-    props.manager?.shell_folder(props.item.ID, path.value)
+    if(props.backend.config.haveBackend){
+        const h:Header = {
+            name: "shell_folder", data: [props.item.ID, path.value]
+        }
+        props.backend.send(JSON.stringify(h))
+    }else{
+        props.manager?.shell_folder(props.item.ID, path.value)
+    }
 }
 
 const lastFolder = () => {

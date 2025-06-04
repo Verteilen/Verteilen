@@ -48,12 +48,22 @@ const consoleTarget = computed(() => props.nodes.find(x => x.ID == consoleUUID.v
 watch(() => infoModal.value, () => {
     if(infoModal.value){
         const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
-        const d:Header = { name: 'resource_start', data: 0 }
-        p?.websocket.send(JSON.stringify(d))
+        if(props.backend.config.haveBackend){
+            const d:Header = { name: 'resource_start', data: p?.uuid }
+            props.backend.send(JSON.stringify(d))
+        }else{
+            const d:Header = { name: 'resource_start', data: 0 }
+            p?.websocket.send(JSON.stringify(d))
+        }
     }else{
         const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
-        const d:Header = { name: 'resource_end', data: 0 }
-        p?.websocket.send(JSON.stringify(d))
+        if(props.backend.config.haveBackend){
+            const d:Header = { name: 'resource_end', data: p?.uuid }
+            props.backend.send(JSON.stringify(d))
+        }else{
+            const d:Header = { name: 'resource_end', data: 0 }
+            p?.websocket.send(JSON.stringify(d))
+        }
     }
 })
 
@@ -132,8 +142,15 @@ const showinfo = (uuid:string) => {
 const showconsole = (uuid:string) => {
     consoleModal.value = true
     consoleUUID.value = uuid
-    props.manager?.shell_open(uuid)
-    props.manager?.shell_folder(uuid, '')
+    if(props.backend.config.haveBackend){
+        const h1:Header = { name: "shell_open", data: uuid }
+        const h2:Header = { name: "shell_folder", data: [uuid, ''] }
+        props.backend.send(JSON.stringify(h1))
+        props.backend.send(JSON.stringify(h2))
+    }else{
+        props.manager?.shell_open(uuid)
+        props.manager?.shell_folder(uuid, '')
+    }
 }
 
 onMounted(() => {
@@ -209,7 +226,7 @@ onUnmounted(() => {
             </v-card>
         </v-dialog>
         <NodeInfoDialog v-model="infoModal" :item="infoTarget" />
-        <NodeShellDialog v-model="consoleModal" :item="consoleTarget" :manager="props.manager" />
+        <NodeShellDialog v-model="consoleModal" :backend="props.backend" :item="consoleTarget" :manager="props.manager" />
         <v-dialog width="500" v-model="deleteModal" class="text-white">
             <v-card>
                 <v-card-title>

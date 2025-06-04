@@ -1,6 +1,6 @@
 import fs from "fs";
 import tcpPortUsed from 'tcp-port-used';
-import ws from 'ws';
+import ws, { WebSocket } from 'ws';
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
 import { BusAnalysis, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Header, Job, Libraries, NodeProxy, Parameter, Preference, Project, Record, ShellFolder, Single, Task, WebsocketPack } from "./interface";
@@ -14,7 +14,8 @@ export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
     websocket_manager:WebsocketManager
     execute_manager:Array<[ExecuteManager, ExecuteRecord]> = []
-    
+    shellBind = new Map()
+
     jsCall:ClientJavascript
     proxy: ExecuteProxy
     libs:Libraries = {libs: []}
@@ -35,8 +36,8 @@ export class BackendEvent {
             updateParameter: (data:Parameter) => { this.Boradcasting('updateParameter', data) },
         }
         const proxy2:NodeProxy = {
-            shellReply: (data:Single) => { this.Boradcasting('shellReply', data) },
-            folderReply: (data:ShellFolder) => { this.Boradcasting('folderReply', data) },
+            shellReply: this.shellReply,
+            folderReply: this.folderReply,
         }
         this.websocket_manager = new WebsocketManager(this.newConnect, this.disconnect, this.analysis, messager_log, proxy2)
     }
@@ -51,6 +52,12 @@ export class BackendEvent {
             'save_preference': this.save_preference,
             'load_preference': this.load_preference,
             // Unique
+            'resource_start': this.resource_start,
+            'resource_end': this.resource_end,
+            'shell_enter': this.shell_enter,
+            'shell_open': this.shell_open,
+            'shell_close': this.shell_close,
+            'shell_folder': this.shell_folder,
             'node_list': this.node_list,
             'node_add': this.node_add,
             'node_update': this.node_update,
@@ -81,6 +88,45 @@ export class BackendEvent {
             const n = this.NewConsoleConsole(socket)
             n.Analysis(h)
         }
+    }
+
+    private shell_enter = (socket:ws.WebSocket, uuid: string, value:string) => {
+        this.websocket_manager.shell_enter(uuid, value)
+    }
+
+    private shell_open = (socket:ws.WebSocket, uuid: string) => {
+        this.websocket_manager.shell_open(uuid)
+        if(this.shellBind.has(uuid)){
+            this.shellBind.get(uuid).push(socket)
+        }else{
+            this.shellBind.set(uuid, [socket])
+        }
+    }
+
+    private shell_close = (socket:ws.WebSocket, uuid: string) => {
+        this.websocket_manager.shell_close(uuid)
+        if(this.shellBind.has(uuid)){
+            const p:Array<ws.WebSocket> = this.shellBind.get(uuid)
+            const index = p.findIndex(x => x == socket)
+            if(index != -1) p.splice(index, 1)
+            this.shellBind.set(uuid, p)
+        }
+    }
+
+    private shell_folder = (socket:ws.WebSocket, uuid: string, path:string) => {
+        this.websocket_manager.shell_folder(uuid, path)
+    }
+
+    private resource_start = (socket:ws.WebSocket, uuid:string) => {
+        const p = this.websocket_manager.targets.find(x => x.uuid == uuid)
+        const d:Header = { name: 'resource_start', data: 0 }
+        p?.websocket.send(JSON.stringify(d))
+    }
+
+    private resource_end = (socket:ws.WebSocket, uuid:string) => {
+        const p = this.websocket_manager.targets.find(x => x.uuid == uuid)
+        const d:Header = { name: 'resource_end', data: 0 }
+        p?.websocket.send(JSON.stringify(d))
     }
 
     private node_list = (socket:ws.WebSocket) => {
@@ -133,6 +179,34 @@ export class BackendEvent {
 
     private analysis = (d:BusAnalysis) => {
         this.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
+    }
+
+    private shellReply = (data:Single, w?:WebSocket) => {
+        const p = this.websocket_manager.targets.find(x => x.websocket == w)
+        if(p == undefined) return
+        if(this.shellBind.has(p.uuid)){
+            const k:Array<ws.WebSocket> = this.shellBind.get(p.uuid)
+            k.forEach(x => {
+                const h:Header = {
+                    name: "shellReply", data: data
+                }
+                x.send(JSON.stringify(h))
+            })
+        }
+    }
+
+    private folderReply = (data:ShellFolder, w?:WebSocket) => {
+        const p = this.websocket_manager.targets.find(x => x.websocket == w)
+        if(p == undefined) return
+        if(this.shellBind.has(p.uuid)){
+            const k:Array<ws.WebSocket> = this.shellBind.get(p.uuid)
+            k.forEach(x => {
+                const h:Header = {
+                    name: "folderReply", data: data
+                }
+                x.send(JSON.stringify(h))  
+            })
+        }
     }
     //#endregion
 

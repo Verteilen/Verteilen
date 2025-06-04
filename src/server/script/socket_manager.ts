@@ -255,14 +255,14 @@ export class WebsocketManager {
     /**
      * Recevied the shell text from client node
      */
-    private shell_reply = (data:Single) => {
-        this.proxy?.shellReply(data)
+    private shell_reply = (data:Single, w:WebSocket) => {
+        this.proxy?.shellReply(data, w)
     }
     /**
      * Recevied the folders from client node
      */
-    private shell_folder_reply = (data:ShellFolder) => {
-        this.proxy?.folderReply(data)
+    private shell_folder_reply = (data:ShellFolder, w:WebSocket) => {
+        this.proxy?.folderReply(data, w)
     }
     /**
      * Get the system information and assign to the node object
