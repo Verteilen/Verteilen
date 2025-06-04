@@ -5,7 +5,6 @@ bin
 obj
 node_modules
 data
-build
 converage
 test
 jest.config.js

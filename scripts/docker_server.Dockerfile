@@ -3,8 +3,9 @@ WORKDIR /app/
 
 COPY . .
 
-RUN npm install
-RUN npm run build:server
+RUN npm install -g bun
+RUN bun install
+RUN bun run build:server
 
 FROM node:22.10-alpine
 WORKDIR /app/
@@ -12,6 +13,7 @@ EXPOSE 11777
 EXPOSE 11080
 
 COPY --from=builder /app/build/server/ /app/
-RUN npm install
+RUN npm install -g bun
+RUN bun install
 
 CMD node .
