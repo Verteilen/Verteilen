@@ -1,8 +1,10 @@
-import { Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference } from "../../interface"
+import { Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 import { WebsocketManager } from "../../script/socket_manager"
 import { Util_Server_Console } from "./console_handle"
 import { BackendEvent } from "../../event"
+import { ipcMain } from "electron"
+import { messager_log } from "../../debugger"
 
 export type save_and_update = () => void
 
@@ -20,11 +22,53 @@ export class Util_Server {
 
     constructor(backend:BackendEvent){
         this.backend = backend
+        const n:NodeProxy = {
+            shellReply: this.shellReply,
+            folderReply: this.folderReply
+        }
+        this.websocket_manager = new WebsocketManager(this.NewConnection, this.DisConnection, this.Analysis, messager_log, n)
         this.console = new Util_Server_Console(this.update)
+        this.EventInit()
     }
 
     private update = () => {
         
+    }
+
+    private NewConnection = () => {
+
+    }
+
+    private DisConnection = () => {
+        
+    }
+
+    private Analysis = () => {
+        
+    }
+
+    private shellReply = (data:Single) => {
+
+    }
+    private folderReply = (data:ShellFolder) => {
+
+    }
+
+    private EventInit = () => {
+        // Node Events
+        ipcMain.handle('node_list', (e) => {
+            return this.websocket_manager?.targets
+        })
+        ipcMain.on('node_add', (e, url:string, id:string) => {
+            this.websocket_manager?.server_start(url, id)
+        })
+        ipcMain.on('node_update', (e) => {
+            this.websocket_manager?.server_update()
+        })
+        ipcMain.on('node_delete', (e, uuid:string, reason?:string) => {
+            this.websocket_manager?.server_stop(uuid, reason)
+        })
+        // Console Events
     }
 
     CombineProxy = (eps:Array<ExecuteProxy>) => {
