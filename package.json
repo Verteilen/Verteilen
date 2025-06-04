@@ -7,7 +7,7 @@
     "dev": "ts-node scripts/dev-server.ts",
     "web": "ts-node scripts/web.ts && cd ./build/renderer && http-server -p 80",
     "express": "ts-node scripts/express.ts && cd ./build/server && node .",
-    "node": "ts-node src/node/main.ts",
+    "node": "ts-node src/node/index.ts",
     "share": "ts-node scripts/share.ts",
     "build": "ts-node scripts/build.ts && electron-builder",
     "build:web": "ts-node scripts/build.ts",

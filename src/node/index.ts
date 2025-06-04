@@ -3,6 +3,10 @@ import { Header, Single } from './interface';
 
 let client:Client | undefined = undefined
 
+if (process.env?.npm_lifecycle_script?.includes('ts-node')) {
+  process.env.NODE_ENV = 'development'
+}
+
 const messager = (msg:string, tag?:string) => {
     const str = tag != undefined ? `[${tag}] ${msg}` : `[Node Info] ${msg}`
     console.log(str);
@@ -20,5 +24,6 @@ const messager_log = (msg:string, tag?:string) => {
     }
 }
 
+console.log("dir: " + process.cwd())
 client = new Client(messager, messager_log)
 client.Init()
