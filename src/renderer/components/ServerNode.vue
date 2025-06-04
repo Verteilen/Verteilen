@@ -226,8 +226,8 @@ const consoleSelect = (e:number) => { data.value.select_manager = e }
 //#region Log
 const LogClean = (index:number) => {
   props.backend.send('delete_log', data.value.logs.logs[index])
-  if(!config.value.isElectron) return
-  window.electronAPI.send('delete_all_log')
+  if(!props.backend.config.haveBackend) return
+  props.backend.send('delete_all_log')
   data.value.logs.logs = []
 }
 //#endregion
@@ -271,7 +271,8 @@ const menuCreateProject = () => {
 }
 
 const menu_export_project = () => {
-  if(config.value.isElectron) window.electronAPI.send("export_project", JSON.stringify(data.value.projects))
+  if(!props.backend.config.haveBackend) return
+  props.backend.send("export_project", JSON.stringify(data.value.projects))
 }
 
 const import_project_feedback = (text:string) => {
@@ -291,14 +292,6 @@ const import_project_feedback = (text:string) => {
 }
 
 const debug_feedback = (e:string) => emitter?.emit('debuglog', e)
-
-const onChangeLan = (e:string) => {
-  data.value.lanSelect = e
-  // @ts-ignore
-  i18n.global.locale = e
-  if(!config.value.isElectron) return
-  window.electronAPI.send('save_preference', JSON.stringify(props.preference, null, 4))
-}
 
 const newConnect = (x:WebsocketPack) => {
   emitter?.emit('makeToast', {
@@ -329,6 +322,19 @@ const onAnalysis = (d:BusAnalysis) => {
 const popSetting = () => { emitter?.emit('setting') }
 const popGuide = () => { emitter?.emit('guide') }
 
+const hotkey = (event:KeyboardEvent) => {
+  if (event.altKey && Number(event.key) >= 1 && Number(event.key) <= 7) {
+    event.preventDefault()
+    if(event.key == "1") data.value.page = 0
+    else if(event.key == "2") data.value.page = 1
+    else if(event.key == "3") data.value.page = 2
+    else if(event.key == "4") data.value.page = 3
+    else if(event.key == "5") data.value.page = 4
+    else if(event.key == "6") data.value.page = 5
+    else if(event.key == "7") data.value.page = 6
+  }
+}
+
 const dataset_init = () => {
   updateTab()
   data.value.title = tabs.value.find(x => x[2] == 0)![1]
@@ -350,6 +356,7 @@ const dataset_init = () => {
   const p1 = props.backend.invoke('load_all_node').then(x => {
     const texts:Array<string> = JSON.parse(x)
     data.value.nodes.push(...texts.map(y => JSON.parse(y)))
+    console.log("nodes", data.value.nodes)
   })
   const p2 = props.backend.invoke('list_all_lib').then(x => {
     const texts:Array<any> = JSON.parse(x)
@@ -391,13 +398,18 @@ const dataset_init = () => {
       })
     })
     data.value.nodes.forEach(y => {
-      data.value.websocket_manager?.server_start(y.url, y.ID)
+      if(props.backend.config.haveBackend){
+        props.backend.invoke("node_add", y.url, y.ID)
+      }else{
+        data.value.websocket_manager?.server_start(y.url, y.ID)
+      }
     })
     nextTick(() => allUpdate())
   })
 }
 
 onMounted(() => {
+  document.addEventListener('keydown', hotkey)
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
   slowUpdateHandle = setInterval(() => emitter?.emit('slowUpdateHandle'), RENDER_FILE_UPDATETICK);
@@ -425,6 +437,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  document.removeEventListener('keydown', hotkey)
   data.value.execute_manager = []
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('deleteScript', libDelete)
@@ -533,7 +546,7 @@ onUnmounted(() => {
         <v-tabs-window-item :value="4">
           <NodePage
             :manager="data.websocket_manager"
-            :config="config"
+            :backend="props.backend"
             :preference="props.preference"
             :nodes="data.nodes" />
         </v-tabs-window-item>

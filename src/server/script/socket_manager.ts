@@ -1,5 +1,23 @@
 import { v6 as uuidv6 } from 'uuid';
 import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, ShellFolder, Single, SystemLoad, WebsocketPack } from "../interface";
+import { WebSocket } from 'ws';
+
+function isRenderer () {
+  // running in a web browser
+  if (typeof process === 'undefined') return true
+
+  // node-integration is disabled
+  if (!process) return true
+
+  // We're in node.js somehow
+  // @ts-ignore
+  if (!process.type) return false
+
+  // @ts-ignore
+  return process.type === 'renderer'
+}
+
+console.log("isRenderer", isRenderer())
 
 /**
  * The node connection instance manager, Use by the cluster server
@@ -110,6 +128,7 @@ export class WebsocketManager {
      */
     private serverconnect = (url:string, uuid?:string) => {
         if(this.targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
+        if(this.targets.findIndex(x => x.uuid == uuid) != -1) return
         const client = new WebSocket(url)
         const index = this.targets.push({ uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] })
         client.onerror = (err:any) => {

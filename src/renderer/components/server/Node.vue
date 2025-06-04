@@ -2,21 +2,21 @@
 import { Emitter } from 'mitt';
 import { v6 as uuid6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { AppConfig, BusType, ConnectionText, Header, NodeTable, Preference } from '../../interface';
+import { BusType, ConnectionText, Header, NodeTable, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { WebsocketManager } from '../../script/socket_manager';
 import NodeInfoDialog from '../dialog/NodeInfoDialog.vue';
 import NodeShellDialog from '../dialog/NodeShellDialog.vue';
+import { BackendProxy } from '../../proxy';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     nodes: Array<NodeTable>
     manager: WebsocketManager | undefined
-    config: AppConfig
+    backend: BackendProxy
     preference: Preference
 }
-
 const props = defineProps<PROPS>()
 const deleteModal = ref(false)
 const deleteData:Ref<Array<string>> = ref([])
@@ -34,6 +34,7 @@ const fields:Ref<Array<any>> = ref([
     { title: 'Detail', align: 'center', key: 'detail' }
 ])
 const search = ref('')
+const isquery = ref(false)
 const selection:Ref<Array<string>> = ref([])
 
 const items_final = computed(() => {
@@ -57,9 +58,19 @@ watch(() => infoModal.value, () => {
 })
 
 const serverUpdate = () => {
-    const p = props.manager?.server_update()
-    if(p != undefined) emitter?.emit('updateNode', p)
-    selection.value = selection.value.filter(x => props.nodes.map(y => y.ID).includes(x))
+    if(props.backend.config.haveBackend){
+        if(isquery.value) return
+        isquery.value = true
+        props.backend.invoke("node_update").then(p => {
+            if(p != undefined) emitter?.emit('updateNode', p)
+            selection.value = selection.value.filter(x => props.nodes.map(y => y.ID).includes(x))
+            isquery.value = false
+        })
+    }else{
+        const p = props.manager?.server_update()
+        if(p != undefined) emitter?.emit('updateNode', p)
+        selection.value = selection.value.filter(x => props.nodes.map(y => y.ID).includes(x))
+    }
 }
 
 const createNode = () => {
@@ -70,10 +81,13 @@ const createNode = () => {
 const deleteConfirm = () => {
     deleteModal.value = false
     deleteData.value.forEach(x => {
-        props.manager?.server_stop(x, 'Manually disconnect')
-        if(!props.config.isElectron) return
-        window.electronAPI.send('server_stop', x, 'Manually disconnect')
-        window.electronAPI.send('delete_node', x)
+        if(props.backend.config.haveBackend){
+            props.backend.send('node_delete', x)
+            props.backend.send('server_stop', x, 'Manually disconnect')
+            props.backend.send('delete_node', x)
+        }else{
+            props.manager?.server_stop(x, 'Manually disconnect')
+        }
     })
 }
 
@@ -88,7 +102,11 @@ const selectall = () => {
 
 const confirmConnection = () => {
     connectionModal.value = false
-    props.manager?.server_start(`ws://${connectionData.value.url}`, uuid6())
+    if(props.backend.config.haveBackend){
+        props.backend.send("node_add", `ws://${connectionData.value.url}`, uuid6())
+    }else{
+        props.manager?.server_start(`ws://${connectionData.value.url}`, uuid6())
+    }
     connectionData.value = { url: '' }
 }
 

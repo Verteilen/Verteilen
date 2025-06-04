@@ -1,3 +1,4 @@
+import { WebSocket } from "ws"
 import { Project } from "./base"
 
 type ProjectCall = (p:Project) => Project

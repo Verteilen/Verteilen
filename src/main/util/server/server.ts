@@ -59,13 +59,13 @@ export class Util_Server {
         ipcMain.handle('node_list', (e) => {
             return this.websocket_manager?.targets
         })
-        ipcMain.on('node_add', (e, url:string, id:string) => {
+        ipcMain.handle('node_add', (e, url:string, id:string) => {
             this.websocket_manager?.server_start(url, id)
         })
-        ipcMain.on('node_update', (e) => {
-            this.websocket_manager?.server_update()
+        ipcMain.handle('node_update', (e) => {
+            return this.websocket_manager?.server_update()
         })
-        ipcMain.on('node_delete', (e, uuid:string, reason?:string) => {
+        ipcMain.handle('node_delete', (e, uuid:string, reason?:string) => {
             this.websocket_manager?.server_stop(uuid, reason)
         })
         // Console Events
