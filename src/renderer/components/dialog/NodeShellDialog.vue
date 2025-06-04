@@ -32,6 +32,11 @@ watch(() => modal.value, () => {
     consoleMessages.value = []
 })
 
+const splitS = () => {
+    const w = path.value.includes('\\')
+    return w ? "\\" : "/"
+}
+
 const closeConsole = () => {
     if(props.item == undefined) return
     modal.value = false
@@ -44,13 +49,20 @@ const cleanConsole = () => {
 
 const sendCommand = () => {
     if(consoleCommand.value.length == 0 || props.item == undefined) return
+    if(consoleCommand.value == "cls" || consoleCommand.value == "clear"){
+        cleanConsole()
+        consoleCommand.value = ""
+        return
+    }
     props.manager?.shell_enter(props.item.ID, consoleCommand.value)
     consoleCommand.value = ""
 }
 
 const shellReply = (data:Single) => {
     consoleMessages.value.push(data.data.toString())
-    myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
+    setTimeout(() => {
+        myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
+    }, 10);
 }
 
 const folderReply = (data:ShellFolder) => {
@@ -64,14 +76,14 @@ const enterPath = () => {
 }
 
 const lastFolder = () => {
-    const p = path.value.split('\\').reverse()
+    const p = path.value.split(splitS()).reverse()
     p.shift()
-    path.value = p.reverse().join('\\')
+    path.value = p.reverse().join(splitS())
     enterPath()
 }
 
 const enterFolder = (v:string) => {
-    path.value += '\\' + v
+    path.value = path.value + splitS() + v
     enterPath()
 }
 
@@ -96,14 +108,13 @@ onUnmounted(() => {
             </v-card-title>
             <v-card-text>
                 <v-row>
-                    <v-col cols="4">
+                    <v-col cols="5">
                         <v-row>
-                            <v-col cols="2">
-                                <v-btn variant="text" rounded @click="lastFolder">
-                                    <v-icon>mdi-arrow-left</v-icon>
+                            <v-col cols="1">
+                                <v-btn class="w-100" variant="text" icon="mdi-arrow-left" @click="lastFolder">
                                 </v-btn>
                             </v-col>
-                            <v-col cols="10">
+                            <v-col cols="11">
                                 <v-text-field class="mb-2" hide-details density="compact" v-model="path" @keydown.enter="enterPath"></v-text-field>        
                             </v-col>
                         </v-row>
@@ -118,14 +129,13 @@ onUnmounted(() => {
                                     <v-icon>{{ item.icon }}</v-icon>
                                 </template>
                                 <template v-slot:append>
-                                    <v-btn variant="text" rounded v-if="item.type == 0" @click="enterFolder(item.value)">
-                                        <v-icon>mdi-arrow-right</v-icon>
+                                    <v-btn variant="text" icon="mdi-arrow-right" hide-details size="sm" rounded v-if="item.type == 0" @click="enterFolder(item.value)">
                                     </v-btn>
                                 </template>
                             </v-list-item>
                         </v-list>
                     </v-col>
-                    <v-col cols="8">
+                    <v-col cols="7" style="background-color: black; color:#00FF00">
                         <div style="height: 50vh; overflow-y: scroll; font-size: 12px;" class="mb-1" ref="myDiv">
                             <p v-for="(c, i) in consoleMessages" :key="i">{{ c }}</p>
                         </div>
@@ -134,10 +144,9 @@ onUnmounted(() => {
                                 <v-text-field hide-details density="compact" v-model="consoleCommand" @keydown.enter="sendCommand"></v-text-field>        
                             </v-col>
                             <v-col cols="2">
-                                <v-btn class="w-100" @click="cleanConsole">{{ $t('clean') }}</v-btn>
+                                <v-btn class="mt-2 w-100" @click="cleanConsole">{{ $t('clean') }}</v-btn>
                             </v-col>
                         </v-row>
-                        
                     </v-col>
                 </v-row>
             </v-card-text>
