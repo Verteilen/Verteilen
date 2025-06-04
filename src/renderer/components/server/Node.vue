@@ -49,8 +49,7 @@ watch(() => infoModal.value, () => {
     if(infoModal.value){
         const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
         if(props.backend.config.haveBackend){
-            const d:Header = { name: 'resource_start', data: p?.uuid }
-            props.backend.send(JSON.stringify(d))
+            props.backend.send('resource_start', p?.uuid)
         }else{
             const d:Header = { name: 'resource_start', data: 0 }
             p?.websocket.send(JSON.stringify(d))
@@ -58,8 +57,7 @@ watch(() => infoModal.value, () => {
     }else{
         const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
         if(props.backend.config.haveBackend){
-            const d:Header = { name: 'resource_end', data: p?.uuid }
-            props.backend.send(JSON.stringify(d))
+            props.backend.send('resource_end', p?.uuid)
         }else{
             const d:Header = { name: 'resource_end', data: 0 }
             p?.websocket.send(JSON.stringify(d))
@@ -143,10 +141,8 @@ const showconsole = (uuid:string) => {
     consoleModal.value = true
     consoleUUID.value = uuid
     if(props.backend.config.haveBackend){
-        const h1:Header = { name: "shell_open", data: uuid }
-        const h2:Header = { name: "shell_folder", data: [uuid, ''] }
-        props.backend.send(JSON.stringify(h1))
-        props.backend.send(JSON.stringify(h2))
+        props.backend.send('shell_open', uuid)
+        props.backend.send('shell_folder', uuid, '')
     }else{
         props.manager?.shell_open(uuid)
         props.manager?.shell_folder(uuid, '')

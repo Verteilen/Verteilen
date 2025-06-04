@@ -45,10 +45,7 @@ const closeConsole = () => {
     if(props.item == undefined) return
     modal.value = false
     if(props.backend.config.haveBackend){
-        const h:Header = {
-            name: "shell_close", data: props.item.ID
-        }
-        props.backend.send(JSON.stringify(h))
+        props.backend.send("shell_close", props.item.ID)
     }else{
         props.manager?.shell_close(props.item.ID)
     }
@@ -66,10 +63,7 @@ const sendCommand = () => {
         return
     }
     if(props.backend.config.haveBackend){
-        const h:Header = {
-            name: "shell_enter", data: [props.item.ID, consoleCommand.value]
-        }
-        props.backend.send(JSON.stringify(h))
+        props.backend.send("shell_enter", props.item.ID, consoleCommand.value)
     }else{
         props.manager?.shell_enter(props.item.ID, consoleCommand.value)
     }
@@ -105,10 +99,7 @@ const folderReply = (data:ShellFolder) => {
 const enterPath = () => {
     if(props.item == undefined) return
     if(props.backend.config.haveBackend){
-        const h:Header = {
-            name: "shell_folder", data: [props.item.ID, path.value]
-        }
-        props.backend.send(JSON.stringify(h))
+        props.backend.send("shell_folder", props.item.ID, path.value)
     }else{
         props.manager?.shell_folder(props.item.ID, path.value)
     }
