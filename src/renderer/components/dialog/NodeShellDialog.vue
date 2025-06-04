@@ -18,6 +18,8 @@ const consoleCommand = ref('')
 const consoleMessages:Ref<Array<string>> = ref([])
 const path = ref('')
 const folders:Ref<ShellFolder | undefined> = ref(undefined)
+const histroy:Ref<Array<string>> = ref([])
+const cursor = ref(0)
 
 const folderContent = computed(() => {
     if(folders.value == undefined) return []
@@ -55,7 +57,21 @@ const sendCommand = () => {
         return
     }
     props.manager?.shell_enter(props.item.ID, consoleCommand.value)
+    histroy.value.push(consoleCommand.value)
+    cursor.value = histroy.value.length - 1
     consoleCommand.value = ""
+}
+
+const check_up = () => {
+    cursor.value -= 1
+    if(cursor.value < 0) cursor.value = 0
+    consoleCommand.value = histroy.value[cursor.value]
+}
+
+const check_down = () => {
+    cursor.value += 1
+    if(cursor.value >= histroy.value.length) cursor.value = histroy.value.length - 1
+    consoleCommand.value = histroy.value[cursor.value]
 }
 
 const shellReply = (data:Single) => {
@@ -141,7 +157,7 @@ onUnmounted(() => {
                         </div>
                         <v-row>
                             <v-col cols="10">
-                                <v-text-field hide-details density="compact" v-model="consoleCommand" @keydown.enter="sendCommand"></v-text-field>        
+                                <v-text-field @keydown.up="check_up" @keydown.down="check_down" hide-details density="compact" v-model="consoleCommand" @keydown.enter="sendCommand"></v-text-field>        
                             </v-col>
                             <v-col cols="2">
                                 <v-btn class="mt-2 w-100" @click="cleanConsole">{{ $t('clean') }}</v-btn>
