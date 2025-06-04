@@ -3,6 +3,7 @@ import * as util from './utility';
 
 async function main() {
     await util.Share_Call()
+    await util.Build_Electron()
 
     await util.Build_Program()
     await util.PKG_Program("-linux")
