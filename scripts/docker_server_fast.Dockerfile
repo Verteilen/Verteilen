@@ -1,4 +1,5 @@
 FROM node:22.10-alpine
+
 WORKDIR /app/
 COPY ./build/server .
 RUN npm install
