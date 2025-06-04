@@ -21,45 +21,68 @@ For Dev
 
 ## Installation
 
+### Static Web
+
+Which you do not need to install anything, you can just click [here](https://elly2018.github.io/Compute-Tool/) to use it
+
+### Node Install
+
+> Install the nodejs module in the global for compute node
+
 ```bash
 # use npm install the compute tool node
-npm install compute_tool_node
+npm install -g compute_tool_node
 # use command ctn to start the client
 ctn
 ```
 
 
-> Desktop app installation
+### Desktop App
 
-In [Release](https://github.com/Elly2018/Compute-Tool/releases) page, For windows user click .msi installation file
+In [Release](https://github.com/Elly2018/Compute-Tool/releases) page, For windows user click .msi installation file, for linux user click .deb installation file
 
-> Docker node installation\
-> You need Docker for this
+### Docker Install
 
-Scripts folder run docker_node.sh
+#### For User
 
-> Docker static website\
-> You need Docker for this
+Here is the quick deploy for compute node docker container
 
-Scripts folder run docker_web.sh
+```bash
+docker run --restart=always -p 12080:12080 -name compute_node0 e87870823/compute_tool_node
+```
 
-> Docker dynamic server\
-> You need Docker for this
+Here is the quick deploy for compute server docker container
 
-Scripts folder run docker_server.sh
+```bash
+docker run --restart=always -p 11080:11080 -p 11777:11777 -name compute_server e87870823/compute_tool_server
+```
+
+#### For Dev
+
+```bash
+# for compute node complete build
+npm run docker:node
+# You can build it youself then copy the only result into docker image
+# This way is faster
+npm run build:node
+npm run docker:node-f
+# Same for server
+npm run docker:server
+npm run build:server
+npm run docker:server-f
+```
 
 ## Features
 
 The checklist features for each type of build
 
-|Features|Desktop|Node|Server|Web|
+|Features|Desktop|Node|Server|Static Web|
 |-|-|-|-|-|
-|Language|✓|✓|✓|✓|
 |Task Management|✓||✓|✓|
 |Preference|✓||✓|✓|
 |Mode Selection|✓||||
-|Lua|✓|✓|✓||
-|Auth|||✓||
+|Script|✓|✓|✓||
+|Authentication|||✓||
 
 
 ### Task Management
@@ -147,9 +170,11 @@ Execute cronjob task with multithread enable\
 - [x] Recover Record Support
 - [x] Multicore Support
 - [x] Condition Support
-- [ ] Express Support
+- [x] Express Support
 - [ ] Express Auth Support
 - [ ] Group Support
-- [ ] Node information Query
+- [x] Node information Query
 - [x] Console control node support
 - [x] Self as node
+- [ ] Moving heavy load to backend
+- [x] Optimization for UI
