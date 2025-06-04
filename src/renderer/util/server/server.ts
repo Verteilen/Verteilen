@@ -80,22 +80,22 @@ export class Util_Server {
     
     saveRecord = (type:RenderUpdateType = RenderUpdateType.All) => {
         if((type & RenderUpdateType.Project) == RenderUpdateType.Project){
-            this.data.value.projects.forEach(x => {
+            for(const x of this.data.value.projects){
                 const text = JSON.stringify(x)
                 this.config().send('save_record', x.uuid, text)
-            })
+            }
         }
         if((type & RenderUpdateType.Node) == RenderUpdateType.Node){
-            this.data.value.nodes.forEach(x => {
+            for(const x of this.data.value.nodes){
                 const text = JSON.stringify(x)
                 this.config().send('save_node', x.ID, text)
-            })
+            }
         }
         if((type & RenderUpdateType.Parameter) == RenderUpdateType.Parameter){
-            this.data.value.parameters.forEach(x => {
+            for(const x of this.data.value.parameters){
                 const text = JSON.stringify(x)
                 this.config().send('save_parameter', x.uuid, text)
-            })
+            }
         }
     }
 

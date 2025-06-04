@@ -51,6 +51,10 @@ export class BackendEvent {
             'save_preference': this.save_preference,
             'load_preference': this.load_preference,
             // Unique
+            'node_list': this.node_list,
+            'node_add': this.node_add,
+            'node_update': this.node_update,
+            'node_delete': this.node_delete,
             'console_add': this.ConsoleAdd
         }
         Loader(typeMap, 'record', 'record')
@@ -77,6 +81,34 @@ export class BackendEvent {
             const n = this.NewConsoleConsole(socket)
             n.Analysis(h)
         }
+    }
+
+    private node_list = (socket:ws.WebSocket) => {
+        const h:Header = {
+            name: "node_list-feedback",
+            data: this.websocket_manager?.targets
+        }
+        socket.send(JSON.stringify(h))
+    }
+
+    private node_add = (socket:ws.WebSocket, url:string, id:string) => {
+        const h:Header = {
+            name: "node_add-feedback",
+            data: this.websocket_manager?.server_start(url, id)
+        }
+        socket.send(JSON.stringify(h))
+    }
+
+    private node_update = (socket:ws.WebSocket) => {
+        const h:Header = {
+            name: "node_update-feedback",
+            data: [this.websocket_manager?.server_update()]
+        }
+        socket.send(JSON.stringify(h))
+    }
+
+    private node_delete = (socket:ws.WebSocket, uuid:string, reason?:string) => {
+        this.websocket_manager?.server_stop(uuid, reason)
     }
 
     //#region Server Side

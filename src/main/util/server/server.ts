@@ -65,7 +65,7 @@ export class Util_Server {
         ipcMain.handle('node_update', (e) => {
             return this.websocket_manager?.server_update()
         })
-        ipcMain.handle('node_delete', (e, uuid:string, reason?:string) => {
+        ipcMain.on('node_delete', (e, uuid:string, reason?:string) => {
             this.websocket_manager?.server_stop(uuid, reason)
         })
         // Console Events
