@@ -174,3 +174,14 @@ export interface TemplateGroup {
     group: string
     template: ProjectCall
 }
+
+export interface Plugin {
+    name: string
+    filename: string
+    platform: NodeJS.Platform
+    arch: NodeJS.Architecture
+}
+
+export interface PluginList {
+    plugins: Array<Plugin>
+}
