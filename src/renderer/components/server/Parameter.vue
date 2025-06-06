@@ -6,6 +6,7 @@ import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContain
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Parameter } from '../../util/parameter';
 import DialogBase from '../dialog/DialogBase.vue'
+import { v6 as uuidv6 } from 'uuid'
 
 interface PROPS {
     config: AppConfig
@@ -34,6 +35,8 @@ const fields:Ref<Array<any>> = ref([
 ])
 
 const data:Ref<DATA> = ref({
+    cloneModal: false,
+    cloneName: "",
     objectModal: false,
     objectTarget: undefined,
     selectModal: false,
@@ -128,6 +131,19 @@ const deleteSelect = () => {
 const deleteConfirm = () => {
     data.value.deleteModal = false
     emits('delete', data.value.buffer.uuid)
+}
+
+const cloneSelect = () => {
+    data.value.cloneModal = true
+    data.value.cloneName = props.select?.title + " Clone"
+}
+
+const cloneSelectConfirm = () => {
+    const p:Parameter = JSON.parse(JSON.stringify(props.select))
+    p.title = data.value.cloneName
+    p.uuid = uuidv6()
+    data.value.cloneModal = false
+    emits('added', p)
 }
 
 const deleteitem = (name:string) => {
@@ -257,7 +273,15 @@ onUnmounted(() => {
                         </v-btn>
                     </template>
                     {{ $t('export') }}
-                </v-tooltip>          
+                </v-tooltip>  
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" :disabled="select == undefined" @click="cloneSelect">
+                            <v-icon>mdi-content-paste</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('clone') }}
+                </v-tooltip>         
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="select == undefined">
@@ -330,6 +354,19 @@ onUnmounted(() => {
             <template #action>
                 <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreate">{{ $t('create') }}</v-btn>
                 <v-btn class="mt-3" color="primary" v-else @click="confirmEdit">{{ $t('modify') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase width="500" v-model="data.cloneModal">
+            <template #title>
+                <v-icon>mdi-content-paste</v-icon>
+                {{ $t('modal.clone-parameter-set') }}
+            </template>
+            <template #text>
+                <v-text-field :error="data.titleError" v-model="data.cloneName" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
+                <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="cloneSelectConfirm">{{ $t('create') }}</v-btn>
             </template>
         </DialogBase>
         <DialogBase width="500" v-model="data.createParameterModal">

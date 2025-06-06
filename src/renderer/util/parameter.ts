@@ -34,6 +34,8 @@ export interface DialogDATA {
 }
 
 export interface DATA {
+    cloneModal: boolean
+    cloneName: string
     objectModal: boolean
     objectTarget: ParameterContainer | undefined
     selectModal: boolean
