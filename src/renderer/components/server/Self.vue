@@ -38,7 +38,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <v-container fluid class="ma-0 pa-0 pt-4">
+  <v-container fluid class="ma-0 pa-0 pt-4" style="height: 94vh">
     <v-toolbar density="compact" class="pr-3">
       <v-tooltip location="bottom">
           <template v-slot:activator="{ props }">
@@ -92,7 +92,7 @@ onUnmounted(() => {
   padding-top: 20px;
   padding-left: 10px;
   height: calc(100vh - 100px);
-  overflow-y: scroll;
+  overflow-y: auto;
   text-align: left;
 }
 .messages {

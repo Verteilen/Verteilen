@@ -84,12 +84,12 @@ export class BackendProxy {
                 name: key,
                 data: args
             }
-            this.consoleM?.send(d)
             return new Promise<any>((resolve) => {
                 this.consoleM?.once(`${key}-feedback`, (...args:Array<any>) => {
                     if(args.length == 1) resolve(args[0])
                     else resolve(args)
                 })
+                this.consoleM?.send(d)
             })
         }
     }

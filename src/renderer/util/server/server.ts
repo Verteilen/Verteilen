@@ -58,7 +58,7 @@ export class Util_Server {
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
         this.parameter = new Util_Server_Parameter(this.data, this.config, this.update)
-        this.console = new Util_Server_Console(this.data, this.update)
+        this.console = new Util_Server_Console(this.data)
         this.lib = new Util_Server_Lib(this.data, this.update)
         this.self = new Util_Server_Self(this.data)
     }

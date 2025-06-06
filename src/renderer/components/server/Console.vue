@@ -68,17 +68,20 @@ const updateHandle = () => {
         if(!updateWait.value){
             updateWait.value = true
             props.backend.invoke("console_update").then((xs:Array<any>) => {
-                xs.forEach(x => {
-                    if(x.code === 400){
-                        const str = 'Execute Error: ' + x.name + '\n' + x.message
-                        emitter?.emit('makeToast', {
-                            title: 'Error Interrupt',
-                            message: str,
-                            type: 'error',
-                            stack: x.stack,
-                        })
+                if(xs){
+                    for(let i = 0; i < xs.length; i++){
+                        const x = xs[i]
+                        if(x.code === 400){
+                            const str = 'Execute Error: ' + x.name + '\n' + x.message
+                            emitter?.emit('makeToast', {
+                                title: 'Error Interrupt',
+                                message: str,
+                                type: 'error',
+                                stack: x.stack,
+                            })
+                        }
                     }
-                })
+                }
                 updateWait.value = false
             })
         }

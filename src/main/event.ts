@@ -41,7 +41,7 @@ export class BackendEvent {
         })
         ipcMain.on('modeSelect', (event, isclient:boolean) => {
             console.log("[Backend] Mode select: " + (isclient ? "Node" : "Server"))
-            if(isclient) event.sender.send('msgAppend', { msg:" Client mode activate" })
+            if(isclient) messager("Client mode activate")
         })
         ipcMain.handle('exist', (event, d:string) => {
             return fs.existsSync(d)

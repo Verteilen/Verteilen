@@ -32,7 +32,7 @@ backend.value.init().then(() => {
   console.log("isElectron", config.value.isElectron)
   console.log("isExpress", config.value.isExpress)
   console.log("env", process.env.NODE_ENV)
-  if (config.value.isElectron) window.electronAPI.send('message', 'Welcome Compute Tool');
+  backend.value.send('message', 'Welcome Compute Tool')
 })
 
 const modeSelect = (isclient:boolean) => {
@@ -45,9 +45,7 @@ const locate = (v:string) => {
   t.locale = v
   preference.value.lan = v
   emitter?.emit('updateLocate')
-  if(config.value.isElectron){
-    window.electronAPI.send('save_preference', JSON.stringify(preference.value, null, 4))
-  }
+  backend.value.send('save_preference', JSON.stringify(preference.value, null, 4))
 }
 
 const setting = () => { settingModal.value = true }
@@ -64,7 +62,8 @@ const preferenceUpdate = (data:Preference) => {
 
 const load_preference = (x:string) => {
   preference.value = JSON.parse(x)
-  window.electronAPI.send('locate', preference.value.lan)
+  console.log("load_preference", preference.value)
+  backend.value.send('locate', preference.value.lan)
   preferenceUpdate(preference.value)
 }
 
@@ -73,9 +72,11 @@ onMounted(() => {
   emitter?.on('setting', setting)
   emitter?.on('guide', guide)
   backend.value.wait_init().then(() => {
-    if(config.value.isElectron){
-      backend.value.eventOn('locate', locate)
-      backend.value.invoke('load_preference').then(x => load_preference(x))
+    if(backend.value.config.haveBackend){
+      setTimeout(() => {
+        backend.value.eventOn('locate', locate)
+        backend.value.invoke('load_preference').then(x => load_preference(x))
+      }, 150);
     }
   })
   
