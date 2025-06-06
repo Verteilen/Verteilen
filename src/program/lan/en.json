@@ -81,6 +81,7 @@
         "delete-parameter": "Delete Parameter",
         "enter-parameter-name": "Enter Parameter Name",
         "new-parameter-set": "New Parameter Set",
+        "clone-parameter-set": "Clone Parameter Set",
         "edit-parameter-set": "Modify Parameter Set",
         "enter-parameter-set-name": "Enter Parameter Set Name",
         "import-parameter": "Delete Parameter",

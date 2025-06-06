@@ -130,25 +130,26 @@ export class WebsocketManager {
         if(this.targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
         if(this.targets.findIndex(x => x.uuid == uuid) != -1) return
         const client = new WebSocket(url)
-        const index = this.targets.push({ uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] })
+        const t:WebsocketPack = { uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] }
+        this.targets.push(t)
         client.onerror = (err:any) => {
             this.messager_log(`[Socket] Connect failed ${url}`)
         }
         client.onclose = (ev) => {
-            if(this.targets[index - 1].s != undefined){
+            if(t.s != undefined){
                 this.messager_log(`[Socket] Client close connection, ${ev.code}, ${ev.reason}`)
-                this.disconnect(this.targets[index - 1])
+                this.disconnect(t)
             }
-            this.targets[index - 1].s = undefined
-            this.targets[index - 1].current_job = []
+            t.s = undefined
+            t.current_job = []
         }
         client.onopen = () => {
             this.messager_log('[Socket] New Connection !' + client.url)
-            if(this.targets[index - 1].s == undefined){
-                this.targets[index - 1].s = true
+            if(t.s == undefined){
+                t.s = true
             }
             this.sendUpdate()
-            this.newConnect(this.targets[index - 1])
+            this.newConnect(t)
         }
         client.onmessage = (ev) => {
             const h:Header | undefined = JSON.parse(ev.data.toString());

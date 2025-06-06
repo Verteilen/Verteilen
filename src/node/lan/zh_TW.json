@@ -81,6 +81,7 @@
         "delete-parameter": "刪除參數",
         "enter-parameter-name": "輸入參數名稱",
         "new-parameter-set": "新增參數組",
+        "clone-parameter-set": "複製參數組",
         "edit-parameter-set": "編輯參數組",
         "enter-parameter-set-name": "輸入參數組名稱",
         "import-parameter": "刪除參數",

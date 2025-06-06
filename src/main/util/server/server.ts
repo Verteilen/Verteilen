@@ -54,7 +54,7 @@ export class Util_Server {
     private DisConnection = (x:WebsocketPack) => {
         const p = {
             title: i18n.global.t('toast.connection-remove-title'),
-            type: 'danger',
+            type: 'error',
             message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
         }
         mainWindow?.webContents.send('makeToast', p)
@@ -218,14 +218,14 @@ export class Util_Server {
         ipcMain.handle('node_list', (e) => {
             return this.websocket_manager?.targets
         })
-        ipcMain.handle('node_add', (e, url:string, id:string) => {
-            this.websocket_manager?.server_start(url, id)
+        ipcMain.on('node_add', (e, url:string, id:string) => {
+            this.websocket_manager!.server_start(url, id)
         })
         ipcMain.handle('node_update', (e) => {
             return this.websocket_manager?.server_update()
         })
         ipcMain.on('node_delete', (e, uuid:string, reason?:string) => {
-            this.websocket_manager?.server_stop(uuid, reason)
+            this.websocket_manager!.server_stop(uuid, reason)
         })
         // Console Events
         ipcMain.handle('console_list', (event) => {

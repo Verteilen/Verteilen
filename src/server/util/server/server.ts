@@ -54,7 +54,7 @@ export class Util_Server {
     private DisConnection = (x:WebsocketPack) => {
         const p = {
             title: i18n.global.t('toast.connection-remove-title'),
-            type: 'danger',
+            type: 'error',
             message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
         }
         this.backend.Boradcasting("makeToast", p)
