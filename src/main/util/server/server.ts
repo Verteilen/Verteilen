@@ -1,4 +1,4 @@
-import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair, RENDER_UPDATETICK } from "../../interface"
+import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair, RENDER_UPDATETICK, BusAnalysis, WebsocketPack } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 import { WebsocketManager } from "../../script/socket_manager"
 import { Util_Server_Console, Util_Server_Console_Proxy } from "./console_handle"
@@ -41,16 +41,20 @@ export class Util_Server {
         
     }
 
-    private NewConnection = () => {
-
+    private NewConnection = (x:WebsocketPack) => {
+        this.execute_manager.forEach(y => {
+            y.manager!.NewConnection(x)
+        })
     }
 
-    private DisConnection = () => {
-        
+    private DisConnection = (x:WebsocketPack) => {
+        this.execute_manager.forEach(y => {
+            y.manager!.Disconnect(x)
+        })
     }
 
-    private Analysis = () => {
-        
+    private Analysis = (d:BusAnalysis) => {
+        this.execute_manager.forEach(x => x.manager!.Analysis(JSON.parse(JSON.stringify(d))))   
     }
 
     private shellReply = (data:Single) => {
