@@ -6,6 +6,8 @@ import { BackendEvent } from "../../event"
 import { ipcMain } from "electron"
 import { messager, messager_log } from "../../debugger"
 import { Util_Server_Log_Proxy } from "./log_handle"
+import { i18n } from "../../plugins/i18n"
+import { mainWindow } from "../../electron"
 
 export type save_and_update = () => void
 
@@ -42,12 +44,24 @@ export class Util_Server {
     }
 
     private NewConnection = (x:WebsocketPack) => {
+        const p = {
+            title: i18n.global.t('toast.connection-create-title'),
+            type: 'success',
+            message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
+        }
+        mainWindow?.webContents.send('makeToast', p)
         this.execute_manager.forEach(y => {
             y.manager!.NewConnection(x)
         })
     }
 
     private DisConnection = (x:WebsocketPack) => {
+        const p = {
+            title: i18n.global.t('toast.connection-remove-title'),
+            type: 'danger',
+            message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
+        }
+        mainWindow?.webContents.send('makeToast', p)
         this.execute_manager.forEach(y => {
             y.manager!.Disconnect(x)
         })

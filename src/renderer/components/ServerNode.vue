@@ -366,6 +366,7 @@ const dataset_init = () => {
     props.backend.eventOn('folderReply', (data) => emitter?.emit('folderReply', data) )
   }
 
+  props.backend.eventOn('makeToast', (data) => emitter?.emit('makeToast', data))
   props.backend.eventOn('msgAppend', msgAppend)
   props.backend.send('menu', true)
   props.backend.eventOn('createProject', menuCreateProject)
