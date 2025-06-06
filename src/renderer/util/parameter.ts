@@ -112,7 +112,12 @@ export class Util_Parameter {
             this.data.value.titleError = true
             return
         }
-        this.data.value.buffer.containers.push(this.data.value.createData)
+        const p:ParameterContainer = JSON.parse(JSON.stringify(this.data.value.createData))
+        if(p.type == DataType.String) p.value = ""
+        if(p.type == DataType.Object) p.value = "{\n\t\n}\n"
+        if(p.type == DataType.Number || p.type == DataType.Expression) p.value = 0
+        if(p.type == DataType.Boolean) p.value = true
+        this.data.value.buffer.containers.push(p)
         this.data.value.createModal = false
         this.data.value.dirty = true
     }
