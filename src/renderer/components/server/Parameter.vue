@@ -92,6 +92,11 @@ const confirmEdit = () => util.confirmEdit()
 const setdirty = () => data.value.dirty = true
 const filterOpen = () => util.filterOpen()
 
+const selectSearchF = computed(() => {
+    if(data.value.selectSearch == undefined || data.value.selectSearch.length == 0) return props.parameters
+    return props.parameters.filter(x => x.title.includes(data.value.selectSearch!) || x.uuid.includes(data.value.selectSearch!))
+})
+
 const importPara = () => {
     if(!props.config.isElectron) return
     window.electronAPI.send("import_parameter")
@@ -354,7 +359,7 @@ onUnmounted(() => {
                     <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
                     </v-text-field>
                     <v-list>
-                        <v-list-item v-for="(p, i) in props.parameters" :key="i">
+                        <v-list-item v-for="(p, i) in selectSearchF" :key="i">
                             <v-list-item-title>
                                 {{ p.title }}
                             </v-list-item-title>
