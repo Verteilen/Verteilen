@@ -24,7 +24,6 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             'feedback_number': this.feedback_number,
             'feedback_object': this.feedback_object,
         }
-        console.log(d.name)
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
             castingFunc(d.h.data, targetn, d.h.meta)
