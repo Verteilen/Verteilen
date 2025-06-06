@@ -1,9 +1,8 @@
 import { v6 as uuid6 } from 'uuid'
-import { AppConfig, ConditionResult, ExecuteProxy, ExecuteRecord, ExecuteRecordTask, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Task } from "../../interface"
-import { ExecuteManager } from "../../script/execute_manager"
+import { AppConfig, ConditionResult, ExecutePair, ExecuteProxy, ExecuteRecordTask, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Task } from "../../interface"
 
 export class Util_Server_Log_Proxy {
-    model:[ExecuteManager, ExecuteRecord]
+    model:ExecutePair
     logs:Log
     preference:Preference
     config:AppConfig
@@ -14,7 +13,7 @@ export class Util_Server_Log_Proxy {
         return this.logs.logs.find(x => x.uuid == this.uuid)!
     }
 
-    constructor(_model:[ExecuteManager, ExecuteRecord], _log:Log, _preference:Preference, _config:AppConfig){
+    constructor(_model:ExecutePair, _log:Log, _preference:Preference, _config:AppConfig){
         this.model = _model
         this.logs = _log
         this.preference = _preference
@@ -39,7 +38,7 @@ export class Util_Server_Log_Proxy {
     }
 
     execute_project_start = async (d:Project) => {
-        const target = this.model[1].projects[this.model[1].project_index]
+        const target = this.model.record!.projects[this.model.record!.project_index]
         const title = await this.getnewname(target.title)
         this.uuid = uuid6()
         const newlog:ExecutionLog = {
@@ -82,9 +81,9 @@ export class Util_Server_Log_Proxy {
         this.task_index = index
         this.target_log!.logs[this.task_index].task_detail = []
     
-        const p = this.model[1].projects[this.model[1].project_index]
+        const p = this.model.record!.projects[this.model.record!.project_index]
         const t = p.task[this.task_index]
-        const count = this.model[0].get_task_state_count(t)
+        const count = this.model.manager!.get_task_state_count(t)
         
         for(let i = 0; i < count; i++){
             this.target_log!.logs[this.task_index].task_detail.push({
@@ -149,7 +148,7 @@ export class Util_Server_Log_Proxy {
                 const cr:ConditionResult = task.jobs[index].number_args[0] as ConditionResult
                 if(cr == ConditionResult.None) return
                 const state = (cr == ConditionResult.ThrowTask || cr == ConditionResult.ThrowProject) ? ExecuteState.ERROR : ExecuteState.SKIP
-                const target: ExecuteRecordTask | undefined = this.model[1].task_detail[d[1]]
+                const target: ExecuteRecordTask | undefined = this.model.record!.task_detail[d[1]]
                 if(target != undefined) {
                     target.state = state
                 }

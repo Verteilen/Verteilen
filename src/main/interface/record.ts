@@ -1,3 +1,4 @@
+import { ExecuteManager } from "../script/execute_manager"
 import { Node, Parameter, Project } from "./base"
 import { ExecuteState } from "./enum"
 
@@ -43,6 +44,8 @@ export interface Record {
 }
 
 export interface ExecuteRecord extends Record {
+    uuid: string
+    name: string
     running: boolean
     stop: boolean
     /**
@@ -96,4 +99,10 @@ export interface FileState {
     name: string,
     size: number
     time: Date
+}
+
+export interface ExecutePair {
+    manager?: ExecuteManager
+    record?: ExecuteRecord
+    meta?: any
 }

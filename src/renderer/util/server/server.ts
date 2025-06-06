@@ -1,8 +1,7 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { BusType, ClientLog, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
+import { BusType, ClientLog, ExecutePair, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
 import { BackendProxy } from "../../proxy";
-import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
@@ -18,7 +17,7 @@ export type config_getter = () => BackendProxy
 
 export interface DATA {
     websocket_manager: WebsocketManager | undefined
-    execute_manager: Array<[ExecuteManager, ExecuteRecord]>
+    execute_manager: Array<ExecutePair>
 
     drawer: boolean
     title: string

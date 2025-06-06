@@ -3,7 +3,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ConsolePORT } from '../interface';
+import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ConsolePORT, ExecutePair } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -163,14 +163,22 @@ const libJs = (code:string) => { props.backend.send('javascript', code) }
 
 //#region Console
 const consoleAdded = (name:string, record:Record) => {
-  let r:boolean = false
-  if(false){
+  if(props.backend.config.haveBackend){
     // If we have backend, the instance should be place in the backend
-    props.backend.send('console_add', JSON.stringify({
-      name: name,
-      record: record
-    }));
+    props.backend.invoke('console_add', name, record).then(r => {
+      if(r != undefined){
+        data.value.execute_manager.push({ record: r })
+        data.value.select_manager = data.value.execute_manager.length - 1
+      }else{
+        emitter?.emit('makeToast', {
+          title: 'Execute Failed',
+          message: 'Project execute failed !\nYou can see detail in Console/DebugLog',
+          type: 'warning'
+        })
+      }
+    })
   }else{
+    let r:boolean = false
     const em:ExecuteManager = new ExecuteManager(
       name,
       data.value.websocket_manager!, 
@@ -179,6 +187,8 @@ const consoleAdded = (name:string, record:Record) => {
     )
     const er:ExecuteRecord = {
       ...record,
+      uuid: em.uuid,
+      name: name,
       running: false,
       stop: true,
       process_type: -1,
@@ -194,7 +204,7 @@ const consoleAdded = (name:string, record:Record) => {
       task_detail: [],
     }
     em.libs = data.value.libs
-    const p:[ExecuteManager, ExecuteRecord] = [em, er]
+    const p:ExecutePair = {manager: em, record: er}
     const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
     const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference, config.value)
     em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
@@ -202,19 +212,20 @@ const consoleAdded = (name:string, record:Record) => {
     if(r){
       data.value.execute_manager.push(p)
       data.value.select_manager = data.value.execute_manager.length - 1
-    }
-  }
-  if(!r){
-    emitter?.emit('makeToast', {
+    }else{
+      emitter?.emit('makeToast', {
         title: 'Execute Failed',
         message: 'Project execute failed !\nYou can see detail in Console/DebugLog',
         type: 'warning'
-    })
+      })
+    }
+    if(!r){
+  }
   }
 }
 const consoleStop = () => {
   nextTick(() => {
-    data.value.execute_manager[data.value.select_manager][0].Release()
+    data.value.execute_manager[data.value.select_manager].manager!.Release()
     data.value.execute_manager.splice(data.value.select_manager, 1)
     if(data.value.execute_manager.length == 0) data.value.select_manager = -1
     else data.value.select_manager = 0
@@ -237,14 +248,15 @@ const msgAppend = (d:Array<string | undefined>) => util.self.msgAppend(d)
 const msgClean = () => util.self.clearMessage()
 //#endregion
 
-//#region Web
-const Cookie = () => {
-  
-}
 //#endregion
 
 const updateLocate = () => {
   updateTab()
+}
+
+const updateHandleCall = () => {
+  if(props.backend.config.haveBackend){
+  }
 }
 
 const updateTab = () => {
@@ -300,7 +312,7 @@ const newConnect = (x:WebsocketPack) => {
     message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
   })
   data.value.execute_manager.forEach(y => {
-    y[0].NewConnection(x)
+    y.manager!.NewConnection(x)
   })
 }
 
@@ -311,12 +323,12 @@ const disconnect = (x:WebsocketPack) => {
     message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
   })
   data.value.execute_manager.forEach(y => {
-    y[0].Disconnect(x)
+    y.manager!.Disconnect(x)
   })
 }
 
 const onAnalysis = (d:BusAnalysis) => {
-  data.value.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
+  data.value.execute_manager.forEach(x => x.manager!.Analysis(JSON.parse(JSON.stringify(d))))
 }
 
 const popSetting = () => { emitter?.emit('setting') }
@@ -358,6 +370,10 @@ const dataset_init = () => {
   props.backend.eventOn('menu_export_project', menu_export_project)
   props.backend.eventOn('import_project_feedback', import_project_feedback)
   props.backend.send('client_start');
+  const p0 = props.backend.invoke('console_list').then(x => {
+    data.value.execute_manager = x
+    console.log("execute", data.value.execute_manager)
+  })
   const p1 = props.backend.invoke('load_all_node').then(x => {
     const texts:Array<string> = JSON.parse(x)
     data.value.nodes.push(...texts.map(y => JSON.parse(y)))
@@ -394,7 +410,7 @@ const dataset_init = () => {
       console.log("Logs", ll)
       data.value.logs.logs = ll
   })
-  Promise.all([p1, p2, p3, p5, p6]).then(() => {
+  Promise.all([p0, p1, p2, p3, p5, p6]).then(() => {
     data.value.nodes = data.value.nodes.map(y => {
       return Object.assign(y, {
         s: false,
@@ -421,6 +437,7 @@ onMounted(() => {
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('deleteScript', libDelete)
   emitter?.on('updateLocate', updateLocate)
+  emitter?.on('updateHandle', updateHandleCall)
 
   props.backend.wait_init().then(() => {
     if(props.backend.config.isExpress){
@@ -447,6 +464,7 @@ onUnmounted(() => {
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('deleteScript', libDelete)
   emitter?.off('updateLocate', updateLocate)
+  emitter?.off('updateHandle', updateHandleCall)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   props.backend.send('client_stop');
@@ -557,7 +575,7 @@ onUnmounted(() => {
         </v-tabs-window-item>
         <v-tabs-window-item :value="5">
           <ConsolePage
-            :config="config"
+            :backend="props.backend"
             :preference="props.preference"
             :socket="data.websocket_manager"
             :execute="data.execute_manager"

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ExecuteRecord, Node, Parameter, Preference, Project, Record } from '../../interface';
-import { ExecuteManager } from '../../script/execute_manager';
+import { BusType, ExecutePair, Node, Parameter, Preference, Project, Record } from '../../interface';
 import { i18n } from '../../plugins/i18n'
 import DialogBase from './DialogBase.vue';
 
@@ -11,7 +10,7 @@ interface PROP {
     nodes: Array<Node>
     parameters: Array<Parameter>
     preference: Preference
-    execute: Array<[ExecuteManager, ExecuteRecord]>
+    execute: Array<ExecutePair>
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');

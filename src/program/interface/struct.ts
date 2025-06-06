@@ -185,3 +185,4 @@ export interface Plugin {
 export interface PluginList {
     plugins: Array<Plugin>
 }
+
