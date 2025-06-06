@@ -19,6 +19,7 @@ const makeToast = (e:ToastData) => {
             timer: 5000,
             title: e.title,
             content: e.message,
+            stack: e.stack ? e.stack : [],
             variant: e.type   
         }
     )
@@ -90,8 +91,13 @@ onUnmounted(() => {
                 <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }">
                     {{ m.title }}
                 </v-card-title>
-                <v-card-text :style="{ 'fontSize': props.preference.font + 'px' }">
-                    {{ m.content }}
+                <v-card-text>
+                    <div :style="{ 'fontSize': props.preference.font + 'px' }">
+                        {{ m.content }}
+                    </div>
+                    <div v-if="m.stack" :style="{ 'fontSize': (props.preference.font - 4) + 'px' }">
+                        <p v-for="(s, i) in m.stack" :key="i">{{ s }}</p>
+                    </div>
                 </v-card-text>
             </v-card>
         </v-alert>

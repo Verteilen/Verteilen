@@ -39,7 +39,8 @@ const data:Ref<DATA> = ref({
     skipModal: false,
 })
 const model:Ref<ExecutePair> = ref({})
-const backendWait = ref(false)
+const updateWait = ref(false)
+const queryWait = ref(false)
 
 const consoleAdded = (name:string, data:Record) => {
     emits('added', name, data)
@@ -53,27 +54,40 @@ const consoleAdded = (name:string, data:Record) => {
 const updateHandle = () => {
     if(p_model.value != undefined){
         if(model.value == undefined){
-            model.value = { ...p_model.value, meta: Number.MIN_VALUE }
+            model.value = { manager: p_model.value.manager, record: p_model.value.record, meta: Number.MIN_VALUE }
         }else{
+            model.value.manager = p_model.value.manager
+            model.value.record = p_model.value.record
             model.value.meta++
         }
     }else{
-        model.value = {}
+        model.value = { meta: Number.MIN_VALUE }
     }
 
     if(props.backend.config.haveBackend){
-        if(!backendWait.value){
-            backendWait.value = true
-            props.backend.invoke("console_update").then((x:any) => {
-                if(x.code === 400){
-                    const str = 'Execute Error: ' + x.name + '\n' + x.message
-                    emitter?.emit('makeToast', {
-                        title: 'Error Interrupt',
-                        message: str,
-                        type: 'danger'
-                    })
-                }
-                backendWait.value = false
+        if(!updateWait.value){
+            updateWait.value = true
+            props.backend.invoke("console_update").then((xs:Array<any>) => {
+                xs.forEach(x => {
+                    if(x.code === 400){
+                        const str = 'Execute Error: ' + x.name + '\n' + x.message
+                        emitter?.emit('makeToast', {
+                            title: 'Error Interrupt',
+                            message: str,
+                            type: 'error',
+                            stack: x.stack,
+                        })
+                    }
+                })
+                updateWait.value = false
+            })
+        }
+        if(!queryWait.value && p_model.value?.record != undefined){
+            queryWait.value = true
+            props.backend.invoke("console_record", p_model.value.record.uuid).then(x => {
+                const t = JSON.parse(x)
+                if(p_model.value?.record != undefined && t != undefined) p_model.value!.record = t
+                queryWait.value = false
             })
         }
     }else{
@@ -123,7 +137,7 @@ const createConsole = () => {
  */
 const execute = (type:number) => {
     if(props.backend.config.haveBackend){
-        props.backend.send('console_execute', model.value.manager!.uuid, type)
+        props.backend.send('console_execute', model.value.record!.uuid, type)
     }else{
         model.value.record!.process_type = type
         model.value.record!.running = true
@@ -140,76 +154,88 @@ const execute = (type:number) => {
  * @param state The override state, default is FINISH
  */
 const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
-    if(type == 0){
-        // Project
-        model.value.record!.project_state[model.value.record!.project_index].state = state != undefined ? state : ExecuteState.FINISH
-        model.value.record!.project_index += 1
-        if(model.value.record!.project_index == model.value.record!.projects.length) {
-            model.value.record!.project_index = -1
-            clean()
-        }
-        else {
-            model.value.record!.task_state = model.value.record!.projects[model.value.record!.project_index].task.map(x => {
-                return {
-                    uuid: x.uuid,
-                    state: ExecuteState.NONE
-                }
-            })
-            model.value.record!.task_detail = []
-            const p = model.value.record!.projects[model.value.record!.project_index]
-            const t = p.task[model.value.record!.task_index]
-            const count = model.value.manager!.get_task_state_count(t)
-            for(let i = 0; i < count; i++){
-                model.value.record!.task_detail.push({
-                    index: i,
-                    node: "",
-                    message: [],
-                    state: ExecuteState.NONE
-                })
-            }
-            const index = model.value.manager!.SkipProject()
-            console.log("Skip project, index: %d, next count: %d", index, count)
-        }
-    }else if (type == 1){
-        // Task
-        model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
-        model.value.record!.task_index += 1
-        if(model.value.record!.task_index == model.value.record!.task_state.length) {
-            skip(0)
+    if(props.backend.config.haveBackend){
+        if(type == 2) {
+            data.value.skipModal = true
         }else{
-            model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
-            model.value.record!.task_detail = []
-            const p = model.value.record!.projects[model.value.record!.project_index]
-            const t = p.task[model.value.record!.task_index]
-            const count = model.value.manager!.get_task_state_count(t)
-            for(let i = 0; i < count; i++){
-                model.value.record!.task_detail.push({
-                    index: i,
-                    node: "",
-                    message: [],
-                    state: ExecuteState.NONE
-                })
-            }
-            const index = model.value.manager!.SkipTask()
-            console.log("Skip task, index: %d, next count: %d", index, count)
+            props.backend.send('console_skip', model.value.record?.uuid, type, state)
         }
-    }else if (type == 2){
-        data.value.skipModal = true
+    }else{
+        if(type == 0){
+            // Project
+            model.value.record!.project_state[model.value.record!.project_index].state = state != undefined ? state : ExecuteState.FINISH
+            model.value.record!.project_index += 1
+            if(model.value.record!.project_index == model.value.record!.projects.length) {
+                model.value.record!.project_index = -1
+                clean()
+            }
+            else {
+                model.value.record!.task_state = model.value.record!.projects[model.value.record!.project_index].task.map(x => {
+                    return {
+                        uuid: x.uuid,
+                        state: ExecuteState.NONE
+                    }
+                })
+                model.value.record!.task_detail = []
+                const p = model.value.record!.projects[model.value.record!.project_index]
+                const t = p.task[model.value.record!.task_index]
+                const count = model.value.manager!.get_task_state_count(t)
+                for(let i = 0; i < count; i++){
+                    model.value.record!.task_detail.push({
+                        index: i,
+                        node: "",
+                        message: [],
+                        state: ExecuteState.NONE
+                    })
+                }
+                const index = model.value.manager!.SkipProject()
+                console.log("Skip project, index: %d, next count: %d", index, count)
+            }
+        }else if (type == 1){
+            // Task
+            model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+            model.value.record!.task_index += 1
+            if(model.value.record!.task_index == model.value.record!.task_state.length) {
+                skip(0)
+            }else{
+                model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+                model.value.record!.task_detail = []
+                const p = model.value.record!.projects[model.value.record!.project_index]
+                const t = p.task[model.value.record!.task_index]
+                const count = model.value.manager!.get_task_state_count(t)
+                for(let i = 0; i < count; i++){
+                    model.value.record!.task_detail.push({
+                        index: i,
+                        node: "",
+                        message: [],
+                        state: ExecuteState.NONE
+                    })
+                }
+                const index = model.value.manager!.SkipTask()
+                console.log("Skip task, index: %d, next count: %d", index, count)
+            }
+        }else if (type == 2){
+            data.value.skipModal = true
+        }
     }
 }
 /**
  * When user click confirm on the skip step modal
  */
 const confirmSkip = (v:number) => {
-    const index = model.value.manager!.SkipSubTask(v)
-    if(index < 0) {
-        console.error("Skip step failed: ", index)
-        return
+    if(props.backend.config.haveBackend){
+        props.backend.send('console_skip2', model.value.record?.uuid, v)
+    }else{
+        const index = model.value.manager!.SkipSubTask(v)
+        if(index < 0) {
+            console.error("Skip step failed: ", index)
+            return
+        }
+        for(let i = 0; i < index; i++){
+            model.value.record!.task_detail[i].state = ExecuteState.FINISH
+        }
+        console.log("Skip task", index)
     }
-    for(let i = 0; i < index; i++){
-        model.value.record!.task_detail[i].state = ExecuteState.FINISH
-    }
-    console.log("Skip task", index)
     data.value.skipModal = false
 }
 /**
@@ -218,7 +244,7 @@ const confirmSkip = (v:number) => {
 const clean = () => {
     stop()
     if(props.backend.config.haveBackend){
-        props.backend.send('console_clean', model.value.manager!.uuid)
+        props.backend.send('console_clean', model.value.record!.uuid)
     }else{
         model.value.manager!.Clean()
         model.value.record!.projects = []
@@ -229,8 +255,8 @@ const clean = () => {
         model.value.record!.project_state = []
         model.value.record!.task_state = []
         model.value.record!.task_detail = []
-        emits('stop')
     }
+    emits('stop')
     nextTick(() => {
         if(props.execute.length == 0) data.value.tag = 2
     })
@@ -242,7 +268,7 @@ const clean = () => {
  */
 const stop = () => {
     if(props.backend.config.haveBackend){
-        props.backend.send('console_stop', model.value.manager!.uuid)
+        props.backend.send('console_stop', model.value.record!.uuid)
     }else{
         model.value.record!.stop = true
         model.value.manager!.Stop()

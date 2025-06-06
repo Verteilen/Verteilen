@@ -1,10 +1,10 @@
-import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair } from "../../interface"
+import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair, RENDER_UPDATETICK } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 import { WebsocketManager } from "../../script/socket_manager"
 import { Util_Server_Console, Util_Server_Console_Proxy } from "./console_handle"
 import { BackendEvent } from "../../event"
 import { ipcMain } from "electron"
-import { messager_log } from "../../debugger"
+import { messager, messager_log } from "../../debugger"
 import { Util_Server_Log_Proxy } from "./log_handle"
 
 export type save_and_update = () => void
@@ -20,6 +20,8 @@ export class Util_Server {
     console:Util_Server_Console
     preference:Preference | undefined
     config:AppConfig | undefined
+    updatehandle: any
+    re: Array<any> = []
 
     constructor(backend:BackendEvent){
         this.backend = backend
@@ -29,6 +31,9 @@ export class Util_Server {
         }
         this.websocket_manager = new WebsocketManager(this.NewConnection, this.DisConnection, this.Analysis, messager_log, n)
         this.console = new Util_Server_Console(this.update)
+        this.updatehandle = setInterval(() => {
+            this.re.push(...this.console_update())
+        }, RENDER_UPDATETICK);
         this.EventInit()
     }
 
@@ -55,28 +60,143 @@ export class Util_Server {
 
     }
 
-    private console_stop = (uuid:string) => {
-        const target = this.execute_manager.find(x => x[0].uuid == uuid)
+    private console_execute = (uuid:string, type:number) => {
+        const target = this.execute_manager.find(x => x.record!.uuid == uuid)
         if(target == undefined) return
-        target[1].stop = true
-        target[0].Stop()
+        target.record!.process_type = type
+        target.record!.running = true
+        target.record!.stop = false
+        target.manager!.first = true
     }
 
-    private console_clean = (uuid:string, type:number) => {
-        const target = this.execute_manager.find(x => x[0].uuid == uuid)
+    private console_stop = (uuid:string) => {
+        const target = this.execute_manager.find(x => x.record!.uuid == uuid)
         if(target == undefined) return
-        target[0].Clean()
-        target[1].projects = []
-        target[1].project = ""
-        target[1].task = ""
-        target[1].project_index = -1
-        target[1].task_index = -1
-        target[1].project_state = []
-        target[1].task_state = []
-        target[1].task_detail = []
-        target[0].Release()
-        const index = this.execute_manager.findIndex(x => x[0].uuid == uuid)
+        target.record!.stop = true
+        target.manager!.Stop()
+    }
+
+    private console_update = () => {
+        const re:Array<any> = []
+        this.execute_manager.forEach(x => {
+            if(x.record!.running && !x.record!.stop){
+                try {
+                    x.manager!.Update()
+                }catch(err:any){
+                    x.record!.stop = true
+                    console.log(err)
+                    re.push({
+                        code: 400,
+                        name: err.name,
+                        message: err.message,
+                        stack: err.stack
+                    })
+                }
+            }
+            if(x.record!.stop){
+                if(x.manager!.jobstack == 0){
+                    x.record!.running = false
+                }
+            }
+            if(x.record!.command.length > 0){
+                const p:Array<any> = x.record!.command.shift()!
+                if(p[0] == 'clean') this.console_clean(x.record!.uuid)
+                else if (p[0] == 'stop') this.console_stop(x.record!.uuid)
+                else if (p[0] == 'skip') this.console_skip(x.record!.uuid, p[1], p[2])
+                else if (p[0] == 'execute') this.console_execute(x.record!.uuid, p[1])
+            }
+        })
+        return re
+    }
+
+    private console_clean = (uuid:string) => {
+        const target = this.execute_manager.find(x => x.record!.uuid == uuid)
+        if(target == undefined) return
+        target.manager!.Clean()
+        target.record!.projects = []
+        target.record!.project = ""
+        target.record!.task = ""
+        target.record!.project_index = -1
+        target.record!.task_index = -1
+        target.record!.project_state = []
+        target.record!.task_state = []
+        target.record!.task_detail = []
+        target.manager!.Release()
+        const index = this.execute_manager.findIndex(x => x.record!.uuid == uuid)
         this.execute_manager.splice(index, 1)
+    }
+
+    private console_skip = (uuid:string, type:number, state:ExecuteState = ExecuteState.FINISH) => {
+        const target = this.execute_manager.find(x => x.record!.uuid == uuid)
+        if(target == undefined) return
+        if(type == 0){
+            // Project
+            target.record!.project_state[target.record!.project_index].state = state != undefined ? state : ExecuteState.FINISH
+            target.record!.project_index += 1
+            if(target.record!.project_index == target.record!.projects.length) {
+                target.record!.project_index = -1
+                this.console_clean(uuid)
+            }
+            else {
+                target.record!.task_state = target.record!.projects[target.record!.project_index].task.map(x => {
+                    return {
+                        uuid: x.uuid,
+                        state: ExecuteState.NONE
+                    }
+                })
+                target.record!.task_detail = []
+                const p = target.record!.projects[target.record!.project_index]
+                const t = p.task[target.record!.task_index]
+                const count = target.manager!.get_task_state_count(t)
+                for(let i = 0; i < count; i++){
+                    target.record!.task_detail.push({
+                        index: i,
+                        node: "",
+                        message: [],
+                        state: ExecuteState.NONE
+                    })
+                }
+                const index = target.manager!.SkipProject()
+                console.log("Skip project, index: %d, next count: %d", index, count)
+            }
+        }else if (type == 1){
+            // Task
+            target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+            target.record!.task_index += 1
+            if(target.record!.task_index == target.record!.task_state.length) {
+                this.console_skip(uuid, 0)
+            }else{
+                target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+                target.record!.task_detail = []
+                const p = target.record!.projects[target.record!.project_index]
+                const t = p.task[target.record!.task_index]
+                const count = target.manager!.get_task_state_count(t)
+                for(let i = 0; i < count; i++){
+                    target.record!.task_detail.push({
+                        index: i,
+                        node: "",
+                        message: [],
+                        state: ExecuteState.NONE
+                    })
+                }
+                const index = target.manager!.SkipTask()
+                console.log("Skip task, index: %d, next count: %d", index, count)
+            }
+        }
+    }
+
+    private console_skip2 = (uuid:string, v:number) => {
+        const target = this.execute_manager.find(x => x.record!.uuid == uuid)
+        if(target == undefined) return
+        const index = target.manager!.SkipSubTask(v)
+        if(index < 0) {
+            console.error("Skip step failed: ", index)
+            return
+        }
+        for(let i = 0; i < index; i++){
+            target.record!.task_detail[i].state = ExecuteState.FINISH
+        }
+        console.log("Skip task", index)
     }
 
     private EventInit = () => {
@@ -95,28 +215,33 @@ export class Util_Server {
         })
         // Console Events
         ipcMain.handle('console_list', (event) => {
-            return this.execute_manager
+            return this.execute_manager.map(x => x.record)
+        })
+        ipcMain.handle('console_record', (event, uuid:string) => {
+            const r = this.execute_manager.find(x => x.record?.uuid == uuid)?.record
+            return JSON.stringify(r)
         })
         ipcMain.on('console_execute', (event, uuid:string, type:number) => {
-            const target = this.execute_manager.find(x => x[0].uuid == uuid)
-            if(target == undefined) return
-            target[1].process_type = type
-            target[1].running = true
-            target[1].stop = false
-            target[0].first = true
+            this.console_execute(uuid, type)
         })
         ipcMain.on('console_stop', (event, uuid:string) => {
             this.console_stop(uuid)
         })
-        ipcMain.on('console_clean', (event, uuid:string, type:number) => {
-            this.console_clean(uuid, type)
+        ipcMain.on('console_clean', (event, uuid:string) => {
+            this.console_clean(uuid)
+        })
+        ipcMain.on('console_skip', (event, uuid:string, type:number, state:ExecuteState) => {
+            this.console_skip(uuid, type, state)
+        })
+        ipcMain.on('console_skip2', (event, uuid:string, type:number) => {
+            this.console_skip2(uuid, type)
         })
         ipcMain.handle('console_add', (event, name:string, record:Record) => {
             const em:ExecuteManager = new ExecuteManager(
                 name,
                 this.websocket_manager!, 
-                messager_log, 
-                JSON.parse(JSON.stringify(record))
+                messager, 
+                JSON.parse(JSON.stringify(record)),
             )
             const er:ExecuteRecord = {
                 ...record,
@@ -142,35 +267,13 @@ export class Util_Server {
             const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, this.logs, this.preference!)
             em.proxy = this.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
             const r = this.console.receivedPack(p, record)
+            if(r) this.execute_manager.push(p)
             return r ? er : undefined;
         })
         ipcMain.handle('console_update', (event) => {
-            this.execute_manager.forEach(x => {
-                if(x.record!.running && !x.record!.stop){
-                    try {
-                        x.manager!.Update()
-                    }catch(err:any){
-                        x.record!.stop = true
-                        return {
-                            code: 400,
-                            name: err.name,
-                            message: err.message
-                        }
-                    }
-                }
-                if(x.record!.stop){
-                    if(x.manager!.jobstack == 0){
-                        x.record!.running = false
-                    }
-                }
-                if(x.record!.command.length > 0){
-                    const p:Array<any> = x.record!.command.shift()!
-                    if(p[0] == 'clean') clean()
-                    else if (p[0] == 'stop') this.console_stop()
-                    else if (p[0] == 'skip') skip(p[1], p[2])
-                    else if (p[0] == 'execute') execute(p[1])
-                }
-            })
+            const p = this.re
+            this.re = []
+            return p
         })
     }
 

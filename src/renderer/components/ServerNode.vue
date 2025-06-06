@@ -225,7 +225,9 @@ const consoleAdded = (name:string, record:Record) => {
 }
 const consoleStop = () => {
   nextTick(() => {
-    data.value.execute_manager[data.value.select_manager].manager!.Release()
+    if(!props.backend.config.haveBackend){
+      data.value.execute_manager[data.value.select_manager].manager!.Release()
+    }
     data.value.execute_manager.splice(data.value.select_manager, 1)
     if(data.value.execute_manager.length == 0) data.value.select_manager = -1
     else data.value.select_manager = 0
@@ -370,8 +372,8 @@ const dataset_init = () => {
   props.backend.eventOn('menu_export_project', menu_export_project)
   props.backend.eventOn('import_project_feedback', import_project_feedback)
   props.backend.send('client_start');
-  const p0 = props.backend.invoke('console_list').then(x => {
-    data.value.execute_manager = x
+  const p0 = props.backend.invoke('console_list').then((xs:Array<any>) => {
+    data.value.execute_manager = xs.map(x => ({ record: x }))
     console.log("execute", data.value.execute_manager)
   })
   const p1 = props.backend.invoke('load_all_node').then(x => {

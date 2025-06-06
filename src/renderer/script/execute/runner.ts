@@ -1,6 +1,7 @@
 import { v6 as uuidv6 } from 'uuid';
 import { CronJobState, DataType, ExecuteState, Header, Job, Project, Task, WebsocketPack } from "../../interface";
 import { ExecuteManager_Feedback } from "./feedback";
+import { WebSocket } from 'ws';
 import { Util_Parser } from './util_parser';
 
 /**
