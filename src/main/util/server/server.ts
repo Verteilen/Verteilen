@@ -1,4 +1,4 @@
-import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair, RENDER_UPDATETICK, BusAnalysis, WebsocketPack } from "../../interface"
+import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair, RENDER_UPDATETICK, BusAnalysis, WebsocketPack, Header } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 import { WebsocketManager } from "../../script/socket_manager"
 import { Util_Server_Console, Util_Server_Console_Proxy } from "./console_handle"
@@ -27,6 +27,7 @@ export class Util_Server {
 
     constructor(backend:BackendEvent){
         this.backend = backend
+        this.EventInit()
         const n:NodeProxy = {
             shellReply: this.shellReply,
             folderReply: this.folderReply
@@ -36,7 +37,6 @@ export class Util_Server {
         this.updatehandle = setInterval(() => {
             this.re.push(...this.console_update())
         }, RENDER_UPDATETICK);
-        this.EventInit()
     }
 
     private NewConnection = (x:WebsocketPack) => {
@@ -68,10 +68,23 @@ export class Util_Server {
     }
 
     private shellReply = (data:Single) => {
-
+        mainWindow?.webContents.send('shellReply', data)
     }
-    private folderReply = (data:ShellFolder) => {
 
+    private folderReply = (data:ShellFolder) => {
+        mainWindow?.webContents.send('folderReply', data)
+    }
+
+    private resource_start = (uuid:string) => {
+        const p = this.websocket_manager!.targets.find(x => x.uuid == uuid)
+        const d:Header = { name: 'resource_start', data: 0 }
+        p?.websocket.send(JSON.stringify(d))
+    }
+
+    private resource_end = (uuid:string) => {
+        const p = this.websocket_manager!.targets.find(x => x.uuid == uuid)
+        const d:Header = { name: 'resource_end', data: 0 }
+        p?.websocket.send(JSON.stringify(d))
     }
 
     private console_execute = (uuid:string, type:number) => {
@@ -214,6 +227,26 @@ export class Util_Server {
     }
 
     private EventInit = () => {
+        // Resource
+        ipcMain.on('resource_start', (e, uuid) => {
+            this.resource_start(uuid)
+        })
+        ipcMain.on('resource_end', (e, uuid) => {
+            this.resource_end(uuid)
+        })
+        // Shell
+        ipcMain.on('shell_enter', (e, uuid, value) => {
+            this.websocket_manager!.shell_enter(uuid, value)
+        })
+        ipcMain.on('shell_open', (e, uuid) => {
+            this.websocket_manager!.shell_open(uuid)    
+        })
+        ipcMain.on('shell_close', (e, uuid) => {
+            this.websocket_manager!.shell_close(uuid) 
+        })
+        ipcMain.on('shell_folder', (e, uuid, path) => {
+            this.websocket_manager!.shell_folder(uuid, path)    
+        })
         // Node Events
         ipcMain.handle('node_list', (e) => {
             return this.websocket_manager?.targets

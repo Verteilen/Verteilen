@@ -353,7 +353,7 @@ const dataset_init = () => {
   updateTab()
   data.value.title = tabs.value.find(x => x[2] == 0)![1]
   const x = config.value
-  if(!x.isExpress){
+  if(!x.haveBackend){
     const nodeproxy:NodeProxy = {
       shellReply: data => { emitter?.emit('shellReply', data) },
       folderReply: data => { emitter?.emit('folderReply', data) },
@@ -423,7 +423,7 @@ const dataset_init = () => {
     })
     data.value.nodes.forEach(y => {
       if(props.backend.config.haveBackend){
-        props.backend.invoke("node_add", y.url, y.ID)
+        props.backend.send("node_add", y.url, y.ID)
       }else{
         data.value.websocket_manager?.server_start(y.url, y.ID)
       }
