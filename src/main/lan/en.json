@@ -104,6 +104,7 @@
     },
     "toolbar": {
         "server": "Server",
+        "compute": "Compute",
         "editor": "Editor",
         "backend": "Backend Feature",
         "project": "Project",
@@ -115,7 +116,9 @@
         "log": "Log",
         "library": "Library",
         "client": "Self",
-        "setting": "Setting"
+        "setting": "Setting",
+        "role": "Role",
+        "service": "Service"
     },
     "tooltip": {
         "select-server": "The one who send the command to client",

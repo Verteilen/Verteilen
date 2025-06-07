@@ -104,6 +104,7 @@
     },
     "toolbar": {
         "server": "伺服器",
+        "compute": "運算",
         "editor": "編輯器",
         "backend": "後端功能",
         "project": "專案管理",
@@ -115,7 +116,9 @@
         "log": "紀錄",
         "library": "運行庫",
         "client": "客戶端",
-        "setting": "設定"
+        "setting": "設定",
+        "role": "權限組",
+        "service": "服務"
     },
     "tooltip": {
         "select-server": "作為伺服器下指令的一方",

@@ -10,6 +10,7 @@ import { WebsocketManager } from "./script/socket_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
 import { v6 as uuidv6 } from 'uuid'
+import path from "path";
 
 export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
@@ -210,6 +211,18 @@ export class BackendEvent {
         }else{
             this.setting = JSON.parse(fs.readFileSync("server.json").toString());
         }
+    }
+
+    GetUserType = (token:string) => {
+        if(!fs.existsSync('data/user')) fs.mkdirSync('data/user');
+        const files = fs.readdirSync('data/user')
+        for(let i = 0; i < files.length; i++){
+            const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+            if(p.token == token){
+                return p.type
+            }
+        }
+        return UserType.GUEST
     }
     //#endregion
 }

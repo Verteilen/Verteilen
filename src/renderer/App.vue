@@ -31,6 +31,7 @@ const guideModal = ref(false)
 backend.value.init().then(() => {
   console.log("isElectron", config.value.isElectron)
   console.log("isExpress", config.value.isExpress)
+  console.log("isAdmin", config.value.isAdmin)
   console.log("env", process.env.NODE_ENV)
   backend.value.send('message', 'Welcome Compute Tool')
 })

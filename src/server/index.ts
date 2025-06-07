@@ -3,7 +3,7 @@ import express from 'express'
 import ws from 'ws'
 import { backendEvent } from './event'
 import cookieParser from 'cookie-parser'
-import { ConsolePORT, Header, WebPORT } from './interface'
+import { ConsolePORT, Header, UserType, WebPORT } from './interface'
 import path from 'path'
 
 let wsServer: ws.Server | undefined = undefined
@@ -37,7 +37,11 @@ webport.then(p => {
     }, express.static(path.join(__dirname, 'public')))
     // The simple web response to let frontend know that backend exists
     app.get('/express', (req, res) => {
-        res.send('1')
+        if(req.cookies.token == undefined) {
+            res.send(UserType.GUEST)
+        } else {
+            res.send(backendEvent.GetUserType(req.cookies.token))
+        }
     })
     // Import project
     app.post('/project_import', (req, res) => {
