@@ -272,6 +272,7 @@ export class WebsocketManager {
      */
     private system_info = (info:SystemLoad, source:WebsocketPack | undefined) => {
         if(source == undefined) return
+        this.messager_log(`Recevied system info from: ${source.uuid}`)
         source.information = info
     }
     /**

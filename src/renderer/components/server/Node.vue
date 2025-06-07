@@ -47,18 +47,20 @@ const consoleTarget = computed(() => props.nodes.find(x => x.ID == consoleUUID.v
 
 watch(() => infoModal.value, () => {
     if(infoModal.value){
-        const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
         if(props.backend.config.haveBackend){
-            props.backend.send('resource_start', p?.uuid)
+            const p = props.nodes.find(x => x.ID == infoUUID.value)
+            props.backend.send('resource_start', p?.ID)
         }else{
+            const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
             const d:Header = { name: 'resource_start', data: 0 }
             p?.websocket.send(JSON.stringify(d))
         }
     }else{
-        const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
         if(props.backend.config.haveBackend){
-            props.backend.send('resource_end', p?.uuid)
+            const p = props.nodes.find(x => x.ID == infoUUID.value)
+            props.backend.send('resource_end', p?.ID)
         }else{
+            const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
             const d:Header = { name: 'resource_end', data: 0 }
             p?.websocket.send(JSON.stringify(d))
         }
