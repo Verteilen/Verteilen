@@ -272,13 +272,17 @@ const updateTab = () => {
     ["mdi-network", "toolbar.node", 4],
     ["mdi-console-line", "toolbar.console", 5],
   ]
+  
   if(config.value.haveBackend){
     tabs.value.push(["", "toolbar.backend", -1])
     tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
     tabs.value.push(["mdi-puzzle", "toolbar.library", 7])
   }
-  if(config.value.isExpress && config.value.isAdmin){
+  if((config.value.isExpress && config.value.isAdmin) || config.value.isElectron){
     tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
+  }
+
+  if(config.value.isExpress && config.value.isAdmin){
     tabs.value.push(["", "toolbar.server", -1])
     tabs.value.push(["mdi-lock", "toolbar.role", 9])
     tabs.value.push(["mdi-cog-play", "toolbar.service", 10])
@@ -505,7 +509,13 @@ onUnmounted(() => {
         </template>
       </v-app-bar>
       <v-navigation-drawer temporary v-model="data.drawer">
+
         <v-list density="compact" nav>
+          <v-list-item v-if="props.backend.config.isExpress"
+            prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
+            title="John Leider"
+          > 
+          </v-list-item>
           <div v-for="(tab, index) in tabs" :key="index">
             <v-list-item v-if="tab[2] >= 0"
               :style="{ 'fontSize': props.preference.font + 'px' }"

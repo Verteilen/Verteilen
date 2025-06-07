@@ -96,36 +96,33 @@ export class BackendEvent {
         }
         socket.send(JSON.stringify(d))
     }
-    private save_preference = (socket:ws.WebSocket, preference:string) => {
-        fs.writeFileSync('preference.json', preference)
+    private save_preference = (socket:ws.WebSocket, preference:string, token?:string) => {
+        if(token != undefined){
+            const files = fs.readdirSync("data/user")
+            for(let i = 0; i < files.length; i++){
+                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+                if(p.token == token){
+                    p.preference = JSON.parse(preference)
+                    fs.writeFileSync(path.join("data", "user", files[i]), JSON.stringify(p))
+                    break
+                }
+            }
+        }
     }
-    private load_preference = (socket:ws.WebSocket) => {
-        const exist = fs.existsSync('preference.json');
-        messager_log(`[Event] Read preference.js, file exist: ${exist}`)
-        if(!exist){
-            const record:Preference = {
-                lan: 'en',
-                log: true,
-                font: 18,
-                theme: "dark",
-                notification: false,
+    private load_preference = (socket:ws.WebSocket, token?:string) => {
+        if(token != undefined){
+            const files = fs.readdirSync("data/user")
+            for(let i = 0; i < files.length; i++){
+                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+                if(p.token == token){
+                    const d:Header = {
+                        name: "load_preference-feedback",
+                        data: JSON.stringify(p.preference)
+                    }
+                    socket.send(JSON.stringify(d))
+                    break
+                }
             }
-            fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
-            i18n.global.locale = 'en'
-            const d:Header = {
-                name: "load_preference-feedback",
-                data: JSON.stringify(record)
-            }
-            this.util.preference = record
-            socket.send(JSON.stringify(d))
-        } else {
-            const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
-            const d:Header = {
-                name: "load_preference-feedback",
-                data: file
-            }
-            this.util.preference = JSON.parse(file)
-            socket.send(JSON.stringify(d))
         }
     }
 

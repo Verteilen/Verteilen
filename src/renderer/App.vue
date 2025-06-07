@@ -28,6 +28,16 @@ const mode = ref(config.value.isElectron ? -1 : 1)
 const settingModal = ref(false)
 const guideModal = ref(false)
 
+const getCookie = (name:string) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift();
+}
+
+const token = computed(() => {
+  return getCookie('token')
+})
+
 backend.value.init().then(() => {
   console.log("isElectron", config.value.isElectron)
   console.log("isExpress", config.value.isExpress)
@@ -46,7 +56,7 @@ const locate = (v:string) => {
   t.locale = v
   preference.value.lan = v
   emitter?.emit('updateLocate')
-  backend.value.send('save_preference', JSON.stringify(preference.value, null, 4))
+  backend.value.send('save_preference', JSON.stringify(preference.value, null, 4), token.value)
 }
 
 const setting = () => { settingModal.value = true }
@@ -64,8 +74,8 @@ const preferenceUpdate = (data:Preference) => {
 const load_preference = (x:string) => {
   preference.value = JSON.parse(x)
   console.log("load_preference", preference.value)
-  backend.value.send('locate', preference.value.lan)
   preferenceUpdate(preference.value)
+  backend.value.send('locate', preference.value.lan)  
 }
 
 onMounted(() => {
@@ -74,10 +84,8 @@ onMounted(() => {
   emitter?.on('guide', guide)
   backend.value.wait_init().then(() => {
     if(backend.value.config.haveBackend){
-      setTimeout(() => {
-        backend.value.eventOn('locate', locate)
-        backend.value.invoke('load_preference').then(x => load_preference(x))
-      }, 150);
+      backend.value.eventOn('locate', locate)
+      backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
     }
   })
   

@@ -1,4 +1,4 @@
-import { AppConfig, RawSend, UserType } from "./interface";
+import { AppConfig, RawSend, UserProfileClient, UserType } from "./interface";
 import { checkifElectron, checkIfExpress } from "./platform";
 import { ConsoleManager, Listener } from "./script/console_manager";
 
@@ -9,6 +9,7 @@ export class BackendProxy {
     config:AppConfig
     consoleM: ConsoleManager | undefined
     is_init: boolean
+    user?: UserProfileClient
 
     constructor(){
         this.config = {
@@ -27,7 +28,7 @@ export class BackendProxy {
     init = () => {
         return new Promise<void>((resolve) => {
             checkIfExpress((e) => {
-                this.config.isExpress = e != -1
+                this.config.isExpress = e >= 0
                 this.config.isAdmin = e == UserType.ADMIN
                 this.is_init = true
                 this.config.haveBackend = this.config.isElectron || this.config.isExpress
