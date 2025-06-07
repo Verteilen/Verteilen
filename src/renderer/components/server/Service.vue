@@ -4,6 +4,8 @@
 
 <template>
     <div>
-        <p>Service</p>
+        <div class="py-3">
+            <p>Service</p>
+        </div>
     </div>
 </template>

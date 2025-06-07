@@ -4,6 +4,8 @@
 
 <template>
     <div>
-        <p>Role</p>
+        <div class="py-3">
+            <p>Role</p>
+        </div>
     </div>
 </template>

@@ -515,7 +515,7 @@ onUnmounted(() => {
       <v-navigation-drawer temporary v-model="data.drawer">
         <v-list density="compact" nav>
           <v-list-item v-if="props.backend.config.isExpress"
-            :prepend-avatar="props.backend.user?.picture_url"
+            :prepend-avatar="props.backend.user?.picture_url ?? '/icon/user.png'"
             :title="props.backend.user?.name"
             :value="100" 
             @click="data.page = 100"
