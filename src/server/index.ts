@@ -16,10 +16,10 @@ webport.then(p => {
     app = express()
     app.use(cookieParser())
     console.log("current dir: ", process.cwd())
-    app.use((req, res, next) => {
-        if(req.query.token != undefined) {
-            res.cookie('token', req.query.token)
-            next()
+    app.get('/login/:token', (req, res, next) => {
+        if(req.params.token != undefined) {
+            res.cookie('token', req.params.token)
+            res.redirect('/')
         }else{
             res.sendStatus(403)
         }
