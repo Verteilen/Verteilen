@@ -27,9 +27,9 @@ export class BackendProxy {
      */
     init = () => {
         return new Promise<void>((resolve) => {
-            checkIfExpress((e) => {
-                this.config.isExpress = e >= 0
-                this.config.isAdmin = e == UserType.ADMIN
+            checkIfExpress((e:UserProfileClient | undefined) => {
+                this.config.isExpress = e != undefined
+                this.config.isAdmin = e ? e.type == UserType.ADMIN : false
                 this.is_init = true
                 this.config.haveBackend = this.config.isElectron || this.config.isExpress
                 resolve()
@@ -50,6 +50,12 @@ export class BackendProxy {
                 }
             }, 5);
         })
+    }
+
+    getCookie = (name:string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
     }
 
     /**

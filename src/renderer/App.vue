@@ -28,14 +28,8 @@ const mode = ref(config.value.isElectron ? -1 : 1)
 const settingModal = ref(false)
 const guideModal = ref(false)
 
-const getCookie = (name:string) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
-}
-
 const token = computed(() => {
-  return getCookie('token')
+  return backend.value.getCookie('token')
 })
 
 backend.value.init().then(() => {

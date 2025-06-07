@@ -4,6 +4,6 @@
 
 <template>
     <div>
-        <p>Role</p>
+        <p>Profile</p>
     </div>
 </template>

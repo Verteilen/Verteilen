@@ -3,7 +3,7 @@ import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, GlobalPermission, Header, Job, Libraries, LocalPermiision, NodeProxy, Parameter, Preference, Project, Record, ServerSetting, ShellFolder, Single, Task, UserProfile, UserType, WebsocketPack } from "./interface";
+import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, GlobalPermission, Header, Job, Libraries, LocalPermiision, NodeProxy, Parameter, Preference, Project, Record, ServerSetting, ShellFolder, Single, Task, UserProfile, UserProfileClient, UserType, WebsocketPack } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { WebsocketManager } from "./script/socket_manager";
@@ -210,16 +210,26 @@ export class BackendEvent {
         }
     }
 
-    GetUserType = (token:string) => {
+    GetUserType = (token?:string):UserProfileClient => {
         if(!fs.existsSync('data/user')) fs.mkdirSync('data/user');
-        const files = fs.readdirSync('data/user')
-        for(let i = 0; i < files.length; i++){
-            const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
-            if(p.token == token){
-                return p.type
+        if(token != undefined){
+            const files = fs.readdirSync('data/user')
+            for(let i = 0; i < files.length; i++){
+                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+                if(p.token == token){
+                    return {
+                        picture_url: p.picture_url,
+                        name: p.name,
+                        type: p.type,
+                        description: p.description
+                    }
+                }
             }
         }
-        return UserType.GUEST
+        return {
+            name: "GUEST",
+            type: UserType.GUEST
+        }
     }
     //#endregion
 }

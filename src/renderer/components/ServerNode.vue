@@ -511,9 +511,9 @@ onUnmounted(() => {
       <v-navigation-drawer temporary v-model="data.drawer">
 
         <v-list density="compact" nav>
-          <v-list-item v-if="props.backend.config.isExpress"
-            prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
-            title="John Leider"
+          <v-list-item v-if="props.backend.config.isExpress" @click="data.page = 100"
+            :prepend-avatar="props.backend.user?.picture_url"
+            :title="props.backend.user?.name"
           > 
           </v-list-item>
           <div v-for="(tab, index) in tabs" :key="index">
@@ -632,6 +632,15 @@ onUnmounted(() => {
             :messages="data.messages"
             :preference="props.preference"
             @clean="msgClean"/>
+        </v-tabs-window-item>
+        <v-tabs-window-item v-show="config.haveBackend" :value="9">
+          <RolePage />
+        </v-tabs-window-item>
+        <v-tabs-window-item v-show="config.haveBackend" :value="10">
+          <ServicePage />
+        </v-tabs-window-item>
+        <v-tabs-window-item v-show="config.haveBackend" :value="100">
+          <ProfilePage />
         </v-tabs-window-item>
       </v-tabs-window>
     </div>

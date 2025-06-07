@@ -36,12 +36,8 @@ webport.then(p => {
         }
     }, express.static(path.join(__dirname, 'public')))
     // The simple web response to let frontend know that backend exists
-    app.get('/express', (req, res) => {
-        if(req.cookies.token == undefined) {
-            res.send(UserType.GUEST)
-        } else {
-            res.send(backendEvent.GetUserType(req.cookies.token))
-        }
+    app.get('/user', (req, res) => {
+        res.send(backendEvent.GetUserType(req.cookies.token))
     })
     // Import project
     app.post('/project_import', (req, res) => {
