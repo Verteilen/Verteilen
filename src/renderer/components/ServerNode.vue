@@ -20,6 +20,9 @@ import ParameterPage from './server/Parameter.vue';
 import ProjectPage from './server/Project.vue';
 import SelfPage from './server/Self.vue';
 import TaskPage from './server/Task.vue';
+import RolePage from './server/Role.vue';
+import ServicePage from './server/Service.vue';
+import ProfilePage from './server/Profile.vue';
 import { ConsoleManager } from '../script/console_manager';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -60,9 +63,10 @@ const selectExecute = computed(() => data.value.execute_manager[data.value.selec
 
 watch(() => data.value.page, () => {
   const tab = tabs.value.find(x => x[2] == data.value.page)!
+  data.value.drawer = false
+  if(tab == undefined) return
   data.value.page = tab[2]; 
   data.value.title = tab[1]; 
-  data.value.drawer = false
 })
 
 const allUpdate = () => util.allUpdate()
@@ -509,11 +513,12 @@ onUnmounted(() => {
         </template>
       </v-app-bar>
       <v-navigation-drawer temporary v-model="data.drawer">
-
         <v-list density="compact" nav>
-          <v-list-item v-if="props.backend.config.isExpress" @click="data.page = 100"
+          <v-list-item v-if="props.backend.config.isExpress"
             :prepend-avatar="props.backend.user?.picture_url"
             :title="props.backend.user?.name"
+            :value="100" 
+            @click="data.page = 100"
           > 
           </v-list-item>
           <div v-for="(tab, index) in tabs" :key="index">
@@ -633,13 +638,13 @@ onUnmounted(() => {
             :preference="props.preference"
             @clean="msgClean"/>
         </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.haveBackend" :value="9">
+        <v-tabs-window-item v-show="config.isExpress" :value="9">
           <RolePage />
         </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.haveBackend" :value="10">
+        <v-tabs-window-item v-show="config.isExpress" :value="10">
           <ServicePage />
         </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.haveBackend" :value="100">
+        <v-tabs-window-item v-show="config.isExpress" :value="100">
           <ProfilePage />
         </v-tabs-window-item>
       </v-tabs-window>

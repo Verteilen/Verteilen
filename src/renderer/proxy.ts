@@ -28,6 +28,8 @@ export class BackendProxy {
     init = () => {
         return new Promise<void>((resolve) => {
             checkIfExpress((e:UserProfileClient | undefined) => {
+                console.log("auth", e)
+                this.user = e
                 this.config.isExpress = e != undefined
                 this.config.isAdmin = e ? e.type == UserType.ADMIN : false
                 this.is_init = true
