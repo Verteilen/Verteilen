@@ -3,16 +3,18 @@ import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, Header, Job, Libraries, NodeProxy, Parameter, Preference, Project, Record, ShellFolder, Single, Task, WebsocketPack } from "./interface";
+import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, GlobalPermission, Header, Job, Libraries, LocalPermiision, NodeProxy, Parameter, Preference, Project, Record, ServerSetting, ShellFolder, Single, Task, UserProfile, UserType, WebsocketPack } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { WebsocketManager } from "./script/socket_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
+import { v6 as uuidv6 } from 'uuid'
 
 export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
 
+    setting: ServerSetting | undefined
     jsCall:ClientJavascript
     util: Util_Server = new Util_Server(this)
     libs:Libraries = {libs: []}
@@ -56,6 +58,10 @@ export class BackendEvent {
             const n = this.NewConsoleConsole(socket)
             n.Analysis(h)
         }
+    }
+
+    IsPass = (token:string) => {
+        return true
     }
 
     //#region Manager Side
@@ -153,6 +159,59 @@ export class BackendEvent {
         const n:string = data.name
         const r:Record = data.record
     }
+
+    //#region Server
+    Root = () => {
+        if(!fs.existsSync('data/user')) fs.mkdirSync('data/user');
+        if(!fs.existsSync("data/user/root.json")){
+            const perl:LocalPermiision = {
+                view: true,
+                create: true,
+                edit: true,
+                delete: true,
+            }
+            const per:GlobalPermission = {
+                project: perl,
+                task: perl,
+                node: perl,
+                parameter: perl,
+                lib: perl,
+                log: perl,
+                execute_job: true
+            }
+            const root:UserProfile = {
+                token: uuidv6(),
+                type: UserType.ADMIN,
+                preference: {
+                    lan: 'en',
+                    log: true,
+                    font: 18,
+                    theme: "dark",
+                    notification: false,
+                },
+                name: "root",
+                description: "Root User",
+                permission: per,
+                permission_projects: [],
+                permission_tasks: [],
+                permission_nodes: [],
+            }
+            fs.writeFileSync("data/user/root.json", JSON.stringify(root, null, 2))
+            console.log(`Login with root using: ${root.token} `)
+        }else{
+            const root:UserProfile = JSON.parse(fs.readFileSync("data/user/root.json").toString());
+            console.log(`Login with root using: ${root.token} `)
+        }
+        if(!fs.existsSync("server.json")){
+            this.setting = {
+                open_guest: false
+            }
+            fs.writeFileSync("server.json", JSON.stringify(this.setting, null, 2))
+        }else{
+            this.setting = JSON.parse(fs.readFileSync("server.json").toString());
+        }
+    }
+    //#endregion
 }
 
 

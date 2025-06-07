@@ -2,6 +2,7 @@ import Chalk from 'chalk'
 import express from 'express'
 import ws from 'ws'
 import { backendEvent } from './event'
+import cookieParser from 'cookie-parser'
 import { ConsolePORT, Header, WebPORT } from './interface'
 import path from 'path'
 
@@ -13,8 +14,27 @@ const socketport = backendEvent.PortAvailable(ConsolePORT)
 
 webport.then(p => {
     app = express()
+    app.use(cookieParser())
     console.log("current dir: ", process.cwd())
-    app.use(express.static(path.join(__dirname, 'public')))
+    app.use((req, res, next) => {
+        if(req.query.token != undefined) {
+            res.cookie('token', req.query.token)
+            next()
+        }else{
+            res.sendStatus(403)
+        }
+    })
+    app.use((req, res, next) => {
+        if(req.cookies.token == undefined) {
+            res.sendStatus(403)
+        }else{
+            if(backendEvent.IsPass(req.cookies.token as string)) {
+                next()
+            }else{
+                res.sendStatus(403)
+            }
+        }
+    }, express.static(path.join(__dirname, 'public')))
     // The simple web response to let frontend know that backend exists
     app.get('/express', (req, res) => {
         res.send('1')
@@ -29,6 +49,7 @@ webport.then(p => {
     app.listen(p, () => {
         console.log(Chalk.greenBright(`server run at ${p}`))
     })
+    backendEvent.Root()
 })
 socketport.then(p => {
     wsServer = new ws.Server({path: '/server', port: p})
