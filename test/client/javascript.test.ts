@@ -20,8 +20,10 @@ describe("JS Test", () => {
             canWrite: true,
             containers: [
                 { name: "n1", type: DataType.Number, value: 7, hidden: false, runtimeOnly: false },
+                { name: "n2", type: DataType.Number, value: 5, hidden: false, runtimeOnly: false },
                 { name: "s1", type: DataType.String, value: "Hello World", hidden: false, runtimeOnly: false },
                 { name: "b1", type: DataType.Boolean, value: true, hidden: false, runtimeOnly: false },
+                { name: "e1", type: DataType.Expression, value: 0, meta: "n1 + n2", hidden: false, runtimeOnly: false },
             ]
         }
         js = new ClientJavascript(
@@ -43,6 +45,7 @@ describe("JS Test", () => {
     })
     test("Env test getter", () => {
         expect(js!.JavascriptExecuteWithLib(`result = env.getnumber("n1")`, [])).toBe(7)
+        expect(js!.JavascriptExecuteWithLib(`result = env.getnumber("n2")`, [])).toBe(5)
         expect(js!.JavascriptExecuteWithLib(`result = env.getstring("s1")`, [])).toBe("Hello World")
         expect(js!.JavascriptExecuteWithLib(`result = env.getboolean("b1")`, [])).toBe(true)
         expect(js!.JavascriptExecuteWithLib(`result = env.getnumber("nnn")`, [])).toBe(0)
@@ -51,6 +54,7 @@ describe("JS Test", () => {
     })
     test("Env test has", () => {
         expect(js!.JavascriptExecuteWithLib(`result = env.hasnumber("n1")`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`result = env.hasnumber("n2")`, [])).toBe(true)
         expect(js!.JavascriptExecuteWithLib(`result = env.hasstring("s1")`, [])).toBe(true)
         expect(js!.JavascriptExecuteWithLib(`result = env.hasboolean("b1")`, [])).toBe(true)
         expect(js!.JavascriptExecuteWithLib(`result = env.hasnumber("nnn")`, [])).toBe(false)

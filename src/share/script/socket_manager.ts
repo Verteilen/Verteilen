@@ -1,5 +1,23 @@
 import { v6 as uuidv6 } from 'uuid';
 import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, ShellFolder, Single, SystemLoad, WebsocketPack } from "../interface";
+import { WebSocket } from 'ws';
+
+function isRenderer () {
+  // running in a web browser
+  if (typeof process === 'undefined') return true
+
+  // node-integration is disabled
+  if (!process) return true
+
+  // We're in node.js somehow
+  // @ts-ignore
+  if (!process.type) return false
+
+  // @ts-ignore
+  return process.type === 'renderer'
+}
+
+console.log("isRenderer", isRenderer())
 
 /**
  * The node connection instance manager, Use by the cluster server
@@ -110,30 +128,32 @@ export class WebsocketManager {
      */
     private serverconnect = (url:string, uuid?:string) => {
         if(this.targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
+        if(this.targets.findIndex(x => x.uuid == uuid) != -1) return
         const client = new WebSocket(url)
-        const index = this.targets.push({ uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] })
+        const t:WebsocketPack = { uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] }
+        this.targets.push(t)
         client.onerror = (err:any) => {
             this.messager_log(`[Socket] Connect failed ${url}`)
         }
         client.onclose = (ev) => {
-            if(this.targets[index - 1].s != undefined){
+            if(t.s != undefined){
                 this.messager_log(`[Socket] Client close connection, ${ev.code}, ${ev.reason}`)
-                this.disconnect(this.targets[index - 1])
+                this.disconnect(t)
             }
-            this.targets[index - 1].s = undefined
-            this.targets[index - 1].current_job = []
+            t.s = undefined
+            t.current_job = []
         }
         client.onopen = () => {
             this.messager_log('[Socket] New Connection !' + client.url)
-            if(this.targets[index - 1].s == undefined){
-                this.targets[index - 1].s = true
+            if(t.s == undefined){
+                t.s = true
             }
             this.sendUpdate()
-            this.newConnect(this.targets[index - 1])
+            this.newConnect(t)
         }
         client.onmessage = (ev) => {
             const h:Header | undefined = JSON.parse(ev.data.toString());
-            const c = this.targets.find(x => x.websocket == client)
+            const c = this.targets.find(x => x.uuid == uuid)
             this.analysis(h, c)
         }
         return client
@@ -236,14 +256,14 @@ export class WebsocketManager {
     /**
      * Recevied the shell text from client node
      */
-    private shell_reply = (data:Single) => {
-        this.proxy?.shellReply(data)
+    private shell_reply = (data:Single, w?:WebsocketPack) => {
+        this.proxy?.shellReply(data, w)
     }
     /**
      * Recevied the folders from client node
      */
-    private shell_folder_reply = (data:ShellFolder) => {
-        this.proxy?.folderReply(data)
+    private shell_folder_reply = (data:ShellFolder, w?:WebsocketPack) => {
+        this.proxy?.folderReply(data, w)
     }
     /**
      * Get the system information and assign to the node object

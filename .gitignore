@@ -13,3 +13,4 @@ util/ply_tool/build
 util/ply_tool/dist
 util/ply_tool/exe/*.rar
 src/server/public
+src/server/data

@@ -50,7 +50,10 @@
     },
     "error": {
         "title-needed": "名稱不能為空",
-        "title-repeat": "名稱不能重複"
+        "title-repeat": "名稱不能重複",
+        "project-empty": "專案清單不能爲空",
+        "parameter-empty": "專案必須綁定參數",
+        "node-empty": "節點清單不能爲空"
     },
     "filter": {
         "type": "資料型態",
@@ -78,6 +81,7 @@
         "delete-parameter": "刪除參數",
         "enter-parameter-name": "輸入參數名稱",
         "new-parameter-set": "新增參數組",
+        "clone-parameter-set": "複製參數組",
         "edit-parameter-set": "編輯參數組",
         "enter-parameter-set-name": "輸入參數組名稱",
         "import-parameter": "刪除參數",
@@ -94,7 +98,9 @@
         "log-recover-project-title": "新專案名稱",
         "log-recover-parameter-title": "新參數名稱",
         "console-create": "建立控制台",
-        "console-name": "控制台名稱"
+        "console-name": "控制台名稱",
+        "delete-library": "刪除程式腳本",
+        "delete-library-confirm": "確定刪除選取的程式腳本嗎?"
     },
     "toolbar": {
         "server": "伺服器",
@@ -160,6 +166,7 @@
         },
         "project": {
             "default": "範例",
+            "gs4-full": "睿智 GS4 完整",
             "gs4-prepare": "睿智 GS4 準備階段",
             "gs4-colmap": "睿智 GS4 Colmap",
             "gs4-iframe": "睿智 GS4 I-Frame",
@@ -167,6 +174,7 @@
             "gs4-blend": "睿智 GS4 Blend 運算",
             "gs4-output": "睿智 GS4 輸出 Ply",
             "gs4-lut": "睿智 GS4 套用 Lut",
+            "gs4-mask": "Funique GS4 去背",
             "concat": "FFmpeg 合成影片",
             "blender": "Blender 渲染",
             "aftereffect": "After Effect 渲染"

@@ -238,6 +238,33 @@ const GetDefaultProjectTemplate_Pnumber = ():Task => {
     return t
 }
 
+const GetDefaultProjectTemplate_Expression = ():Task => {
+    const checker:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.COMMAND,
+        script: "",
+        string_args: ["", "echo", "%e1%"],
+        number_args: [ConditionResult.ThrowProject],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Print number",
+        description: "",
+        setupjob: false,
+        cronjob: true,
+        cronjobKey: "n1",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            checker
+        ]
+    }
+    return t
+}
+
 const GetDefaultProjectTemplate_Checker = ():Task => {
     const checker:Job = {
         uuid: uuidv6(),
@@ -275,6 +302,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
     r.parameter = para
     r.task = [
         GetDefaultProjectTemplate_Checker(),
+        GetDefaultProjectTemplate_Expression(),
         GetDefaultProjectTemplate_OS(),
         GetDefaultProjectTemplate_Pnumber(),
         GetDefaultProjectTemplate_Pnumber2(),

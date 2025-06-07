@@ -47,7 +47,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             this.messager_log("[Server Feedback Warn] state is none, should not received feedback")
             return
         }
-        this.messager_log(`[Execute] Single Received data: ${data.data}`)
+        this.messager_log(`[Execute] Single Received data: ${data.data}, cron length: ${this.current_cron.length}`)
         let index = 0
         if(this.current_cron.length > 0 && meta != undefined){
             const r = this.GetCronAndWork(meta, source)
@@ -92,7 +92,6 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             data.index = 0
             this.proxy?.executeJobFinish([work.job, 0, source.uuid, data.meta])
             work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
-            console.log(this.current_job)
             if(this.check_single_end()){
                 this.proxy?.executeSubtaskFinish([this.current_t!, 0, source.uuid])
                 this.messager_log(`[Execute] Subtask finish: ${this.current_t!.uuid}`)
@@ -112,7 +111,6 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             this.proxy?.executeJobFinish([work.job, cron.id - 1, source.uuid, data.meta])
             data.index = cron.id - 1
             work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
-            console.log(this.current_job)
             if(this.check_cron_end(cron)){
                 this.proxy?.executeSubtaskFinish([this.current_t, cron.id - 1, cron.uuid ])
                 this.messager_log(`[Execute] Subtask finish: ${this.current_t!.uuid}`)

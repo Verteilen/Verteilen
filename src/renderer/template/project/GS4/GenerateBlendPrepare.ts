@@ -6,7 +6,7 @@ import { FUNIQUE_GS4_COLMAP_COPY_V2 } from '../../js/GS4/ColmapCopy';
 
 // 排序改變 優化品質做的準備
 // Colmap 的結構複製一個負的出來
-const BlendPrepare = ():Task => {
+export const BlendPrepare = ():Task => {
     const copyhelper:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -35,7 +35,7 @@ const BlendPrepare = ():Task => {
 
 // 排序改變 優化品質做的準備
 // Colmap 的結構複製一個負的出來
-const BlendPrepare2 = ():Task => {
+export const BlendPrepare2 = ():Task => {
     const copyhelper2:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,

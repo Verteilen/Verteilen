@@ -3,7 +3,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack } from '../interface';
+import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ConsolePORT, ExecutePair } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -20,6 +20,7 @@ import ParameterPage from './server/Parameter.vue';
 import ProjectPage from './server/Project.vue';
 import SelfPage from './server/Self.vue';
 import TaskPage from './server/Task.vue';
+import { ConsoleManager } from '../script/console_manager';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined
@@ -113,9 +114,9 @@ const libFresh = () => {
     const texts:Array<any> = JSON.parse(x)
     console.log("list_all_lib", texts) 
     data.value.libs = { libs: texts.map(y => {
-      const ext = y.name.split('.').pop()
+      const ext = y.split('.').pop()
       const r = {
-        name: y.name.slice(0, -(ext.length + 1)),
+        name: y.slice(0, -(ext.length + 1)),
         load: false,
         content: ""
       }
@@ -137,6 +138,7 @@ const libLoad = (file:string) => {
   const name = file.slice(0, -(ext.length + 1))
   props.backend.invoke('load_lib', file).then(r => {
     const target = data.value.libs.libs.find(x => x.name == name)
+    console.log(r)
     if(target == undefined) return
     target.load = true
     target.content = r
@@ -161,14 +163,22 @@ const libJs = (code:string) => { props.backend.send('javascript', code) }
 
 //#region Console
 const consoleAdded = (name:string, record:Record) => {
-  let r:boolean = false
-  if(false){
+  if(props.backend.config.haveBackend){
     // If we have backend, the instance should be place in the backend
-    props.backend.send('console_add', JSON.stringify({
-      name: name,
-      record: record
-    }));
+    props.backend.invoke('console_add', name, record).then(r => {
+      if(r != undefined){
+        data.value.execute_manager.push({ record: r })
+        data.value.select_manager = data.value.execute_manager.length - 1
+      }else{
+        emitter?.emit('makeToast', {
+          title: 'Execute Failed',
+          message: 'Project execute failed !\nYou can see detail in Console/DebugLog',
+          type: 'warning'
+        })
+      }
+    })
   }else{
+    let r:boolean = false
     const em:ExecuteManager = new ExecuteManager(
       name,
       data.value.websocket_manager!, 
@@ -177,6 +187,8 @@ const consoleAdded = (name:string, record:Record) => {
     )
     const er:ExecuteRecord = {
       ...record,
+      uuid: em.uuid,
+      name: name,
       running: false,
       stop: true,
       process_type: -1,
@@ -192,7 +204,7 @@ const consoleAdded = (name:string, record:Record) => {
       task_detail: [],
     }
     em.libs = data.value.libs
-    const p:[ExecuteManager, ExecuteRecord] = [em, er]
+    const p:ExecutePair = {manager: em, record: er}
     const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
     const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference, config.value)
     em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
@@ -200,19 +212,22 @@ const consoleAdded = (name:string, record:Record) => {
     if(r){
       data.value.execute_manager.push(p)
       data.value.select_manager = data.value.execute_manager.length - 1
-    }
-  }
-  if(!r){
-    emitter?.emit('makeToast', {
+    }else{
+      emitter?.emit('makeToast', {
         title: 'Execute Failed',
         message: 'Project execute failed !\nYou can see detail in Console/DebugLog',
         type: 'warning'
-    })
+      })
+    }
+    if(!r){
+  }
   }
 }
 const consoleStop = () => {
   nextTick(() => {
-    data.value.execute_manager[data.value.select_manager][0].Release()
+    if(!props.backend.config.haveBackend){
+      data.value.execute_manager[data.value.select_manager].manager!.Release()
+    }
     data.value.execute_manager.splice(data.value.select_manager, 1)
     if(data.value.execute_manager.length == 0) data.value.select_manager = -1
     else data.value.select_manager = 0
@@ -224,8 +239,8 @@ const consoleSelect = (e:number) => { data.value.select_manager = e }
 //#region Log
 const LogClean = (index:number) => {
   props.backend.send('delete_log', data.value.logs.logs[index])
-  if(!config.value.isElectron) return
-  window.electronAPI.send('delete_all_log')
+  if(!props.backend.config.haveBackend) return
+  props.backend.send('delete_all_log')
   data.value.logs.logs = []
 }
 //#endregion
@@ -235,14 +250,15 @@ const msgAppend = (d:Array<string | undefined>) => util.self.msgAppend(d)
 const msgClean = () => util.self.clearMessage()
 //#endregion
 
-//#region Web
-const Cookie = () => {
-  
-}
 //#endregion
 
 const updateLocate = () => {
   updateTab()
+}
+
+const updateHandleCall = () => {
+  if(props.backend.config.haveBackend){
+  }
 }
 
 const updateTab = () => {
@@ -269,7 +285,8 @@ const menuCreateProject = () => {
 }
 
 const menu_export_project = () => {
-  if(config.value.isElectron) window.electronAPI.send("export_project", JSON.stringify(data.value.projects))
+  if(!props.backend.config.haveBackend) return
+  props.backend.send("export_project", JSON.stringify(data.value.projects))
 }
 
 const import_project_feedback = (text:string) => {
@@ -290,14 +307,6 @@ const import_project_feedback = (text:string) => {
 
 const debug_feedback = (e:string) => emitter?.emit('debuglog', e)
 
-const onChangeLan = (e:string) => {
-  data.value.lanSelect = e
-  // @ts-ignore
-  i18n.global.locale = e
-  if(!config.value.isElectron) return
-  window.electronAPI.send('save_preference', JSON.stringify(props.preference, null, 4))
-}
-
 const newConnect = (x:WebsocketPack) => {
   emitter?.emit('makeToast', {
     title: i18n.global.t('toast.connection-create-title'),
@@ -305,7 +314,7 @@ const newConnect = (x:WebsocketPack) => {
     message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
   })
   data.value.execute_manager.forEach(y => {
-    y[0].NewConnection(x)
+    y.manager!.NewConnection(x)
   })
 }
 
@@ -316,119 +325,149 @@ const disconnect = (x:WebsocketPack) => {
     message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
   })
   data.value.execute_manager.forEach(y => {
-    y[0].Disconnect(x)
+    y.manager!.Disconnect(x)
   })
 }
 
 const onAnalysis = (d:BusAnalysis) => {
-  data.value.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
+  data.value.execute_manager.forEach(x => x.manager!.Analysis(JSON.parse(JSON.stringify(d))))
 }
 
 const popSetting = () => { emitter?.emit('setting') }
 const popGuide = () => { emitter?.emit('guide') }
 
+const hotkey = (event:KeyboardEvent) => {
+  if (event.altKey && Number(event.key) >= 1 && Number(event.key) <= 7) {
+    event.preventDefault()
+    if(event.key == "1") data.value.page = 0
+    else if(event.key == "2") data.value.page = 1
+    else if(event.key == "3") data.value.page = 2
+    else if(event.key == "4") data.value.page = 3
+    else if(event.key == "5") data.value.page = 4
+    else if(event.key == "6") data.value.page = 5
+    else if(event.key == "7") data.value.page = 6
+  }
+}
+
+const dataset_init = () => {
+  updateTab()
+  data.value.title = tabs.value.find(x => x[2] == 0)![1]
+  const x = config.value
+  if(!x.haveBackend){
+    const nodeproxy:NodeProxy = {
+      shellReply: data => { emitter?.emit('shellReply', data) },
+      folderReply: data => { emitter?.emit('folderReply', data) },
+    }
+    data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
+  }
+  else
+  {
+    props.backend.eventOn('shellReply', (data) => emitter?.emit('shellReply', data) )
+    props.backend.eventOn('folderReply', (data) => emitter?.emit('folderReply', data) )
+  }
+
+  props.backend.eventOn('makeToast', (data) => emitter?.emit('makeToast', data))
+  props.backend.eventOn('msgAppend', msgAppend)
+  props.backend.send('menu', true)
+  props.backend.eventOn('createProject', menuCreateProject)
+  props.backend.eventOn('menu_export_project', menu_export_project)
+  props.backend.eventOn('import_project_feedback', import_project_feedback)
+  props.backend.send('client_start');
+  const p0 = props.backend.invoke('console_list').then((xs:Array<any>) => {
+    data.value.execute_manager = xs.map(x => ({ record: x }))
+    console.log("execute", data.value.execute_manager)
+  })
+  const p1 = props.backend.invoke('load_all_node').then(x => {
+    const texts:Array<string> = JSON.parse(x)
+    data.value.nodes.push(...texts.map(y => JSON.parse(y)))
+    console.log("nodes", data.value.nodes)
+  })
+  const p2 = props.backend.invoke('list_all_lib').then(x => {
+    const texts:Array<any> = JSON.parse(x)
+    console.log("list_all_lib", texts) 
+    data.value.libs = { libs: texts.map(y => {
+      const ext = y.split('.').pop()
+      const r = {
+        name: y.slice(0, -(ext.length + 1)),
+        load: false,
+        content: ""
+      }
+      return r
+    })}
+    console.log("Libs", data.value.libs)
+  })
+  const p3 = props.backend.invoke('load_all_record').then(x => {
+    const texts:Array<string> = JSON.parse(x)
+    data.value.projects.push(...texts.map(y => JSON.parse(y)))
+    console.log(data.value.projects)
+  })
+  const p5 = props.backend.invoke('load_all_parameter').then(x => {
+    const texts:Array<string> = JSON.parse(x)
+    data.value.parameters = texts.map(y => JSON.parse(y))
+    console.log("Parameters", data.value.libs)
+  })
+  const p6 = props.backend.invoke('load_all_log').then(x => {
+      const stringlist:Array<string> = JSON.parse(x)
+      const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
+      ll.forEach(x => x.output = true)
+      console.log("Logs", ll)
+      data.value.logs.logs = ll
+  })
+  Promise.all([p0, p1, p2, p3, p5, p6]).then(() => {
+    data.value.nodes = data.value.nodes.map(y => {
+      return Object.assign(y, {
+        s: false,
+        state: 0,
+        connection_rate: 0
+      })
+    })
+    data.value.nodes.forEach(y => {
+      if(props.backend.config.haveBackend){
+        props.backend.send("node_add", y.url, y.ID)
+      }else{
+        data.value.websocket_manager?.server_start(y.url, y.ID)
+      }
+    })
+    nextTick(() => allUpdate())
+  })
+}
+
 onMounted(() => {
+  document.addEventListener('keydown', hotkey)
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
   slowUpdateHandle = setInterval(() => emitter?.emit('slowUpdateHandle'), RENDER_FILE_UPDATETICK);
   emitter?.on('updateNode', server_clients_update)
   emitter?.on('deleteScript', libDelete)
   emitter?.on('updateLocate', updateLocate)
+  emitter?.on('updateHandle', updateHandleCall)
 
   props.backend.wait_init().then(() => {
-    updateTab()
-    data.value.title = tabs.value.find(x => x[2] == 0)![1]
-    const x = config.value
-    if(!x.isExpress){
-      const nodeproxy:NodeProxy = {
-        shellReply: data => { emitter?.emit('shellReply', data) },
-        folderReply: data => { emitter?.emit('folderReply', data) },
-      }
-      data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
-    }
-
-    props.backend.eventOn('msgAppend', msgAppend)
-    props.backend.send('menu', true)
-    props.backend.eventOn('createProject', menuCreateProject)
-    props.backend.eventOn('menu_export_project', menu_export_project)
-    props.backend.eventOn('import_project_feedback', import_project_feedback)
-    props.backend.send('client_start');
-    const p1 = props.backend.invoke('load_all_node').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.nodes.push(...texts.map(y => JSON.parse(y)))
-    })
-    const p2 = props.backend.invoke('list_all_lib').then(x => {
-      const texts:Array<any> = JSON.parse(x)
-      console.log("list_all_lib", texts) 
-      data.value.libs = { libs: texts.map(y => {
-        const ext = y.name.split('.').pop()
-        const r = {
-          name: y.name.slice(0, -(ext.length + 1)),
-          load: false,
-          content: ""
+    if(props.backend.config.isExpress){
+      props.backend.consoleM = new ConsoleManager(`ws://${window.location.hostname}:${ConsolePORT}/server`, messager_log, {
+        on: emitter!.on,
+        off: emitter!.off,
+        emit: emitter!.emit
+      })
+      const inter = setInterval(() => {
+        if(props.backend.consoleM?.ws.readyState == 1){
+          dataset_init()
+          clearInterval(inter)
         }
-        return r
-      })}
-      console.log("Libs", data.value.libs)
-    })
-    const p3 = props.backend.invoke('load_all_record').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.projects.push(...texts.map(y => JSON.parse(y)))
-    })
-    const p4 = props.backend.invoke('load_record_obsolete').then(x => {
-      if(x == undefined) return
-      const texts:Record = JSON.parse(x)
-      const n:Array<NodeTable> = texts.nodes.map(y => {
-        return Object.assign(y, {
-          s: false,
-          state: 0,
-          connection_rate: 0
-        })
-      })
-      data.value.nodes.push(...n)
-      texts.projects.forEach(y => {
-        const p:Parameter = JSON.parse(JSON.stringify(y.parameter))
-        p.title = y.title
-        p.uuid = uuidv6()
-        data.value.parameters.push(p)
-        y.parameter = undefined
-        y.parameter_uuid = p.uuid
-        data.value.projects.push(y)
-      })
-    })
-    const p5 = props.backend.invoke('load_all_parameter').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.parameters = texts.map(y => JSON.parse(y))
-      console.log("Parameters", data.value.libs)
-    })
-    const p6 = props.backend.invoke('load_all_log').then(x => {
-        const stringlist:Array<string> = JSON.parse(x)
-        const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
-        ll.forEach(x => x.output = true)
-        console.log("Logs", ll)
-        data.value.logs.logs = ll
-    })
-    Promise.all([p1, p2, p3, p4, p5, p6]).then(() => {
-      data.value.nodes = data.value.nodes.map(y => {
-        return Object.assign(y, {
-          s: false,
-          state: 0,
-          connection_rate: 0
-        })
-      })
-      data.value.nodes.forEach(y => {
-        data.value.websocket_manager?.server_start(y.url, y.ID)
-      })
-      nextTick(() => allUpdate())
-    })
+      }, 500);   
+    }else{
+      dataset_init()
+    }
   })
 })
 
 onUnmounted(() => {
+  document.removeEventListener('keydown', hotkey)
   data.value.execute_manager = []
   emitter?.off('updateNode', server_clients_update)
   emitter?.off('deleteScript', libDelete)
   emitter?.off('updateLocate', updateLocate)
+  emitter?.off('updateHandle', updateHandleCall)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   props.backend.send('client_stop');
@@ -533,13 +572,13 @@ onUnmounted(() => {
         <v-tabs-window-item :value="4">
           <NodePage
             :manager="data.websocket_manager"
-            :config="config"
+            :backend="props.backend"
             :preference="props.preference"
             :nodes="data.nodes" />
         </v-tabs-window-item>
         <v-tabs-window-item :value="5">
           <ConsolePage
-            :config="config"
+            :backend="props.backend"
             :preference="props.preference"
             :socket="data.websocket_manager"
             :execute="data.execute_manager"
@@ -563,7 +602,7 @@ onUnmounted(() => {
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.haveBackend" :value="7">
           <LibraryPage
-            :config="config"
+            :backend="props.backend"
             :preference="props.preference"
             @edit="(d, d1) => libEdit(d, d1)"
             @save="(d, d1, d2) => libSave(d, d1, d2)"

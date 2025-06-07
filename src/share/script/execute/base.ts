@@ -2,6 +2,7 @@ import { v6 as uuid6 } from 'uuid';
 import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, JobCategory, JobType, JobType2, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 import { Util_Parser } from './util_parser';
+import { WebSocket } from 'ws';
 
 export class ExecuteManager_Base {
     uuid: string

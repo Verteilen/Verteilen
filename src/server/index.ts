@@ -2,18 +2,39 @@ import Chalk from 'chalk'
 import express from 'express'
 import ws from 'ws'
 import { backendEvent } from './event'
-import { Header, WebPORT } from './interface'
+import cookieParser from 'cookie-parser'
+import { ConsolePORT, Header, WebPORT } from './interface'
+import path from 'path'
 
 let wsServer: ws.Server | undefined = undefined
 let app:express.Express | undefined = undefined
 
-const webport = backendEvent.PortAvailable(80)
-const socketport = backendEvent.PortAvailable(WebPORT)
+const webport = backendEvent.PortAvailable(WebPORT)
+const socketport = backendEvent.PortAvailable(ConsolePORT)
 
 webport.then(p => {
     app = express()
+    app.use(cookieParser())
     console.log("current dir: ", process.cwd())
-    app.use(express.static('public'))
+    app.get('/login/:token', (req, res, next) => {
+        if(req.params.token != undefined) {
+            res.cookie('token', req.params.token)
+            res.redirect('/')
+        }else{
+            res.sendStatus(403)
+        }
+    })
+    app.use((req, res, next) => {
+        if(req.cookies.token == undefined) {
+            res.sendStatus(403)
+        }else{
+            if(backendEvent.IsPass(req.cookies.token as string)) {
+                next()
+            }else{
+                res.sendStatus(403)
+            }
+        }
+    }, express.static(path.join(__dirname, 'public')))
     // The simple web response to let frontend know that backend exists
     app.get('/express', (req, res) => {
         res.send('1')
@@ -26,22 +47,24 @@ webport.then(p => {
 
     })
     app.listen(p, () => {
-        console.log(Chalk.greenBright('server run at 80'))
+        console.log(Chalk.greenBright(`server run at ${p}`))
     })
+    backendEvent.Root()
 })
 socketport.then(p => {
     wsServer = new ws.Server({path: '/server', port: p})
+    console.log(Chalk.greenBright(`websocket server run at ${p}`))
     wsServer.on('connection', (ws, request) => {
         //const p = new eventInit(ws)
-        ws.on('message', (data, isBinary) => {
+        ws.on('message', (data) => {
             const d:Header = JSON.parse(data.toString())
-            backendEvent.Analysis(ws, d)
+            backendEvent.ConsoleAnalysis(ws, d)
         })
         ws.on('open', () => {
-            backendEvent.NewConsole(ws)
+            backendEvent.NewConsoleConsole(ws)
         })
         ws.on('close', () => {
-            backendEvent.DropConsole(ws)
+            backendEvent.DropConsoleConsole(ws)
         })
     })
 })

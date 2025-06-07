@@ -1,5 +1,5 @@
 {
-    "name": "compute_tool_node",
+    "name": "verteilen_node",
     "version": "0.8.0",
     "description": "Compute tool for multi computer",
     "main": "index.js",

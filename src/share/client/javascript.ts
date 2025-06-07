@@ -132,8 +132,8 @@ export class ClientJavascript {
      * @param libs Libraries header names
      * @returns Calcuate result
      */
-    JavascriptExecuteWithLib = (javascript:string, libs:Array<string>) => {
-        let context = this.getJavascriptEnv()
+    JavascriptExecuteWithLib = (javascript:string, libs:Array<string>, log?:Messager) => {
+        let context = this.getJavascriptEnv(JavascriptLib.ALL, log)
         let result = 0
         context = Object.assign(context, { result: result })
         let script = ''
@@ -156,28 +156,34 @@ export class ClientJavascript {
      * @param js js script text
      * @returns Calcuate result
      */
-    JavascriptExecute = (javascript:string) => {
-        let context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE | JavascriptLib.HTTP)
+    JavascriptExecute = (javascript:string, log?:Messager) => {
+        let context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE | JavascriptLib.HTTP, log)
         let result = 0
         context = Object.assign(context, { result: result })
         const r = safeEval(javascript, context)
         return r
     }
 
-    private getJavascriptEnv(flags:JavascriptLib = JavascriptLib.ALL){
-        const isbin = process.cwd().endsWith('bin')
-        const root = isbin ? path.join(process.cwd(), 'js') : path.join(process.cwd(), 'bin', 'js')
-        if (!fs.existsSync(root)) fs.mkdirSync(root)
+    private getJavascriptEnv(flags:JavascriptLib = JavascriptLib.ALL, log?:Messager){
         let javascriptEnv = {}
         if((flags & JavascriptLib.OS) == JavascriptLib.OS) javascriptEnv = Object.assign(javascriptEnv, { os: this.os })
         if((flags & JavascriptLib.ENV) == JavascriptLib.ENV) javascriptEnv = Object.assign(javascriptEnv, { env: this.env })
-        if((flags & JavascriptLib.MESSAGE) == JavascriptLib.MESSAGE) javascriptEnv = Object.assign(javascriptEnv, { m: this.message })
+        if((flags & JavascriptLib.MESSAGE) == JavascriptLib.MESSAGE) {
+            if(log){
+                javascriptEnv = Object.assign(javascriptEnv, {
+                    messager: (m:any) => log(m.toString(), tag()), 
+                    messager_log: (m:any) => log(m.toString(), tag()),
+                })
+            }else{
+                javascriptEnv = Object.assign(javascriptEnv, { m: this.message })
+            }
+        }
         if((flags & JavascriptLib.HTTP) == JavascriptLib.HTTP) javascriptEnv = Object.assign(javascriptEnv, { http: this.http })
         javascriptEnv = Object.assign(javascriptEnv, {
             setTimeout: setTimeout,
             wait: this.wait,
             sleep: this.sleep,
-            console: { log: messager_log },
+            console: { log: log ? log : messager_log },
             JSON: {
                 parse: JSON.parse,
                 stringify: JSON.stringify
@@ -261,7 +267,9 @@ export class ClientJavascript {
     }
     private getnumber(key:string){
         if(key == 'ck'){
-            return getjob?.()?.index
+            const r = getjob?.()?.index
+            if(r != undefined) return r - 1
+            return 0
         }
         const p = getpara?.() ?? undefined
         if(p == undefined) return 0

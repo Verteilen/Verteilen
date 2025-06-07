@@ -34,6 +34,10 @@ export class ConsoleManager {
         }
     }
 
+    public get connected() : boolean {
+        return this.ws.readyState === 1
+    }
+
     on = (channel: string, listener: Listener) => {
         const index = this.events.findIndex(x => x[0] == channel)
         if(index == -1){
@@ -82,18 +86,35 @@ export class ConsoleManager {
         if (h.data == undefined) return
         const index = this.events.findIndex(x => x[0] == h.name)
         const index2 = this.events_once.findIndex(x => x[0] == h.name)
+        let p = false
         if(index != -1){
             const castingFunc = this.events[index][1]
-            castingFunc.forEach(x => x(h.data))
-        }else{
-            this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
+            castingFunc.forEach(x => {
+                if(h.data instanceof Array){
+                    if(h.data.length == 1) x(h.data[0])
+                    else x(...h.data)
+                }else{
+                    x(h.data)
+                }
+            })
+            p = true
         }
 
         if(index2 != -1){
             const castingFunc = this.events_once[index2][1]
-            castingFunc.forEach(x => x(h.data))
+            castingFunc.forEach(x => {
+                if(h.data instanceof Array){
+                    if(h.data.length == 1) x(h.data[0])
+                    else x(...h.data)
+                }else{
+                    x(h.data)
+                }
+            })
             this.events_once.splice(index2, 1)
-        }else{
+            p = true
+        }
+
+        if(!p){
             this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
         }
     }

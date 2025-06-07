@@ -26,7 +26,8 @@ export class ClientShell {
             this.messager_log(`[Shell] Error the source already open the shell`)
             return
         }
-        const child = spawn("cmd", [], 
+        const program = process.platform === "win32" ? 'cmd' : 'bash'
+        const child = spawn(program, [], 
             { 
                 stdio: ['pipe', 'pipe', 'pipe'],
                 shell: true,
@@ -82,6 +83,8 @@ export class ClientShell {
             return
         }
         p[1].stdin?.write(input + '\n')
+        if(process.platform == 'win32') p[1].stdin?.write("echo %cd%" + '\n')
+        else p[1].stdin?.write("pwd" + '\n')
     }
 
     /**

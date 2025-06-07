@@ -2,7 +2,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { Job, JobCategory, JobType, Parameter, Project, Task } from '../../../interface';
 import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 
-const Colmap = ():Task => {
+export const Colmap = ():Task => {
     const createsp:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,

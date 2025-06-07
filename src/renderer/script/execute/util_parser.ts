@@ -1,5 +1,5 @@
 import { formula, init } from "expressionparser";
-import { DataType, ENV_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
+import { ENV_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
 
 export class Util_Parser {
 
@@ -20,7 +20,7 @@ export class Util_Parser {
      */
     static to_keyvalue = (p:Parameter):Array<KeyValue> => {
         return [
-            ...this._to_keyvalue(p.containers.filter(x => x.type != DataType.Expression))
+            ...this._to_keyvalue(p.containers)
         ]
     }
 

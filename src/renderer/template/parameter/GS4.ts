@@ -14,7 +14,7 @@ export const GetFUNIQUE_GS4Project_Parameter_Builder = ():ParameterContainer[] =
         { name: "finetune_iteration", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
         { name: "gtp", value: 500, type: DataType.Number, runtimeOnly: false, hidden: false },
 
-        { name: "group_size", value: 15, meta: "iframe_gap * blend", type: DataType.Expression, runtimeOnly: false, hidden: false },
+        { name: "group_size", value: 15, meta: "iframe_gap * blend", type: DataType.Expression, runtimeOnly: false, hidden: true },
 
         { name: "root", value: "G:/Developer/Funique/4DGS/Test", type: DataType.String, runtimeOnly: false, hidden: false },
         { name: "output", value: "G:/Developer/Funique/4DGS/Test/out", type: DataType.String, runtimeOnly: false, hidden: false },
@@ -22,10 +22,18 @@ export const GetFUNIQUE_GS4Project_Parameter_Builder = ():ParameterContainer[] =
         { name: "before", value: "before", type: DataType.String, runtimeOnly: false, hidden: true },
         { name: "after", value: "after", type: DataType.String, runtimeOnly: false, hidden: true },
         { name: "CAM", value: "CAM", type: DataType.String, runtimeOnly: false, hidden: true },
+        { name: "unmask", value: "unmask", type: DataType.String, runtimeOnly: false, hidden: true },
+        { name: "mask", value: "mask", type: DataType.String, runtimeOnly: false, hidden: true },
         { name: "images", value: "images", type: DataType.String, runtimeOnly: false, hidden: true },
         { name: "sparse", value: "sparse", type: DataType.String, runtimeOnly: false, hidden: true },
         { name: "train_command", value: "--resolution 1 --cuda 0 --sh 3 --interval 1", type: DataType.String, runtimeOnly: false, hidden: false },
-        { name: "videogs", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
-        { name: "conda_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
+
+        { name: "train_script", value: "train_sequence_Good_Full_Train_densify_until_2000_i7000.py", type: DataType.String, runtimeOnly: false, hidden: true },
+        { name: "iframe_env_folder", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
+        { name: "iframe_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
+        { name: "middle_env_folder", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
+        { name: "middle_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
+        { name: "mask_env_folder", value: "C:/videogs/VideoGS", type: DataType.String, runtimeOnly: false, hidden: false },
+        { name: "mask_env", value: "videogs", type: DataType.String, runtimeOnly: false, hidden: false },
     ]
 }

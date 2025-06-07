@@ -6,7 +6,7 @@ import { Header, Single, WebsocketPack } from "./interface";
 * 傳送資料到 UI 執行序 
 */
 export const messager = (...args:Array<string | undefined>) => {
-    if(mainWindow == null || mainWindow == undefined || mainWindow.isDestroyed()) return
+    if(mainWindow == undefined || mainWindow.isDestroyed()) return
     mainWindow.webContents.send('msgAppend', args);
 }
 

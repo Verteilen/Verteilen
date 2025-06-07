@@ -1,3 +1,4 @@
+import { WebSocket } from "ws"
 import { Project } from "./base"
 
 type ProjectCall = (p:Project) => Project
@@ -174,21 +175,14 @@ export interface TemplateGroup {
     template: ProjectCall
 }
 
-export interface GlobalPermission {
-    project: LocalPermiision
-    task: LocalPermiision
-    node: LocalPermiision
-    job: LocalPermiision
-    parameter: LocalPermiision
-    lib: LocalPermiision
-    log: LocalPermiision
-
-    execute_job: boolean
+export interface Plugin {
+    name: string
+    filename: string
+    platform: NodeJS.Platform
+    arch: NodeJS.Architecture
 }
 
-export interface LocalPermiision {
-    view: boolean
-    create: boolean
-    edit: boolean
-    delete: boolean
+export interface PluginList {
+    plugins: Array<Plugin>
 }
+

@@ -1,5 +1,5 @@
 import { DataType } from "./enum"
-import { LocalPermiision } from "./struct"
+import { LocalPermiision } from "./server"
 
 export interface ParameterContainer {
     s?: boolean

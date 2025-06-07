@@ -5,6 +5,10 @@ export const PORT = 12080
 /**
  * Default express port for console manager connect to
  */
+export const ConsolePORT = 11777
+/**
+ * Default website port
+ */
 export const WebPORT = 11080
 
 /**
@@ -33,6 +37,7 @@ export * from './interface/bus'
 export * from './interface/enum'
 export * from './interface/execute'
 export * from './interface/record'
+export * from './interface/server'
 export * from './interface/struct'
 export * from './interface/table'
 export * from './interface/ui'

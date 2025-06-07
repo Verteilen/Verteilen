@@ -1,10 +1,11 @@
 {
-    "name": "compute_tool_server",
-    "version": "0.6.1",
+    "name": "verteilen_server",
+    "version": "0.8.0",
     "description": "Compute tool for multi computer",
     "main": "index.js",
     "repository": "https://github.com/Elly2018/Compute-Tool",
     "dependencies": {
+        "chalk": "^4.1.2",
         "express": "^4.21.2",
         "tcp-port-used": "^1.0.2",
         "ws": "^8.18.0",

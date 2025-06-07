@@ -50,7 +50,10 @@
     },
     "error": {
         "title-needed": "Title is needed",
-        "title-repeat": "Cannot use title which already exists"
+        "title-repeat": "Cannot use title which already exists",
+        "project-empty": "Project list cannot be zero",
+        "parameter-empty": "Project must binding with parameter",
+        "node-empty": "node list cannot be zero"
     },
     "filter": {
         "type": "Datatype",
@@ -78,6 +81,7 @@
         "delete-parameter": "Delete Parameter",
         "enter-parameter-name": "Enter Parameter Name",
         "new-parameter-set": "New Parameter Set",
+        "clone-parameter-set": "Clone Parameter Set",
         "edit-parameter-set": "Modify Parameter Set",
         "enter-parameter-set-name": "Enter Parameter Set Name",
         "import-parameter": "Delete Parameter",
@@ -94,7 +98,9 @@
         "log-recover-project-title": "New Project Title",
         "log-recover-parameter-title": "New Parameter Title",
         "console-create": "Create Console",
-        "console-name": "Console Name"
+        "console-name": "Console Name",
+        "delete-library": "Library Delete",
+        "delete-library-confirm": "Are you sure delete this script"
     },
     "toolbar": {
         "server": "Server",
@@ -160,6 +166,7 @@
         },
         "project": {
             "default": "Example",
+            "gs4-full": "Funique GS4 Full",
             "gs4-prepare": "Funique GS4 Prepare",
             "gs4-colmap": "Funique GS4 Colmap",
             "gs4-iframe": "Funique GS4 I-Frame",
@@ -167,6 +174,7 @@
             "gs4-blend": "Funique GS4 Blend Result",
             "gs4-output": "Funique GS4 Output Ply",
             "gs4-lut": "Funique GS4 Apply Lut",
+            "gs4-mask": "Funique GS4 Mask",
             "concat": "FFmpeg concat",
             "blender": "Blender Render",
             "aftereffect": "After Effect Render"

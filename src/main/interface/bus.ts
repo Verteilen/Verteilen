@@ -4,6 +4,7 @@ import { ExecutionLog, Log } from "./record"
 import { FeedBack, Header, Setter, ShellFolder, Single, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
+import { WebSocket } from "ws"
 
 type Handler<T = unknown> = (event: T) => void
 export type Messager = (msg:string, tag?:string) => void
@@ -77,8 +78,8 @@ export interface ExecuteProxy {
 }
 
 export interface NodeProxy { 
-    shellReply: (data:Single) => void
-    folderReply: (data:ShellFolder) => void
+    shellReply: (data:Single, w?:WebsocketPack) => void
+    folderReply: (data:ShellFolder, w?:WebsocketPack) => void
 }
 
 /**

@@ -6,6 +6,7 @@ import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContain
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Parameter } from '../../util/parameter';
 import DialogBase from '../dialog/DialogBase.vue'
+import { v6 as uuidv6 } from 'uuid'
 
 interface PROPS {
     config: AppConfig
@@ -34,6 +35,8 @@ const fields:Ref<Array<any>> = ref([
 ])
 
 const data:Ref<DATA> = ref({
+    cloneModal: false,
+    cloneName: "",
     objectModal: false,
     objectTarget: undefined,
     selectModal: false,
@@ -92,6 +95,11 @@ const confirmEdit = () => util.confirmEdit()
 const setdirty = () => data.value.dirty = true
 const filterOpen = () => util.filterOpen()
 
+const selectSearchF = computed(() => {
+    if(data.value.selectSearch == undefined || data.value.selectSearch.length == 0) return props.parameters
+    return props.parameters.filter(x => x.title.includes(data.value.selectSearch!) || x.uuid.includes(data.value.selectSearch!))
+})
+
 const importPara = () => {
     if(!props.config.isElectron) return
     window.electronAPI.send("import_parameter")
@@ -123,6 +131,19 @@ const deleteSelect = () => {
 const deleteConfirm = () => {
     data.value.deleteModal = false
     emits('delete', data.value.buffer.uuid)
+}
+
+const cloneSelect = () => {
+    data.value.cloneModal = true
+    data.value.cloneName = props.select?.title + " Clone"
+}
+
+const cloneSelectConfirm = () => {
+    const p:Parameter = JSON.parse(JSON.stringify(props.select))
+    p.title = data.value.cloneName
+    p.uuid = uuidv6()
+    data.value.cloneModal = false
+    emits('added', p)
 }
 
 const deleteitem = (name:string) => {
@@ -252,7 +273,15 @@ onUnmounted(() => {
                         </v-btn>
                     </template>
                     {{ $t('export') }}
-                </v-tooltip>          
+                </v-tooltip>  
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" :disabled="select == undefined" @click="cloneSelect">
+                            <v-icon>mdi-content-paste</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('clone') }}
+                </v-tooltip>         
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="select == undefined">
@@ -327,6 +356,19 @@ onUnmounted(() => {
                 <v-btn class="mt-3" color="primary" v-else @click="confirmEdit">{{ $t('modify') }}</v-btn>
             </template>
         </DialogBase>
+        <DialogBase width="500" v-model="data.cloneModal">
+            <template #title>
+                <v-icon>mdi-content-paste</v-icon>
+                {{ $t('modal.clone-parameter-set') }}
+            </template>
+            <template #text>
+                <v-text-field :error="data.titleError" v-model="data.cloneName" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
+                <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="cloneSelectConfirm">{{ $t('create') }}</v-btn>
+            </template>
+        </DialogBase>
         <DialogBase width="500" v-model="data.createParameterModal">
             <template #title v-if="!data.editMode">
                 <v-icon>mdi-hammer</v-icon>
@@ -354,7 +396,7 @@ onUnmounted(() => {
                     <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
                     </v-text-field>
                     <v-list>
-                        <v-list-item v-for="(p, i) in props.parameters" :key="i">
+                        <v-list-item v-for="(p, i) in selectSearchF" :key="i">
                             <v-list-item-title>
                                 {{ p.title }}
                             </v-list-item-title>

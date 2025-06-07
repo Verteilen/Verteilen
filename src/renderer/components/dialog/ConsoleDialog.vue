@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ExecuteRecord, Node, Parameter, Preference, Project, Record } from '../../interface';
-import { ExecuteManager } from '../../script/execute_manager';
+import { BusType, ExecutePair, Node, Parameter, Preference, Project, Record } from '../../interface';
+import { i18n } from '../../plugins/i18n'
 import DialogBase from './DialogBase.vue';
 
 interface PROP {
@@ -10,7 +10,7 @@ interface PROP {
     nodes: Array<Node>
     parameters: Array<Parameter>
     preference: Preference
-    execute: Array<[ExecuteManager, ExecuteRecord]>
+    execute: Array<ExecutePair>
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -27,6 +27,7 @@ const tabs:Ref<Array<[string, string, number]>> = ref([])
 const page = ref(0)
 const projects:Ref<Array<[string | null, string | null]>> = ref([])
 const nodes:Ref<Array<string | null>> = ref([])
+const error_message = ref('')
 
 const ps = computed(() => {
     return props.projects.map(x => {
@@ -105,8 +106,24 @@ const generateResult = ():Record => {
 }
 
 const confirm = () => {
-    emits('confirm', name.value, generateResult())
-    modal.value = false
+    let pass = true
+    if(projects.value.length == 0){
+        error_message.value = i18n.global.t('error.project-empty')
+        pass = false
+    }
+    else if(nodes.value.length == 0){
+        error_message.value = i18n.global.t('error.node-empty')
+        pass = false
+    }
+    else if(projects.value.filter(x => x[1] == null).length > 0){
+        error_message.value = i18n.global.t('error.parameter-empty')
+        pass = false
+    }
+
+    if(pass){
+        emits('confirm', name.value, generateResult())
+        modal.value = false
+    }
 }
 
 const cancel = () => {
@@ -228,6 +245,7 @@ onUnmounted(() => {
                     </v-row>
                 </v-tabs-window-item>
             </v-tabs-window>
+            <span style="color: red">{{ error_message }}</span>
         </template>
         <template #action>
             <v-btn class="mt-3" color="primary" @click="confirm">{{ $t('create') }}</v-btn>

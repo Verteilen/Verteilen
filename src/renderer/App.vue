@@ -8,11 +8,9 @@ import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
 import GuideDialog from './components/dialog/GuideDialog.vue';
 import SettingDialog from './components/dialog/SettingDialog.vue';
-import { messager_log } from './debugger';
-import { BusType, Preference } from './interface';
+import { BusType, Preference, WebPORT } from './interface';
 import { i18n } from './plugins/i18n';
 import { BackendProxy } from './proxy';
-import { ConsoleManager } from './script/console_manager';
 
 const theme = useTheme()
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -34,7 +32,7 @@ backend.value.init().then(() => {
   console.log("isElectron", config.value.isElectron)
   console.log("isExpress", config.value.isExpress)
   console.log("env", process.env.NODE_ENV)
-  if (config.value.isElectron) window.electronAPI.send('message', 'Welcome Compute Tool');
+  backend.value.send('message', 'Welcome Compute Tool')
 })
 
 const modeSelect = (isclient:boolean) => {
@@ -47,9 +45,7 @@ const locate = (v:string) => {
   t.locale = v
   preference.value.lan = v
   emitter?.emit('updateLocate')
-  if(config.value.isElectron){
-    window.electronAPI.send('save_preference', JSON.stringify(preference.value, null, 4))
-  }
+  backend.value.send('save_preference', JSON.stringify(preference.value, null, 4))
 }
 
 const setting = () => { settingModal.value = true }
@@ -66,7 +62,8 @@ const preferenceUpdate = (data:Preference) => {
 
 const load_preference = (x:string) => {
   preference.value = JSON.parse(x)
-  window.electronAPI.send('locate', preference.value.lan)
+  console.log("load_preference", preference.value)
+  backend.value.send('locate', preference.value.lan)
   preferenceUpdate(preference.value)
 }
 
@@ -75,15 +72,11 @@ onMounted(() => {
   emitter?.on('setting', setting)
   emitter?.on('guide', guide)
   backend.value.wait_init().then(() => {
-    backend.value.consoleM = new ConsoleManager(`${window.location.protocol}://${window.location.host}`, messager_log, {
-      on: emitter!.on,
-      off: emitter!.off,
-      emit: emitter!.emit
-    })
-    
-    if(config.value.isElectron){
-      backend.value.eventOn('locate', locate)
-      backend.value.invoke('load_preference').then(x => load_preference(x))
+    if(backend.value.config.haveBackend){
+      setTimeout(() => {
+        backend.value.eventOn('locate', locate)
+        backend.value.invoke('load_preference').then(x => load_preference(x))
+      }, 150);
     }
   })
   

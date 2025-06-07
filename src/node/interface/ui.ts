@@ -10,6 +10,7 @@ export interface IMessage {
     variant: any
     title: string
     content: string
+    stack: Array<string>
 }
 
 export interface ClientLog {
@@ -23,4 +24,5 @@ export interface ToastData {
     title: string,
     type: string,
     message: string
+    stack?: Array<string>
 }

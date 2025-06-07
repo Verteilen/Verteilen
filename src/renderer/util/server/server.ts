@@ -1,8 +1,7 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { BusType, ClientLog, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
+import { BusType, ClientLog, ExecutePair, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
 import { BackendProxy } from "../../proxy";
-import { ExecuteManager } from "../../script/execute_manager";
 import { WebsocketManager } from "../../script/socket_manager";
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
@@ -18,7 +17,7 @@ export type config_getter = () => BackendProxy
 
 export interface DATA {
     websocket_manager: WebsocketManager | undefined
-    execute_manager: Array<[ExecuteManager, ExecuteRecord]>
+    execute_manager: Array<ExecutePair>
 
     drawer: boolean
     title: string
@@ -59,7 +58,7 @@ export class Util_Server {
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
         this.parameter = new Util_Server_Parameter(this.data, this.config, this.update)
-        this.console = new Util_Server_Console(this.data, this.update)
+        this.console = new Util_Server_Console(this.data)
         this.lib = new Util_Server_Lib(this.data, this.update)
         this.self = new Util_Server_Self(this.data)
     }
@@ -80,25 +79,22 @@ export class Util_Server {
     
     saveRecord = (type:RenderUpdateType = RenderUpdateType.All) => {
         if((type & RenderUpdateType.Project) == RenderUpdateType.Project){
-            this.data.value.projects.forEach(x => {
-                if(!this.config().config.isElectron) return
+            for(const x of this.data.value.projects){
                 const text = JSON.stringify(x)
-                window.electronAPI.send('save_record', x.uuid, text)
-            })
+                this.config().send('save_record', x.uuid, text)
+            }
         }
         if((type & RenderUpdateType.Node) == RenderUpdateType.Node){
-            this.data.value.nodes.forEach(x => {
-                if(!this.config().config.isElectron) return
+            for(const x of this.data.value.nodes){
                 const text = JSON.stringify(x)
-                window.electronAPI.send('save_node', x.ID, text)
-            })
+                this.config().send('save_node', x.ID, text)
+            }
         }
         if((type & RenderUpdateType.Parameter) == RenderUpdateType.Parameter){
-            this.data.value.parameters.forEach(x => {
-                if(!this.config().config.isElectron) return
+            for(const x of this.data.value.parameters){
                 const text = JSON.stringify(x)
-                window.electronAPI.send('save_parameter', x.uuid, text)
-            })
+                this.config().send('save_parameter', x.uuid, text)
+            }
         }
     }
 

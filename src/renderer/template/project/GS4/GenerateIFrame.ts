@@ -2,13 +2,18 @@ import { v6 as uuidv6 } from 'uuid';
 import { Task, Job, JobCategory, JobType, Parameter, Project } from '../../../interface';
 import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 
-const IFrame = ():Task => {
+export const IFrame = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         script: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_two% --iframe 1 --data %root%/%before% --output %root%/%after%/GOP_20_I --interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
+        string_args: ["%iframe_env_folder%", "conda", 
+            "run --no-capture-output -n %iframe_env% python %train_script% "+
+            "--density %density_util% --start %gap_value% --end %gap_value_two% "+
+            "--iframe 1 --data %root%/%before% --output %root%/%after%/GOP_20_I" +
+            "--interval %iframe_gap% --group_size 1 --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"
+        ],
         number_args: [],
         boolean_args: []
     }
@@ -24,15 +29,11 @@ const IFrame = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap + 1'
+                expression: 'ck * iframe_gap + 1'
             },
             {
                 name: 'gap_value_two',
-                expression: '(ck - 1) * iframe_gap + 2'
-            },
-            {
-                name: 'gap_value_end',
-                expression: '(ck - 1) * iframe_gap + 3'
+                expression: 'ck * iframe_gap + 2'
             }
         ],
         jobs: [
@@ -43,13 +44,14 @@ const IFrame = ():Task => {
 }
 
 // 把渣渣刪掉 !
-const Denoise = ():Task => {
+export const Denoise = ():Task => {
     const renamee:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.RENAME,
         script: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud.ply", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud_before.ply"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud.ply", 
+            "%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%/point_cloud_before.ply"],
         number_args: [],
         boolean_args: []
     }
@@ -58,7 +60,8 @@ const Denoise = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         script: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%", "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply -r %denoise% -g %denoise% -b %denoise%"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value%/point_cloud/iteration_%iframe_iteration%", 
+            "ply_denoise", "-i point_cloud_before.ply -o point_cloud.ply -r %denoise% -g %denoise% -b %denoise%"],
         number_args: [],
         boolean_args: []
     }
@@ -83,7 +86,7 @@ const Denoise = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap + 1'
+                expression: 'ck * iframe_gap + 1'
             }
         ],
         jobs: [
@@ -96,7 +99,7 @@ const Denoise = ():Task => {
 }
 
 // 備份 I-Frame
-const IFrameBackup = ():Task => {
+export const IFrameBackup = ():Task => {
     const backup:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -123,7 +126,7 @@ const IFrameBackup = ():Task => {
     return t
 }
 
-const IFrameGTP_Adjustment = ():Task => {
+export const IFrameGTP_Adjustment = ():Task => {
     const copy_1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -147,7 +150,11 @@ const IFrameGTP_Adjustment = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         script: "",
-        string_args: ["%videogs%", "conda", "run --no-capture-output -n %conda_env% python train_sequence_Good_Full_Train_densify_until_2000_i7000.py --density %density_util% --start %gap_value% --end %gap_value_end% --iframe 0 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval 1 --group_size %iframe_gap% --iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
+        string_args: ["%middle_env_folder%", "conda", 
+            "run --no-capture-output -n %middle_env% python %train_script% "+
+            "--density %density_util% --start %gap_value% --end %gap_value_end% "+
+            "--iframe 0 --data %root%/%after%/liar --output %root%/%after%/GOP_20_I --interval 1 --group_size %iframe_gap% "+
+            "--iteration %iframe_iteration% --gtp %gtp% --dynamic %finetune_iteration% %train_command%"],
         number_args: [],
         boolean_args: []
     }
@@ -165,7 +172,8 @@ const IFrameGTP_Adjustment = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COPY_DIR,
         script: "",
-        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%", "%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
+        string_args: ["%root%/%after%/GOP_20_I/checkpoint/%gap_value_two%", 
+            "%root%/%after%/GOP_20_I/checkpoint/%gap_value%"],
         number_args: [],
         boolean_args: []
     }
@@ -180,8 +188,8 @@ const IFrameGTP_Adjustment = ():Task => {
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "GTP 修正",
-        description: "將剛完成的 IFrame GTP 進行修正",
+        title: "GTP Fix",
+        description: "Fix IFrame GTP which we just generate",
         setupjob: false,
         cronjob: true,
         cronjobKey: "iframe_size",
@@ -190,15 +198,15 @@ const IFrameGTP_Adjustment = ():Task => {
         properties: [
             {
                 name: 'gap_value',
-                expression: '(ck - 1) * iframe_gap + 1'
+                expression: 'ck * iframe_gap + 1'
             },
             {
                 name: 'gap_value_two',
-                expression: '(ck - 1) * iframe_gap + 2'
+                expression: 'ck * iframe_gap + 2'
             },
             {
                 name: 'gap_value_end',
-                expression: '(ck - 1) * iframe_gap + 3'
+                expression: 'ck * iframe_gap + 3'
             }
         ],
         jobs: [

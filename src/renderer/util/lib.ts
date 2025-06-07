@@ -15,6 +15,8 @@ export interface TypeOption {
 export interface DATA {
     leftSize: number
     rightSize: number
+    deleteModal: boolean
+    deleteData: string
     select: number
     createModel: boolean
     isEdit: boolean

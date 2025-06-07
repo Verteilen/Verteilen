@@ -1,203 +1,89 @@
 import fs from "fs";
-import path from "path";
 import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { BusAnalysis, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Header, Job, Libraries, NodeProxy, Parameter, Preference, Project, Record, ShellFolder, Single, Task, WebsocketPack } from "./interface";
+import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, GlobalPermission, Header, Job, Libraries, LocalPermiision, NodeProxy, Parameter, Preference, Project, Record, ServerSetting, ShellFolder, Single, Task, UserProfile, UserType, WebsocketPack } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { ConsoleServerManager } from "./script/console_server_manager";
-import { ExecuteManager } from "./script/execute_manager";
 import { WebsocketManager } from "./script/socket_manager";
-
-type TypeMap = { [key:string]:Function }
+import { Loader, TypeMap } from "./util/loader";
+import { Util_Server } from "./util/server/server";
+import { v6 as uuidv6 } from 'uuid'
 
 export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
-    websocket_manager:WebsocketManager
-    execute_manager:Array<[ExecuteManager, ExecuteRecord]> = []
-    
+
+    setting: ServerSetting | undefined
     jsCall:ClientJavascript
-    proxy: ExecuteProxy
+    util: Util_Server = new Util_Server(this)
     libs:Libraries = {libs: []}
     
     constructor(){
         this.jsCall = new ClientJavascript(messager, messager_log, () => undefined)
-        this.proxy = {
-            executeProjectStart: (data:Project):void => { this.Boradcasting('executeProjectStart', data) },
-            executeProjectFinish: (data:Project):void => { this.Boradcasting('executeProjectFinish', data) },
-            executeTaskStart: (data:[Task, number]):void => { this.Boradcasting('executeTaskStart', data) },
-            executeTaskFinish: (data:Task):void => { this.Boradcasting('executeTaskFinish', data) },
-            executeSubtaskStart: (data:[Task, number, string]):void => { this.Boradcasting('executeSubtaskStart', data) },
-            executeSubtaskUpdate: (data:[Task, number, string, ExecuteState]) => { this.Boradcasting('executeSubtaskUpdate', data) },
-            executeSubtaskFinish: (data:[Task, number, string]):void => { this.Boradcasting('executeSubtaskFinish', data) },
-            executeJobStart: (data:[Job, number, string]):void => { this.Boradcasting('executeJobStart', data) },
-            executeJobFinish: (data:[Job, number, string, number]):void => { this.Boradcasting('executeJobFinish', data) },
-            feedbackMessage: (data:FeedBack):void => { this.Boradcasting('feedbackMessage', data) },
-            updateParameter: (data:Parameter) => { this.Boradcasting('updateParameter', data) },
-        }
-        const proxy2:NodeProxy = {
-            shellReply: (data:Single) => { this.Boradcasting('shellReply', data) },
-            folderReply: (data:ShellFolder) => { this.Boradcasting('folderReply', data) },
-        }
-        this.websocket_manager = new WebsocketManager(this.newConnect, this.disconnect, this.analysis, messager_log, proxy2)
     }
 
     // The new manager enter the hood
-    NewConsole = (socket:ws.WebSocket) => {
-        const typeMap:TypeMap = {
-            'lua': this.js,
+    NewConsoleConsole = (socket:ws.WebSocket) => {
+        console.log(`New Connection ${socket.url}`)
+        let typeMap:TypeMap = {
+            'javascript': this.javascript,
             'message': this.message,
             'load_record_obsolete': this.load_record_obsolete,
             'save_preference': this.save_preference,
             'load_preference': this.load_preference,
-            // Unique
-            'console_add': this.ConsoleAdd
         }
-        this.Loader(typeMap, 'record', 'record')
-        this.Loader(typeMap, 'parameter', 'parameter')
-        this.Loader(typeMap, 'node', 'node')
-        this.Loader(typeMap, 'log', 'log')
-        this.Loader(typeMap, 'lib', 'lib')
+        typeMap = this.util.EventInit(typeMap)
+        Loader(typeMap, 'record', 'record')
+        Loader(typeMap, 'parameter', 'parameter')
+        Loader(typeMap, 'node', 'node')
+        Loader(typeMap, 'log', 'log')
+        Loader(typeMap, 'lib', 'lib', '')
+        Loader(typeMap, 'user', 'user')
         const n = new ConsoleServerManager(socket, messager_log, typeMap)
         this.manager.push(n)
+        return n
     }
 
-    Loader = (typeMap:TypeMap, key:string, folder:string) => {
-        typeMap[`load_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const r:Array<string> = []
-            const ffs = fs.readdirSync(root, {withFileTypes: true})
-            ffs.forEach(x => {
-                if(!x.isFile()) return
-                const file = fs.readFileSync(path.join(root, x.name), { encoding: 'utf8', flag: 'r' })
-                r.push(file)
-            })
-            const d:Header = {
-                name: `load_all_${key}-feedback`,
-                data: JSON.stringify(r)
-            }
-            socket.send(JSON.stringify(d))
-        }
-        typeMap[`delete_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.rmSync(root, {recursive: true})
-            fs.mkdirSync(root, {recursive: true})
-        }
-        typeMap[`list_all_${key}`] = (dummy: number, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const ps = fs.readdirSync(root, { withFileTypes: false })
-            ps.map(x => {
-                const stat = fs.statSync(path.join(root, x))
-                return {
-                    name: x,
-                    size: stat.size,
-                    time: stat.ctime
-                }
-            })
-            const d:Header = {
-                name: `list_all_${key}-feedback`,
-                data: JSON.stringify(ps)
-            }
-            socket.send(JSON.stringify(d))
-        }
-        typeMap[`save_${key}`] = (d:{name:string, data:string}, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            let filename = d.name + ".json"
-            let p = path.join(root, filename)
-            fs.writeFileSync(p, d.data)
-        }
-        typeMap[`rename_${key}`] = (d:{name:string, newname:string}, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            fs.cpSync(path.join(root, `${d.name}.json`), path.join(root, `${d.newname}.json`), { recursive: true })
-            fs.rmdirSync(path.join(root, `${d.name}.json`))
-        }
-        typeMap[`delete_${key}`] = (name:string, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ".json"
-            const p = path.join(root, filename)
-            if (fs.existsSync(p)) fs.rmSync(p)
-        }
-        typeMap[`delete_all_${key}`] = (name:string, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const ps = fs.readdirSync(root, { withFileTypes: false })
-            ps.forEach(x => fs.rmSync(path.join(root, x)))
-        }
-        typeMap[`load_${key}`] = (name:string, socket:ws.WebSocket) => {
-            const root = path.join("data", folder)
-            if (fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
-            const filename = name + ".json"
-            const p = path.join(root, filename)
-            if (fs.existsSync(p)){
-                const file = fs.readFileSync('log.json', { encoding: 'utf8', flag: 'r' })
-                const d:Header = {
-                    name: `load_${key}-feedback`,
-                    data: file.toString()
-                }
-                socket.send(JSON.stringify(d))
-            }else{
-                const d:Header = {
-                    name: `load_${key}-feedback`,
-                    data: undefined
-                }
-                socket.send(JSON.stringify(d))
-            }
-        }
-    }
-
-    DropConsole = (socket:ws.WebSocket) => {
+    DropConsoleConsole = (socket:ws.WebSocket) => {
         const index = this.manager.findIndex(x => x.ws == socket)
         if(index != -1) this.manager.splice(index, 1)
     }
 
-    Analysis = (socket:ws.WebSocket, h:Header) => {
+    ConsoleAnalysis = (socket:ws.WebSocket, h:Header) => {
         const index = this.manager.findIndex(x => x.ws == socket)
-        if(index != -1) this.manager[index].Analysis(h)
+        if(index != -1) {
+            this.manager[index].Analysis(h)
+        } else {
+            const n = this.NewConsoleConsole(socket)
+            n.Analysis(h)
+        }
     }
 
-    //#region Server Side
-    private newConnect = (x:WebsocketPack) => {
-        this.Boradcasting('makeToast', {
-            title: i18n.global.t('toast.connection-create-title'),
-            type: 'success',
-            message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
-        })
-        this.execute_manager.forEach(y => {
-            y[0].NewConnection(x)
-        })
+    IsPass = (token:string) => {
+        return true
     }
-
-    private disconnect = (x:WebsocketPack) => {
-        this.Boradcasting('makeToast', {
-            title: i18n.global.t('toast.connection-remove-title'),
-            type: 'danger',
-            message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
-        })
-    }
-
-    private analysis = (d:BusAnalysis) => {
-        this.execute_manager.forEach(x => x[0].Analysis(JSON.parse(JSON.stringify(d))))
-    }
-    //#endregion
 
     //#region Manager Side
-    private js = (content:string, socket:ws.WebSocket) => {
-        const r = this.jsCall.JavascriptExecute(content)
+    private javascript = (socket:ws.WebSocket, content:string) => {
+        const javascript_messager_feedback = (msg:string, tag?:string) => {
+            messager(msg, tag)
+            const d:Header = {
+                name: 'javascript-feedback',
+                data: msg
+            }
+            socket.send(JSON.stringify(d))
+        }
+        const r = this.jsCall.JavascriptExecute(content, javascript_messager_feedback)
         const d:Header = {
-            name: 'js-feedback',
+            name: 'javascript-feedback',
             data: r?.toString() ?? ''
         }
         socket.send(JSON.stringify(d))
     }
 
-    private message = (d:{message:string, tag?:string}, socket:ws.WebSocket) => {
-        console.log(`${ d.tag == undefined ? '[Electron Backend]' : '[' + d.tag + ']' } ${d.message}`);
+    private message = (socket:ws.WebSocket, message:string, tag?:string) => {
+        console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
     }
     private load_record_obsolete = (dummy: number, socket:ws.WebSocket) => {
         if(!fs.existsSync('record.json')) return undefined
@@ -209,10 +95,10 @@ export class BackendEvent {
         }
         socket.send(JSON.stringify(d))
     }
-    private save_preference = (preference:string, socket:ws.WebSocket) => {
+    private save_preference = (socket:ws.WebSocket, preference:string) => {
         fs.writeFileSync('preference.json', preference)
     }
-    private load_preference = (dummy: number, socket:ws.WebSocket) => {
+    private load_preference = (socket:ws.WebSocket) => {
         const exist = fs.existsSync('preference.json');
         messager_log(`[Event] Read preference.js, file exist: ${exist}`)
         if(!exist){
@@ -229,6 +115,7 @@ export class BackendEvent {
                 name: "load_preference-feedback",
                 data: JSON.stringify(record)
             }
+            this.util.preference = record
             socket.send(JSON.stringify(d))
         } else {
             const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
@@ -236,6 +123,7 @@ export class BackendEvent {
                 name: "load_preference-feedback",
                 data: file
             }
+            this.util.preference = JSON.parse(file)
             socket.send(JSON.stringify(d))
         }
     }
@@ -267,10 +155,63 @@ export class BackendEvent {
     }
     //#endregion
 
-    ConsoleAdd = (data:any, socket:ws.WebSocket) => {
+    console_add = (data:any, socket:ws.WebSocket) => {
         const n:string = data.name
         const r:Record = data.record
     }
+
+    //#region Server
+    Root = () => {
+        if(!fs.existsSync('data/user')) fs.mkdirSync('data/user');
+        if(!fs.existsSync("data/user/root.json")){
+            const perl:LocalPermiision = {
+                view: true,
+                create: true,
+                edit: true,
+                delete: true,
+            }
+            const per:GlobalPermission = {
+                project: perl,
+                task: perl,
+                node: perl,
+                parameter: perl,
+                lib: perl,
+                log: perl,
+                execute_job: true
+            }
+            const root:UserProfile = {
+                token: uuidv6(),
+                type: UserType.ADMIN,
+                preference: {
+                    lan: 'en',
+                    log: true,
+                    font: 18,
+                    theme: "dark",
+                    notification: false,
+                },
+                name: "root",
+                description: "Root User",
+                permission: per,
+                permission_projects: [],
+                permission_tasks: [],
+                permission_nodes: [],
+            }
+            fs.writeFileSync("data/user/root.json", JSON.stringify(root, null, 2))
+            console.log(`Login with root using: ${root.token} `)
+        }else{
+            const root:UserProfile = JSON.parse(fs.readFileSync("data/user/root.json").toString());
+            console.log(`Login with root using: ${root.token} `)
+        }
+        if(!fs.existsSync("server.json")){
+            this.setting = {
+                open_guest: false
+            }
+            fs.writeFileSync("server.json", JSON.stringify(this.setting, null, 2))
+        }else{
+            this.setting = JSON.parse(fs.readFileSync("server.json").toString());
+        }
+    }
+    //#endregion
 }
 
 

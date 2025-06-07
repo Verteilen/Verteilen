@@ -2,9 +2,8 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ExecuteRecord, Log, Parameter, Preference, Project } from '../../interface';
+import { AppConfig, BusType, ExecutePair, Log, Parameter, Preference, Project } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { ExecuteManager } from '../../script/execute_manager';
 import LogProcess from './../components/console/LogProcess.vue';
 import ParameterPage from './../components/console/Parameter.vue';
 import LogMenuDialog from './../dialog/LogMenuDialog.vue';
@@ -12,7 +11,7 @@ import LogMenuDialog from './../dialog/LogMenuDialog.vue';
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
-    execute: Array<[ExecuteManager, ExecuteRecord]>
+    execute: Array<ExecutePair>
     preference: Preference
     config: AppConfig
     logs: Log

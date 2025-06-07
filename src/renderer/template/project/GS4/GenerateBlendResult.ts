@@ -2,7 +2,7 @@ import { v6 as uuidv6 } from 'uuid';
 import { Task, Job, JobCategory, JobType, Project, Parameter } from '../../../interface';
 import { GetFUNIQUE_GS4Project_Parameter_Builder } from '../../parameter/GS4';
 
-const Checkpoint_Position = ():Task => {
+export const Checkpoint_Position = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -47,7 +47,7 @@ const Checkpoint_Position = ():Task => {
 }
 
 // Blend 生成多個 checkpoint 資料夾 (負)
-const Checkpoint_Negative = ():Task => {
+export const Checkpoint_Negative = ():Task => {
     const command1:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,

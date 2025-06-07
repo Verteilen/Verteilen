@@ -1,0 +1,10 @@
+.git
+.github
+.vscode
+bin
+obj
+node_modules
+data
+converage
+test
+jest.config.js
