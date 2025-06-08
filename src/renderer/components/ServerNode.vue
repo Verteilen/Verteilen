@@ -645,7 +645,7 @@ onUnmounted(() => {
           <ServicePage />
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="100">
-          <ProfilePage />
+          <ProfilePage :backend="props.backend" />
         </v-tabs-window-item>
       </v-tabs-window>
     </div>
