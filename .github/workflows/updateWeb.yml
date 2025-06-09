@@ -49,5 +49,4 @@ jobs:
           git commit -am "Automated update static website"
       - name: Push
         run: |
-          gh auth login --with-token || echo ${{ secrets.PAT }}
           git push -u origin main
