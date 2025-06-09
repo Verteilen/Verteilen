@@ -48,9 +48,7 @@ jobs:
           git add --all
           git commit -am "Automated update static website"
       - name: Push
-        uses: ad-m/github-push-action@master
-        with:
-          repository: Verteilen/.github
-          github_token: ${{ secrets.PAT }}
-          branch: main
-          force: true
+        run: |
+          git remote remove origin
+          git remote add origin https://{{ secrets.PAT }}@github.com/Verteilen/.github.git
+          git push
