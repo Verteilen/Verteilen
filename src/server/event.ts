@@ -231,6 +231,31 @@ export class BackendEvent {
             type: UserType.GUEST
         }
     }
+
+    ChangeProfile = (token:string | undefined, data:any) => {
+        if(token != undefined){
+            const files = fs.readdirSync('data/user')
+            for(let i = 0; i < files.length; i++){
+                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+                if(p.token == token){
+                    if(data.pic != undefined){
+                        p.picture_url = data.pic
+                    }
+                    if(data.name != undefined){
+                        p.name = data.name
+                    }
+                    if(data.description != undefined){
+                        p.description = data.description
+                    }
+                    fs.writeFileSync(path.join("data", "user", files[i]), JSON.stringify(p, null, 2))
+                    console.log("Update")
+                    break
+                }
+            }
+        }else{
+            console.log("token is null")
+        }
+    }
     //#endregion
 }
 

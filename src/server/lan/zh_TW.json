@@ -9,6 +9,11 @@
         "parameter": "數據綁定",
         "console": "控制台"
     },
+    "profile": {
+        "username": "用戶名",
+        "description": "用戶敘述",
+        "admin": "是否管理員"
+    },
     "menu": {
         "file": "檔案",
         "edit": "編輯",
@@ -100,7 +105,8 @@
         "console-create": "建立控制台",
         "console-name": "控制台名稱",
         "delete-library": "刪除程式腳本",
-        "delete-library-confirm": "確定刪除選取的程式腳本嗎?"
+        "delete-library-confirm": "確定刪除選取的程式腳本嗎?",
+        "upload-pic": "上傳用戶照片"
     },
     "toolbar": {
         "server": "伺服器",

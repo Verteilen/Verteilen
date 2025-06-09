@@ -9,6 +9,11 @@
         "parameter": "Parameter Binding",
         "console": "Console"
     },
+    "profile": {
+        "username": "Username",
+        "description": "Description",
+        "admin": "Is Admin"
+    },
     "menu": {
         "file": "File",
         "edit": "Edit",
@@ -100,7 +105,8 @@
         "console-create": "Create Console",
         "console-name": "Console Name",
         "delete-library": "Library Delete",
-        "delete-library-confirm": "Are you sure delete this script"
+        "delete-library-confirm": "Are you sure delete this script",
+        "upload-pic": "Upload Profile Picture"
     },
     "toolbar": {
         "server": "Server",

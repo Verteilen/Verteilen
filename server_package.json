@@ -5,6 +5,8 @@
     "main": "index.js",
     "repository": "https://github.com/Elly2018/Compute-Tool",
     "dependencies": {
+        "multer": "^2.0.1",
+        "@types/body-parser": "^1.19.6",
         "chalk": "^4.1.2",
         "express": "^4.21.2",
         "tcp-port-used": "^1.0.2",
