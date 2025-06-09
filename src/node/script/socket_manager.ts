@@ -1,6 +1,7 @@
 import { v6 as uuidv6 } from 'uuid';
-import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, ShellFolder, Single, SystemLoad, WebsocketPack } from "../interface";
-const WebSock = global.WebSocket || global.MozWebSocket || require('ws');
+import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, ShellFolder, Single, SocketState, SystemLoad, WebsocketPack } from "../interface";
+import * as jsEnv from "browser-or-node";
+import ws from 'ws'
 
 function isRenderer () {
   // running in a web browser
@@ -69,7 +70,7 @@ export class WebsocketManager {
     }
 
     shell_open = (uuid:string) => {
-        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == SocketState.OPEN)
         if (p == undefined){
             this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
             return
@@ -82,7 +83,7 @@ export class WebsocketManager {
     }
 
     shell_enter = (uuid:string, text:string) => {
-        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == SocketState.OPEN)
         if (p == undefined){
             this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
             return
@@ -95,7 +96,7 @@ export class WebsocketManager {
     }
 
     shell_close = (uuid:string) => {
-        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == SocketState.OPEN)
         if (p == undefined){
             this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
             return
@@ -108,7 +109,7 @@ export class WebsocketManager {
     }
 
     shell_folder = (uuid:string, path:string) => {
-        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == WebSocket.OPEN)
+        const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == SocketState.OPEN)
         if (p == undefined){
             this.messager_log(`[Shell] Error cannot find the node by ID: ${uuid}`)
             return
@@ -129,7 +130,10 @@ export class WebsocketManager {
     private serverconnect = (url:string, uuid?:string) => {
         if(this.targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
         if(this.targets.findIndex(x => x.uuid == uuid) != -1) return
-        const client = new WebSock(url)
+
+        let client: ws.WebSocket | WebSocket | undefined = undefined
+        if(jsEnv.isNode) client = new ws.WebSocket(url);
+        else client = new WebSocket(url);
         const t:WebsocketPack = { uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] }
         this.targets.push(t)
         client.onerror = (err:any) => {
@@ -205,7 +209,7 @@ export class WebsocketManager {
         let result:Array<NodeTable> = []
         const data:Array<Node> = []
         this.targets.forEach(x => {
-            if(x.websocket.readyState == WebSocket.CLOSED){
+            if(x.websocket.readyState == SocketState.CLOSED){
                 data.push({ID: x.uuid, url: x.websocket.url})
             }
         })
@@ -235,7 +239,7 @@ export class WebsocketManager {
     private removeByUUID = (uuid:string, reason?:string) => {
         let index = this.targets.findIndex(x => x.uuid == uuid)
         if(index != -1) {
-            if(this.targets[index].websocket.readyState == WebSocket.OPEN) this.targets[index].websocket.close(1000, reason != undefined ? reason : '')
+            if(this.targets[index].websocket.readyState == SocketState.OPEN) this.targets[index].websocket.close(1000, reason != undefined ? reason : '')
                 this.targets.splice(index, 1)
         }
     }
@@ -246,7 +250,7 @@ export class WebsocketManager {
     private update = () => {
         const h:Header = { name: 'ping', data: 0}
         this.targets.forEach(x => {
-            if(x.websocket.readyState != WebSocket.OPEN) return
+            if(x.websocket.readyState != SocketState.OPEN) return
             x.last = Date.now()
             x.websocket.send(JSON.stringify(h))
         })
