@@ -50,5 +50,7 @@ jobs:
       - name: Push
         uses: ad-m/github-push-action@master
         with:
+          repository: Verteilen/.github
           github_token: ${{ secrets.PAT }}
           branch: main
+          force: true
