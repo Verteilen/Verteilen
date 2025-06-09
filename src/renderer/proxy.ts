@@ -1,4 +1,4 @@
-import { AppConfig, RawSend } from "./interface";
+import { AppConfig, RawSend, UserProfileClient, UserType } from "./interface";
 import { checkifElectron, checkIfExpress } from "./platform";
 import { ConsoleManager, Listener } from "./script/console_manager";
 
@@ -9,12 +9,14 @@ export class BackendProxy {
     config:AppConfig
     consoleM: ConsoleManager | undefined
     is_init: boolean
+    user?: UserProfileClient
 
     constructor(){
         this.config = {
             isElectron: checkifElectron(),
             isExpress: false,
-            haveBackend: false
+            isAdmin: false,
+            haveBackend: false,
         }
         this.is_init = false
         this.consoleM = undefined
@@ -25,8 +27,11 @@ export class BackendProxy {
      */
     init = () => {
         return new Promise<void>((resolve) => {
-            checkIfExpress((e) => {
-                this.config.isExpress = e
+            checkIfExpress((e:UserProfileClient | undefined) => {
+                console.log("auth", e)
+                this.user = e
+                this.config.isExpress = e != undefined
+                this.config.isAdmin = e ? e.type == UserType.ADMIN : false
                 this.is_init = true
                 this.config.haveBackend = this.config.isElectron || this.config.isExpress
                 resolve()
@@ -47,6 +52,12 @@ export class BackendProxy {
                 }
             }, 5);
         })
+    }
+
+    getCookie = (name:string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
     }
 
     /**

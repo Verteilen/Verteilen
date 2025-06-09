@@ -3,8 +3,11 @@ import express from 'express'
 import ws from 'ws'
 import { backendEvent } from './event'
 import cookieParser from 'cookie-parser'
-import { ConsolePORT, Header, WebPORT } from './interface'
+import { ConsolePORT, Header, UserType, WebPORT } from './interface'
 import path from 'path'
+import multer from 'multer'
+import bodyPreser from 'body-parser'
+import * as fs from 'fs'
 
 let wsServer: ws.Server | undefined = undefined
 let app:express.Express | undefined = undefined
@@ -14,7 +17,12 @@ const socketport = backendEvent.PortAvailable(ConsolePORT)
 
 webport.then(p => {
     app = express()
+    const storage = multer.memoryStorage()
+    const upload = multer({ dest: 'public/upload', storage: storage })
     app.use(cookieParser())
+    app.use(bodyPreser.json())
+    app.use(bodyPreser.urlencoded())
+    app.use(bodyPreser.urlencoded({ extended: true }))
     console.log("current dir: ", process.cwd())
     app.get('/login/:token', (req, res, next) => {
         if(req.params.token != undefined) {
@@ -36,8 +44,22 @@ webport.then(p => {
         }
     }, express.static(path.join(__dirname, 'public')))
     // The simple web response to let frontend know that backend exists
-    app.get('/express', (req, res) => {
-        res.send('1')
+    app.get('/user', (req, res) => {
+        res.send(backendEvent.GetUserType(req.cookies.token))
+    })
+    app.post('/pic', upload.single('pic'), (req, res) => {
+        if(req.file == undefined){
+            res.sendStatus(204)
+        }else{
+            const p = `public/uploads/${req.cookies.token}`
+            if(!fs.existsSync(p)) fs.mkdirSync(p, {recursive: true})
+            const n = `${p}/pic.png`
+            fs.writeFileSync(n, req.file.buffer)
+            backendEvent.ChangeProfile(req.cookies.token, {
+                pic: n.replace('public/', '')
+            })
+            res.sendStatus(200)
+        }
     })
     // Import project
     app.post('/project_import', (req, res) => {

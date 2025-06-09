@@ -12,6 +12,7 @@ export class ConsoleManager {
     messager_log:Function
     events:Array<[string, Array<Listener>]>
     events_once:Array<[string, Array<Listener>]>
+    buffer:Array<Header> = []
 
     constructor(_url:string, _messager_log:Function, _emitter:EmitterProxy<BusType>){
         this.messager_log = _messager_log
@@ -25,9 +26,14 @@ export class ConsoleManager {
         }
         this.ws.onclose = (ev) => {
             this.messager_log(`[Close] Express Client close, ${ev.code}, ${ev.reason}`)
+            this.buffer = []
         }
         this.ws.onopen = () => {
             this.messager_log('[Connection] Express New Connection !')
+            for(let i = 0; i < this.buffer.length; i++){
+                this.ws.send(JSON.stringify(this.buffer[i]))
+            }
+            this.buffer = []
         }
         this.ws.onmessage = (ev) => {
             this.received(JSON.parse(ev.data.toString()))
@@ -72,7 +78,11 @@ export class ConsoleManager {
             token: data.token,
             data: data.data
         }
-        this.ws.send(JSON.stringify(d))
+        if(this.ws.readyState !== WebSocket.OPEN){
+            this.buffer.push(d)
+        }else{
+            this.ws.send(JSON.stringify(d))
+        }
     }
 
     received = (h:Header) => {

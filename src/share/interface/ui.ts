@@ -1,6 +1,7 @@
 export interface AppConfig {
     isExpress: boolean
     isElectron: boolean
+    isAdmin: boolean
     haveBackend: boolean
 }
 

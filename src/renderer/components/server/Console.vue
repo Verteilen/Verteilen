@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecutePair, ExecuteRecord, ExecuteState, Libraries, Node, Parameter, Preference, Project, Record } from '../../interface';
+import { BusType, ExecutePair, ExecuteRecord, ExecuteState, Libraries, Node, NodeTable, Parameter, Preference, Project, Record } from '../../interface';
 import { WebsocketManager } from '../../script/socket_manager';
 import { DATA } from '../../util/console';
 import ConsoleDialog from '../dialog/ConsoleDialog.vue';
@@ -21,7 +21,7 @@ interface PROPS {
     execute: Array<ExecutePair>
     libs: Libraries
     projects: Array<Project>
-    nodes: Array<Node>
+    nodes: Array<NodeTable>
     parameters: Array<Parameter>
 }
 const p_model = defineModel<ExecutePair>()
@@ -401,7 +401,7 @@ onUnmounted(() => {
                 </v-list>
             </v-col>
             <v-col v-if="model.record != undefined" :cols="data.rightSize" v-show="data.tag == 0">
-                <List v-model="model" :preference="props.preference" />
+                <List v-model="model" :nodes="props.nodes" :preference="props.preference" />
             </v-col>
             <v-col v-if="model.record != undefined" :cols="data.rightSize" v-show="data.tag == 1">
                 <Process v-model="model" :socket="props.socket" :preference="props.preference" />

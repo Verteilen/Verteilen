@@ -20,6 +20,9 @@ import ParameterPage from './server/Parameter.vue';
 import ProjectPage from './server/Project.vue';
 import SelfPage from './server/Self.vue';
 import TaskPage from './server/Task.vue';
+import RolePage from './server/Role.vue';
+import ServicePage from './server/Service.vue';
+import ProfilePage from './server/Profile.vue';
 import { ConsoleManager } from '../script/console_manager';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -60,9 +63,10 @@ const selectExecute = computed(() => data.value.execute_manager[data.value.selec
 
 watch(() => data.value.page, () => {
   const tab = tabs.value.find(x => x[2] == data.value.page)!
+  data.value.drawer = false
+  if(tab == undefined) return
   data.value.page = tab[2]; 
   data.value.title = tab[1]; 
-  data.value.drawer = false
 })
 
 const allUpdate = () => util.allUpdate()
@@ -268,15 +272,24 @@ const updateTab = () => {
     ["mdi-calendar", "toolbar.task", 1],
     ["mdi-hammer", "toolbar.job", 2],
     ["mdi-database", "toolbar.parameter", 3],
-    ["", "toolbar.server", -1],
+    ["", "toolbar.compute", -1],
     ["mdi-network", "toolbar.node", 4],
     ["mdi-console-line", "toolbar.console", 5],
   ]
+  
   if(config.value.haveBackend){
     tabs.value.push(["", "toolbar.backend", -1])
     tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
     tabs.value.push(["mdi-puzzle", "toolbar.library", 7])
+  }
+  if((config.value.isExpress && config.value.isAdmin) || config.value.isElectron){
     tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
+  }
+
+  if(config.value.isExpress && config.value.isAdmin){
+    tabs.value.push(["", "toolbar.server", -1])
+    tabs.value.push(["mdi-lock", "toolbar.role", 9])
+    tabs.value.push(["mdi-cog-play", "toolbar.service", 10])
   }
 }
 
@@ -501,6 +514,13 @@ onUnmounted(() => {
       </v-app-bar>
       <v-navigation-drawer temporary v-model="data.drawer">
         <v-list density="compact" nav>
+          <v-list-item v-if="props.backend.config.isExpress"
+            :prepend-avatar="props.backend.user?.picture_url ?? '/icon/user.png'"
+            :title="props.backend.user?.name"
+            :value="100" 
+            @click="data.page = 100"
+          > 
+          </v-list-item>
           <div v-for="(tab, index) in tabs" :key="index">
             <v-list-item v-if="tab[2] >= 0"
               :style="{ 'fontSize': props.preference.font + 'px' }"
@@ -617,6 +637,15 @@ onUnmounted(() => {
             :messages="data.messages"
             :preference="props.preference"
             @clean="msgClean"/>
+        </v-tabs-window-item>
+        <v-tabs-window-item v-show="config.isExpress" :value="9">
+          <RolePage />
+        </v-tabs-window-item>
+        <v-tabs-window-item v-show="config.isExpress" :value="10">
+          <ServicePage />
+        </v-tabs-window-item>
+        <v-tabs-window-item v-show="config.isExpress" :value="100">
+          <ProfilePage :backend="props.backend" />
         </v-tabs-window-item>
       </v-tabs-window>
     </div>

@@ -1,0 +1,70 @@
+<script setup lang="ts">
+import { Ref, ref } from 'vue';
+import { BackendProxy } from '../../proxy';
+import { DATA } from '../../util/profile';
+
+interface PROPS {
+    backend: BackendProxy
+}
+
+const propss = defineProps<PROPS>()
+const data:Ref<DATA> = ref({
+    importModal: false,
+    importData: [],
+    editMode: false,
+    name: "",
+    description: "",
+})
+
+const selectPicture = () => {
+    data.value.importModal = true
+}
+
+const ImportConfirm = async () => {
+    if(data.value.importData.length != 1) return
+    const d = new FormData()
+    d.append('pic', data.value.importData[0], "pic.png")
+    fetch('pic', {
+        method: "POST",
+        body: d
+    }).then(x => {
+        propss.backend.init()
+        data.value.importData = []
+        data.value.importModal = false
+    })
+}
+
+</script>
+
+<template>
+    <v-container fluid class="ma-0 pa-0">
+        <div class="pa-5 mt-3">
+            <v-row>
+                <v-col cols="2" class="ma-0 pa-0">
+                    <v-img alt="Picture" cover :src="propss.backend.user?.picture_url ?? '/icon/user.png'">
+                    </v-img>
+                    <v-btn class="mt-1 w-100" color="primary" @click="selectPicture">{{ $t('modify') }}</v-btn>
+                </v-col>
+                <v-col cols="10">
+                    <v-text-field :disabled="!data.editMode" v-model="propss.backend.user!.name" :label="$t('profile.username')" variant="outlined"></v-text-field>
+                    <v-text-field :disabled="!data.editMode" v-model="propss.backend.user!.description" :label="$t('profile.description')" variant="outlined"></v-text-field>
+                    <v-checkbox disabled v-model="propss.backend.config.isAdmin" :label="$t('profile.admin')"></v-checkbox>
+                </v-col>
+            </v-row>
+            <v-dialog width="800" v-model="data.importModal" class="text-white">
+                <v-card>
+                    <v-card-title>
+                        <v-icon>mdi-import</v-icon>
+                        {{ $t('modal.upload-pic') }}
+                    </v-card-title>
+                    <v-card-text>
+                        <v-file-upload v-model="data.importData" show-size clearable density="default"></v-file-upload>
+                    </v-card-text>
+                    <template v-slot:actions>
+                        <v-btn class="mt-3" :disabled="data.importData == undefined" color="primary" @click="ImportConfirm">{{ $t('import') }}</v-btn>
+                    </template>
+                </v-card>
+            </v-dialog>
+        </div>
+    </v-container>
+</template>

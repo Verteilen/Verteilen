@@ -1,6 +1,6 @@
 import Chalk from 'chalk';
-import { rmSync } from 'fs';
-import { cp } from 'fs/promises';
+import { readdirSync, rmSync } from 'fs';
+import { cp, readdir } from 'fs/promises';
 import Path from 'path';
 import Vite from 'vite';
 import compileTs from './private/tsc';
@@ -11,10 +11,17 @@ async function buildRenderer() {
         base: './',
         mode: 'production'
     });
-    await cp(
-        Path.join(__dirname, '..', 'src', 'renderer', 'assets', 'guide'), 
-        Path.join(__dirname, '..', 'build', 'renderer', 'guide'), 
-        { recursive: true })
+    const fff = await readdir(Path.join(__dirname, '..', 'src', 'renderer', 'assets'), {withFileTypes: true})
+    const alp:Array<Promise<void>> = []
+    for(let i = 0; i < fff.length; i++){
+        const x = fff[i]
+        if(!x.isDirectory()) continue
+        alp.push(cp(
+            Path.join(__dirname, '..', 'src', 'renderer', 'assets', x.name), 
+            Path.join(__dirname, '..', 'build', 'renderer', x.name), 
+            { recursive: true }))
+    }
+    await Promise.all(alp)
 }
 
 function buildMain() {

@@ -38,6 +38,7 @@ export interface LocalPermissionContainer2 {
 export interface UserProfile {
     token: string
     name: string
+    picture_url?: string
     preference: Preference
     type: UserType
     description?: string
@@ -46,6 +47,13 @@ export interface UserProfile {
     permission_projects: Array<LocalPermissionContainer>
     permission_tasks: Array<LocalPermissionContainer2>
     permission_nodes: Array<LocalPermissionContainer>
+}
+
+export interface UserProfileClient {
+    picture_url?: string
+    name: string
+    type: UserType
+    description?: string
 }
 
 export interface ServerSetting {

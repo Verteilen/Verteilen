@@ -3,13 +3,14 @@ import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, GlobalPermission, Header, Job, Libraries, LocalPermiision, NodeProxy, Parameter, Preference, Project, Record, ServerSetting, ShellFolder, Single, Task, UserProfile, UserType, WebsocketPack } from "./interface";
+import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, GlobalPermission, Header, Job, Libraries, LocalPermiision, NodeProxy, Parameter, Preference, Project, Record, ServerSetting, ShellFolder, Single, Task, UserProfile, UserProfileClient, UserType, WebsocketPack } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { WebsocketManager } from "./script/socket_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
 import { v6 as uuidv6 } from 'uuid'
+import path from "path";
 
 export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
@@ -95,36 +96,33 @@ export class BackendEvent {
         }
         socket.send(JSON.stringify(d))
     }
-    private save_preference = (socket:ws.WebSocket, preference:string) => {
-        fs.writeFileSync('preference.json', preference)
+    private save_preference = (socket:ws.WebSocket, preference:string, token?:string) => {
+        if(token != undefined){
+            const files = fs.readdirSync("data/user")
+            for(let i = 0; i < files.length; i++){
+                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+                if(p.token == token){
+                    p.preference = JSON.parse(preference)
+                    fs.writeFileSync(path.join("data", "user", files[i]), JSON.stringify(p))
+                    break
+                }
+            }
+        }
     }
-    private load_preference = (socket:ws.WebSocket) => {
-        const exist = fs.existsSync('preference.json');
-        messager_log(`[Event] Read preference.js, file exist: ${exist}`)
-        if(!exist){
-            const record:Preference = {
-                lan: 'en',
-                log: true,
-                font: 18,
-                theme: "dark",
-                notification: false,
+    private load_preference = (socket:ws.WebSocket, token?:string) => {
+        if(token != undefined){
+            const files = fs.readdirSync("data/user")
+            for(let i = 0; i < files.length; i++){
+                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+                if(p.token == token){
+                    const d:Header = {
+                        name: "load_preference-feedback",
+                        data: JSON.stringify(p.preference)
+                    }
+                    socket.send(JSON.stringify(d))
+                    break
+                }
             }
-            fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
-            i18n.global.locale = 'en'
-            const d:Header = {
-                name: "load_preference-feedback",
-                data: JSON.stringify(record)
-            }
-            this.util.preference = record
-            socket.send(JSON.stringify(d))
-        } else {
-            const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
-            const d:Header = {
-                name: "load_preference-feedback",
-                data: file
-            }
-            this.util.preference = JSON.parse(file)
-            socket.send(JSON.stringify(d))
         }
     }
 
@@ -209,6 +207,53 @@ export class BackendEvent {
             fs.writeFileSync("server.json", JSON.stringify(this.setting, null, 2))
         }else{
             this.setting = JSON.parse(fs.readFileSync("server.json").toString());
+        }
+    }
+
+    GetUserType = (token?:string):UserProfileClient => {
+        if(!fs.existsSync('data/user')) fs.mkdirSync('data/user');
+        if(token != undefined){
+            const files = fs.readdirSync('data/user')
+            for(let i = 0; i < files.length; i++){
+                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+                if(p.token == token){
+                    return {
+                        picture_url: p.picture_url,
+                        name: p.name,
+                        type: p.type,
+                        description: p.description
+                    }
+                }
+            }
+        }
+        return {
+            name: "GUEST",
+            type: UserType.GUEST
+        }
+    }
+
+    ChangeProfile = (token:string | undefined, data:any) => {
+        if(token != undefined){
+            const files = fs.readdirSync('data/user')
+            for(let i = 0; i < files.length; i++){
+                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+                if(p.token == token){
+                    if(data.pic != undefined){
+                        p.picture_url = data.pic
+                    }
+                    if(data.name != undefined){
+                        p.name = data.name
+                    }
+                    if(data.description != undefined){
+                        p.description = data.description
+                    }
+                    fs.writeFileSync(path.join("data", "user", files[i]), JSON.stringify(p, null, 2))
+                    console.log("Update")
+                    break
+                }
+            }
+        }else{
+            console.log("token is null")
         }
     }
     //#endregion

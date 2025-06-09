@@ -18,16 +18,16 @@ export const checkifElectron = ():boolean => {
     return false;
 }
 
-const _checkIfExpress = async ():Promise<boolean> => {
-    const p = await fetch('express')
+const _checkIfExpress = async ():Promise<any> => {
+    const p = await fetch('user')
     const t = await p.text()
-    return t == '1' || t == 'true'
+    return t
 }
 
-export const checkIfExpress = (feedback:(e:boolean)=>void) => {
+export const checkIfExpress = (feedback:(e:any)=>void) => {
     _checkIfExpress().then(x => {
-        feedback(x)
+        feedback(JSON.parse(x))
     }).catch(err => {
-        feedback(false)
+        feedback(undefined)
     })
 }

@@ -4,7 +4,7 @@ This is a tool which can manage tasks on multiple computer
 
 For User
 
-[Demo](https://elly2018.github.io/Compute-Tool/)\
+[Demo](https://verteilen.github.io/.github/)\
 [Utility Tool](./util/README.md)
 
 For Dev
@@ -39,7 +39,7 @@ ctn
 
 ### Desktop App
 
-In [Release](https://github.com/Elly2018/Compute-Tool/releases) page, For windows user click .msi installation file, for linux user click .deb installation file
+In [Release](https://github.com/Verteilen/Verteilen/releases) page, For windows user click .msi installation file, for linux user click .deb installation file
 
 ### Docker Install
 
