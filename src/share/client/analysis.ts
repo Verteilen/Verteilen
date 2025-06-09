@@ -163,24 +163,29 @@ export class ClientAnalysis {
         let k = "" 
 
         const workerFeedbackExec = (str:string) => {
-            const msg:Header = JSON.parse(str)
-            if(msg.name == 'messager'){
-                this.messager(msg.data, "RESOURCE")
-            } 
-            else if(msg.name == 'messager_log'){
-                this.messager_log(msg.data, "RESOURCE")
-            }
-            else if(msg.name == 'resource'){
-                const h:Header = {
-                    name: 'system_info',
-                    data: msg.data
+            try{
+                const msg:Header = JSON.parse(str)
+                if(msg.name == 'messager'){
+                    this.messager(msg.data, "RESOURCE")
+                } 
+                else if(msg.name == 'messager_log'){
+                    this.messager_log(msg.data, "RESOURCE")
                 }
-                this.resource_cache = h
-                this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
-            } 
-            else if(msg.name == 'error'){
-                if(msg.data instanceof String) this.messager_log(msg.data.toString(), "RESOURCE")
-                else this.messager_log(JSON.stringify(msg.data), "RESOURCE")
+                else if(msg.name == 'resource'){
+                    const h:Header = {
+                        name: 'system_info',
+                        data: msg.data
+                    }
+                    this.resource_cache = h
+                    this.resource_wanter.forEach(x => x.send(JSON.stringify(h)))
+                } 
+                else if(msg.name == 'error'){
+                    if(msg.data instanceof String) this.messager_log(msg.data.toString(), "RESOURCE")
+                    else this.messager_log(JSON.stringify(msg.data), "RESOURCE")
+                }
+            }catch(err:any){
+                console.log("str: " + str)
+                console.log(err.name + "\n" + err.message)
             }
         }
         const workerFeedback = (str:string) => {
