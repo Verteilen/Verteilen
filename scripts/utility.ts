@@ -29,10 +29,10 @@ export async function Build_Server(){
     return compileTs(nodePath);
 }
 
-export async function PKG_Program(platform:string){
-    const exePath = Path.join(__dirname, '..', 'bin', 'worker.exe');
+export async function PKG_Program(platform:string, arch?:string){
+    const exePath = Path.join(__dirname, '..', 'bin', platform == "win" ? 'worker.exe' : 'worker');
     const programPath = Path.join(__dirname, '..', 'build', 'program', 'worker.js');
-    return pkg.exec(["-d", "-t", `node16${platform}-x64`, "-o", exePath, "--public-packages", "*", programPath])
+    return pkg.exec(["-d", "-t", `node16-${platform}-${arch || 'x64'}`, "-o", exePath, "--public-packages", "*", programPath])
 }
 
 export async function PKG_Node(){
@@ -81,19 +81,17 @@ export async function Copy_Render2Server_DEV() {
 }
 
 export async function Copy_Worker2Node(){
-    const exePath = Path.join(__dirname, '..', 'bin', 'worker.exe');
+    const exePath = Path.join(__dirname, '..', 'bin');
     const endProgramFolderPath = Path.join(__dirname, '..', 'build', 'node', 'bin');
-    const endProgramPath = Path.join(endProgramFolderPath, 'worker.exe');
     if(!existsSync(endProgramFolderPath)) mkdirSync(endProgramFolderPath)
-    return copyFile(exePath, endProgramPath)
+    return cp(exePath, endProgramFolderPath, { recursive: true })
 }
 
 export async function Copy_Worker2NodeBuild(){
-    const exePath = Path.join(__dirname, '..', 'bin', 'worker.exe');
+    const exePath = Path.join(__dirname, '..', 'bin');
     const endProgramFolderPath = Path.join(__dirname, '..', 'build', 'node-build', 'bin');
-    const endProgramPath = Path.join(endProgramFolderPath, 'worker.exe');
     if(!existsSync(endProgramFolderPath)) mkdirSync(endProgramFolderPath)
-    return copyFile(exePath, endProgramPath)
+    return cp(exePath, endProgramFolderPath, { recursive: true })
 }
 
 export function Clean_Node(){

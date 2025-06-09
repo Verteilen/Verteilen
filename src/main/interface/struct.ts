@@ -185,10 +185,18 @@ export interface PluginContent {
 export interface Plugin {
     name: string
     description: string
+    version?: string
     contents: Array<PluginContent>
 }
 
 export interface PluginList {
     plugins: Array<Plugin>
+}
+
+export interface PluginState {
+    name: string
+    url: string
+    installed: boolean
+    supported: boolean
 }
 

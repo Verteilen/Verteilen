@@ -2,12 +2,17 @@ const Chalk = require('chalk');
 import * as util from './utility';
 
 async function main(){
+    let docker = false
+    process.argv.forEach(element => {
+        if(element == "docker") docker = true
+    });
+
     util.Clean_Node()
 
     await util.Share_Call()
 
     await util.Build_Program()
-    await util.PKG_Program("")
+    await util.PKG_Program("linux")
     console.log(Chalk.greenBright('Program successfully transpiled!'));
 
     await util.Build_Node()

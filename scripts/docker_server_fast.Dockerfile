@@ -1,4 +1,7 @@
-FROM node:22.10-alpine
+FROM ubuntu:noble
+
+RUN apt update
+RUN apt -y install npm nodejs
 
 WORKDIR /app/
 COPY ./build/server .
