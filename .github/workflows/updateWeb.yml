@@ -30,7 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: Verteilen/Verteilen
+          repository: Verteilen/.github
           ref: main
           clean: false
       - name: Replace files
