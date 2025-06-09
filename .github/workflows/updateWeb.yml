@@ -30,7 +30,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: web-server
+          repository: Verteilen/Verteilen
+          ref: main
           clean: false
       - name: Replace files
         run: |
