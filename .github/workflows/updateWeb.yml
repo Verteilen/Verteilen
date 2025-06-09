@@ -28,6 +28,7 @@ jobs:
       - run: npm install
       - run: npm run build:web
       - run: ls -al
+      - run: cp -f ./build/renderer ~/renderer
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -37,8 +38,8 @@ jobs:
       - name: Replace files
         run: |
           ls -al
-          cp -f ./build/renderer/index.html ./index.html
-          cp -rf ./build/renderer/assets .
+          cp -f ~/renderer/index.html ./index.html
+          cp -rf ~/renderer/assets .
           ls -al
       - name: Commit changes
         run: |
