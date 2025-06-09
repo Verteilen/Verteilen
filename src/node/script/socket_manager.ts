@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, ShellFolder, Single, SystemLoad, WebsocketPack } from "../interface";
-import { WebSocket } from 'ws';
+const WebSock = global.WebSocket || global.MozWebSocket || require('ws');
 
 function isRenderer () {
   // running in a web browser

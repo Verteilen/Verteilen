@@ -1,4 +1,4 @@
-import { WebSocket } from "ws"
+const WebSock = global.WebSocket || global.MozWebSocket || require('ws');
 import { Project } from "./base"
 
 type ProjectCall = (p:Project) => Project
@@ -175,11 +175,17 @@ export interface TemplateGroup {
     template: ProjectCall
 }
 
-export interface Plugin {
-    name: string
+export interface PluginContent {
     filename: string
+    url: string
     platform: NodeJS.Platform
     arch: NodeJS.Architecture
+}
+
+export interface Plugin {
+    name: string
+    description: string
+    contents: Array<PluginContent>
 }
 
 export interface PluginList {

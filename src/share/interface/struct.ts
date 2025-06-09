@@ -1,4 +1,4 @@
-import { WebSocket } from "ws"
+const WebSock = global.WebSocket || global.MozWebSocket || require('ws');
 import { Project } from "./base"
 
 type ProjectCall = (p:Project) => Project
