@@ -1,4 +1,4 @@
-# Compute Tool
+# Verteilen
 
 This is a tool which can manage tasks on multiple computer
 
