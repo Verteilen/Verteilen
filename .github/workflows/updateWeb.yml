@@ -34,6 +34,7 @@ jobs:
         with:
           repository: Verteilen/.github
           ref: main
+          token: ${{ secrets.PAT }}
           clean: false
       - name: Replace files
         run: |
@@ -49,5 +50,4 @@ jobs:
           git commit -am "Automated update static website"
       - name: Push
         run: |
-          gh auth login --with-token || echo ${{ secrets.PAT }}
-          git push -u origin main
+          git push
