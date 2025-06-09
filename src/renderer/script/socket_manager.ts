@@ -129,7 +129,7 @@ export class WebsocketManager {
     private serverconnect = (url:string, uuid?:string) => {
         if(this.targets.findIndex(x => x.websocket.url.slice(0, -1) == url) != -1) return
         if(this.targets.findIndex(x => x.uuid == uuid) != -1) return
-        const client = new WebSocket(url)
+        const client = new WebSock(url)
         const t:WebsocketPack = { uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] }
         this.targets.push(t)
         client.onerror = (err:any) => {

@@ -1,4 +1,3 @@
-const WebSock = global.WebSocket || global.MozWebSocket || require('ws');
 import { Project } from "./base"
 
 type ProjectCall = (p:Project) => Project
@@ -9,7 +8,7 @@ type ProjectCall = (p:Project) => Project
 export interface WebsocketPack {
     s?:boolean
     uuid: string
-    websocket: WebSocket
+    websocket: any
     current_job: Array<string>
     information?: SystemLoad
     load?: NodeLoad
