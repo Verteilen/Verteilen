@@ -70,7 +70,7 @@ function createWindow () {
 
 export function RUN(){
     app.whenReady().then(() => {
-        globalShortcut.register('Alt+CommandOrControl+I', () => {
+        globalShortcut.register('Shift+CommandOrControl+I', () => {
             mainWindow?.webContents.openDevTools();
         })
     }).then(() => {

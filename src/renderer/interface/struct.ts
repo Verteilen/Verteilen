@@ -1,4 +1,5 @@
 import { Project } from "./base"
+import ws from 'ws'
 
 type ProjectCall = (p:Project) => Project
 
@@ -8,7 +9,7 @@ type ProjectCall = (p:Project) => Project
 export interface WebsocketPack {
     s?:boolean
     uuid: string
-    websocket: any
+    websocket: WebSocket | ws.WebSocket
     current_job: Array<string>
     information?: SystemLoad
     load?: NodeLoad
