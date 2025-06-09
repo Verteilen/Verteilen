@@ -385,6 +385,7 @@ const dataset_init = () => {
   props.backend.eventOn('createProject', menuCreateProject)
   props.backend.eventOn('menu_export_project', menu_export_project)
   props.backend.eventOn('import_project_feedback', import_project_feedback)
+  if(!props.backend.config.haveBackend) return
   props.backend.send('client_start');
   const p0 = props.backend.invoke('console_list').then((xs:Array<any>) => {
     data.value.execute_manager = xs.map(x => ({ record: x }))
