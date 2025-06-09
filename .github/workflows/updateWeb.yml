@@ -50,5 +50,5 @@ jobs:
       - name: Push
         run: |
           git remote remove origin
-          git remote set-url origin https://{{ secrets.PAT }}@github.com/Verteilen/.github.git
+          git remote add origin https://{{ secrets.PAT }}@github.com/Verteilen/.github.git
           git push
