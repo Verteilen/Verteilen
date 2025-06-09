@@ -51,4 +51,4 @@ jobs:
         run: |
           git remote remove origin
           git remote add origin https://${{ secrets.PAT }}@github.com/Verteilen/.github.git
-          git push
+          git push --set-upstream origin main
