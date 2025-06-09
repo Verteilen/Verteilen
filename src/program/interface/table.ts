@@ -5,6 +5,7 @@ export interface NodeTable extends Node {
     s?: boolean
     state: number
     connection_rate?: number
+    plugins?: Array<string>
     system?: SystemLoad
 }
 

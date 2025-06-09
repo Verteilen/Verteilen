@@ -6,7 +6,10 @@
     "repository": "https://github.com/Elly2018/Compute-Tool",
     "dependencies": {
         "multer": "^2.0.1",
+        "cookie-parser": "^1.4.7",
         "@types/body-parser": "^1.19.6",
+        "expressionparser": "^1.1.5",
+        "browser-or-node": "^3.0.0",
         "chalk": "^4.1.2",
         "express": "^4.21.2",
         "tcp-port-used": "^1.0.2",
