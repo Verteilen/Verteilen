@@ -20,8 +20,10 @@
     "build:linux": "ts-node scripts/program_build.ts linux && electron-builder --linux",
     "docker:node": "scripts/docker_node.sh",
     "docker:node-f": "scripts/docker_node.sh --fast",
+    "docker:node-p": "scripts/docker_node.sh --publish",
     "docker:server": "scripts/docker_server.sh",
     "docker:server-f": "scripts/docker_server.sh --fast",
+    "docker:server-p": "scripts/docker_server.sh --publish",
     "publish:node-pkg": "cd build/node-build && npm publish",
     "pkg": "ts-node scripts/program_build.ts",
     "test": "jest"

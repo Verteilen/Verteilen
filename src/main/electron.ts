@@ -52,7 +52,7 @@ function createWindow () {
     mainWindow.on('focus', () => {
         mainWindow?.webContents.setBackgroundThrottling(false)
         setTimeout(() => {
-            mainWindow?.setTitle(`Compute Tool ${process.env.NODE_ENV === 'development' ? process.env.npm_package_version : app.getVersion()}`)    
+            mainWindow?.setTitle(`Verteilen ${process.env.NODE_ENV === 'development' ? process.env.npm_package_version : app.getVersion()}`)    
         }, 1000);
     })
 
