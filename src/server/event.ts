@@ -139,6 +139,16 @@ export class BackendEvent {
 
         return port_result
     }
+
+    Boradcasting = (name:string, data:any) => {
+        const d:Header = {
+            name: name,
+            data: data
+        }
+        this.manager.forEach(x => {
+            x.ws.send(JSON.stringify(d))
+        })
+    }
     //#endregion
 
     //#region Server

@@ -72,14 +72,14 @@ watch(() => data.value.page, () => {
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
 
-//#region Project
+// #region Project
 const addProject = (v:Array<Project>) => util.project.addProject(v)
 const editProject = (id:string, v:Project) => util.project.editProject(id, v)
 const deleteProject = (uuids:Array<string>, bind:boolean) => util.project.deleteProject(uuids, bind)
 const chooseProject = (uuid:string) => util.project.chooseProject(uuid)
 const moveupProject = (uuid:string) => util.project.moveupProject(uuid)
 const movedownProject = (uuid:string) => util.project.movedownProject(uuid)
-//#endregion
+// #endregion
 
 //#region Task
 const addTask = (v:Array<Task>) => util.task.addTask(v)

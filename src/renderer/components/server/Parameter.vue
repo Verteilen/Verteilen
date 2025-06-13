@@ -105,9 +105,15 @@ const importPara = () => {
     window.electronAPI.send("import_parameter")
 }
 
-const exportPara = () => {
-    if(!props.config.isElectron) return
-    window.electronAPI.send("export_parameter", JSON.stringify(data.value.buffer))
+const exportPara = async () => {
+    if(props.config.isElectron) {
+        window.electronAPI.send("export_parameter", JSON.stringify(data.value.buffer))
+    }else if(props.config.isExpress){
+        const handle = await window.showSaveFilePicker({ suggestedName: data.value.buffer.uuid + '.json' });
+        const writer = await handle.createWritable();
+        await writer.write(new Blob([JSON.stringify(JSON.stringify(data.value.buffer), null, 2)]))
+        await writer.close()
+    }
 }
 
 const confirmCreateSet = () => {

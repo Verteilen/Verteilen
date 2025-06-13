@@ -59,11 +59,17 @@ const dataimport = () => {
     data.value.importModal = true
 }
 
-const dataexport = (uuid:string) => {
+const dataexport = async (uuid:string) => {
     const p = props.projects.find(x => x.uuid == uuid)
     if(p == undefined) return
-    if(!props.config.isElectron) return
-    window.electronAPI.send('export_project', JSON.stringify(p))
+    if(props.config.isElectron){
+        window.electronAPI.send('export_project', JSON.stringify(p))
+    }else if(props.config.isExpress){
+        const handle = await window.showSaveFilePicker({ suggestedName: p.uuid + '.json' });
+        const writer = await handle.createWritable();
+        await writer.write(new Blob([JSON.stringify(p, null, 2)]))
+        await writer.close()
+    }
 }
 
 const deleteSelect = () => {
@@ -141,22 +147,23 @@ const confirmEdit = () => {
     })
 }
 
-const ImportConfirm = () => {
+const ImportConfirm = async () => {
     data.value.importModal = false
-    if(!props.config.isElectron) return
-    Promise.all(data.value.importData.map(x => x.text())).then(texts => {
-        const a = texts.map(x => {
-            try {
-                const buffer:Project = JSON.parse(x)
-                buffer.uuid = uuidv6()
-                return buffer
-            }catch(err){
-                console.error("Convert text to project json format error")
-                return undefined
-            }
-        }).filter(x => x != undefined)
-        emits('added', a)
-    })
+    if(props.config.haveBackend) {
+        Promise.all(data.value.importData.map(x => x.text())).then(texts => {
+            const a = texts.map(x => {
+                try {
+                    const buffer:Project = JSON.parse(x)
+                    buffer.uuid = uuidv6()
+                    return buffer
+                }catch(err){
+                    console.error("Convert text to project json format error")
+                    return undefined
+                }
+            }).filter(x => x != undefined)
+            emits('added', a)
+        })
+    }
 }
 
 const moveup = (uuid:string) => {

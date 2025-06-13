@@ -40,6 +40,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/multer": "^1.4.13",
     "@types/tcp-port-used": "^1.0.4",
+    "@types/wicg-file-system-access": "^2023.10.6",
     "@types/ws": "^8.5.14",
     "@vitejs/plugin-vue": "^4.4.1",
     "@vue/compiler-sfc": "^3.5.13",

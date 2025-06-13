@@ -9,6 +9,7 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "types": ["@types/wicg-file-system-access"],
     "lib": ["esnext", "dom"]
   },
   "include": ["./**/*.ts", "./**/*.d.ts", "./**/*.tsx", "./**/*.vue", "./**/*.json", "components/components/code/Linter.js"],
