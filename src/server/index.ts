@@ -8,6 +8,7 @@ import path from 'path'
 import multer from 'multer'
 import bodyPreser from 'body-parser'
 import * as fs from 'fs'
+import { ExportParameter, ImportParameter } from './util/io'
 
 let wsServer: ws.Server | undefined = undefined
 let app:express.Express | undefined = undefined
@@ -62,12 +63,36 @@ webport.then(p => {
         }
     })
     // Import project
-    app.post('/project_import', (req, res) => {
+    app.post('/export_projects', upload.array('value'), (req, res) => {
+        if(req.files == undefined){
+            res.sendStatus(204)
+        }else{
+
+        }
+    })
+    app.post('/import_project', upload.single('value'), (req, res) => {
+        if(req.file == undefined){
+            res.sendStatus(204)
+        }else{
+
+        }
+    })
+    app.post('/export_project', (req, res) => {
 
     })
-    app.post('/lua_import', (req, res) => {
-
+    app.post('/import_parameter', upload.single('value'), (req, res) => {
+        if(req.file == undefined){
+            res.sendStatus(204)
+        }else{
+            const result = ImportParameter(req.file.buffer.toString())
+            res.sendStatus(result ? 200 : 500)
+        }
     })
+    app.post('/export_parameter', (req, res) => {
+        const url = ExportParameter(JSON.parse(req.body))
+        res.sendStatus(200).send(url)
+    })
+    app.post('/')
     app.listen(p, () => {
         console.log(Chalk.greenBright(`server run at ${p}`))
     })

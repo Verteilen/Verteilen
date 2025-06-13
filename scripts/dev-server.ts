@@ -6,7 +6,6 @@ import Chokidar from 'chokidar';
 import * as FileSystem from 'fs';
 import { EOL } from 'os';
 import Path from 'path';
-import { cp } from 'fs/promises';
 import Vite from 'vite';
 import compileTs from './private/tsc';
 import * as util from './utility';

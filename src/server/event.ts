@@ -3,10 +3,8 @@ import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, GlobalPermission, Header, Job, Libraries, LocalPermiision, NodeProxy, Parameter, Preference, Project, Record, ServerSetting, ShellFolder, Single, Task, UserProfile, UserProfileClient, UserType, WebsocketPack } from "./interface";
-import { i18n } from "./plugins/i18n";
+import { GlobalPermission, Header, Libraries, LocalPermiision, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
 import { ConsoleServerManager } from "./script/console_server_manager";
-import { WebsocketManager } from "./script/socket_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
 import { v6 as uuidv6 } from 'uuid'
@@ -141,22 +139,7 @@ export class BackendEvent {
 
         return port_result
     }
-
-    Boradcasting = (name:string, data:any) => {
-        const d:Header = {
-            name: name,
-            data: data
-        }
-        this.manager.forEach(x => {
-            x.ws.send(JSON.stringify(d))
-        })
-    }
     //#endregion
-
-    console_add = (data:any, socket:ws.WebSocket) => {
-        const n:string = data.name
-        const r:Record = data.record
-    }
 
     //#region Server
     Root = () => {
