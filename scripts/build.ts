@@ -1,5 +1,5 @@
 import Chalk from 'chalk';
-import { readdirSync, rmSync } from 'fs';
+import { rmSync } from 'fs';
 import { cp, readdir } from 'fs/promises';
 import Path from 'path';
 import Vite from 'vite';
