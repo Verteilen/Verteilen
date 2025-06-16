@@ -124,7 +124,8 @@
         "client": "客戶端",
         "setting": "設定",
         "role": "權限組",
-        "service": "服務"
+        "service": "服務",
+        "plugin": "插件"
     },
     "tooltip": {
         "select-server": "作為伺服器下指令的一方",

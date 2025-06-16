@@ -71,7 +71,6 @@ const clearMessage = () => {
 }
 
 const popSetting = () => { emitter?.emit('setting') }
-const popGuide = () => { emitter?.emit('guide') }
 
 onMounted(() => {
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
@@ -103,7 +102,6 @@ onUnmounted(() => {
               </template>
               <v-list width="120px">
               <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
-              <v-list-item @click="popGuide">{{ $t('guide') }}</v-list-item>
               </v-list>
           </v-menu>
           </template>

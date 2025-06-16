@@ -124,7 +124,8 @@
         "client": "Self",
         "setting": "Setting",
         "role": "Role",
-        "service": "Service"
+        "service": "Service",
+        "plugin": "Plugin"
     },
     "tooltip": {
         "select-server": "The one who send the command to client",

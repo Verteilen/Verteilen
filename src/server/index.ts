@@ -62,22 +62,6 @@ webport.then(p => {
             res.sendStatus(200)
         }
     })
-    // Import project
-    app.post('/import_project', upload.single('value'), (req, res) => {
-        if(req.file == undefined){
-            res.sendStatus(204)
-        }else{
-
-        }
-    })
-    app.post('/import_parameter', upload.single('value'), (req, res) => {
-        if(req.file == undefined){
-            res.sendStatus(204)
-        }else{
-            const result = ImportParameter(req.file.buffer.toString())
-            res.sendStatus(result ? 200 : 500)
-        }
-    })
     app.post('/')
     app.listen(p, () => {
         console.log(Chalk.greenBright(`server run at ${p}`))

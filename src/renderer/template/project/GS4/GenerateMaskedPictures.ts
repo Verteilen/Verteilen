@@ -10,7 +10,7 @@ export const CallMask = ():Task => {
         category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
         script: "",
-        string_args: ["%root%/%mask%"],
+        string_args: ["%root%/%prepare%/%%mask%"],
         number_args: [],
         boolean_args: []
     }
@@ -19,7 +19,7 @@ export const CallMask = ():Task => {
         category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
         script: "",
-        string_args: ["%root%/%CAM%"],
+        string_args: ["%root%/%prepare%/%CAM%"],
         number_args: [],
         boolean_args: []
     }
@@ -28,14 +28,14 @@ export const CallMask = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         script: "",
-        string_args: ["%mask_env_folder%", "python", "BiRefNet.py -i %root%/%unmask% -o %root%/%mask%"],
+        string_args: ["%mask_env_folder%", "python", "BiRefNet.py -i %root%/%prepare%/%unmask% -o %root%/%prepare%/%mask%"],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
         title: "Masking",
-        description: "Prepare PN Dataset",
+        description: "Prepare the folder",
         setupjob: false,
         cronjob: false,
         cronjobKey: "",
@@ -59,7 +59,7 @@ export const MaskFFmpeg = ():Task => {
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         script: "",
-        string_args: ["%mask_env_folder%", "ffmpeg", "-i %root%/%unmask%/%ck% -i %root%/%mask%/%ck% -filter_complex \"blend=all_mode=multiply\" %root%/%CAM%/%ck%.png"],
+        string_args: ["%mask_env_folder%", "ffmpeg", "-i %root%/%prepare%/%unmask%/%ck% -i %root%/%prepare%/%mask%/%ck% -filter_complex \"blend=all_mode=multiply\" %root%/%prepare%/%CAM%/%ck%.png"],
         number_args: [],
         boolean_args: []
     }

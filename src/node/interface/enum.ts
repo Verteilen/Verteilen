@@ -26,6 +26,12 @@ export enum ResourceType {
     NETWORK = 1 << 8,
 }
 
+export enum FrontendUpdate {
+    ALL = ~(~0 << 10),
+    PROJECT = 1 << 0,
+    PARAMETER = 1 << 1,
+}
+
 export enum JobCategory {
     Condition,
     Execution
