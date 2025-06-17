@@ -37,8 +37,13 @@ export interface DialogDATA {
 }
 
 export interface DialogDATACreate extends DialogDATA{
-    createData: ParameterContainer
+    targetData: ParameterContainer
     options: Array<OPTION>
+}
+
+export interface DialogDATACreateSet extends DialogDATA {
+    targetData: EDIT
+    temps: Array<Temp>
 }
 
 export interface DATA {

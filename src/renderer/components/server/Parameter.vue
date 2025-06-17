@@ -7,6 +7,7 @@ import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Parameter } from '../../util/parameter';
 import DialogBase from '../dialog/DialogBase.vue'
 import ParameterDialog from '../dialog/ParameterDialog.vue'
+import ParameterSetDialog from '../dialog/ParameterSetDialog.vue'
 import { v6 as uuidv6 } from 'uuid'
 
 interface PROPS {
@@ -139,15 +140,18 @@ const confirmEditSet = () => {
 }
 
 const deleteSelect = () => {
+    data.value.errorMessage = ""
     data.value.deleteModal = true
 }
 
 const deleteConfirm = () => {
+    data.value.errorMessage = ""
     data.value.deleteModal = false
     emits('delete', data.value.buffer.uuid)
 }
 
 const cloneSelect = () => {
+    data.value.errorMessage = ""
     data.value.cloneModal = true
     data.value.cloneName = props.select?.title + " Clone"
 }
@@ -189,6 +193,7 @@ const paraSelect = () => { data.value.selectModal = true }
 
 const paraCreate = () => {
     data.value.createParameterModal = true
+    data.value.editMode = false
     data.value.editData.name = ''
 }
 
@@ -353,11 +358,20 @@ onUnmounted(() => {
             :is-edit="data.editMode"
             :error-message="data.errorMessage"
             :title-error="data.titleError"
-            :create-data="data.createData"
+            :target-data="data.createData"
             :options="data.options"
             @confirm-create="confirmCreate"
             @confirm-edit="confirmEdit">
         </ParameterDialog>
+        <ParameterSetDialog width="500" v-model="data.createParameterModal"
+            :is-edit="data.editMode"
+            :error-message="data.errorMessage"
+            :title-error="data.titleError"
+            :target-data="data.editData"
+            :temps="data.temps"
+            @confirm-create="confirmCreateSet"
+            @confirm-edit="confirmEditSet">
+        </ParameterSetDialog>
         <DialogBase width="500" v-model="data.cloneModal">
             <template #title>
                 <v-icon>mdi-content-paste</v-icon>
@@ -369,31 +383,6 @@ onUnmounted(() => {
             </template>
             <template #action>
                 <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="cloneSelectConfirm">{{ $t('create') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase width="500" v-model="data.createParameterModal">
-            <template #title v-if="!data.editMode">
-                <v-icon>mdi-hammer</v-icon>
-                {{ $t('modal.new-parameter-set') }}
-            </template>
-            <template #title v-else>
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.edit-parameter-set') }}
-            </template>
-            <template #text>
-                <v-text-field :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
-                <v-btn class="mt-3 w-100" color="primary" variant="outlined" @click="openSelectTemp">
-                    <span v-if="temp_name">
-                        {{ temp_name }}
-                    </span>
-                    <span v-else>
-                        {{ $t('useTemplate') }}
-                    </span>
-                </v-btn>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreateSet">{{ $t('create') }}</v-btn>
-                <v-btn class="mt-3" color="primary" v-else @click="confirmEditSet">{{ $t('modify') }}</v-btn>
             </template>
         </DialogBase>
         <v-dialog width="500" v-model="data.selectModal" class="text-white">
