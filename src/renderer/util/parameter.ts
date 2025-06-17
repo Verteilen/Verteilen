@@ -6,9 +6,17 @@ import { i18n } from "../plugins/i18n";
 type getparameters = () => Array<Parameter>
 type getparameter = () => Parameter | undefined
 
+export interface Temp {
+    text: string
+    group: string
+    value: number
+}
+
 export interface EDIT {
     name: string
     type: number
+    useTemp: boolean
+    temp: number | null
 }
 
 export interface FILTER {
@@ -22,18 +30,19 @@ export interface OPTION {
     value:number
 }
 
-export interface CreateField {
-    title: string
-}
-
 export interface DialogDATA {
     isEdit: boolean
-    editData: CreateField
     errorMessage: string
     titleError: boolean
 }
 
+export interface DialogDATACreate extends DialogDATA{
+    createData: ParameterContainer
+    options: Array<OPTION>
+}
+
 export interface DATA {
+    selectTempModel: boolean
     cloneModal: boolean
     cloneName: string
     objectModal: boolean
@@ -54,6 +63,7 @@ export interface DATA {
     buffer: Parameter
     errorMessage: string
     titleError: boolean
+    temps: Array<Temp>
     search: string | undefined
     search_para: string | undefined
 }

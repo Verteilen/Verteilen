@@ -6,6 +6,7 @@ import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContain
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Parameter } from '../../util/parameter';
 import DialogBase from '../dialog/DialogBase.vue'
+import ParameterDialog from '../dialog/ParameterDialog.vue'
 import { v6 as uuidv6 } from 'uuid'
 
 interface PROPS {
@@ -35,6 +36,7 @@ const fields:Ref<Array<any>> = ref([
 ])
 
 const data:Ref<DATA> = ref({
+    selectTempModel: false,
     cloneModal: false,
     cloneName: "",
     objectModal: false,
@@ -47,7 +49,7 @@ const data:Ref<DATA> = ref({
     filterModal: false,
     deleteModal: false,
     createData: { name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number },
-    editData: { name: '', type: 0 },
+    editData: { name: '', type: 0, useTemp: false, temp: null },
     filter: { showhidden: false, showruntime: false, type: -1 },
     buffer_filter: { showhidden: false, showruntime: false, type: -1 },
     options: [],
@@ -56,7 +58,8 @@ const data:Ref<DATA> = ref({
     errorMessage: '',
     titleError: false,
     search: '',
-    search_para: ''
+    search_para: '',
+    temps: []
 })
 
 const util:Util_Parameter = new Util_Parameter(data, () => props.parameters, () => props.select)
@@ -78,8 +81,9 @@ const items_final = computed(() => data.value.buffer.containers
         return data.value.filter.type == x.type
     })
 )
-const only_options = computed(() => {
-    return data.value.options.filter(x => x.title != "All")
+const temp_name = computed(() => {
+    if(data.value.editData.temp == undefined) return ''
+    return data.value.temps.find(x => x.value == data.value.editData.temp)?.text
 })
 
 const updateParameter = () => util.updateParameter()
@@ -94,6 +98,10 @@ const confirmCreate = () => util.confirmCreate()
 const confirmEdit = () => util.confirmEdit()
 const setdirty = () => data.value.dirty = true
 const filterOpen = () => util.filterOpen()
+
+const openSelectTemp = () => {
+    data.value.selectTempModel = true
+}
 
 const selectSearchF = computed(() => {
     if(data.value.selectSearch == undefined || data.value.selectSearch.length == 0) return props.parameters
@@ -319,7 +327,7 @@ onUnmounted(() => {
                     <v-btn variant="text" icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
-                    <v-btn variant="text" icon :disabled="isLast(item.name)" @click="deleteitem(item.name)" size="small">
+                    <v-btn variant="text" icon @click="deleteitem(item.name)" size="small">
                         <v-icon>mdi-delete</v-icon>
                     </v-btn>
                 </template>
@@ -341,27 +349,15 @@ onUnmounted(() => {
                 </template>
             </v-data-table>
         </div>
-        <DialogBase width="500" v-model="data.createModal">
-            <template #title v-if="!data.editMode">
-                <v-icon>mdi-hammer</v-icon>
-                {{ $t('modal.new-parameter') }}
-            </template>
-            <template #title v-else>
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.edit-parameter') }}
-            </template>
-            <template #text>
-                <v-text-field :error="data.titleError" v-model="data.createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-                <v-select class="mt-3" v-model="data.createData.type" :items="only_options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
-                <v-checkbox :label="$t('filter.show-hidden')" v-model="data.createData.hidden" hide-details></v-checkbox>
-                <v-checkbox :label="$t('filter.show-runtime')" v-model="data.createData.runtimeOnly" hide-details></v-checkbox>
-                <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreate">{{ $t('create') }}</v-btn>
-                <v-btn class="mt-3" color="primary" v-else @click="confirmEdit">{{ $t('modify') }}</v-btn>
-            </template>
-        </DialogBase>
+        <ParameterDialog width="500" v-model="data.createModal"
+            :is-edit="data.editMode"
+            :error-message="data.errorMessage"
+            :title-error="data.titleError"
+            :create-data="data.createData"
+            :options="data.options"
+            @confirm-create="confirmCreate"
+            @confirm-edit="confirmEdit">
+        </ParameterDialog>
         <DialogBase width="500" v-model="data.cloneModal">
             <template #title>
                 <v-icon>mdi-content-paste</v-icon>
@@ -386,6 +382,14 @@ onUnmounted(() => {
             </template>
             <template #text>
                 <v-text-field :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
+                <v-btn class="mt-3 w-100" color="primary" variant="outlined" @click="openSelectTemp">
+                    <span v-if="temp_name">
+                        {{ temp_name }}
+                    </span>
+                    <span v-else>
+                        {{ $t('useTemplate') }}
+                    </span>
+                </v-btn>
             </template>
             <template #action>
                 <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreateSet">{{ $t('create') }}</v-btn>
