@@ -12,6 +12,7 @@
     "build": "ts-node scripts/build.ts && electron-builder",
     "build:web": "ts-node scripts/build.ts",
     "build:node": "ts-node scripts/node_builder.ts",
+    "build:node-p": "ts-node scripts/node_builder.ts package",
     "build:node-d": "ts-node scripts/node_builder.ts docker",
     "build:server": "ts-node scripts/server_builder.ts",
     "build:dir": "ts-node scripts/program_build.ts && electron-builder --dir",
