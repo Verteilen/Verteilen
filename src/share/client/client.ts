@@ -129,7 +129,7 @@ export class Client {
             p = 3
         }
         else{ // Node un-build
-            workerExe = Client.isTypescript() ? path.join(__dirname, "bin", exe) : path.join(process.cwd(), "bin", exe)
+            workerExe = Client.isTypescript() ? path.join(__dirname, "bin", exe) : path.join(__dirname, "..", "bin", exe)
             p = 4
         }
         return workerExe
