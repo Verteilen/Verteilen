@@ -1,6 +1,7 @@
+#!/usr/bin/env node
 import { Client } from './client/client';
 import { Header, Single } from './interface';
-import { checker } from './worker_download';
+import { checker } from './utility/worker_download';
 
 let client:Client | undefined = undefined
 

@@ -1,6 +1,6 @@
 {
   "name": "verteilen",
-  "version": "0.8.1",
+  "version": "0.8.3",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
@@ -81,6 +81,7 @@
     "marked": "^15.0.11",
     "mitt": "^3.0.1",
     "multer": "^2.0.1",
+    "nodejs-file-downloader": "^4.13.0",
     "pkg": "^5.8.1",
     "progress": "^2.0.3",
     "systeminformation": "^5.25.11",

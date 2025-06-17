@@ -1,12 +1,18 @@
 {
     "name": "verteilen_node",
-    "version": "0.8.0",
+    "version": "0.8.3",
+    "bin": {
+        "verteilen_node": "./index.js"
+    },
     "description": "Compute tool for multi computer",
     "main": "index.js",
     "repository": "https://github.com/Elly2018/Compute-Tool",
     "dependencies": {
         "tcp-port-used": "^1.0.2",
         "ws": "^8.18.0",
-        "vue-i18n": "^10.0.5"
+        "vue-i18n": "^10.0.5",
+        "progress": "^2.0.3",
+        "byte-size": "^9.0.1",
+        "nodejs-file-downloader": "^4.13.0"
     }
 }
