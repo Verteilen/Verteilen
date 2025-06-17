@@ -1,7 +1,8 @@
-import { Project } from "./base"
+import { ParameterContainer, Project } from "./base"
 import ws from 'ws'
 
 type ProjectCall = (p:Project) => Project
+type ParameterCall = () => Array<ParameterContainer>
 
 /**
  * The websocket instance with extra information
@@ -175,6 +176,12 @@ export interface TemplateGroup {
     template: ProjectCall
 }
 
+export interface TemplateGroup2 {
+    value: number
+    group: string
+    template: ParameterCall
+}
+
 export interface PluginContent {
     filename: string
     url: string
@@ -200,3 +207,8 @@ export interface PluginState {
     supported: boolean
 }
 
+export interface PluginPageData {
+    plugins: Array<Plugin>
+    project: Array<TemplateGroup>
+    parameter: Array<TemplateGroup2>
+}

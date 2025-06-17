@@ -1,6 +1,6 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { BusType, ClientLog, ExecutePair, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, Project, RenderUpdateType, Task } from "../../interface";
+import { BusType, ClientLog, ExecutePair, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, PluginPageData, Project, RenderUpdateType, Task } from "../../interface";
 import { BackendProxy } from "../../proxy";
 import { WebsocketManager } from "../../script/socket_manager";
 import { Util_Server_Console } from "./console_handle";
@@ -33,6 +33,7 @@ export interface DATA {
     selectParameter: Parameter | undefined
     nodes: Array<NodeTable>
     messages: Array<ClientLog>
+    plugin: PluginPageData
 }
 
 export class Util_Server {
