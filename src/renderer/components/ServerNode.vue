@@ -660,7 +660,7 @@ onUnmounted(() => {
           <ServicePage />
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.haveBackend" :value="11">
-          <PluginPage />
+          <PluginPage :plugin="data.plugin" />
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="100">
           <ProfilePage :backend="props.backend" />
