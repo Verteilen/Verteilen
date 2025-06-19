@@ -1,8 +1,8 @@
 import { v6 as uuidv6 } from 'uuid';
 import { AppConfig, Ref } from "vue";
-import { Parameter, Project, ProjectTable, ProjectTemplate, TemplateGroup } from "../interface";
+import { Parameter, Project, ProjectTable } from "../interface";
 import { i18n } from '../plugins/i18n';
-import { ProjectTempGroup } from '../template/projectTemplate';
+import { BuildIn_ProjectTempGroup } from '../template/projectTemplate';
 
 type getproject = () => Array<Project>
 type getparameters = () => Array<Parameter>
@@ -55,8 +55,8 @@ export interface DialogDATA {
     temps:Array<Temp>
 }
 
-export const ValueToGroupName = (v:number) => ProjectTempGroup.find(x => x.value == v)?.group
-export const IndexToValue = (v:number) => ProjectTempGroup[v].value
+export const ValueToGroupName = (v:number) => BuildIn_ProjectTempGroup.find(x => x.value == v)?.group
+export const IndexToValue = (v:number) => BuildIn_ProjectTempGroup[v].value
 
 export class Util_Project {
     getproject:getproject
@@ -133,7 +133,7 @@ export class Util_Project {
         }
         if (this.data.value.editData.useTemp){
             const index = this.data.value.editData.temp
-            const p = ProjectTempGroup.find(x => x.value == index)
+            const p = BuildIn_ProjectTempGroup.find(x => x.value == index)
             if(p != undefined) {
                 buffer = JSON.parse(JSON.stringify(p.template(buffer)))
             }

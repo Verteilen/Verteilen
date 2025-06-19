@@ -176,15 +176,6 @@
         },
         "project": {
             "default": "範例",
-            "gs4-full": "睿智 GS4 完整",
-            "gs4-prepare": "睿智 GS4 準備階段",
-            "gs4-colmap": "睿智 GS4 Colmap",
-            "gs4-iframe": "睿智 GS4 I-Frame",
-            "gs4-blend-prepare": "睿智 GS4 Blend 準備階段",
-            "gs4-blend": "睿智 GS4 Blend 運算",
-            "gs4-output": "睿智 GS4 輸出 Ply",
-            "gs4-lut": "睿智 GS4 套用 Lut",
-            "gs4-mask": "Funique GS4 去背",
             "concat": "FFmpeg 合成影片",
             "blender": "Blender 渲染",
             "aftereffect": "After Effect 渲染"

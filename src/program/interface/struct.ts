@@ -192,6 +192,7 @@ export interface PluginContent {
 export interface Plugin {
     name: string
     description: string
+    
     version?: string
     contents: Array<PluginContent>
 }
@@ -211,4 +212,19 @@ export interface PluginPageData {
     plugins: Array<Plugin>
     project: Array<TemplateGroup>
     parameter: Array<TemplateGroup2>
+}
+
+export interface TemplateDataProject {
+    title: string
+    group: string
+}
+
+export interface TemplateDataParameter {
+    title: string
+    group: string
+}
+
+export interface TemplateData {
+    projects: Array<TemplateDataProject>
+    parameters: Array<TemplateDataParameter>
 }

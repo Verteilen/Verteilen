@@ -2,6 +2,7 @@ import { v6 as uuid6 } from 'uuid';
 import { Ref } from "vue";
 import { DataType, Parameter, ParameterContainer } from "../interface";
 import { i18n } from "../plugins/i18n";
+import { BuildIn_ParameterTempGroup } from '../template/projectTemplate';
 
 type getparameters = () => Array<Parameter>
 type getparameter = () => Parameter | undefined

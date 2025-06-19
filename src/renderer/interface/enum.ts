@@ -65,17 +65,6 @@ export enum JobType2 {
 
 export enum ProjectTemplate {
     DEFAULT = 0,
-
-    GS4_FULL = 100,
-    GS4_PREPARE = 101,
-    GS4_COLMAP = 102,
-    GS4_IFRAME = 103,
-    GS4_BLEND_PREPARE = 104,
-    GS4_BLEND = 105,
-    GS4_OUTPUT = 106,
-    GS4_LUT = 107,
-    GS4_MASK = 108,
-
     FFmpeg_Concat = 200,
     Blender = 300,
     AfterEffect = 400,
@@ -156,15 +145,6 @@ export const JobType2Text: { [key:number]:string } = {
 
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
-    100: 'enum.project.gs4-full',
-    101: 'enum.project.gs4-prepare',
-    102: 'enum.project.gs4-colmap',
-    103: 'enum.project.gs4-iframe',
-    104: 'enum.project.gs4-blend-prepare',
-    105: 'enum.project.gs4-blend',
-    106: 'enum.project.gs4-output',
-    107: 'enum.project.gs4-lut',
-    108: 'enum.project.gs4-mask',
     200: 'enum.project.concat',
     300: 'enum.project.blender',
     400: 'enum.project.aftereffect',
