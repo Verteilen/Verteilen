@@ -235,6 +235,8 @@
     "job": "工作",
     "parameter": "參數",
     "create": "新增",
+    "import-template": "匯入樣板",
+    "import-plugin": "匯入插件",
     "clone": "克隆",
     "delete": "刪除",
     "save": "存檔",
@@ -281,5 +283,7 @@
     "enter": "進入",
     "filters": "篩選",
     "setting": "設定",
-    "guide": "指南"
+    "guide": "指南",
+    "plugin": "插件",
+    "template": "樣板"
 }

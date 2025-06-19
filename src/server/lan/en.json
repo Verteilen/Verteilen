@@ -235,6 +235,8 @@
     "job": "JOB",
     "parameter": "Parameter",
     "create": "Create",
+    "import-template": "Import Template",
+    "import-plugin": "Import Plugin",
     "clone": "Clone",
     "delete": "Delete",
     "save": "Save",
@@ -281,5 +283,7 @@
     "enter": "Enter",
     "filters": "Filters",
     "setting": "Setting",
-    "guide": "Guide"
+    "guide": "Guide",
+    "plugin": "Plugin",
+    "template": "Template"
 }
