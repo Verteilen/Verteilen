@@ -56,7 +56,7 @@ const data:Ref<DATA> = ref({
     selectParameter: undefined,
     nodes: [],
     messages: [],
-    plugin: { plugins: [], project: [], parameter: [] }
+    plugin: { plugins: [], templates: [] }
 })
 
 const util:Util_Server = new Util_Server(data, () => props.backend, emitter!)
@@ -256,6 +256,17 @@ const msgAppend = (d:Array<string | undefined>) => util.self.msgAppend(d)
 const msgClean = () => util.self.clearMessage()
 //#endregion
 
+//#region Plugin
+const pluginAdded = (name:string, url:string, token?:string) => {
+  props.backend.invoke("import_plugin", name, url, token).then(x => {
+    data.value.plugin = JSON.parse(x)
+  })
+}
+const templateAdded = (name:string, url:string, token?:string) => {
+  props.backend.invoke("import_template", name, url, token).then(x => {
+    data.value.plugin = JSON.parse(x)
+  })
+}
 //#endregion
 
 const updateLocate = () => {
@@ -434,6 +445,10 @@ const dataset_init = () => {
     })}
     console.log("Libs", data.value.libs)
   })
+  const p4 = props.backend.invoke('get_plugin').then(x => {
+    data.value.plugin = JSON.parse(x)
+    console.log("Plugins", data.value.plugin)
+  })
   const p35 = repull(FrontendUpdate.ALL)
   const p6 = props.backend.invoke('load_all_log').then(x => {
       const stringlist:Array<string> = JSON.parse(x)
@@ -442,7 +457,7 @@ const dataset_init = () => {
       console.log("Logs", ll)
       data.value.logs.logs = ll
   })
-  Promise.all([p0, p1, p2, ...p35, p6]).then(() => {
+  Promise.all([p0, p1, p2, p4, ...p35, p6]).then(() => {
     data.value.nodes = data.value.nodes.map(y => {
       return Object.assign(y, {
         s: false,
@@ -555,6 +570,7 @@ onUnmounted(() => {
         <v-tabs-window-item :value="0">
           <ProjectPage
             :projects="data.projects" 
+            :plugin="data.plugin"
             :parameters="data.parameters"
             :config="config"
             :preference="props.preference"
@@ -660,7 +676,9 @@ onUnmounted(() => {
           <ServicePage />
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.haveBackend" :value="11">
-          <PluginPage :plugin="data.plugin" />
+          <PluginPage :plugin="data.plugin"
+            @added-plugin="pluginAdded"
+            @added-template="templateAdded" />
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="100">
           <ProfilePage :backend="props.backend" />

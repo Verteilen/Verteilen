@@ -56,6 +56,7 @@
     "error": {
         "title-needed": "名稱不能為空",
         "title-repeat": "名稱不能重複",
+        "url-needed": "URL 不能為空",
         "project-empty": "專案清單不能爲空",
         "parameter-empty": "專案必須綁定參數",
         "node-empty": "節點清單不能爲空"

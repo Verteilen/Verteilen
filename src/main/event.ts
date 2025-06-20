@@ -8,7 +8,7 @@ import { Job, Parameter, PluginList, Preference, Project, TemplateData, Template
 import { i18n } from "./plugins/i18n";
 import { Util_Server } from "./util/server/server";
 import { ExportProjects, ImportProject, ExportProject, ImportParameter, ExportParameter } from "./util/io";
-import path from "path";
+import { PluginInit } from "./util/plugin";
 
 export class BackendEvent {
     menu_state = false
@@ -68,6 +68,7 @@ export class BackendEvent {
         Loader('node', 'node')
         Loader('log', 'log')
         Loader('lib', 'lib', '')
+        PluginInit()
 
         ipcMain.handle('load_record_obsolete', (e) => {
             if(!fs.existsSync('record.json')) return undefined
@@ -121,50 +122,6 @@ export class BackendEvent {
         ipcMain.on('locate', (event, data:string) => {
             // @ts-ignore
             i18n.global.locale = data
-        })
-        ipcMain.on('import_template', async (event, url:string, token?:string) => {
-            const root = path.join("data", 'template')
-            const project_folder = path.join(root, 'project')
-            const parameter_folder = path.join(root, 'parameter')
-            if (!fs.existsSync(project_folder)) fs.mkdirSync(project_folder, {recursive: true});
-            if (!fs.existsSync(parameter_folder)) fs.mkdirSync(parameter_folder, {recursive: true});
-            
-            const res = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    Authorization: token ? `Bearer ${token}` : ''
-                }
-            })
-            const tex = await res.text()
-            const ob:TemplateData = JSON.parse(tex)
-            const folder = url.substring(0, url.lastIndexOf('/'))
-            const project_calls:Array<Promise<Response>> = []
-            ob.projects.forEach((p:TemplateDataProject) => {
-                project_calls.push(fetch(folder + "/" + p.title, {
-
-                }))
-            })
-            const pss = await Promise.all(project_calls)
-            pss.forEach(ps => {
-                ps.text().then(text => {
-                    const project:Project = JSON.parse(text)
-                    fs.writeFileSync(path.join(project_folder, project.title + '.json'), JSON.stringify(project, null, 4))
-                })
-            })
-        })
-        ipcMain.on('import_plugin', async (event, name:string, url:string, token?:string) => {
-            const root = path.join("data", 'plugin')
-            if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true});
-            
-            const res = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    Authorization: token ? `Bearer ${token}` : ''
-                }
-            })
-            const tex = await res.text()
-            const ob:PluginList = JSON.parse(tex)
-            fs.writeFileSync(path.join(root, name + '.json'), JSON.stringify(ob, null, 4))
         })
     }
 }

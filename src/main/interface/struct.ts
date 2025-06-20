@@ -173,13 +173,15 @@ export interface ShellFolder {
 export interface TemplateGroup {
     value: number
     group: string
-    template: ProjectCall
+    title?: string
+    template?: ProjectCall
 }
 
 export interface TemplateGroup2 {
     value: number
     group: string
-    template: ParameterCall
+    title?: string
+    template?: ParameterCall
 }
 
 export interface PluginContent {
@@ -210,8 +212,11 @@ export interface PluginState {
 
 export interface PluginPageData {
     plugins: Array<Plugin>
-    project: Array<TemplateGroup>
-    parameter: Array<TemplateGroup2>
+    templates: Array<{
+        name: string
+        project: Array<TemplateGroup>
+        parameter: Array<TemplateGroup2>
+    }>
 }
 
 export interface TemplateDataProject {

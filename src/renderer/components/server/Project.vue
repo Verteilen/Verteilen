@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, Parameter, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { AppConfig, BusType, Parameter, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, IndexToValue, Util_Project, ValueToGroupName } from '../../util/project';
 import ProjectDialog from '../dialog/ProjectDialog.vue';
@@ -12,6 +12,7 @@ interface PROPS {
     projects: Array<Project>
     parameters: Array<Parameter>
     config: AppConfig
+    plugin: PluginPageData
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -328,6 +329,7 @@ onUnmounted(() => {
         </div>
         <ProjectDialog v-model="data.dialogModal" 
             :temps="data.temps"
+            :plugin="props.plugin"
             :parameters="props.parameters"
             :is-edit="data.isEdit" 
             :error-message="data.errorMessage"

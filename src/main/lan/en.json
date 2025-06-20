@@ -55,6 +55,7 @@
     },
     "error": {
         "title-needed": "Title is needed",
+        "url-needed": "URL is needed",
         "title-repeat": "Cannot use title which already exists",
         "project-empty": "Project list cannot be zero",
         "parameter-empty": "Project must binding with parameter",

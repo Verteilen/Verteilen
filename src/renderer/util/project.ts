@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { AppConfig, Ref } from "vue";
-import { Parameter, Project, ProjectTable } from "../interface";
+import { Parameter, PluginPageData, Project, ProjectTable } from "../interface";
 import { i18n } from '../plugins/i18n';
 import { BuildIn_ProjectTempGroup } from '../template/projectTemplate';
 
@@ -48,6 +48,7 @@ export interface DATA {
 
 export interface DialogDATA {
     isEdit: boolean
+    plugin: PluginPageData
     parameters: Array<Parameter>
     editData: CreateField
     errorMessage: string
