@@ -1,7 +1,7 @@
 import { ipcMain } from "electron"
 import path from "path";
 import fs from 'fs';
-import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer } from "../interface"
+import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2 } from "../interface"
 
 const GetCurrentPlugin = ():PluginPageData => {
     const b:PluginPageData = {
@@ -17,14 +17,16 @@ const GetCurrentPlugin = ():PluginPageData => {
         return JSON.parse(fs.readFileSync(path.join(config_folder, file), 'utf-8'))
     })
     configs.forEach((config, index) => {
-        const ps = config.projects.map(x => ({
+        const ps:Array<TemplateGroup> = config.projects.map(x => ({
             value: -1,
             group: x.group,
+            filename: x.filename,
             title: x.title
         }))
-        const ps2 = config.parameters.map(x => ({
+        const ps2:Array<TemplateGroup2> = config.parameters.map(x => ({
             value: -1,
             group: x.group,
+            filename: x.filename,
             title: x.title
         }))
         b.templates.push({
@@ -72,7 +74,7 @@ export const PluginInit = () => {
         const parameter_calls:Array<Promise<Response>> = []
 
         ob.projects.forEach((p:TemplateDataProject) => {
-            project_calls.push(fetch(folder + "/" + p.title + '.json', req))
+            project_calls.push(fetch(folder + "/" + p.filename + '.json', req))
         })
         const pss = await Promise.all(project_calls)
         const project_calls2:Array<Promise<string>> = pss.map(x => x.text())
@@ -80,14 +82,14 @@ export const PluginInit = () => {
         pss_result.forEach((text, index) => {
             try{
                 const project:Project = JSON.parse(text)
-                fs.writeFileSync(path.join(project_folder, ob.projects[index].title + '.json'), JSON.stringify(project, null, 4))
+                fs.writeFileSync(path.join(project_folder, ob.projects[index].filename + '.json'), JSON.stringify(project, null, 4))
             }catch(e){
                 console.log("Parse error:\n", text)
             }
         })
 
         ob.parameters.forEach((p:TemplateDataParameter) => {
-            parameter_calls.push(fetch(folder + "/" + p.title + '.json', req))
+            parameter_calls.push(fetch(folder + "/" + p.filename + '.json', req))
         })
         const pss2 = await Promise.all(parameter_calls)
         const parameter_calls2:Array<Promise<string>> = pss2.map(x => x.text())
@@ -95,7 +97,7 @@ export const PluginInit = () => {
         pss_result2.forEach((text, index) => {
             try{
                 const parameter:Array<ParameterContainer> = JSON.parse(text)
-                fs.writeFileSync(path.join(parameter_folder, ob.parameters[index].title + '.json'), JSON.stringify(parameter, null, 4))
+                fs.writeFileSync(path.join(parameter_folder, ob.parameters[index].filename + '.json'), JSON.stringify(parameter, null, 4))
             }catch(e){
                 console.log("Parse error:\n", text)
             }
@@ -117,5 +119,18 @@ export const PluginInit = () => {
         const ob:PluginList = JSON.parse(tex)
         fs.writeFileSync(path.join(root, name + '.json'), JSON.stringify(ob, null, 4))
         return JSON.stringify(GetCurrentPlugin())
+    })
+    ipcMain.handle('import_template_delete', (event, name:string) => {
+
+    })
+    ipcMain.handle('import_plugin_delete', (event, name:string) => {
+        
+    })
+    ipcMain.handle('get_template', (event, filename:string) => {
+        const root = path.join("data", 'template')
+        const project_folder = path.join(root, 'project')
+        if (!fs.existsSync(project_folder)) fs.mkdirSync(project_folder, {recursive: true});
+        const data = fs.readFileSync(path.join(project_folder, filename + ".json"))
+        return data.toString('utf-8')
     })
 }

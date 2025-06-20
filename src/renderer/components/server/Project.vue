@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { AppConfig, BusType, Parameter, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, DATA, IndexToValue, Util_Project, ValueToGroupName } from '../../util/project';
+import { CreateField, DATA, IndexToValue, Temp, Util_Project, ValueToGroupName } from '../../util/project';
 import ProjectDialog from '../dialog/ProjectDialog.vue';
+import { BackendProxy } from '../../proxy';
 
 interface PROPS {
     preference: Preference
+    backend: BackendProxy
     projects: Array<Project>
     parameters: Array<Parameter>
     config: AppConfig
@@ -44,12 +46,16 @@ const data:Ref<DATA> = ref({
     selection: []
 })
 
-const util:Util_Project = new Util_Project(data, () => props.projects, () => props.parameters)
+const util:Util_Project = new Util_Project(props.backend, () => props.plugin, data, () => props.projects, () => props.parameters)
 
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
 const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value)) })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_project_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
+
+watch(() => props.plugin, () => {
+    updateTemps()
+})
 
 const updateProject = () => util.updateProject()
 const recoverProject = (p:Project) => emits('added', [p])
@@ -116,8 +122,8 @@ const DialogSubmit = (p:CreateField) => {
     }) 
 }
 
-const confirmCreate = () => {
-    const buffer = util.confirmCreate()
+const confirmCreate = async () => {
+    const buffer = await util.confirmCreate()
     if(buffer == undefined) return
     data.value.dialogModal = false
     emits('added', 
@@ -196,7 +202,7 @@ const updateFields = () => {
     ]
 }
 
-const updateLocate = () => {
+const updateTemps = () => {
     data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: ProjectTemplateTranslate(IndexToValue(index)),
@@ -204,6 +210,22 @@ const updateLocate = () => {
             value: IndexToValue(index)
         }
     })
+    let adder = 0
+    props.plugin.templates.forEach(x => {
+        x.project.forEach(y => {
+            const buffer:Temp = {
+                text: y.title ? y.title : "Null",
+                group: y.group,
+                value: 1000 + adder
+            }
+            adder += 1
+            data.value.temps.push(buffer)
+        })
+    })
+}
+
+const updateLocate = () => {
+    updateTemps()
     updateFields()
 }
 

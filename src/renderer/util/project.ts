@@ -1,11 +1,13 @@
 import { v6 as uuidv6 } from 'uuid';
-import { AppConfig, Ref } from "vue";
+import { AppConfig, Plugin, Ref } from "vue";
 import { Parameter, PluginPageData, Project, ProjectTable } from "../interface";
 import { i18n } from '../plugins/i18n';
 import { BuildIn_ProjectTempGroup } from '../template/projectTemplate';
+import { BackendProxy } from '../proxy';
 
 type getproject = () => Array<Project>
 type getparameters = () => Array<Parameter>
+type getplugin = () => PluginPageData
 
 export interface CreateField {
     title: string
@@ -13,7 +15,7 @@ export interface CreateField {
     useTemp: boolean
     usePara: boolean
     parameter: string | null
-    temp: number | null
+    temp: number | string | null
 }
 
 export interface Temp {
@@ -48,7 +50,6 @@ export interface DATA {
 
 export interface DialogDATA {
     isEdit: boolean
-    plugin: PluginPageData
     parameters: Array<Parameter>
     editData: CreateField
     errorMessage: string
@@ -60,6 +61,8 @@ export const ValueToGroupName = (v:number) => BuildIn_ProjectTempGroup.find(x =>
 export const IndexToValue = (v:number) => BuildIn_ProjectTempGroup[v].value
 
 export class Util_Project {
+    backend: BackendProxy
+    plugin: getplugin
     getproject:getproject
     getparameters: getparameters
     data:Ref<DATA>
@@ -68,7 +71,9 @@ export class Util_Project {
         return this.getproject()
     }
 
-    constructor(_data:Ref<DATA>, _getproject:getproject, _getparameters:getparameters){
+    constructor(_backend: BackendProxy, _plugin: getplugin, _data:Ref<DATA>, _getproject:getproject, _getparameters:getparameters){
+        this.backend =_backend
+        this.plugin = _plugin
         this.data = _data
         this.getproject = _getproject
         this.getparameters = _getparameters
@@ -117,7 +122,7 @@ export class Util_Project {
         this.data.value.titleError = false
     }
 
-    confirmCreate = () => {
+    confirmCreate = async () => {
         if(this.data.value.editData.title.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
@@ -134,11 +139,25 @@ export class Util_Project {
         }
         if (this.data.value.editData.useTemp){
             const index = this.data.value.editData.temp
-            const p = BuildIn_ProjectTempGroup.find(x => x.value == index)
+            const p = BuildIn_ProjectTempGroup.find(x => x.value === index)
             if(p != undefined) {
-                buffer = JSON.parse(JSON.stringify(p.template(buffer)))
+                buffer = JSON.parse(JSON.stringify(p.template!(buffer)))
+            }else{
+                const select = this.data.value.editData.temp as string
+                let mfilename: string = ""
+                this.plugin().templates.forEach(x => {
+                    x.project.forEach(y => {
+                        if(y.title == select){
+                            mfilename = y.filename!
+                        }
+                    })
+                })
+                let p = JSON.parse(await this.backend.invoke('get_template', mfilename))
+                delete p.uuid
+                delete p.title
+                delete p.description
+                buffer = Object.assign(buffer, p)
             }
-            else console.error("Cannot find project template by id", index)
         }
         if(this.data.value.editData.usePara){
             const target = this.getparameters().find(x => x.uuid == this.data.value.editData.parameter)

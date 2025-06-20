@@ -569,6 +569,7 @@ onUnmounted(() => {
       <v-tabs-window v-model="data.page">
         <v-tabs-window-item :value="0">
           <ProjectPage
+            :backend="props.backend"
             :projects="data.projects" 
             :plugin="data.plugin"
             :parameters="data.parameters"

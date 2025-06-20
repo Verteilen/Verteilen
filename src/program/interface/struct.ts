@@ -174,6 +174,7 @@ export interface TemplateGroup {
     value: number
     group: string
     title?: string
+    filename?: string
     template?: ProjectCall
 }
 
@@ -181,6 +182,7 @@ export interface TemplateGroup2 {
     value: number
     group: string
     title?: string
+    filename?: string
     template?: ParameterCall
 }
 
@@ -221,11 +223,13 @@ export interface PluginPageData {
 
 export interface TemplateDataProject {
     title: string
+    filename: string
     group: string
 }
 
 export interface TemplateDataParameter {
     title: string
+    filename: string
     group: string
 }
 

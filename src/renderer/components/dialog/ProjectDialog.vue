@@ -12,7 +12,7 @@ const emits = defineEmits<{
 }>()
 const buffer:Ref<CreateField> = ref({title: "", description: "", usePara: false, useTemp: false, temp: null, parameter: null})
 const selectTempModel = ref(false)
-const selectTempIndex:Ref<Array<number>> = ref([])
+const selectTempIndex:Ref<Array<number | string>> = ref([])
 const search:Ref<string | null> = ref(null)
 
 const isDark = computed(() => theme.global.name.value == "dark")
@@ -49,7 +49,8 @@ const convert = computed(() => {
 })
 const temp_name = computed(() => {
     if(buffer.value.temp == undefined) return ''
-    return propss.temps.find(x => x.value == buffer.value.temp)?.text
+    if(buffer.value.temp as any instanceof Number) return propss.temps.find(x => x.value == buffer.value.temp)?.text
+    else return propss.temps.find(x => x.text == buffer.value.temp)?.text
 })
 
 const itemProps = (item:any) => {
@@ -71,7 +72,7 @@ const openSelectTemp = () => {
 }
 
 const onSelectTemp = (d:Temp) => {
-    selectTempIndex.value = [d.value]
+    selectTempIndex.value = d.value >= 1000 ? [d.text] : [d.value]
 }
 
 const confirm_temp = () => {
@@ -129,7 +130,7 @@ const confirm = () => {
                 <template #text>
                     <v-text-field :label="$t('search')" v-model.trim="search" hide-details clearable></v-text-field>
                     <v-list style="height: calc(80vh - 250px);">
-                        <v-list-group v-for="(group, i) in groups" :key="group[0].group">
+                        <v-list-group v-for="(group, i) in groups" :key="group[0].group + String(i)">
                             <template v-slot:activator="{ props }">
                                 <v-list-item v-bind="props" :title="group[0].group">
                                 </v-list-item>
