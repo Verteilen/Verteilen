@@ -2,9 +2,9 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference } from '../../interface';
+import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, ParameterTemplate, ParameterTemplateText, PluginPageData, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { DATA, Util_Parameter } from '../../util/parameter';
+import { CreateField, DATA, IndexToValue, Temp, Util_Parameter, ValueToGroupName } from '../../util/parameter';
 import DialogBase from '../dialog/DialogBase.vue'
 import ParameterDialog from '../dialog/ParameterDialog.vue'
 import ParameterSetDialog from '../dialog/ParameterSetDialog.vue'
@@ -15,6 +15,7 @@ interface PROPS {
     preference: Preference
     select: Parameter | undefined
     parameters: Array<Parameter>
+    plugin: PluginPageData
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -63,7 +64,7 @@ const data:Ref<DATA> = ref({
     temps: []
 })
 
-const util:Util_Parameter = new Util_Parameter(data, () => props.parameters, () => props.select)
+const util:Util_Parameter = new Util_Parameter(data, () => props.plugin, () => props.parameters, () => props.select)
 
 const items_final = computed(() => data.value.buffer.containers
     .filter(x => {
@@ -125,18 +126,25 @@ const exportPara = async () => {
     }
 }
 
-const confirmCreateSet = () => {
-    const d = util.confirmCreateSet()
+const confirmCreateSet = async (v:CreateField) => {
+    const d = await util.confirmCreateSet()
     if(d == undefined) return
     emits('added', d)
     data.value.createParameterModal = false
 }
 
-const confirmEditSet = () => {
-    const d = util.confirmEditSet()
+const confirmEditSet = async (v:CreateField) => {
+    const d = await util.confirmEditSet()
     if(d == undefined) return
     emits('edit', d)
     data.value.createParameterModal = false
+}
+
+const confirmSubmitSet = (v:CreateField) => {
+    data.value.editData.name = v.name
+    data.value.editData.temp = v.temp
+    if(!data.value.editMode) confirmCreateSet(v);
+    else confirmEditSet(v);
 }
 
 const deleteSelect = () => {
@@ -173,7 +181,34 @@ const DataTypeTranslate = (t:number):string => {
     return i18n.global.t(DataTypeText[t])
 }
 
+const parameterTemplateTranslate = (t:number):string => {
+    return ParameterTemplateText.hasOwnProperty(t) ? i18n.global.t(ParameterTemplateText[t]) : ""
+}
+
+const updateTemps = () => {
+    data.value.temps = Object.keys(ParameterTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
+        const text = parameterTemplateTranslate(IndexToValue(index))
+        return {
+            text: text.length > 0 ? text : x,
+            group: ValueToGroupName(IndexToValue(index)) ?? '',
+            value: IndexToValue(index)
+        }
+    })
+    let adder = 0
+    props.plugin.templates.forEach(x => {
+        x.parameter.forEach(y => {
+            const buffer:Temp = {
+                text: y.title ? y.title : "Null",
+                group: y.group,
+                value: 1000 + adder
+            }
+            adder += 1
+            data.value.temps.push(buffer)
+        })
+    })
+}
 const updateLocate = () => {
+    updateTemps()
     data.value.options = Object.keys(DataType).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             title: DataTypeTranslate(index),
@@ -360,6 +395,7 @@ onUnmounted(() => {
             :title-error="data.titleError"
             :target-data="data.createData"
             :options="data.options"
+            :temps="data.temps"
             @confirm-create="confirmCreate"
             @confirm-edit="confirmEdit">
         </ParameterDialog>
@@ -369,8 +405,7 @@ onUnmounted(() => {
             :title-error="data.titleError"
             :target-data="data.editData"
             :temps="data.temps"
-            @confirm-create="confirmCreateSet"
-            @confirm-edit="confirmEditSet">
+            @submit="confirmSubmitSet">
         </ParameterSetDialog>
         <DialogBase width="500" v-model="data.cloneModal">
             <template #title>

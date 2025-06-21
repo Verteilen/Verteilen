@@ -22,5 +22,5 @@ export const BuildIn_ProjectTempGroup:Array<TemplateGroup> = [
 
 export const BuildIn_ParameterTempGroup:Array<TemplateGroup2> = [
     { group: "Default", title: 'Default Parameter', value: 0, template: GetDefaultProject_Parameter },
-    { group: "FFmpeg", title: 'FFmpeg Parameter', value: 0, template: GetFFmpegProject_Parameter },
+    { group: "FFmpeg", title: 'FFmpeg Parameter', value: 200, template: GetFFmpegProject_Parameter },
 ]

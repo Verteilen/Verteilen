@@ -69,6 +69,7 @@
     },
     "modal": {
         "project-template-select": "Select Template",
+        "parameter-template-select": "Select Template",
         "new-project": "New Project",
         "modify-project": "Modify Project",
         "delete-project": "Delete Project",
@@ -110,8 +111,8 @@
         "upload-pic": "Upload Profile Picture",
         "delete-plugin": "Delete Plugin",
         "delete-template": "Delete Template",
-        "delete-plugin-conform": "Are you sure delete plugin you selected",
-        "delete-template-conform": "Are you sure delete template you selected"
+        "delete-plugin-confirm": "Are you sure delete plugin you selected",
+        "delete-template-confirm": "Are you sure delete template you selected"
     },
     "toolbar": {
         "server": "Server",
@@ -185,6 +186,10 @@
             "concat": "FFmpeg concat",
             "blender": "Blender Render",
             "aftereffect": "After Effect Render"
+        },
+        "parameter": {
+            "default": "Default",
+            "ffmpeg": "FFmpeg"
         },
         "state": {
             "none": "Prepare",

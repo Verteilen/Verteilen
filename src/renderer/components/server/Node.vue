@@ -20,6 +20,8 @@ interface PROPS {
 const props = defineProps<PROPS>()
 const deleteModal = ref(false)
 const deleteData:Ref<Array<string>> = ref([])
+const pluginModal = ref(false)
+const pluginUUID = ref('')
 const infoModal = ref(false)
 const infoUUID = ref('')
 const consoleModal = ref(false)
@@ -134,6 +136,11 @@ const translate_state_color = (state:number):string => {
     return 'white'
 }
 
+const showplugin = (uuid:string) => {
+    pluginModal.value = true
+    pluginUUID.value = uuid
+}
+
 const showinfo = (uuid:string) => {
     infoModal.value = true
     infoUUID.value = uuid
@@ -201,6 +208,9 @@ onUnmounted(() => {
                 {{ item.connection_rate }}
             </template>
             <template v-slot:item.detail="{ item }">
+                <v-btn variant="text" icon @click="showplugin(item.ID)">
+                    <v-icon>mdi-puzzle</v-icon>
+                </v-btn>
                 <v-btn variant="text" icon @click="showinfo(item.ID)">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>

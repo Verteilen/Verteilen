@@ -71,6 +71,11 @@ export enum ProjectTemplate {
     AfterEffect = 400,
 }
 
+export enum ParameterTemplate {
+    DEFAULT = 0,
+    FFmpeg = 200,
+}
+
 export enum ExecuteState {
     NONE, RUNNING, FINISH, ERROR, SKIP
 }
@@ -150,4 +155,9 @@ export const ProjectTemplateText: { [key:number]:string } = {
     201: 'enum.project.concat',
     300: 'enum.project.blender',
     400: 'enum.project.aftereffect',
+}
+
+export const ParameterTemplateText: { [key:number]:string } = {
+    0: 'enum.parameter.default',
+    200: 'enum.parameter.ffmpeg',
 }

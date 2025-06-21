@@ -69,6 +69,7 @@
     },
     "modal": {
         "project-template-select": "樣板選擇",
+        "parameter-template-select": "樣板選擇",
         "new-project": "新增專案",
         "modify-project": "編輯專案",
         "delete-project": "刪除專案",
@@ -110,8 +111,8 @@
         "upload-pic": "上傳用戶照片",
         "delete-plugin": "刪除插件",
         "delete-template": "刪除樣板",
-        "delete-plugin-conform": "確定刪除選取的插件嗎?",
-        "delete-template-conform": "確定刪除選取的樣板嗎?"
+        "delete-plugin-confirm": "確定刪除選取的插件嗎?",
+        "delete-template-confirm": "確定刪除選取的樣板嗎?"
     },
     "toolbar": {
         "server": "伺服器",
@@ -185,6 +186,10 @@
             "concat": "FFmpeg 合成影片",
             "blender": "Blender 渲染",
             "aftereffect": "After Effect 渲染"
+        },
+        "parameter": {
+            "default": "Default",
+            "ffmpeg": "FFmpeg"
         },
         "state": {
             "none": "準備中",
