@@ -196,11 +196,11 @@ const isLast = (uuid:string) => util.isLast(uuid)
 
 const updateFields = () => {
     data.value.fields = [
-        { title: 'ID', align: 'center', key: 'ID' },
-        { title: i18n.global.t('headers.title'), align: 'center', key: 'title' },
+        { title: 'ID', align: 'center', key: 'ID', width: "25%" },
+        { title: i18n.global.t('headers.title'), align: 'center', key: 'title', width: "20%" },
         { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
-        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount' },
-        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail' },
+        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount', width: "150px" },
+        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail', width: "20%" },
     ]
 }
 

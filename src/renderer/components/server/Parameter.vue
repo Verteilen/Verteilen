@@ -31,12 +31,12 @@ const emits = defineEmits<{
     (e: 'return'): void
 }>()
 const fields:Ref<Array<any>> = ref([
-    { title: 'Name', align: 'center', key: 'name' },
-    { title: 'Type', align: 'center', key: 'type' },
-    { title: 'Hidden', align: 'center', key: 'hidden' },
-    { title: 'Runtime Only', align: 'center', key: 'runtimeOnly' },
+    { title: 'Name', align: 'center', key: 'name', width: "15%" },
+    { title: 'Type', align: 'center', key: 'type', width: "40px" },
+    { title: 'Hidden', align: 'center', key: 'hidden', width: "40px" },
+    { title: 'Runtime Only', align: 'center', key: 'runtimeOnly', width: "40px" },
     { title: 'Value', align: 'center', key: 'value' },
-    { title: 'Detail', align: 'center', key: 'detail' },
+    { title: 'Detail', align: 'center', key: 'detail', width: "15%" },
 ])
 
 const data:Ref<DATA> = ref({
