@@ -9,10 +9,12 @@ import DialogBase from '../dialog/DialogBase.vue'
 import ParameterDialog from '../dialog/ParameterDialog.vue'
 import ParameterSetDialog from '../dialog/ParameterSetDialog.vue'
 import { v6 as uuidv6 } from 'uuid'
+import { BackendProxy } from '../../proxy';
 
 interface PROPS {
     config: AppConfig
     preference: Preference
+    backend: BackendProxy
     select: Parameter | undefined
     parameters: Array<Parameter>
     plugin: PluginPageData
@@ -64,7 +66,7 @@ const data:Ref<DATA> = ref({
     temps: []
 })
 
-const util:Util_Parameter = new Util_Parameter(data, () => props.plugin, () => props.parameters, () => props.select)
+const util:Util_Parameter = new Util_Parameter(props.backend, () => props.plugin, data, () => props.parameters, () => props.select)
 
 const items_final = computed(() => data.value.buffer.containers
     .filter(x => {

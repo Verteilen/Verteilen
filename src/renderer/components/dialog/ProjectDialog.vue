@@ -49,7 +49,7 @@ const convert = computed(() => {
 })
 const temp_name = computed(() => {
     if(buffer.value.temp == undefined) return ''
-    if(buffer.value.temp as any instanceof Number) return propss.temps.find(x => x.value == buffer.value.temp)?.text
+    if(typeof buffer.value.temp == 'number') return propss.temps.find(x => x.value == buffer.value.temp)?.text
     else return propss.temps.find(x => x.text == buffer.value.temp)?.text
 })
 

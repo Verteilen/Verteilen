@@ -151,7 +151,10 @@ export const PluginInit = () => {
             }
             if(find) break
         }
-        if (!fs.existsSync(target)) return undefined
+        if (!fs.existsSync(target)) {
+            console.error("Path not found", target)
+            return undefined
+        }
         const data = fs.readFileSync(target)
         return data.toString('utf-8')
     })
@@ -163,13 +166,16 @@ export const PluginInit = () => {
             for(let y of x.parameter){
                 if(y.group == group && y.filename == filename){
                     find = true
-                    target = path.join("data", 'template', x.name, 'project', y.filename + '.json')
+                    target = path.join("data", 'template', x.name, 'parameter', y.filename + '.json')
                     break
                 }
             }
             if(find) break
         }
-        if (!fs.existsSync(target)) return undefined
+        if (!fs.existsSync(target)) {
+            console.error("Path not found", target)
+            return undefined
+        }
         const data = fs.readFileSync(target)
         return data.toString('utf-8')
     })

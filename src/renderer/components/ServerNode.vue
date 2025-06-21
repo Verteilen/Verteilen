@@ -624,6 +624,7 @@ onUnmounted(() => {
             :config="config"
             :parameters="data.parameters"
             :select="data.selectParameter"
+            :backend="props.backend"
             :preference="props.preference"
             :plugin="data.plugin"
             @added="e => addParameter(e)"

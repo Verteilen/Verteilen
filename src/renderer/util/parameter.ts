@@ -3,6 +3,7 @@ import { Ref } from "vue";
 import { DataType, Parameter, ParameterContainer, PluginPageData } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { BuildIn_ParameterTempGroup } from '../template/projectTemplate';
+import { BackendProxy } from '../proxy';
 
 type getparameters = () => Array<Parameter>
 type getparameter = () => Parameter | undefined
@@ -84,14 +85,16 @@ export const ValueToGroupName = (v:number) => BuildIn_ParameterTempGroup.find(x 
 export const IndexToValue = (v:number) => BuildIn_ParameterTempGroup[v].value
 
 export class Util_Parameter {
+    backend: BackendProxy
     plugin: getplugin
     parameters:getparameters
     parameter:getparameter
     data:Ref<DATA>
 
-    constructor(_data:Ref<DATA>, _plugin: getplugin, _getparameters:getparameters, _getparameter:getparameter){
-        this.data = _data
+    constructor(_backend: BackendProxy, _plugin: getplugin, _data:Ref<DATA>, _getparameters:getparameters, _getparameter:getparameter){
+        this.backend =_backend
         this.plugin = _plugin
+        this.data = _data
         this.parameters = _getparameters
         this.parameter = _getparameter
     }
@@ -194,11 +197,27 @@ export class Util_Parameter {
             containers: []
         }
         if(this.data.value.editData.temp != null){
-            for(let x of this.plugin().templates){
-                for(let y of x.parameter){
-                    if(y.title == this.data.value.editData.temp){
-                        y.template
-                    }
+            const index = this.data.value.editData.temp
+            const p = BuildIn_ParameterTempGroup.find(x => x.value === index)
+            if(p != undefined){
+                d.containers = p.template!()
+            }else{
+                const select = this.data.value.editData.temp as string
+                let mfilename: string = ""
+                let mGruop: string = ""
+                this.plugin().templates.forEach(x => {
+                    x.parameter.forEach(y => {
+                        if(y.title == select){
+                            mfilename = y.filename!
+                            mGruop = y.group
+                        }
+                    })
+                })
+                let p = await this.backend.invoke('get_parameter', mGruop, mfilename)
+                try{
+                    d.containers = JSON.parse(p)
+                }catch(e){
+                    console.error("Failed to parse parameter template", p, mGruop, mfilename, e)
                 }
             }
         }
