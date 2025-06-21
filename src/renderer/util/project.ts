@@ -145,14 +145,16 @@ export class Util_Project {
             }else{
                 const select = this.data.value.editData.temp as string
                 let mfilename: string = ""
+                let mGruop: string = ""
                 this.plugin().templates.forEach(x => {
                     x.project.forEach(y => {
                         if(y.title == select){
                             mfilename = y.filename!
+                            mGruop = y.group
                         }
                     })
                 })
-                let p = JSON.parse(await this.backend.invoke('get_template', mfilename))
+                let p = JSON.parse(await this.backend.invoke('get_template', mGruop, mfilename))
                 delete p.uuid
                 delete p.title
                 delete p.description

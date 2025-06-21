@@ -12,10 +12,16 @@ const propss = defineProps<PROP>()
 const emits = defineEmits<{
     (e: 'added-template', name:string, url:string, token?:string): void
     (e: 'added-plugin', name:string, url:string, token?:string): void
+    (e: 'delete-template', name:string): void
+    (e: 'delete-plugin', name:string): void
 }>()
 const data = ref({
     pluginModal: false,
     templateModal: false,
+    pluginDeleteModal: false,
+    templateDeleteModal: false,
+    pluginDeleteData: '',
+    templateDeleteData: '',
     pluginData: { name: '', url: '', token: '' },
     templateData: { name: '', url: '', token: '' },
     errorMessage: ''
@@ -59,6 +65,24 @@ const importTemplateConfirm = () => {
     emits('added-template', data.value.templateData.name, data.value.templateData.url, data.value.templateData.token);
 }
 
+const deletePlugin = (name:string) => {
+    data.value.pluginDeleteModal = true;
+    data.value.pluginDeleteData = name;
+}
+
+const deleteTemplate = (name:string) => {
+    data.value.templateDeleteModal = true;
+    data.value.templateDeleteData = name;
+}
+
+const deletePluginConfirm = (name:string) => {
+    emits('delete-plugin', data.value.pluginDeleteData);
+}
+
+const deleteTemplateConfirm = (name:string) => {
+    emits('delete-template', data.value.templateDeleteData);
+}
+
 </script>
 
 <template>
@@ -90,17 +114,29 @@ const importTemplateConfirm = () => {
                     <h2 class="pl-6">{{ $t('plugin') }}</h2>
                     <br />
                     <v-list style="overflow-y: auto;" class="h-100">
-                        <v-list-group v-for="(group, index) in plugin.plugins" >
+                        <v-list-group v-for="(container, index) in plugin.plugins" >
+                            <v-toolbar density="compact" class="mr-3">
+                                <v-btn icon color="error" @click="deletePlugin(container.title!)">
+                                    <v-icon>mdi-delete</v-icon>
+                                </v-btn>
+                            </v-toolbar>
                             <template v-slot:activator="{ props }">
                                 <v-list-item v-bind="props" :key="index">
-                                    <v-list-item-title>{{ group.name }}</v-list-item-title>
-                                    <v-list-item-subtitle>{{ group.version }}</v-list-item-subtitle>
+                                    <v-list-item-title>{{ container.title }}</v-list-item-title>
                                 </v-list-item>
                             </template>
-                            <v-list-item v-for="(item, index2) in group.contents"  :key="index2">
-                                <v-list-item-title>{{ item.platform }} {{ item.arch }}</v-list-item-title>
-                                <v-list-item-subtitle>"{{ item.filename }}" {{ item.url }}</v-list-item-subtitle>
-                            </v-list-item>
+                            <v-list-group v-for="(group, index) in container.plugins" >
+                                <template v-slot:activator="{ props }">
+                                    <v-list-item v-bind="props" :key="index">
+                                        <v-list-item-title>{{ group.name }} {{ group.version }}</v-list-item-title>
+                                        <v-list-item-subtitle>{{ group.description }}</v-list-item-subtitle>
+                                    </v-list-item>
+                                </template>
+                                <v-list-item v-for="(item, index2) in group.contents"  :key="index2">
+                                    <v-list-item-title>{{ item.filename }}</v-list-item-title>
+                                    <v-list-item-subtitle>"{{ item.platform }}_{{ item.arch }}"</v-list-item-subtitle>
+                                </v-list-item>
+                            </v-list-group>
                         </v-list-group>
                     </v-list>
                 </v-col>
@@ -109,6 +145,11 @@ const importTemplateConfirm = () => {
                     <br />
                     <v-list style="overflow-y: auto;" class="h-100">
                         <v-list-group v-for="(group, index) in plugin.templates">
+                            <v-toolbar density="compact" class="mr-3">
+                                <v-btn icon color="error" @click="deleteTemplate(group.name)">
+                                    <v-icon>mdi-delete</v-icon>
+                                </v-btn>
+                            </v-toolbar>
                             <template v-slot:activator="{ props }">
                                 <v-list-item v-bind="props" :key="index">
                                     <v-list-item-title>{{ group.name }}</v-list-item-title>
@@ -169,6 +210,36 @@ const importTemplateConfirm = () => {
             </template>
             <template #action>
                 <v-btn color="primary" @click="importTemplateConfirm">{{ $t('confirm') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase v-model="data.pluginDeleteModal">
+            <template #title>
+                <v-icon>mdi-delete</v-icon>
+                {{ $t('modal.delete-plugin') }}
+            </template>
+            <template #text>
+                <p>{{ $t('modal.delete-plugin-confirm') }}</p>
+                <br />
+                <p>{{ data.pluginDeleteData }}</p>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="data.pluginDeleteModal = false">{{ $t('cancel') }}</v-btn>
+                <v-btn class="mt-3" color="error" @click="deletePluginConfirm">{{ $t('delete') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase v-model="data.templateDeleteModal">
+            <template #title>
+                <v-icon>mdi-delete</v-icon>
+                {{ $t('modal.delete-template') }}
+            </template>
+            <template #text>
+                <p>{{ $t('modal.delete-template-confirm') }}</p>
+                <br />
+                <p>{{ data.templateDeleteData }}</p>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="data.templateDeleteModal = false">{{ $t('cancel') }}</v-btn>
+                <v-btn class="mt-3" color="error" @click="deleteTemplateConfirm">{{ $t('delete') }}</v-btn>
             </template>
         </DialogBase>
     </div>

@@ -107,7 +107,11 @@
         "console-name": "控制台名稱",
         "delete-library": "刪除程式腳本",
         "delete-library-confirm": "確定刪除選取的程式腳本嗎?",
-        "upload-pic": "上傳用戶照片"
+        "upload-pic": "上傳用戶照片",
+        "delete-plugin": "刪除插件",
+        "delete-template": "刪除樣板",
+        "delete-plugin-conform": "確定刪除選取的插件嗎?",
+        "delete-template-conform": "確定刪除選取的樣板嗎?"
     },
     "toolbar": {
         "server": "伺服器",
@@ -177,6 +181,7 @@
         },
         "project": {
             "default": "範例",
+            "ffmpeg_download": "FFmpeg 下載影片",
             "concat": "FFmpeg 合成影片",
             "blender": "Blender 渲染",
             "aftereffect": "After Effect 渲染"

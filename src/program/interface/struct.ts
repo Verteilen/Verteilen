@@ -202,6 +202,7 @@ export interface Plugin {
 }
 
 export interface PluginList {
+    title?: string
     plugins: Array<Plugin>
 }
 
@@ -213,7 +214,7 @@ export interface PluginState {
 }
 
 export interface PluginPageData {
-    plugins: Array<Plugin>
+    plugins: Array<PluginList>
     templates: Array<{
         name: string
         project: Array<TemplateGroup>

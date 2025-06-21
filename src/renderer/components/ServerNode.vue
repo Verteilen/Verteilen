@@ -267,6 +267,16 @@ const templateAdded = (name:string, url:string, token?:string) => {
     data.value.plugin = JSON.parse(x)
   })
 }
+const pluginDelete = (name:string) => {
+  props.backend.invoke("import_plugin_delete", name).then(x => {
+    data.value.plugin = JSON.parse(x)
+  })
+}
+const templateDelete = (name:string) => {
+  props.backend.invoke("import_template_delete", name).then(x => {
+    data.value.plugin = JSON.parse(x)
+  })
+}
 //#endregion
 
 const updateLocate = () => {
@@ -679,7 +689,9 @@ onUnmounted(() => {
         <v-tabs-window-item v-show="config.haveBackend" :value="11">
           <PluginPage :plugin="data.plugin"
             @added-plugin="pluginAdded"
-            @added-template="templateAdded" />
+            @added-template="templateAdded"
+            @delete-plugin="pluginDelete"
+            @delete-template="templateDelete" />
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="100">
           <ProfilePage :backend="props.backend" />

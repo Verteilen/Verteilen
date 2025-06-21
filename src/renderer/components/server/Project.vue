@@ -180,7 +180,9 @@ const moveup = (uuid:string) => {
     })
 }
 
-const ProjectTemplateTranslate = (t:number):string => i18n.global.t(ProjectTemplateText[t])
+const ProjectTemplateTranslate = (t:number):string => {
+    return ProjectTemplateText.hasOwnProperty(t) ? i18n.global.t(ProjectTemplateText[t]) : ""
+}
 
 const movedown = (uuid:string) => {
     emits('movedown', uuid)
@@ -204,8 +206,9 @@ const updateFields = () => {
 
 const updateTemps = () => {
     data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
+        const text = ProjectTemplateTranslate(IndexToValue(index))
         return {
-            text: ProjectTemplateTranslate(IndexToValue(index)),
+            text: text.length > 0 ? text : x,
             group: ValueToGroupName(IndexToValue(index)) ?? '',
             value: IndexToValue(index)
         }

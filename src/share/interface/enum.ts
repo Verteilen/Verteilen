@@ -65,7 +65,8 @@ export enum JobType2 {
 
 export enum ProjectTemplate {
     DEFAULT = 0,
-    FFmpeg_Concat = 200,
+    FFmpeg_Download = 200,
+    FFmpeg_Concat = 201,
     Blender = 300,
     AfterEffect = 400,
 }
@@ -145,7 +146,8 @@ export const JobType2Text: { [key:number]:string } = {
 
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
-    200: 'enum.project.concat',
+    200: 'enum.project.ffmpeg_download',
+    201: 'enum.project.concat',
     300: 'enum.project.blender',
     400: 'enum.project.aftereffect',
 }

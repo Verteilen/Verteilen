@@ -1,11 +1,11 @@
 import { Node } from './base'
-import { SystemLoad } from './struct'
+import { Plugin, SystemLoad } from './struct'
 
 export interface NodeTable extends Node {
     s?: boolean
     state: number
     connection_rate?: number
-    plugins?: Array<string>
+    plugins?: Array<Plugin>
     system?: SystemLoad
 }
 
