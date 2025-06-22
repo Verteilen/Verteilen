@@ -181,7 +181,7 @@ onUnmounted(() => {
                 </v-row>
             </v-card-text>
             <template v-slot:actions>
-                <v-btn color="danger" @click="closeConsole">
+                <v-btn color="error" @click="closeConsole">
                     {{ $t('close') }}
                 </v-btn>
             </template>

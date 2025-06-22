@@ -26,6 +26,12 @@ export enum ResourceType {
     NETWORK = 1 << 8,
 }
 
+export enum FrontendUpdate {
+    ALL = ~(~0 << 10),
+    PROJECT = 1 << 0,
+    PARAMETER = 1 << 1,
+}
+
 export enum JobCategory {
     Condition,
     Execution
@@ -59,20 +65,15 @@ export enum JobType2 {
 
 export enum ProjectTemplate {
     DEFAULT = 0,
-
-    GS4_FULL = 100,
-    GS4_PREPARE = 101,
-    GS4_COLMAP = 102,
-    GS4_IFRAME = 103,
-    GS4_BLEND_PREPARE = 104,
-    GS4_BLEND = 105,
-    GS4_OUTPUT = 106,
-    GS4_LUT = 107,
-    GS4_MASK = 108,
-
-    FFmpeg_Concat = 200,
+    FFmpeg_Download = 200,
+    FFmpeg_Concat = 201,
     Blender = 300,
     AfterEffect = 400,
+}
+
+export enum ParameterTemplate {
+    DEFAULT = 0,
+    FFmpeg = 200,
 }
 
 export enum ExecuteState {
@@ -150,16 +151,13 @@ export const JobType2Text: { [key:number]:string } = {
 
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
-    100: 'enum.project.gs4-full',
-    101: 'enum.project.gs4-prepare',
-    102: 'enum.project.gs4-colmap',
-    103: 'enum.project.gs4-iframe',
-    104: 'enum.project.gs4-blend-prepare',
-    105: 'enum.project.gs4-blend',
-    106: 'enum.project.gs4-output',
-    107: 'enum.project.gs4-lut',
-    108: 'enum.project.gs4-mask',
-    200: 'enum.project.concat',
+    200: 'enum.project.ffmpeg_download',
+    201: 'enum.project.concat',
     300: 'enum.project.blender',
     400: 'enum.project.aftereffect',
+}
+
+export const ParameterTemplateText: { [key:number]:string } = {
+    0: 'enum.parameter.default',
+    200: 'enum.parameter.ffmpeg',
 }

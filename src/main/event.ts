@@ -4,10 +4,11 @@ import { Loader } from './util/loader'
 import { Client } from "./client/client";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { Job, Parameter, Preference, Project } from "./interface";
+import { Job, Parameter, PluginList, Preference, Project, TemplateData, TemplateDataProject } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { Util_Server } from "./util/server/server";
 import { ExportProjects, ImportProject, ExportProject, ImportParameter, ExportParameter } from "./util/io";
+import { PluginInit } from "./util/plugin";
 
 export class BackendEvent {
     menu_state = false
@@ -67,6 +68,7 @@ export class BackendEvent {
         Loader('node', 'node')
         Loader('log', 'log')
         Loader('lib', 'lib', '')
+        PluginInit()
 
         ipcMain.handle('load_record_obsolete', (e) => {
             if(!fs.existsSync('record.json')) return undefined
@@ -88,6 +90,7 @@ export class BackendEvent {
                     font: 18,
                     theme: "dark",
                     notification: false,
+                    plugin_token: []
                 }
                 fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
                 i18n.global.locale = 'en'

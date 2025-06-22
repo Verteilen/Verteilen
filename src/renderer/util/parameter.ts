@@ -1,14 +1,25 @@
 import { v6 as uuid6 } from 'uuid';
 import { Ref } from "vue";
-import { DataType, Parameter, ParameterContainer } from "../interface";
+import { DataType, Parameter, ParameterContainer, PluginPageData } from "../interface";
 import { i18n } from "../plugins/i18n";
+import { BuildIn_ParameterTempGroup } from '../template/projectTemplate';
+import { BackendProxy } from '../proxy';
 
 type getparameters = () => Array<Parameter>
 type getparameter = () => Parameter | undefined
+type getplugin = () => PluginPageData
+
+export interface Temp {
+    text: string
+    group: string
+    value: number
+}
 
 export interface EDIT {
     name: string
     type: number
+    useTemp: boolean
+    temp: number | string | null
 }
 
 export interface FILTER {
@@ -17,23 +28,34 @@ export interface FILTER {
     type: number
 }
 
+export interface CreateField {
+    name: string
+    temp: string | number | null
+}
+
 export interface OPTION {
     title: string
     value:number
 }
 
-export interface CreateField {
-    title: string
-}
-
 export interface DialogDATA {
     isEdit: boolean
-    editData: CreateField
     errorMessage: string
     titleError: boolean
 }
 
+export interface DialogDATACreate extends DialogDATA{
+    targetData: ParameterContainer
+    options: Array<OPTION>
+}
+
+export interface DialogDATACreateSet extends DialogDATA {
+    targetData: EDIT
+    temps: Array<Temp>
+}
+
 export interface DATA {
+    selectTempModel: boolean
     cloneModal: boolean
     cloneName: string
     objectModal: boolean
@@ -54,16 +76,24 @@ export interface DATA {
     buffer: Parameter
     errorMessage: string
     titleError: boolean
+    temps: Array<Temp>
     search: string | undefined
     search_para: string | undefined
 }
 
+export const ValueToGroupName = (v:number) => BuildIn_ParameterTempGroup.find(x => x.value == v)?.group
+export const IndexToValue = (v:number) => BuildIn_ParameterTempGroup[v].value
+
 export class Util_Parameter {
+    backend: BackendProxy
+    plugin: getplugin
     parameters:getparameters
     parameter:getparameter
     data:Ref<DATA>
 
-    constructor(_data:Ref<DATA>, _getparameters:getparameters, _getparameter:getparameter){
+    constructor(_backend: BackendProxy, _plugin: getplugin, _data:Ref<DATA>, _getparameters:getparameters, _getparameter:getparameter){
+        this.backend =_backend
+        this.plugin = _plugin
         this.data = _data
         this.parameters = _getparameters
         this.parameter = _getparameter
@@ -147,11 +177,18 @@ export class Util_Parameter {
         this.data.value.dirty = true
     }
 
-    confirmCreateSet = () => {
+    confirmCreateSet = async ():Promise<Parameter | undefined> => {
         if(this.data.value.editData.name.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
             return undefined
+        }
+        if(this.data.value.editData.name != this.data.value.createData.name){
+            if(this.data.value.buffer.containers.findIndex(x => x.name == this.data.value.createData.name) != -1){
+                this.data.value.errorMessage = i18n.global.t('error.title-repeat')
+                this.data.value.titleError = true
+                return
+            }
         }
         const d:Parameter = {
             title: this.data.value.editData.name,
@@ -159,10 +196,35 @@ export class Util_Parameter {
             canWrite: true,
             containers: []
         }
+        if(this.data.value.editData.temp != null){
+            const index = this.data.value.editData.temp
+            const p = BuildIn_ParameterTempGroup.find(x => x.value === index)
+            if(p != undefined){
+                d.containers = p.template!()
+            }else{
+                const select = this.data.value.editData.temp as string
+                let mfilename: string = ""
+                let mGruop: string = ""
+                this.plugin().templates.forEach(x => {
+                    x.parameter.forEach(y => {
+                        if(y.title == select){
+                            mfilename = y.filename!
+                            mGruop = y.group
+                        }
+                    })
+                })
+                let p = await this.backend.invoke('get_parameter', mGruop, mfilename)
+                try{
+                    d.containers = JSON.parse(p)
+                }catch(e){
+                    console.error("Failed to parse parameter template", p, mGruop, mfilename, e)
+                }
+            }
+        }
         return d
     }
 
-    confirmEditSet = () => {
+    confirmEditSet = async () => {
         if(this.parameter() == undefined) return
         if(this.data.value.editData.name.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')

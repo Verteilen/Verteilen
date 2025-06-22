@@ -6,7 +6,6 @@ import ClientNode from './components/ClientNode.vue';
 import Messager from './components/Messager.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
-import GuideDialog from './components/dialog/GuideDialog.vue';
 import SettingDialog from './components/dialog/SettingDialog.vue';
 import { BusType, Preference, WebPORT } from './interface';
 import { i18n } from './plugins/i18n';
@@ -19,14 +18,14 @@ const preference:Ref<Preference> = ref({
   log: false,
   font: 16,
   notification: false,
-  theme: "dark"
+  theme: "dark",
+  plugin_token: [],
 })
 const backend:Ref<BackendProxy> = ref(new BackendProxy())
 const config = computed(() => backend.value.config)
 
 const mode = ref(config.value.isElectron ? -1 : 1)
 const settingModal = ref(false)
-const guideModal = ref(false)
 
 const token = computed(() => {
   return backend.value.getCookie('token')
@@ -54,7 +53,6 @@ const locate = (v:string) => {
 }
 
 const setting = () => { settingModal.value = true }
-const guide = () => { guideModal.value = true }
 
 const preferenceUpdate = (data:Preference) => {
   Object.assign(preference.value, data)
@@ -75,7 +73,6 @@ const load_preference = (x:string) => {
 onMounted(() => {
   emitter?.on('modeSelect', modeSelect)
   emitter?.on('setting', setting)
-  emitter?.on('guide', guide)
   backend.value.wait_init().then(() => {
     if(backend.value.config.haveBackend){
       backend.value.eventOn('locate', locate)
@@ -88,7 +85,6 @@ onMounted(() => {
 onUnmounted(() => {
   emitter?.off('modeSelect', modeSelect)
   emitter?.off('setting', setting)
-  emitter?.off('guide', guide)
   backend.value.eventOff('locate', locate)
 })
 
@@ -101,7 +97,6 @@ onUnmounted(() => {
     <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>
     <Messager :preference="preference" />
     <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
-    <GuideDialog v-model="guideModal" :preference="preference" />
   </v-container>
 </template>
 

@@ -1,32 +1,13 @@
 import { v6 as uuidv6 } from 'uuid';
-import { AppConfig, Ref } from "vue";
-import { Parameter, Project, ProjectTable, ProjectTemplate, TemplateGroup } from "../interface";
+import { AppConfig, Plugin, Ref } from "vue";
+import { Parameter, PluginPageData, Project, ProjectTable } from "../interface";
 import { i18n } from '../plugins/i18n';
-import { GetAfterEffectTemplate, GetBlenderTemplate, GetDefaultProjectTemplate, GetFFmpeg_Image2VideoProjectTemplate, GetFUNIQUE_GS4ProjectTemplate_BlendPrepare, GetFUNIQUE_GS4ProjectTemplate_BlendResult, GetFUNIQUE_GS4ProjectTemplate_Colmap, GetFUNIQUE_GS4ProjectTemplate_Generate_IFrame, GetFUNIQUE_GS4ProjectTemplate_Generate_Prepare, GetFUNIQUE_GS4ProjectTemplate_LUT, GetFUNIQUE_GS4ProjectTemplate_PLYOutput } from "../template/projectTemplate";
-import { GetFUNIQUE_GS4ProjectTemplate_Mask } from '../template/project/GS4/GenerateMaskedPictures';
-import { GetFUNIQUE_GS4ProjectTemplate_Full } from '../template/project/GS4/GS4D_Full';
+import { BuildIn_ProjectTempGroup } from '../template/projectTemplate';
+import { BackendProxy } from '../proxy';
 
 type getproject = () => Array<Project>
 type getparameters = () => Array<Parameter>
-
-/**
- * {@link ProjectTemplate}
- */
-const groups:Array<TemplateGroup> = [
-    { group: "Default", value: 0, template: GetDefaultProjectTemplate },
-    { group: "GS4D", value: 100, template: GetFUNIQUE_GS4ProjectTemplate_Full },
-    { group: "GS4D", value: 101, template: GetFUNIQUE_GS4ProjectTemplate_Generate_Prepare },
-    { group: "GS4D", value: 102, template: GetFUNIQUE_GS4ProjectTemplate_Colmap },
-    { group: "GS4D", value: 103, template: GetFUNIQUE_GS4ProjectTemplate_Generate_IFrame },
-    { group: "GS4D", value: 104, template: GetFUNIQUE_GS4ProjectTemplate_BlendPrepare },
-    { group: "GS4D", value: 105, template: GetFUNIQUE_GS4ProjectTemplate_BlendResult },
-    { group: "GS4D", value: 106, template: GetFUNIQUE_GS4ProjectTemplate_PLYOutput },
-    { group: "GS4D", value: 107, template: GetFUNIQUE_GS4ProjectTemplate_LUT },
-    { group: "GS4D", value: 108, template: GetFUNIQUE_GS4ProjectTemplate_Mask },
-    { group: "FFmpeg", value: 200, template: GetFFmpeg_Image2VideoProjectTemplate },
-    { group: "Blender", value: 300, template: GetBlenderTemplate },
-    { group: "After Effect", value: 400, template: GetAfterEffectTemplate },
-]
+type getplugin = () => PluginPageData
 
 export interface CreateField {
     title: string
@@ -34,7 +15,7 @@ export interface CreateField {
     useTemp: boolean
     usePara: boolean
     parameter: string | null
-    temp: number | null
+    temp: number | string | null
 }
 
 export interface Temp {
@@ -76,10 +57,12 @@ export interface DialogDATA {
     temps:Array<Temp>
 }
 
-export const ValueToGroupName = (v:number) => groups.find(x => x.value == v)?.group
-export const IndexToValue = (v:number) => groups[v].value
+export const ValueToGroupName = (v:number) => BuildIn_ProjectTempGroup.find(x => x.value == v)?.group
+export const IndexToValue = (v:number) => BuildIn_ProjectTempGroup[v].value
 
 export class Util_Project {
+    backend: BackendProxy
+    plugin: getplugin
     getproject:getproject
     getparameters: getparameters
     data:Ref<DATA>
@@ -88,7 +71,9 @@ export class Util_Project {
         return this.getproject()
     }
 
-    constructor(_data:Ref<DATA>, _getproject:getproject, _getparameters:getparameters){
+    constructor(_backend: BackendProxy, _plugin: getplugin, _data:Ref<DATA>, _getproject:getproject, _getparameters:getparameters){
+        this.backend =_backend
+        this.plugin = _plugin
         this.data = _data
         this.getproject = _getproject
         this.getparameters = _getparameters
@@ -137,7 +122,7 @@ export class Util_Project {
         this.data.value.titleError = false
     }
 
-    confirmCreate = () => {
+    confirmCreate = async () => {
         if(this.data.value.editData.title.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
@@ -154,11 +139,27 @@ export class Util_Project {
         }
         if (this.data.value.editData.useTemp){
             const index = this.data.value.editData.temp
-            const p = groups.find(x => x.value == index)
+            const p = BuildIn_ProjectTempGroup.find(x => x.value === index)
             if(p != undefined) {
-                buffer = JSON.parse(JSON.stringify(p.template(buffer)))
+                buffer = JSON.parse(JSON.stringify(p.template!(buffer)))
+            }else{
+                const select = this.data.value.editData.temp as string
+                let mfilename: string = ""
+                let mGruop: string = ""
+                this.plugin().templates.forEach(x => {
+                    x.project.forEach(y => {
+                        if(y.title == select){
+                            mfilename = y.filename!
+                            mGruop = y.group
+                        }
+                    })
+                })
+                let p = JSON.parse(await this.backend.invoke('get_template', mGruop, mfilename))
+                delete p.uuid
+                delete p.title
+                delete p.description
+                buffer = Object.assign(buffer, p)
             }
-            else console.error("Cannot find project template by id", index)
         }
         if(this.data.value.editData.usePara){
             const target = this.getparameters().find(x => x.uuid == this.data.value.editData.parameter)

@@ -55,6 +55,7 @@
     },
     "error": {
         "title-needed": "Title is needed",
+        "url-needed": "URL is needed",
         "title-repeat": "Cannot use title which already exists",
         "project-empty": "Project list cannot be zero",
         "parameter-empty": "Project must binding with parameter",
@@ -68,6 +69,7 @@
     },
     "modal": {
         "project-template-select": "Select Template",
+        "parameter-template-select": "Select Template",
         "new-project": "New Project",
         "modify-project": "Modify Project",
         "delete-project": "Delete Project",
@@ -106,7 +108,11 @@
         "console-name": "Console Name",
         "delete-library": "Library Delete",
         "delete-library-confirm": "Are you sure delete this script",
-        "upload-pic": "Upload Profile Picture"
+        "upload-pic": "Upload Profile Picture",
+        "delete-plugin": "Delete Plugin",
+        "delete-template": "Delete Template",
+        "delete-plugin-confirm": "Are you sure delete plugin you selected",
+        "delete-template-confirm": "Are you sure delete template you selected"
     },
     "toolbar": {
         "server": "Server",
@@ -124,7 +130,8 @@
         "client": "Self",
         "setting": "Setting",
         "role": "Role",
-        "service": "Service"
+        "service": "Service",
+        "plugin": "Plugin"
     },
     "tooltip": {
         "select-server": "The one who send the command to client",
@@ -175,18 +182,14 @@
         },
         "project": {
             "default": "Example",
-            "gs4-full": "Funique GS4 Full",
-            "gs4-prepare": "Funique GS4 Prepare",
-            "gs4-colmap": "Funique GS4 Colmap",
-            "gs4-iframe": "Funique GS4 I-Frame",
-            "gs4-blend-prepare": "Funique GS4 Blend Prepare",
-            "gs4-blend": "Funique GS4 Blend Result",
-            "gs4-output": "Funique GS4 Output Ply",
-            "gs4-lut": "Funique GS4 Apply Lut",
-            "gs4-mask": "Funique GS4 Mask",
+            "ffmpeg_download": "FFmpeg Download",
             "concat": "FFmpeg concat",
             "blender": "Blender Render",
             "aftereffect": "After Effect Render"
+        },
+        "parameter": {
+            "default": "Default",
+            "ffmpeg": "FFmpeg"
         },
         "state": {
             "none": "Prepare",
@@ -235,6 +238,7 @@
         "task-count": "Task Count",
         "job-count": "Job Count"
     },
+    "info": "Information",
     "search": "Search",
     "selectall": "Select All",
     "unselectall": "Unselect All",
@@ -243,6 +247,8 @@
     "job": "JOB",
     "parameter": "Parameter",
     "create": "Create",
+    "import-template": "Import Template",
+    "import-plugin": "Import Plugin",
     "clone": "Clone",
     "delete": "Delete",
     "save": "Save",
@@ -289,5 +295,7 @@
     "enter": "Enter",
     "filters": "Filters",
     "setting": "Setting",
-    "guide": "Guide"
+    "guide": "Guide",
+    "plugin": "Plugin",
+    "template": "Template"
 }

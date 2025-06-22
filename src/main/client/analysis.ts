@@ -1,9 +1,10 @@
 import { ChildProcess, spawn } from 'child_process';
 import { WebSocket } from 'ws';
-import { Header, Job, Libraries, Messager, Messager_log, Parameter } from "../interface";
+import { Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, PluginList } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientShell } from './shell';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 /**
  * The analysis worker. decode the message received from cluster server
@@ -46,6 +47,9 @@ export class ClientAnalysis {
             'resource_start': this.resource_start,
             'resource_end': this.resource_end,
             'ping': this.pong,
+            'plugin_info': this.plugin_info,
+            'plugin_download': this.plugin_download,
+            'plugin_remove': this.plugin_remove,
         }
 
         if (h == undefined){
@@ -112,6 +116,27 @@ export class ClientAnalysis {
     private pong = (data:number, source: WebSocket) => {
         const h:Header = { name: 'pong', data: data }
         source.send(JSON.stringify(h))
+    }
+
+    private plugin_info = (data:number, source: WebSocket) => {
+        if(existsSync('plugin.json')){
+            const p:Array<Plugin> = JSON.parse(readFileSync('plugin.json').toString())
+            const h:Header = { name: 'plugin_info_reply', data: p }
+            source.send(JSON.stringify(h))
+        }else{
+            const p:Array<Plugin> = []
+            const h:Header = { name: 'plugin_info_reply', data: p }
+            writeFileSync('plugin.json', JSON.stringify(p))
+            source.send(JSON.stringify(h))
+        }
+    }
+
+    private plugin_download = (plugin:Plugin, source: WebSocket) => {
+        
+    }
+
+    private plugin_remove = (plugin:Plugin, source: WebSocket) => {
+        
     }
 
     private resource_start = (data:number, source: WebSocket) => {

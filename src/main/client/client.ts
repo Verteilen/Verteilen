@@ -1,16 +1,18 @@
 import * as path from 'path';
 import { check } from 'tcp-port-used';
 import { WebSocket, WebSocketServer } from 'ws';
-import { CLIENT_UPDATETICK, Header, Messager, Messager_log, PORT } from '../interface';
+import { CLIENT_UPDATETICK, Header, Messager, Messager_log, Plugin, PluginList, PORT } from '../interface';
 import { ClientAnalysis } from './analysis';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 /**
  * The calculation node worker
  */
 export class Client {
+    plugins: PluginList = { plugins: [] }
+    
     private client:WebSocketServer | undefined = undefined
     private sources:Array<WebSocket> = []
-
     private messager:Messager
     private messager_log:Messager_log
     private analysis:Array<ClientAnalysis>
@@ -29,6 +31,7 @@ export class Client {
         this.messager_log = _messager_log
         this.analysis = []
         this.updatehandle = setInterval(this.update, CLIENT_UPDATETICK);
+        this.loadPlugins()
     }
 
     Dispose (){
@@ -107,10 +110,20 @@ export class Client {
         this.analysis.forEach(x => x.update(this))
     }
 
-    public static workerPath = () => {
+    private loadPlugins = () => {
+        const pluginPath = Client.workerPath("plugin").replace('.exe', '') + '.json'
+
+        if(!existsSync(pluginPath)){
+            writeFileSync(pluginPath, JSON.stringify(this.plugins, null, 4))
+        }else{
+            this.plugins = JSON.parse(readFileSync(pluginPath).toString())
+        }
+    }
+    
+    public static workerPath = (filename:string = "worker", extension:string = ".exe") => {
         // @ts-ignore
         const isExe = process.pkg?.entrypoint != undefined
-        const exe = process.platform == 'win32' ? "worker.exe" : "worker"
+        const exe = process.platform == 'win32' ? filename + extension : filename
         let workerExe = ""
         let p = 0
         if(isExe && path.basename(process.execPath) == (process.platform ? "app.exe" : 'app')) { // Node build
@@ -129,39 +142,39 @@ export class Client {
             p = 3
         }
         else{ // Node un-build
-            workerExe = Client.isTypescript() ? path.join(__dirname, "bin", exe) : path.join(process.cwd(), "bin", exe)
+            workerExe = Client.isTypescript() ? path.join(__dirname, "bin", exe) : path.join(__dirname, "..", "bin", exe)
             p = 4
         }
         return workerExe
-    }
+    }    
 
     static isTypescript = ():boolean => {
-    // if this file is typescript, we are running typescript :D
-    // this is the best check, but fails when actionhero is compiled to js though...
-    const extension = path.extname(__filename);
-    if (extension === ".ts") {
-        return true;
-    }
+        // if this file is typescript, we are running typescript :D
+        // this is the best check, but fails when actionhero is compiled to js though...
+        const extension = path.extname(__filename);
+        if (extension === ".ts") {
+            return true;
+        }
 
-    // are we running via a ts-node/ts-node-dev shim?
-    const lastArg = process.execArgv[process.execArgv.length - 1];
-    if (lastArg && path.parse(lastArg).name.indexOf("ts-node") > 0) {
-        return true;
-    }
+        // are we running via a ts-node/ts-node-dev shim?
+        const lastArg = process.execArgv[process.execArgv.length - 1];
+        if (lastArg && path.parse(lastArg).name.indexOf("ts-node") > 0) {
+            return true;
+        }
 
-    try {
-        /**
-         * Are we running in typescript at the moment?
-         * see https://github.com/TypeStrong/ts-node/pull/858 for more details
-         */
-        return process[Symbol.for("ts-node.register.instance")] ||
-        (process.env.NODE_ENV === "test" &&
-            process.env.ACTIONHERO_TEST_FILE_EXTENSION !== "js")
-        ? true
-        : false;
-    } catch (error) {
-        console.error(error);
-        return false;
-    }
+        try {
+            /**
+             * Are we running in typescript at the moment?
+             * see https://github.com/TypeStrong/ts-node/pull/858 for more details
+             */
+            return process[Symbol.for("ts-node.register.instance")] ||
+            (process.env.NODE_ENV === "test" &&
+                process.env.ACTIONHERO_TEST_FILE_EXTENSION !== "js")
+            ? true
+            : false;
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
     }
 }

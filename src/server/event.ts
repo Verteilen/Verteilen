@@ -3,10 +3,8 @@ import tcpPortUsed from 'tcp-port-used';
 import ws from 'ws';
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { BusAnalysis, ExecuteProxy, ExecuteState, FeedBack, GlobalPermission, Header, Job, Libraries, LocalPermiision, NodeProxy, Parameter, Preference, Project, Record, ServerSetting, ShellFolder, Single, Task, UserProfile, UserProfileClient, UserType, WebsocketPack } from "./interface";
-import { i18n } from "./plugins/i18n";
+import { GlobalPermission, Header, Libraries, LocalPermiision, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
 import { ConsoleServerManager } from "./script/console_server_manager";
-import { WebsocketManager } from "./script/socket_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
 import { v6 as uuidv6 } from 'uuid'
@@ -153,11 +151,6 @@ export class BackendEvent {
     }
     //#endregion
 
-    console_add = (data:any, socket:ws.WebSocket) => {
-        const n:string = data.name
-        const r:Record = data.record
-    }
-
     //#region Server
     Root = () => {
         if(!fs.existsSync('data/user')) fs.mkdirSync('data/user');
@@ -186,6 +179,7 @@ export class BackendEvent {
                     font: 18,
                     theme: "dark",
                     notification: false,
+                    plugin_token: [],
                 },
                 name: "root",
                 description: "Root User",

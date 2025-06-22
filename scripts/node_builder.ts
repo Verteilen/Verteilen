@@ -2,9 +2,10 @@ const Chalk = require('chalk');
 import * as util from './utility';
 
 async function main(){
-    let docker = false
+    let arg: undefined | 'docker' | 'package' = undefined
     process.argv.forEach(element => {
-        if(element == "docker") docker = true
+        if(element == "docker") arg = 'docker'
+        if(element == "package") arg = 'package'
     });
 
     util.Clean_Node()
@@ -12,11 +13,15 @@ async function main(){
     await util.Share_Call()
 
     await util.Build_Program()
-    await util.PKG_Program("linux")
+    if(arg != 'package'){
+        await util.PKG_Program(arg == 'docker' ? 'linux' : '')
+    }
     console.log(Chalk.greenBright('Program successfully transpiled!'));
 
     await util.Build_Node()
-    await util.Copy_Worker2Node()
+    if(arg != 'package'){
+        await util.Copy_Worker2Node()
+    }
     await util.Copy_PackageJson2Node()
 
     if(process.argv.includes('--pkg')){

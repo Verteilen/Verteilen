@@ -1,43 +1,45 @@
 <script setup lang="ts">
-import { Ref, ref, watch } from 'vue';
-import { CreateField, DialogDATA } from '../../util/parameter';
+import { computed } from 'vue';
+import { DialogDATACreate } from '../../util/parameter';
+import DialogBase from './DialogBase.vue';
 
 const data = defineModel<boolean>()
-const props = defineProps<DialogDATA>()
+const props = defineProps<DialogDATACreate>()
 const emits = defineEmits<{
-    (e: 'submit', d:CreateField): void
+    (e: 'confirm-create'): void
+    (e: 'confirm-edit'): void
 }>()
-const buffer:Ref<CreateField> = ref({title: ""})
 
-watch(() => data.value, () => {
-    if(props.isEdit) buffer.value = props.editData
-    else buffer.value = {title: ""}
+const only_options = computed(() => {
+    return props.options.filter(x => x.title != "All")
 })
 
 const confirm = () => {
-    emits('submit', buffer.value)
+    if(props.isEdit) emits('confirm-edit')
+    else emits('confirm-create')
 }
 
 </script>
 
 <template>
-    <v-dialog width="500" v-model="data" class="text-white">
-        <v-card>
-            <v-card-title v-if="props.isEdit">
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.modify-project') }}
-            </v-card-title>
-            <v-card-title v-else>
-                <v-icon>mdi-hammer</v-icon>
-                {{ $t('modal.new-project') }}
-            </v-card-title>
-            <v-card-text>
-                <v-text-field :error="props.titleError" v-model="buffer.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-                <p v-if="props.errorMessage.length > 0" class="mt-3 text-red">{{ props.errorMessage }}</p>
-            </v-card-text>
-            <template v-slot:actions>
-                <v-btn class="mt-3" color="primary" @click="confirm">{{ $t(props.isEdit ? 'modify' : 'create') }}</v-btn>
-            </template>
-        </v-card>
-    </v-dialog>
+    <DialogBase width="500" v-model="data!" class="text-white">
+        <template #title v-if="props.isEdit">
+            <v-icon>mdi-pencil</v-icon>
+            {{ $t('modal.edit-parameter') }}
+        </template>
+        <template #title v-else>
+            <v-icon>mdi-hammer</v-icon>
+            {{ $t('modal.new-parameter') }}
+        </template>
+        <template #text>
+            <v-text-field :error="props.titleError" v-model="props.targetData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+            <v-select class="mt-3" v-model="props.targetData.type" :items="only_options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
+            <v-checkbox :label="$t('filter.show-hidden')" v-model="props.targetData.hidden" hide-details></v-checkbox>
+            <v-checkbox :label="$t('filter.show-runtime')" v-model="props.targetData.runtimeOnly" hide-details></v-checkbox>
+            <p v-if="props.errorMessage.length > 0" class="mt-3 text-red">{{ props.errorMessage }}</p>
+        </template>
+        <template #action>
+            <v-btn class="mt-3" color="primary" @click="confirm">{{ $t(props.isEdit ? 'modify' : 'create') }}</v-btn>
+        </template>
+    </DialogBase>
 </template>

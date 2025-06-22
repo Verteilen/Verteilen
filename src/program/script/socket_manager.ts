@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, ShellFolder, Single, SocketState, SystemLoad, WebsocketPack } from "../interface";
+import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, Plugin, ShellFolder, Single, SocketState, SystemLoad, WebsocketPack } from "../interface";
 import * as jsEnv from "browser-or-node";
 import ws from 'ws'
 
@@ -190,6 +190,7 @@ export class WebsocketManager {
             'shell_folder_reply': this.shell_folder_reply,
             'node_info': this.node_info,
             'pong': this.pong,
+            'plugin_info_reply': this.plugin_info_reply,
         }
         if(typeMap.hasOwnProperty(d.name)){
             const castingFunc = typeMap[d.h.name]
@@ -297,5 +298,9 @@ export class WebsocketManager {
     private pong = (info:number, source:WebsocketPack | undefined) => {
         if(source == undefined || source.last == undefined) return
         source.ms = Date.now() - source.last
+    }
+
+    private plugin_info_reply = (data:Array<Plugin>, source:WebsocketPack | undefined) => {
+
     }
 }

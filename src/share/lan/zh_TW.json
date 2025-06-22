@@ -56,6 +56,7 @@
     "error": {
         "title-needed": "名稱不能為空",
         "title-repeat": "名稱不能重複",
+        "url-needed": "URL 不能為空",
         "project-empty": "專案清單不能爲空",
         "parameter-empty": "專案必須綁定參數",
         "node-empty": "節點清單不能爲空"
@@ -68,6 +69,7 @@
     },
     "modal": {
         "project-template-select": "樣板選擇",
+        "parameter-template-select": "樣板選擇",
         "new-project": "新增專案",
         "modify-project": "編輯專案",
         "delete-project": "刪除專案",
@@ -106,7 +108,11 @@
         "console-name": "控制台名稱",
         "delete-library": "刪除程式腳本",
         "delete-library-confirm": "確定刪除選取的程式腳本嗎?",
-        "upload-pic": "上傳用戶照片"
+        "upload-pic": "上傳用戶照片",
+        "delete-plugin": "刪除插件",
+        "delete-template": "刪除樣板",
+        "delete-plugin-confirm": "確定刪除選取的插件嗎?",
+        "delete-template-confirm": "確定刪除選取的樣板嗎?"
     },
     "toolbar": {
         "server": "伺服器",
@@ -124,7 +130,8 @@
         "client": "客戶端",
         "setting": "設定",
         "role": "權限組",
-        "service": "服務"
+        "service": "服務",
+        "plugin": "插件"
     },
     "tooltip": {
         "select-server": "作為伺服器下指令的一方",
@@ -175,18 +182,14 @@
         },
         "project": {
             "default": "範例",
-            "gs4-full": "睿智 GS4 完整",
-            "gs4-prepare": "睿智 GS4 準備階段",
-            "gs4-colmap": "睿智 GS4 Colmap",
-            "gs4-iframe": "睿智 GS4 I-Frame",
-            "gs4-blend-prepare": "睿智 GS4 Blend 準備階段",
-            "gs4-blend": "睿智 GS4 Blend 運算",
-            "gs4-output": "睿智 GS4 輸出 Ply",
-            "gs4-lut": "睿智 GS4 套用 Lut",
-            "gs4-mask": "Funique GS4 去背",
+            "ffmpeg_download": "FFmpeg 下載影片",
             "concat": "FFmpeg 合成影片",
             "blender": "Blender 渲染",
             "aftereffect": "After Effect 渲染"
+        },
+        "parameter": {
+            "default": "Default",
+            "ffmpeg": "FFmpeg"
         },
         "state": {
             "none": "準備中",
@@ -235,6 +238,7 @@
         "task-count": "流程數",
         "job-count": "工作數"
     },
+    "info": "資訊",
     "search": "搜尋",
     "selectall": "全選",
     "unselectall": "取消全選",
@@ -243,6 +247,8 @@
     "job": "工作",
     "parameter": "參數",
     "create": "新增",
+    "import-template": "匯入樣板",
+    "import-plugin": "匯入插件",
     "clone": "克隆",
     "delete": "刪除",
     "save": "存檔",
@@ -289,5 +295,7 @@
     "enter": "進入",
     "filters": "篩選",
     "setting": "設定",
-    "guide": "指南"
+    "guide": "指南",
+    "plugin": "插件",
+    "template": "樣板"
 }

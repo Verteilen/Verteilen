@@ -2,17 +2,22 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, Preference } from '../../interface';
+import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, ParameterTemplate, ParameterTemplateText, PluginPageData, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { DATA, Util_Parameter } from '../../util/parameter';
+import { CreateField, DATA, IndexToValue, Temp, Util_Parameter, ValueToGroupName } from '../../util/parameter';
 import DialogBase from '../dialog/DialogBase.vue'
+import ParameterDialog from '../dialog/ParameterDialog.vue'
+import ParameterSetDialog from '../dialog/ParameterSetDialog.vue'
 import { v6 as uuidv6 } from 'uuid'
+import { BackendProxy } from '../../proxy';
 
 interface PROPS {
     config: AppConfig
     preference: Preference
+    backend: BackendProxy
     select: Parameter | undefined
     parameters: Array<Parameter>
+    plugin: PluginPageData
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -26,15 +31,16 @@ const emits = defineEmits<{
     (e: 'return'): void
 }>()
 const fields:Ref<Array<any>> = ref([
-    { title: 'Name', align: 'center', key: 'name' },
-    { title: 'Type', align: 'center', key: 'type' },
-    { title: 'Hidden', align: 'center', key: 'hidden' },
-    { title: 'Runtime Only', align: 'center', key: 'runtimeOnly' },
+    { title: 'Name', align: 'center', key: 'name', width: "15%" },
+    { title: 'Type', align: 'center', key: 'type', width: "40px" },
+    { title: 'Hidden', align: 'center', key: 'hidden', width: "40px" },
+    { title: 'Runtime Only', align: 'center', key: 'runtimeOnly', width: "40px" },
     { title: 'Value', align: 'center', key: 'value' },
-    { title: 'Detail', align: 'center', key: 'detail' },
+    { title: 'Detail', align: 'center', key: 'detail', width: "15%" },
 ])
 
 const data:Ref<DATA> = ref({
+    selectTempModel: false,
     cloneModal: false,
     cloneName: "",
     objectModal: false,
@@ -47,7 +53,7 @@ const data:Ref<DATA> = ref({
     filterModal: false,
     deleteModal: false,
     createData: { name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number },
-    editData: { name: '', type: 0 },
+    editData: { name: '', type: 0, useTemp: false, temp: null },
     filter: { showhidden: false, showruntime: false, type: -1 },
     buffer_filter: { showhidden: false, showruntime: false, type: -1 },
     options: [],
@@ -56,10 +62,11 @@ const data:Ref<DATA> = ref({
     errorMessage: '',
     titleError: false,
     search: '',
-    search_para: ''
+    search_para: '',
+    temps: []
 })
 
-const util:Util_Parameter = new Util_Parameter(data, () => props.parameters, () => props.select)
+const util:Util_Parameter = new Util_Parameter(props.backend, () => props.plugin, data, () => props.parameters, () => props.select)
 
 const items_final = computed(() => data.value.buffer.containers
     .filter(x => {
@@ -78,8 +85,9 @@ const items_final = computed(() => data.value.buffer.containers
         return data.value.filter.type == x.type
     })
 )
-const only_options = computed(() => {
-    return data.value.options.filter(x => x.title != "All")
+const temp_name = computed(() => {
+    if(data.value.editData.temp == undefined) return ''
+    return data.value.temps.find(x => x.value == data.value.editData.temp)?.text
 })
 
 const updateParameter = () => util.updateParameter()
@@ -95,6 +103,10 @@ const confirmEdit = () => util.confirmEdit()
 const setdirty = () => data.value.dirty = true
 const filterOpen = () => util.filterOpen()
 
+const openSelectTemp = () => {
+    data.value.selectTempModel = true
+}
+
 const selectSearchF = computed(() => {
     if(data.value.selectSearch == undefined || data.value.selectSearch.length == 0) return props.parameters
     return props.parameters.filter(x => x.title.includes(data.value.selectSearch!) || x.uuid.includes(data.value.selectSearch!))
@@ -105,35 +117,51 @@ const importPara = () => {
     window.electronAPI.send("import_parameter")
 }
 
-const exportPara = () => {
-    if(!props.config.isElectron) return
-    window.electronAPI.send("export_parameter", JSON.stringify(data.value.buffer))
+const exportPara = async () => {
+    if(props.config.isElectron) {
+        window.electronAPI.send("export_parameter", JSON.stringify(data.value.buffer))
+    }else if(props.config.isExpress){
+        const handle = await window.showSaveFilePicker({ suggestedName: data.value.buffer.uuid + '.json' });
+        const writer = await handle.createWritable();
+        await writer.write(new Blob([JSON.stringify(JSON.stringify(data.value.buffer), null, 2)]))
+        await writer.close()
+    }
 }
 
-const confirmCreateSet = () => {
-    const d = util.confirmCreateSet()
+const confirmCreateSet = async (v:CreateField) => {
+    const d = await util.confirmCreateSet()
     if(d == undefined) return
     emits('added', d)
     data.value.createParameterModal = false
 }
 
-const confirmEditSet = () => {
-    const d = util.confirmEditSet()
+const confirmEditSet = async (v:CreateField) => {
+    const d = await util.confirmEditSet()
     if(d == undefined) return
     emits('edit', d)
     data.value.createParameterModal = false
 }
 
+const confirmSubmitSet = (v:CreateField) => {
+    data.value.editData.name = v.name
+    data.value.editData.temp = v.temp
+    if(!data.value.editMode) confirmCreateSet(v);
+    else confirmEditSet(v);
+}
+
 const deleteSelect = () => {
+    data.value.errorMessage = ""
     data.value.deleteModal = true
 }
 
 const deleteConfirm = () => {
+    data.value.errorMessage = ""
     data.value.deleteModal = false
     emits('delete', data.value.buffer.uuid)
 }
 
 const cloneSelect = () => {
+    data.value.errorMessage = ""
     data.value.cloneModal = true
     data.value.cloneName = props.select?.title + " Clone"
 }
@@ -155,7 +183,34 @@ const DataTypeTranslate = (t:number):string => {
     return i18n.global.t(DataTypeText[t])
 }
 
+const parameterTemplateTranslate = (t:number):string => {
+    return ParameterTemplateText.hasOwnProperty(t) ? i18n.global.t(ParameterTemplateText[t]) : ""
+}
+
+const updateTemps = () => {
+    data.value.temps = Object.keys(ParameterTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
+        const text = parameterTemplateTranslate(IndexToValue(index))
+        return {
+            text: text.length > 0 ? text : x,
+            group: ValueToGroupName(IndexToValue(index)) ?? '',
+            value: IndexToValue(index)
+        }
+    })
+    let adder = 0
+    props.plugin.templates.forEach(x => {
+        x.parameter.forEach(y => {
+            const buffer:Temp = {
+                text: y.title ? y.title : "Null",
+                group: y.group,
+                value: 1000 + adder
+            }
+            adder += 1
+            data.value.temps.push(buffer)
+        })
+    })
+}
 const updateLocate = () => {
+    updateTemps()
     data.value.options = Object.keys(DataType).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             title: DataTypeTranslate(index),
@@ -175,6 +230,7 @@ const paraSelect = () => { data.value.selectModal = true }
 
 const paraCreate = () => {
     data.value.createParameterModal = true
+    data.value.editMode = false
     data.value.editData.name = ''
 }
 
@@ -313,7 +369,7 @@ onUnmounted(() => {
                     <v-btn variant="text" icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
-                    <v-btn variant="text" icon :disabled="isLast(item.name)" @click="deleteitem(item.name)" size="small">
+                    <v-btn variant="text" icon @click="deleteitem(item.name)" size="small">
                         <v-icon>mdi-delete</v-icon>
                     </v-btn>
                 </template>
@@ -335,27 +391,24 @@ onUnmounted(() => {
                 </template>
             </v-data-table>
         </div>
-        <DialogBase width="500" v-model="data.createModal">
-            <template #title v-if="!data.editMode">
-                <v-icon>mdi-hammer</v-icon>
-                {{ $t('modal.new-parameter') }}
-            </template>
-            <template #title v-else>
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.edit-parameter') }}
-            </template>
-            <template #text>
-                <v-text-field :error="data.titleError" v-model="data.createData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
-                <v-select class="mt-3" v-model="data.createData.type" :items="only_options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
-                <v-checkbox :label="$t('filter.show-hidden')" v-model="data.createData.hidden" hide-details></v-checkbox>
-                <v-checkbox :label="$t('filter.show-runtime')" v-model="data.createData.runtimeOnly" hide-details></v-checkbox>
-                <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreate">{{ $t('create') }}</v-btn>
-                <v-btn class="mt-3" color="primary" v-else @click="confirmEdit">{{ $t('modify') }}</v-btn>
-            </template>
-        </DialogBase>
+        <ParameterDialog width="500" v-model="data.createModal"
+            :is-edit="data.editMode"
+            :error-message="data.errorMessage"
+            :title-error="data.titleError"
+            :target-data="data.createData"
+            :options="data.options"
+            :temps="data.temps"
+            @confirm-create="confirmCreate"
+            @confirm-edit="confirmEdit">
+        </ParameterDialog>
+        <ParameterSetDialog width="500" v-model="data.createParameterModal"
+            :is-edit="data.editMode"
+            :error-message="data.errorMessage"
+            :title-error="data.titleError"
+            :target-data="data.editData"
+            :temps="data.temps"
+            @submit="confirmSubmitSet">
+        </ParameterSetDialog>
         <DialogBase width="500" v-model="data.cloneModal">
             <template #title>
                 <v-icon>mdi-content-paste</v-icon>
@@ -367,23 +420,6 @@ onUnmounted(() => {
             </template>
             <template #action>
                 <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="cloneSelectConfirm">{{ $t('create') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase width="500" v-model="data.createParameterModal">
-            <template #title v-if="!data.editMode">
-                <v-icon>mdi-hammer</v-icon>
-                {{ $t('modal.new-parameter-set') }}
-            </template>
-            <template #title v-else>
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.edit-parameter-set') }}
-            </template>
-            <template #text>
-                <v-text-field :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="confirmCreateSet">{{ $t('create') }}</v-btn>
-                <v-btn class="mt-3" color="primary" v-else @click="confirmEditSet">{{ $t('modify') }}</v-btn>
             </template>
         </DialogBase>
         <v-dialog width="500" v-model="data.selectModal" class="text-white">

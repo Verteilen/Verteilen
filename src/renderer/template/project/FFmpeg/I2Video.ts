@@ -1,7 +1,7 @@
 import { v6 as uuidv6 } from 'uuid';
 import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../../interface";
 
-const GetFFmpeg_Image2VideoProjectTemplate_Render = ():Task => {
+const Render = ():Task => {
     const render:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -28,7 +28,7 @@ const GetFFmpeg_Image2VideoProjectTemplate_Render = ():Task => {
     return t
 }
 
-const GetFFmpeg_Image2VideoProjectTemplate_Concat = ():Task => {
+const Concat = ():Task => {
     const render:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -70,8 +70,8 @@ export const GetFFmpeg_Image2VideoProjectTemplate = (r:Project):Project => {
     }
     r.parameter = para
     r.task.push(...[
-        GetFFmpeg_Image2VideoProjectTemplate_Render(),
-        GetFFmpeg_Image2VideoProjectTemplate_Concat(),
+        Render(),
+        Concat(),
     ])
     return r
 }

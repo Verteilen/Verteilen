@@ -12,7 +12,8 @@ const emits = defineEmits<{
 }>()
 const buffer:Ref<CreateField> = ref({title: "", description: "", usePara: false, useTemp: false, temp: null, parameter: null})
 const selectTempModel = ref(false)
-const selectTempIndex:Ref<Array<number>> = ref([])
+const selectTempIndex:Ref<Array<number | string>> = ref([])
+const search:Ref<string | null> = ref(null)
 
 const isDark = computed(() => theme.global.name.value == "dark")
 const paras = computed(() => {
@@ -25,12 +26,18 @@ const paras = computed(() => {
     })
 })
 const groups = computed(() => {
-    const v:Array<Array<Temp>> = []
+    let v:Array<Array<Temp>> = []
     propss.temps.forEach(x => {
         const index = v.findIndex(y => y[0].group === x.group)
         if(index == -1) v.push([x])
         else v[index].push(x)
     })
+    if(search.value != null){
+        for(let i = 0; i < v.length; i++){
+            v[i] = v[i].filter(p => p.text.includes(search.value!))
+        }
+    }
+    v = v.filter(x => x.length > 0)
     return v
 })
 const convert = computed(() => {
@@ -42,7 +49,8 @@ const convert = computed(() => {
 })
 const temp_name = computed(() => {
     if(buffer.value.temp == undefined) return ''
-    return propss.temps.find(x => x.value == buffer.value.temp)?.text
+    if(typeof buffer.value.temp == 'number') return propss.temps.find(x => x.value == buffer.value.temp)?.text
+    else return propss.temps.find(x => x.text == buffer.value.temp)?.text
 })
 
 const itemProps = (item:any) => {
@@ -53,6 +61,7 @@ const itemProps = (item:any) => {
 }
 
 watch(() => data.value, () => {
+    search.value = null
     selectTempModel.value = false
     if(propss.isEdit) buffer.value = propss.editData
     else buffer.value = {title: "", description: "", useTemp: false, usePara: false, temp: null, parameter: null}
@@ -63,7 +72,7 @@ const openSelectTemp = () => {
 }
 
 const onSelectTemp = (d:Temp) => {
-    selectTempIndex.value = [d.value]
+    selectTempIndex.value = d.value >= 1000 ? [d.text] : [d.value]
 }
 
 const confirm_temp = () => {
@@ -111,7 +120,7 @@ const confirm = () => {
             <p v-if="propss.errorMessage.length > 0" class="mt-3 text-red">{{ propss.errorMessage }}</p>
 
 
-            <DialogBase width="500" height="50%" v-model="selectTempModel" :color="isDark ? 
+            <DialogBase width="60vw" height="80vh" v-model="selectTempModel" :color="isDark ? 
                 'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 
                 'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'">
                 <template #title>
@@ -119,13 +128,14 @@ const confirm = () => {
                     {{ $t('modal.project-template-select') }}
                 </template>
                 <template #text>
-                    <v-list>
-                        <v-list-group v-for="(group, i) in groups" :key="i">
+                    <v-text-field :label="$t('search')" v-model.trim="search" hide-details clearable></v-text-field>
+                    <v-list style="height: calc(80vh - 250px);">
+                        <v-list-group v-for="(group, i) in groups" :key="group[0].group + String(i)">
                             <template v-slot:activator="{ props }">
                                 <v-list-item v-bind="props" :title="group[0].group">
                                 </v-list-item>
                             </template>
-                            <v-list-item v-for="(g, j) in group" :key="j" :title="g.text" :value="g.value" @click="onSelectTemp(g)">
+                            <v-list-item v-for="(g, j) in group" :key="g.text + String(j)" :title="g.text" :value="g.value" @click="onSelectTemp(g)">
                             </v-list-item>
                         </v-list-group>
                     </v-list>

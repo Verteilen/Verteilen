@@ -3,7 +3,7 @@ import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, Library, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ConsolePORT, ExecutePair } from '../interface';
+import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ConsolePORT, ExecutePair, FrontendUpdate } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -23,6 +23,7 @@ import TaskPage from './server/Task.vue';
 import RolePage from './server/Role.vue';
 import ServicePage from './server/Service.vue';
 import ProfilePage from './server/Profile.vue';
+import PluginPage from './server/Plugin.vue';
 import { ConsoleManager } from '../script/console_manager';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -54,7 +55,8 @@ const data:Ref<DATA> = ref({
     selectTask: undefined,
     selectParameter: undefined,
     nodes: [],
-    messages: []
+    messages: [],
+    plugin: { plugins: [], templates: [] }
 })
 
 const util:Util_Server = new Util_Server(data, () => props.backend, emitter!)
@@ -72,14 +74,14 @@ watch(() => data.value.page, () => {
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
 
-//#region Project
+// #region Project
 const addProject = (v:Array<Project>) => util.project.addProject(v)
 const editProject = (id:string, v:Project) => util.project.editProject(id, v)
 const deleteProject = (uuids:Array<string>, bind:boolean) => util.project.deleteProject(uuids, bind)
 const chooseProject = (uuid:string) => util.project.chooseProject(uuid)
 const moveupProject = (uuid:string) => util.project.moveupProject(uuid)
 const movedownProject = (uuid:string) => util.project.movedownProject(uuid)
-//#endregion
+// #endregion
 
 //#region Task
 const addTask = (v:Array<Task>) => util.task.addTask(v)
@@ -254,6 +256,27 @@ const msgAppend = (d:Array<string | undefined>) => util.self.msgAppend(d)
 const msgClean = () => util.self.clearMessage()
 //#endregion
 
+//#region Plugin
+const pluginAdded = (name:string, url:string, token?:string) => {
+  props.backend.invoke("import_plugin", name, url, token).then(x => {
+    data.value.plugin = JSON.parse(x)
+  })
+}
+const templateAdded = (name:string, url:string, token?:string) => {
+  props.backend.invoke("import_template", name, url, token).then(x => {
+    data.value.plugin = JSON.parse(x)
+  })
+}
+const pluginDelete = (name:string) => {
+  props.backend.invoke("import_plugin_delete", name).then(x => {
+    data.value.plugin = JSON.parse(x)
+  })
+}
+const templateDelete = (name:string) => {
+  props.backend.invoke("import_template_delete", name).then(x => {
+    data.value.plugin = JSON.parse(x)
+  })
+}
 //#endregion
 
 const updateLocate = () => {
@@ -278,9 +301,10 @@ const updateTab = () => {
   ]
   
   if(config.value.haveBackend){
+    tabs.value.push(["mdi-puzzle", "toolbar.plugin", 11])
     tabs.value.push(["", "toolbar.backend", -1])
     tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
-    tabs.value.push(["mdi-puzzle", "toolbar.library", 7])
+    tabs.value.push(["mdi-xml", "toolbar.library", 7])
   }
   if((config.value.isExpress && config.value.isAdmin) || config.value.isElectron){
     tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
@@ -347,7 +371,6 @@ const onAnalysis = (d:BusAnalysis) => {
 }
 
 const popSetting = () => { emitter?.emit('setting') }
-const popGuide = () => { emitter?.emit('guide') }
 
 const hotkey = (event:KeyboardEvent) => {
   if (event.altKey && Number(event.key) >= 1 && Number(event.key) <= 7) {
@@ -360,6 +383,27 @@ const hotkey = (event:KeyboardEvent) => {
     else if(event.key == "6") data.value.page = 5
     else if(event.key == "7") data.value.page = 6
   }
+}
+
+const repull = (u:FrontendUpdate) => {
+  const c: Array<Promise<void>> = []
+  if((u & FrontendUpdate.PROJECT) == FrontendUpdate.PROJECT){
+    const p3 = props.backend.invoke('load_all_record').then(x => {
+      const texts:Array<string> = JSON.parse(x)
+      data.value.projects.push(...texts.map(y => JSON.parse(y)))
+      console.log(data.value.projects)
+    })
+    c.push(p3)
+  }
+  if((u & FrontendUpdate.PARAMETER) == FrontendUpdate.PARAMETER){
+    const p5 = props.backend.invoke('load_all_parameter').then(x => {
+      const texts:Array<string> = JSON.parse(x)
+      data.value.parameters = texts.map(y => JSON.parse(y))
+      console.log("Parameters", data.value.libs)
+    })
+    c.push(p5)
+  }
+  return c
 }
 
 const dataset_init = () => {
@@ -377,6 +421,7 @@ const dataset_init = () => {
   {
     props.backend.eventOn('shellReply', (data) => emitter?.emit('shellReply', data) )
     props.backend.eventOn('folderReply', (data) => emitter?.emit('folderReply', data) )
+    props.backend.eventOn('frontend_update', repull)
   }
 
   props.backend.eventOn('makeToast', (data) => emitter?.emit('makeToast', data))
@@ -410,16 +455,11 @@ const dataset_init = () => {
     })}
     console.log("Libs", data.value.libs)
   })
-  const p3 = props.backend.invoke('load_all_record').then(x => {
-    const texts:Array<string> = JSON.parse(x)
-    data.value.projects.push(...texts.map(y => JSON.parse(y)))
-    console.log(data.value.projects)
+  const p4 = props.backend.invoke('get_plugin').then(x => {
+    data.value.plugin = JSON.parse(x)
+    console.log("Plugins", data.value.plugin)
   })
-  const p5 = props.backend.invoke('load_all_parameter').then(x => {
-    const texts:Array<string> = JSON.parse(x)
-    data.value.parameters = texts.map(y => JSON.parse(y))
-    console.log("Parameters", data.value.libs)
-  })
+  const p35 = repull(FrontendUpdate.ALL)
   const p6 = props.backend.invoke('load_all_log').then(x => {
       const stringlist:Array<string> = JSON.parse(x)
       const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
@@ -427,7 +467,7 @@ const dataset_init = () => {
       console.log("Logs", ll)
       data.value.logs.logs = ll
   })
-  Promise.all([p0, p1, p2, p3, p5, p6]).then(() => {
+  Promise.all([p0, p1, p2, p4, ...p35, p6]).then(() => {
     data.value.nodes = data.value.nodes.map(y => {
       return Object.assign(y, {
         s: false,
@@ -508,7 +548,6 @@ onUnmounted(() => {
             </template>
             <v-list width="120px">
               <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
-              <v-list-item @click="popGuide">{{ $t('guide') }}</v-list-item>
             </v-list>
           </v-menu>
         </template>
@@ -540,7 +579,9 @@ onUnmounted(() => {
       <v-tabs-window v-model="data.page">
         <v-tabs-window-item :value="0">
           <ProjectPage
+            :backend="props.backend"
             :projects="data.projects" 
+            :plugin="data.plugin"
             :parameters="data.parameters"
             :config="config"
             :preference="props.preference"
@@ -583,7 +624,9 @@ onUnmounted(() => {
             :config="config"
             :parameters="data.parameters"
             :select="data.selectParameter"
+            :backend="props.backend"
             :preference="props.preference"
+            :plugin="data.plugin"
             @added="e => addParameter(e)"
             @select="e => selectParameter(e)"
             @edit="e => editParameter(e)" 
@@ -593,6 +636,7 @@ onUnmounted(() => {
         <v-tabs-window-item :value="4">
           <NodePage
             :manager="data.websocket_manager"
+            :plugin="data.plugin"
             :backend="props.backend"
             :preference="props.preference"
             :nodes="data.nodes" />
@@ -644,6 +688,13 @@ onUnmounted(() => {
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="10">
           <ServicePage />
+        </v-tabs-window-item>
+        <v-tabs-window-item v-show="config.haveBackend" :value="11">
+          <PluginPage :plugin="data.plugin"
+            @added-plugin="pluginAdded"
+            @added-template="templateAdded"
+            @delete-plugin="pluginDelete"
+            @delete-template="templateDelete" />
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="100">
           <ProfilePage :backend="props.backend" />

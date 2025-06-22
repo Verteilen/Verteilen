@@ -1,5 +1,7 @@
+#!/usr/bin/env node
 import { Client } from './client/client';
 import { Header, Single } from './interface';
+import { checker } from './utility/worker_download';
 
 let client:Client | undefined = undefined
 
@@ -24,6 +26,8 @@ const messager_log = (msg:string, tag?:string, meta?:string) => {
     }
 }
 
-console.log("dir: " + process.cwd())
-client = new Client(messager, messager_log)
-client.Init()
+checker().then(() => {
+    console.log("dir: " + process.cwd())
+    client = new Client(messager, messager_log)
+    client.Init()
+})

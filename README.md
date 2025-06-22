@@ -154,7 +154,6 @@ Execute cronjob task with multithread enable\
 ## Project Template
 
 - [Example](./docs/Example.md)
-- [GS4](./docs/GS4.md)
 
 ## TODOs
 

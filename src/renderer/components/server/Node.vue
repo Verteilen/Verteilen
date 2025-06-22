@@ -2,11 +2,12 @@
 import { Emitter } from 'mitt';
 import { v6 as uuid6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ConnectionText, Header, NodeTable, Preference } from '../../interface';
+import { BusType, ConnectionText, Header, NodeTable, PluginPageData, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { WebsocketManager } from '../../script/socket_manager';
 import NodeInfoDialog from '../dialog/NodeInfoDialog.vue';
 import NodeShellDialog from '../dialog/NodeShellDialog.vue';
+import NodePluginDialog from '../dialog/NodePluginDialog.vue';
 import { BackendProxy } from '../../proxy';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -16,10 +17,13 @@ interface PROPS {
     manager: WebsocketManager | undefined
     backend: BackendProxy
     preference: Preference
+    plugin: PluginPageData
 }
 const props = defineProps<PROPS>()
 const deleteModal = ref(false)
 const deleteData:Ref<Array<string>> = ref([])
+const pluginModal = ref(false)
+const pluginUUID = ref('')
 const infoModal = ref(false)
 const infoUUID = ref('')
 const consoleModal = ref(false)
@@ -44,6 +48,7 @@ const hasSelect = computed(() => selection.value.length > 0)
 const selected_node_ids = computed(() => props.nodes.filter(x => selection.value.includes(x.ID)).map(x => x.ID))
 const infoTarget = computed(() => props.nodes.find(x => x.ID == infoUUID.value))
 const consoleTarget = computed(() => props.nodes.find(x => x.ID == consoleUUID.value))
+const pluginTarget = computed(() => props.nodes.find(x => x.ID == pluginUUID.value))
 
 watch(() => infoModal.value, () => {
     if(infoModal.value){
@@ -134,6 +139,11 @@ const translate_state_color = (state:number):string => {
     return 'white'
 }
 
+const showplugin = (uuid:string) => {
+    pluginModal.value = true
+    pluginUUID.value = uuid
+}
+
 const showinfo = (uuid:string) => {
     infoModal.value = true
     infoUUID.value = uuid
@@ -201,6 +211,9 @@ onUnmounted(() => {
                 {{ item.connection_rate }}
             </template>
             <template v-slot:item.detail="{ item }">
+                <v-btn variant="text" icon @click="showplugin(item.ID)">
+                    <v-icon>mdi-puzzle</v-icon>
+                </v-btn>
                 <v-btn variant="text" icon @click="showinfo(item.ID)">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
@@ -225,6 +238,7 @@ onUnmounted(() => {
         </v-dialog>
         <NodeInfoDialog v-model="infoModal" :item="infoTarget" />
         <NodeShellDialog v-model="consoleModal" :backend="props.backend" :item="consoleTarget" :manager="props.manager" />
+        <NodePluginDialog v-model="pluginModal" :backend="props.backend" :item="pluginTarget" :plugin="props.plugin" />
         <v-dialog width="500" v-model="deleteModal" class="text-white">
             <v-card>
                 <v-card-title>

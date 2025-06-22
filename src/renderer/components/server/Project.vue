@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, Parameter, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { AppConfig, BusType, Parameter, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, DATA, IndexToValue, Util_Project, ValueToGroupName } from '../../util/project';
+import { CreateField, DATA, IndexToValue, Temp, Util_Project, ValueToGroupName } from '../../util/project';
 import ProjectDialog from '../dialog/ProjectDialog.vue';
+import { BackendProxy } from '../../proxy';
 
 interface PROPS {
     preference: Preference
+    backend: BackendProxy
     projects: Array<Project>
     parameters: Array<Parameter>
     config: AppConfig
+    plugin: PluginPageData
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -43,12 +46,16 @@ const data:Ref<DATA> = ref({
     selection: []
 })
 
-const util:Util_Project = new Util_Project(data, () => props.projects, () => props.parameters)
+const util:Util_Project = new Util_Project(props.backend, () => props.plugin, data, () => props.projects, () => props.parameters)
 
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
 const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value)) })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_project_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
+
+watch(() => props.plugin, () => {
+    updateTemps()
+})
 
 const updateProject = () => util.updateProject()
 const recoverProject = (p:Project) => emits('added', [p])
@@ -59,11 +66,17 @@ const dataimport = () => {
     data.value.importModal = true
 }
 
-const dataexport = (uuid:string) => {
+const dataexport = async (uuid:string) => {
     const p = props.projects.find(x => x.uuid == uuid)
     if(p == undefined) return
-    if(!props.config.isElectron) return
-    window.electronAPI.send('export_project', JSON.stringify(p))
+    if(props.config.isElectron){
+        window.electronAPI.send('export_project', JSON.stringify(p))
+    }else if(props.config.isExpress){
+        const handle = await window.showSaveFilePicker({ suggestedName: p.uuid + '.json' });
+        const writer = await handle.createWritable();
+        await writer.write(new Blob([JSON.stringify(p, null, 2)]))
+        await writer.close()
+    }
 }
 
 const deleteSelect = () => {
@@ -109,8 +122,8 @@ const DialogSubmit = (p:CreateField) => {
     }) 
 }
 
-const confirmCreate = () => {
-    const buffer = util.confirmCreate()
+const confirmCreate = async () => {
+    const buffer = await util.confirmCreate()
     if(buffer == undefined) return
     data.value.dialogModal = false
     emits('added', 
@@ -141,22 +154,23 @@ const confirmEdit = () => {
     })
 }
 
-const ImportConfirm = () => {
+const ImportConfirm = async () => {
     data.value.importModal = false
-    if(!props.config.isElectron) return
-    Promise.all(data.value.importData.map(x => x.text())).then(texts => {
-        const a = texts.map(x => {
-            try {
-                const buffer:Project = JSON.parse(x)
-                buffer.uuid = uuidv6()
-                return buffer
-            }catch(err){
-                console.error("Convert text to project json format error")
-                return undefined
-            }
-        }).filter(x => x != undefined)
-        emits('added', a)
-    })
+    if(props.config.haveBackend) {
+        Promise.all(data.value.importData.map(x => x.text())).then(texts => {
+            const a = texts.map(x => {
+                try {
+                    const buffer:Project = JSON.parse(x)
+                    buffer.uuid = uuidv6()
+                    return buffer
+                }catch(err){
+                    console.error("Convert text to project json format error")
+                    return undefined
+                }
+            }).filter(x => x != undefined)
+            emits('added', a)
+        })
+    }
 }
 
 const moveup = (uuid:string) => {
@@ -166,7 +180,9 @@ const moveup = (uuid:string) => {
     })
 }
 
-const ProjectTemplateTranslate = (t:number):string => i18n.global.t(ProjectTemplateText[t])
+const ProjectTemplateTranslate = (t:number):string => {
+    return ProjectTemplateText.hasOwnProperty(t) ? i18n.global.t(ProjectTemplateText[t]) : ""
+}
 
 const movedown = (uuid:string) => {
     emits('movedown', uuid)
@@ -180,22 +196,39 @@ const isLast = (uuid:string) => util.isLast(uuid)
 
 const updateFields = () => {
     data.value.fields = [
-        { title: 'ID', align: 'center', key: 'ID' },
-        { title: i18n.global.t('headers.title'), align: 'center', key: 'title' },
+        { title: 'ID', align: 'center', key: 'ID', width: "25%" },
+        { title: i18n.global.t('headers.title'), align: 'center', key: 'title', width: "20%" },
         { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
-        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount' },
-        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail' },
+        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount', width: "150px" },
+        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail', width: "20%" },
     ]
 }
 
-const updateLocate = () => {
+const updateTemps = () => {
     data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
+        const text = ProjectTemplateTranslate(IndexToValue(index))
         return {
-            text: ProjectTemplateTranslate(IndexToValue(index)),
+            text: text.length > 0 ? text : x,
             group: ValueToGroupName(IndexToValue(index)) ?? '',
             value: IndexToValue(index)
         }
     })
+    let adder = 0
+    props.plugin.templates.forEach(x => {
+        x.project.forEach(y => {
+            const buffer:Temp = {
+                text: y.title ? y.title : "Null",
+                group: y.group,
+                value: 1000 + adder
+            }
+            adder += 1
+            data.value.temps.push(buffer)
+        })
+    })
+}
+
+const updateLocate = () => {
+    updateTemps()
     updateFields()
 }
 
@@ -321,6 +354,7 @@ onUnmounted(() => {
         </div>
         <ProjectDialog v-model="data.dialogModal" 
             :temps="data.temps"
+            :plugin="props.plugin"
             :parameters="props.parameters"
             :is-edit="data.isEdit" 
             :error-message="data.errorMessage"
