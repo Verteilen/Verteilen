@@ -636,6 +636,7 @@ onUnmounted(() => {
         <v-tabs-window-item :value="4">
           <NodePage
             :manager="data.websocket_manager"
+            :plugin="data.plugin"
             :backend="props.backend"
             :preference="props.preference"
             :nodes="data.nodes" />
