@@ -137,7 +137,7 @@ export class WebsocketManager {
         const t:WebsocketPack = { uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] }
         this.targets.push(t)
         client.onerror = (err:any) => {
-            this.messager_log(`[Socket] Connect failed ${url}`)
+            this.messager_log(`[Socket] Connect failed ${url} ${err}`)
         }
         client.onclose = (ev) => {
             if(t.s != undefined){
