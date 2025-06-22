@@ -54,7 +54,7 @@ export class Client {
             if(!canbeuse) port_result += 1
         }
         this.messager_log('[Server] Select Port: ' + port_result.toString())
-        this.client = new WebSocketServer({port: port_result})
+        this.client = new WebSocketServer({port: port_result, noServer: true})
         this.client.on('listening', () => {
             this.messager_log('[Server] Listen PORT: ' + port_result.toString())
         })
