@@ -258,12 +258,12 @@ const msgClean = () => util.self.clearMessage()
 
 //#region Plugin
 const pluginAdded = (name:string, url:string) => {
-  props.backend.invoke("import_plugin", name, url, props.preference.plugin_token.join(' ')).then(x => {
+  props.backend.invoke("import_plugin", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
     data.value.plugin = JSON.parse(x)
   })
 }
 const templateAdded = (name:string, url:string) => {
-  props.backend.invoke("import_template", name, url, props.preference.plugin_token.join(' ')).then(x => {
+  props.backend.invoke("import_template", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
     data.value.plugin = JSON.parse(x)
   })
 }
