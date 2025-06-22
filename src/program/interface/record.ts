@@ -67,6 +67,11 @@ export interface ExecuteRecord extends Record {
     task_detail: Array<ExecuteRecordTask>
 }
 
+export interface PluginToken {
+    name: string
+    token: string
+}
+
 export interface Preference {
     /**
      * Language setting
@@ -83,6 +88,7 @@ export interface Preference {
      * ![NOTICE] there will be no log to recover your works
      */
     log: boolean
+    plugin_token: Array<PluginToken>
 }
 
 export interface Library {

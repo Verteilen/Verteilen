@@ -179,6 +179,7 @@ export class BackendEvent {
                     font: 18,
                     theme: "dark",
                     notification: false,
+                    plugin_token: [],
                 },
                 name: "root",
                 description: "Root User",

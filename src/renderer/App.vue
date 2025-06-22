@@ -18,7 +18,8 @@ const preference:Ref<Preference> = ref({
   log: false,
   font: 16,
   notification: false,
-  theme: "dark"
+  theme: "dark",
+  plugin_token: [],
 })
 const backend:Ref<BackendProxy> = ref(new BackendProxy())
 const config = computed(() => backend.value.config)

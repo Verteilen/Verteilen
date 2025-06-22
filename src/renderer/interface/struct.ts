@@ -196,13 +196,13 @@ export interface PluginContent {
 export interface Plugin {
     name: string
     description: string
-    
     version?: string
     contents: Array<PluginContent>
 }
 
 export interface PluginList {
     title?: string
+    url?: string
     plugins: Array<Plugin>
 }
 
@@ -235,6 +235,7 @@ export interface TemplateDataParameter {
 }
 
 export interface TemplateData {
+    url?: string
     projects: Array<TemplateDataProject>
     parameters: Array<TemplateDataParameter>
 }

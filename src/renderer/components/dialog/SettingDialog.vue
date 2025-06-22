@@ -71,7 +71,7 @@ const close = () => {
                 </v-container>
             </v-card-text>
             <template v-slot:actions>
-                <v-btn color="success" @click="confirm">
+                <v-btn color="success" style="background-position: ;" @click="confirm">
                     {{ $t('confirm') }}
                 </v-btn>
                 <v-btn color="danger" @click="close">
