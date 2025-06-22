@@ -1,6 +1,6 @@
 import { ChildProcess, spawn } from 'child_process';
 import { WebSocket } from 'ws';
-import { Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin } from "../interface";
+import { Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, PluginList } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientShell } from './shell';
@@ -48,6 +48,8 @@ export class ClientAnalysis {
             'resource_end': this.resource_end,
             'ping': this.pong,
             'plugin_info': this.plugin_info,
+            'plugin_download': this.plugin_download,
+            'plugin_remove': this.plugin_remove,
         }
 
         if (h == undefined){
@@ -127,6 +129,14 @@ export class ClientAnalysis {
             writeFileSync('plugin.json', JSON.stringify(p))
             source.send(JSON.stringify(h))
         }
+    }
+
+    private plugin_download = (plugin:Plugin, source: WebSocket) => {
+        
+    }
+
+    private plugin_remove = (plugin:Plugin, source: WebSocket) => {
+        
     }
 
     private resource_start = (data:number, source: WebSocket) => {

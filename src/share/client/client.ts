@@ -9,10 +9,10 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
  * The calculation node worker
  */
 export class Client {
+    plugins: PluginList = { plugins: [] }
+    
     private client:WebSocketServer | undefined = undefined
     private sources:Array<WebSocket> = []
-    private plugins: PluginList = { plugins: [] }
-
     private messager:Messager
     private messager_log:Messager_log
     private analysis:Array<ClientAnalysis>

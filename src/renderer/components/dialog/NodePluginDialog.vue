@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { NodeTable, PluginPageData } from '../../interface';
+import { NodeTable, Plugin, PluginPageData } from '../../interface';
 import { BackendProxy } from '../../proxy';
 
 
@@ -23,17 +23,29 @@ const filterPlugins = computed(() => {
         return x
     })
 })
+const nodeType = computed(() => {
+    if(props.item?.state != 1) return "NONE"
+    else return `${props.item.system?.platform }_${ props.item?.system?.arch }`
+})
 
 const InstalledState = (name:string, version?:string) => {
-    if(props.item == undefined) return false
+    if(props.item == undefined) return { code: -1 }
     const k = props.item.plugins?.find(x => x.name == name)
-    if(k == undefined) return 0
-    else if(k.version != version) return 1
-    else return 2
+    if(k == undefined) return { code: 0 }
+    else if(k.version != version) return { code: 1, version: k.version }
+    else return { code: 2 }
 }
 
 const closePage = () => {
     modal.value = false
+}
+
+const download = (k:Plugin) => {
+
+}
+
+const remove = (k:Plugin) => {
+    
 }
 
 </script>
@@ -43,7 +55,8 @@ const closePage = () => {
         <v-card>
             <v-card-title>
                 <v-icon>mdi-console</v-icon>
-                {{ item?.ID }} ({{ item?.system?.platform }}_{{ item?.system?.arch }})
+                {{ item?.ID }} 
+                <v-chip :color="props.item?.state == 1 ? 'success' : 'error'">({{ nodeType }})</v-chip>
             </v-card-title>
             <v-card-text>
                 <v-row>
@@ -60,18 +73,27 @@ const closePage = () => {
                                     :subtitle="k.version"
                                     :active="selectID == `${k.name}_${k.version}`"
                                     @click="selectID = `${k.name}_${k.version}`">
-                                    <template #append>
-                                        <v-btn v-if="InstalledState(k.name, k.version) == 0" 
+                                    <template #append >
+                                        <v-btn v-if="InstalledState(k.name, k.version).code == 0" 
+                                            :disabled="props.item?.state != 1"
                                             color="success" append-icon="mdi-download" 
-                                            size="md" rounded variant="text">
+                                            size="md" rounded variant="text"
+                                            @click="download(k)">
+                                            {{ k.version }}
                                         </v-btn>
-                                        <v-btn v-else-if="InstalledState(k.name, k.version) == 1" 
+                                        <v-btn v-else-if="InstalledState(k.name, k.version).code == 1" 
+                                            :disabled="props.item?.state != 1"
                                             color="warning" append-icon="mdi-menu-up" 
-                                            size="md" rounded variant="text">
+                                            size="md" rounded variant="text"
+                                            @click="download(k)">
+                                            {{ k.version }} => {{ InstalledState(k.name, k.version).version }}
                                         </v-btn>
-                                        <v-btn v-else-if="InstalledState(k.name, k.version) == 2" 
+                                        <v-btn v-else-if="InstalledState(k.name, k.version).code == 2" 
+                                            :disabled="props.item?.state != 1"
                                             color="error" append-icon="mdi-delete-sweep" 
-                                            size="md" rounded variant="text">
+                                            size="md" rounded variant="text"
+                                            @click="remove(k)">
+                                            {{ k.version }}
                                         </v-btn>
                                     </template>
                                 </v-list-item>

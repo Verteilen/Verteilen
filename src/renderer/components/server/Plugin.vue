@@ -76,10 +76,12 @@ const deleteTemplate = (name:string) => {
 }
 
 const deletePluginConfirm = (name:string) => {
+    data.value.pluginDeleteModal = false;
     emits('delete-plugin', data.value.pluginDeleteData);
 }
 
 const deleteTemplateConfirm = (name:string) => {
+    data.value.templateDeleteModal = false;
     emits('delete-template', data.value.templateDeleteData);
 }
 
