@@ -95,7 +95,7 @@ onUnmounted(() => {
     <ServerClientSelection v-model.number="mode" v-if="mode == -1" :preference="preference" :config="config"/>
     <ClientNode v-else-if="mode == 0" :preference="preference" :backend="backend"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>
-    <Messager :preference="preference" />
+    <Messager :preference="preference" :backend="backend" />
     <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
   </v-container>
 </template>

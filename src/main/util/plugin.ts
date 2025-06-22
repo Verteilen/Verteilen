@@ -1,7 +1,8 @@
 import { ipcMain } from "electron"
 import path from "path";
 import fs from 'fs';
-import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2 } from "../interface"
+import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2, ToastData } from "../interface"
+import { mainWindow } from "../electron";
 
 const GetCurrentPlugin = ():PluginPageData => {
     const b:PluginPageData = {
@@ -49,22 +50,40 @@ const GetCurrentPlugin = ():PluginPageData => {
     return b
 }
 
-const import_template = async (name:string, url:string, token?:string) => {
+const import_template = async (name:string, url:string, token:string) => {
     const root = path.join("data", 'template')
+    const tokens = [undefined, ...token.split(' ')]
     const content_folder = path.join(root, name)
     const project_folder = path.join(content_folder, 'project')
     const parameter_folder = path.join(content_folder, 'parameter')
     if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true});
-    const req:RequestInit = {
-        method: 'GET',
-        headers: {
-            "Authorization": token ? `Bearer ${token}` : ''
+    let req:RequestInit = {}
+    let ob:TemplateData | undefined = undefined
+    for(let t of tokens){
+        if(t == undefined){
+            req = { method: 'GET' }
+        }else{
+            req = {
+                method: 'GET',
+                headers: {
+                    "Authorization": token ? `Bearer ${token}` : ''
+                }
+            }
+        }
+        try{
+            const res = await fetch(url, req)
+            const tex = await res.text()
+            ob = JSON.parse(tex)
+            break
+        }catch (error){
+            console.error(error)
         }
     }
-
-    const res = await fetch(url, req)
-    const tex = await res.text()
-    const ob:TemplateData = JSON.parse(tex)
+    if(ob == undefined) {
+        const p:ToastData = { title: "Import Failed", type: "error", message: `Cannot find the json from url ${url}, or maybe just the wrong token` }
+        mainWindow?.webContents.send("makeToast", JSON.stringify(p))
+        return JSON.stringify(GetCurrentPlugin())
+    } 
     ob.url = url
     fs.writeFileSync(path.join(root, name + '.json'), JSON.stringify(ob, null, 4))
     if(!fs.existsSync(content_folder)) fs.mkdirSync(content_folder, { recursive: true })
@@ -99,7 +118,7 @@ const import_template = async (name:string, url:string, token?:string) => {
         try{
             const parameter:Array<ParameterContainer> = JSON.parse(text)
             fs.writeFileSync(path.join(parameter_folder, ob.parameters[index].filename + '.json'), JSON.stringify(parameter, null, 4))
-        }catch(e){
+        }catch(error){
             console.log("Parse error:\n", text)
         }
     })
@@ -107,18 +126,37 @@ const import_template = async (name:string, url:string, token?:string) => {
     return JSON.stringify(GetCurrentPlugin())
 }
 
-const import_plugin = async (name:string, url:string, token?:string) => {
+const import_plugin = async (name:string, url:string, token:string) => {
     const root = path.join("data", 'plugin')
+    const tokens = [undefined, ...token.split(' ')]
     if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true});
-    
-    const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Authorization: token ? `Bearer ${token}` : ''
+    let req:RequestInit = {}
+    let ob:PluginList | undefined = undefined
+    for(let t of tokens){
+        if(t == undefined){
+            req = { method: 'GET' }
+        }else{
+            req = {
+                method: 'GET',
+                headers: {
+                    "Authorization": token ? `Bearer ${token}` : ''
+                }
+            }
         }
-    })
-    const tex = await res.text()
-    const ob:PluginList = JSON.parse(tex)
+        try{
+            const res = await fetch(url, req)
+            const tex = await res.text()
+            ob = JSON.parse(tex)
+            break
+        }catch (error){
+            console.error(error)
+        }
+    }
+    if(ob == undefined) {
+        const p:ToastData = { title: "Import Failed", type: "error", message: `Cannot find the json from url ${url}, or maybe just the wrong token` }
+        mainWindow?.webContents.send("makeToast", JSON.stringify(p))
+        return JSON.stringify(GetCurrentPlugin())
+    }
     ob.url = url
     fs.writeFileSync(path.join(root, name + '.json'), JSON.stringify(ob, null, 4))
     return JSON.stringify(GetCurrentPlugin())
@@ -130,10 +168,10 @@ export const PluginInit = () => {
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true});
         return JSON.stringify(GetCurrentPlugin())
     })
-    ipcMain.handle('import_template', async (event, name:string, url:string, token?:string) => {
+    ipcMain.handle('import_template', async (event, name:string, url:string, token:string) => {
         return import_template(name, url, token)
     })
-    ipcMain.handle('import_plugin', async (event, name:string, url:string, token?:string) => {
+    ipcMain.handle('import_plugin', async (event, name:string, url:string, token:string) => {
         return import_plugin(name, url, token)
     })
     ipcMain.handle('import_template_delete', (event, name:string) => {

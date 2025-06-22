@@ -257,13 +257,13 @@ const msgClean = () => util.self.clearMessage()
 //#endregion
 
 //#region Plugin
-const pluginAdded = (name:string, url:string, token?:string) => {
-  props.backend.invoke("import_plugin", name, url, token).then(x => {
+const pluginAdded = (name:string, url:string) => {
+  props.backend.invoke("import_plugin", name, url, props.preference.plugin_token.join(' ')).then(x => {
     data.value.plugin = JSON.parse(x)
   })
 }
-const templateAdded = (name:string, url:string, token?:string) => {
-  props.backend.invoke("import_template", name, url, token).then(x => {
+const templateAdded = (name:string, url:string) => {
+  props.backend.invoke("import_template", name, url, props.preference.plugin_token.join(' ')).then(x => {
     data.value.plugin = JSON.parse(x)
   })
 }
@@ -406,6 +406,11 @@ const repull = (u:FrontendUpdate) => {
   return c
 }
 
+const makeToastFromBackend = (e:string) => {
+    console.log("makeToastFromBackend", e)
+    emitter?.emit('makeToast', JSON.parse(e))
+}
+
 const dataset_init = () => {
   updateTab()
   data.value.title = tabs.value.find(x => x[2] == 0)![1]
@@ -424,7 +429,7 @@ const dataset_init = () => {
     props.backend.eventOn('frontend_update', repull)
   }
 
-  props.backend.eventOn('makeToast', (data) => emitter?.emit('makeToast', data))
+  props.backend.eventOn('makeToast', makeToastFromBackend)
   props.backend.eventOn('msgAppend', msgAppend)
   props.backend.send('menu', true)
   props.backend.eventOn('createProject', menuCreateProject)
@@ -525,6 +530,7 @@ onUnmounted(() => {
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   props.backend.send('client_stop');
+  props.backend.eventOff('makeToast', makeToastFromBackend)
   props.backend.eventOff('createProject', menuCreateProject)
   props.backend.eventOff('menu_export_project', menu_export_project)
   props.backend.eventOff('import_project_feedback', import_project_feedback)
