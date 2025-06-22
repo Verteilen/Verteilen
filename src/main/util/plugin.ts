@@ -34,7 +34,8 @@ const GetCurrentPlugin = ():PluginPageData => {
         b.templates.push({
             name: files[index].replace('.json', ''),
             project: ps,
-            parameter: ps2
+            parameter: ps2,
+            url: config.url
         })
     })
 
