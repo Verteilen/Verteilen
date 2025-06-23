@@ -69,7 +69,7 @@ webport.then(p => {
     backendEvent.Root()
 })
 socketport.then(p => {
-    wsServer = new ws.Server({path: '/server', port: p, noServer: true})
+    wsServer = new ws.Server({path: '/server', port: p})
     console.log(Chalk.greenBright(`websocket server run at ${p}`))
     wsServer.on('connection', (ws, request) => {
         //const p = new eventInit(ws)
