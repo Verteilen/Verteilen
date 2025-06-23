@@ -1,6 +1,6 @@
 {
-    "appId": "com.compute.app",
-    "productName": "Compute Tool",
+    "appId": "com.verteilen.app",
+    "productName": "Verteilen",
     "compression": "maximum",
     "directories": {
         "output": "dist"
@@ -39,6 +39,7 @@
         },
         "!bin",
         "!src",
+        "!data",
         "!.git",
         "!.github",
         "!build",
