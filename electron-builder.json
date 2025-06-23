@@ -2,12 +2,12 @@
     "appId": "com.verteilen.app",
     "productName": "Verteilen",
     "compression": "maximum",
-    "icon": "src/renderer/assets/icon.ico",
     "directories": {
         "output": "dist"
     },
     "win": {
-        "target": "msi"
+        "target": "msi",
+        "icon": "src/renderer/assets/icon.ico"
     },
     "msi": {
         "runAfterFinish": false
