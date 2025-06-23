@@ -1,7 +1,8 @@
 import { ipcMain } from "electron"
-import path from "path";
-import fs from 'fs';
-import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2, ToastData } from "../interface"
+import * as path from "path";
+import * as fs from 'fs';
+import * as os from 'os';
+import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2, ToastData, DATA_FOLDER } from "../interface"
 import { mainWindow } from "../electron";
 
 const GetCurrentPlugin = ():PluginPageData => {
@@ -9,8 +10,8 @@ const GetCurrentPlugin = ():PluginPageData => {
         plugins: [],
         templates: []
     }
-    const root = path.join("data", 'template')
-    const root2 = path.join("data", 'plugin')
+    const root = path.join(os.homedir(), DATA_FOLDER, 'template')
+    const root2 = path.join(os.homedir(), DATA_FOLDER, 'plugin')
     if(!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
     if(!fs.existsSync(root2)) fs.mkdirSync(root2, {recursive: true})
 
@@ -52,7 +53,7 @@ const GetCurrentPlugin = ():PluginPageData => {
 }
 
 const import_template = async (name:string, url:string, token:string) => {
-    const root = path.join("data", 'template')
+    const root = path.join(os.homedir(), DATA_FOLDER, 'template')
     const tokens = [undefined, ...token.split(' ')]
     const content_folder = path.join(root, name)
     const project_folder = path.join(content_folder, 'project')
@@ -128,7 +129,7 @@ const import_template = async (name:string, url:string, token:string) => {
 }
 
 const import_plugin = async (name:string, url:string, token:string) => {
-    const root = path.join("data", 'plugin')
+    const root = path.join(os.homedir(), DATA_FOLDER, 'plugin')
     const tokens = [undefined, ...token.split(' ')]
     if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true});
     let req:RequestInit = {}
@@ -165,7 +166,7 @@ const import_plugin = async (name:string, url:string, token:string) => {
 
 export const PluginInit = () => {
     ipcMain.handle('get_plugin', async () => {
-        const root = path.join("data", 'template')
+        const root = path.join(os.homedir(), DATA_FOLDER, 'template')
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true});
         return JSON.stringify(GetCurrentPlugin())
     })
@@ -176,13 +177,13 @@ export const PluginInit = () => {
         return import_plugin(name, url, token)
     })
     ipcMain.handle('import_template_delete', (event, name:string) => {
-        const root = path.join("data", 'template')
+        const root = path.join(os.homedir(), DATA_FOLDER, 'template')
         if(fs.existsSync(path.join(root, name + '.json'))) fs.rmSync(path.join(root, name + '.json'));
         if(fs.existsSync(path.join(root, name))) fs.rmdirSync(path.join(root, name), { recursive: true, });
         return JSON.stringify(GetCurrentPlugin())
     })
     ipcMain.handle('import_plugin_delete', (event, name:string) => {
-        const root = path.join("data", 'plugin')
+        const root = path.join(os.homedir(), DATA_FOLDER, 'plugin')
         if(fs.existsSync(path.join(root, name + '.json'))) fs.rmSync(path.join(root, name + '.json'));
         return JSON.stringify(GetCurrentPlugin())
     })
@@ -194,7 +195,7 @@ export const PluginInit = () => {
             for(let y of x.project){
                 if(y.group == group && y.filename == filename){
                     find = true
-                    target = path.join("data", 'template', x.name, 'project', y.filename + '.json')
+                    target = path.join(os.homedir(), DATA_FOLDER, 'template', x.name, 'project', y.filename + '.json')
                     break
                 }
             }
@@ -215,7 +216,7 @@ export const PluginInit = () => {
             for(let y of x.parameter){
                 if(y.group == group && y.filename == filename){
                     find = true
-                    target = path.join("data", 'template', x.name, 'parameter', y.filename + '.json')
+                    target = path.join(os.homedir(), DATA_FOLDER, 'template', x.name, 'parameter', y.filename + '.json')
                     break
                 }
             }
