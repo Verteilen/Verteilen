@@ -7,7 +7,7 @@
     },
     "win": {
         "target": "msi",
-        "icon": "src/renderer/assets/vite.ico"
+        "icon": "src/renderer/assets/icon.png"
     },
     "msi": {
         "runAfterFinish": false
