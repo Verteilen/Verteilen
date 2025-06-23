@@ -5,7 +5,7 @@
   "main": "main/main.js",
   "scripts": {
     "dev": "ts-node scripts/dev-server.ts",
-    "web": "ts-node scripts/web.ts && cd ./build/renderer && http-server -p 80",
+    "web": "ts-node scripts/web.ts && cd ./build/renderer && http-server -p 8000",
     "express": "ts-node scripts/express.ts && cd ./build/server && node .",
     "node": "ts-node src/node/index.ts",
     "share": "ts-node scripts/share.ts",

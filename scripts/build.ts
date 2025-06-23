@@ -2,7 +2,7 @@ import Chalk from 'chalk';
 import { rmSync } from 'fs';
 import { cp, readdir } from 'fs/promises';
 import Path from 'path';
-import Vite from 'vite';
+import * as Vite from 'vite';
 import compileTs from './private/tsc';
 
 async function buildRenderer() {

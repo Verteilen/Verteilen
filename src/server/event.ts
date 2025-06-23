@@ -1,14 +1,15 @@
-import fs from "fs";
 import tcpPortUsed from 'tcp-port-used';
-import ws from 'ws';
+import * as ws from 'ws';
+import * as path from "path";
+import * as fs from "fs";
+import * as os from "os";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { GlobalPermission, Header, Libraries, LocalPermiision, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
+import { DATA_FOLDER, GlobalPermission, Header, Libraries, LocalPermiision, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
 import { v6 as uuidv6 } from 'uuid'
-import path from "path";
 
 export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
@@ -95,23 +96,27 @@ export class BackendEvent {
         socket.send(JSON.stringify(d))
     }
     private save_preference = (socket:ws.WebSocket, preference:string, token?:string) => {
+        const pa = path.join(os.homedir(), DATA_FOLDER, "user")
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa)
         if(token != undefined){
-            const files = fs.readdirSync("data/user")
+            const files = fs.readdirSync(pa)
             for(let i = 0; i < files.length; i++){
                 const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
                 if(p.token == token){
                     p.preference = JSON.parse(preference)
-                    fs.writeFileSync(path.join("data", "user", files[i]), JSON.stringify(p))
+                    fs.writeFileSync(path.join(pa, files[i]), JSON.stringify(p))
                     break
                 }
             }
         }
     }
     private load_preference = (socket:ws.WebSocket, token?:string) => {
+        const pa = path.join(os.homedir(), DATA_FOLDER, "user")
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa)
         if(token != undefined){
-            const files = fs.readdirSync("data/user")
+            const files = fs.readdirSync(pa)
             for(let i = 0; i < files.length; i++){
-                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
+                const p:UserProfile = JSON.parse(fs.readFileSync(path.join(pa, files[i])).toString())
                 if(p.token == token){
                     const d:Header = {
                         name: "load_preference-feedback",

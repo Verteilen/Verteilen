@@ -6,7 +6,7 @@ import Chokidar from 'chokidar';
 import * as FileSystem from 'fs';
 import { EOL } from 'os';
 import Path from 'path';
-import Vite from 'vite';
+import * as Vite from 'vite';
 import compileTs from './private/tsc';
 import * as util from './utility';
 

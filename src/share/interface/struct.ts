@@ -213,13 +213,16 @@ export interface PluginState {
     supported: boolean
 }
 
+export interface PluginPageTemplate {
+    name: string
+    project: Array<TemplateGroup>
+    parameter: Array<TemplateGroup2>
+    url?: string
+}
+
 export interface PluginPageData {
     plugins: Array<PluginList>
-    templates: Array<{
-        name: string
-        project: Array<TemplateGroup>
-        parameter: Array<TemplateGroup2>
-    }>
+    templates: Array<PluginPageTemplate>
 }
 
 export interface TemplateDataProject {

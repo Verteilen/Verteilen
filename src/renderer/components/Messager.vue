@@ -3,9 +3,11 @@ import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, ref, Ref } from 'vue';
 import { BusType, IMessage, Preference, RENDER_UPDATETICK, ToastData } from '../interface';
 import { GetColor } from '../plugins/vuetify';
+import { BackendProxy } from '../proxy';
 
 interface PROPS {
     preference: Preference
+    backend: BackendProxy
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');

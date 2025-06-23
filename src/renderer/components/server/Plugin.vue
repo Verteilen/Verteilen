@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { PluginPageData } from '../../interface';
+import { PluginList, PluginPageData, PluginPageTemplate } from '../../interface';
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
 
@@ -10,8 +10,8 @@ interface PROP {
 
 const propss = defineProps<PROP>()
 const emits = defineEmits<{
-    (e: 'added-template', name:string, url:string, token?:string): void
-    (e: 'added-plugin', name:string, url:string, token?:string): void
+    (e: 'added-template', name:string, url:string): void
+    (e: 'added-plugin', name:string, url:string): void
     (e: 'delete-template', name:string): void
     (e: 'delete-plugin', name:string): void
 }>()
@@ -49,7 +49,7 @@ const importPluginConfirm = () => {
         return
     }
     data.value.pluginModal = false
-    emits('added-plugin', data.value.pluginData.name, data.value.pluginData.url, data.value.pluginData.token);
+    emits('added-plugin', data.value.pluginData.name, data.value.pluginData.url);
 }
 
 const importTemplateConfirm = () => {
@@ -62,7 +62,7 @@ const importTemplateConfirm = () => {
         return
     }
     data.value.templateModal = false
-    emits('added-template', data.value.templateData.name, data.value.templateData.url, data.value.templateData.token);
+    emits('added-template', data.value.templateData.name, data.value.templateData.url);
 }
 
 const deletePlugin = (name:string) => {
@@ -83,6 +83,14 @@ const deletePluginConfirm = (name:string) => {
 const deleteTemplateConfirm = (name:string) => {
     data.value.templateDeleteModal = false;
     emits('delete-template', data.value.templateDeleteData);
+}
+
+const updatePlugin = (pl:PluginList) => {
+    emits('added-plugin', pl.title!, pl.url!);
+}
+
+const updateTemplate = (pl:PluginPageTemplate) => {
+    emits('added-template', pl.name!, pl.url!);
 }
 
 </script>
@@ -121,6 +129,9 @@ const deleteTemplateConfirm = (name:string) => {
                                 <v-btn icon color="error" @click="deletePlugin(container.title!)">
                                     <v-icon>mdi-delete</v-icon>
                                 </v-btn>
+                                <v-btn icon color="info" @click="updatePlugin(container)">
+                                    <v-icon>mdi-update</v-icon>
+                                </v-btn>
                             </v-toolbar>
                             <template v-slot:activator="{ props }">
                                 <v-list-item v-bind="props" :key="index">
@@ -150,6 +161,9 @@ const deleteTemplateConfirm = (name:string) => {
                             <v-toolbar density="compact" class="mr-3">
                                 <v-btn icon color="error" @click="deleteTemplate(group.name)">
                                     <v-icon>mdi-delete</v-icon>
+                                </v-btn>
+                                <v-btn icon color="info" @click="updateTemplate(group)">
+                                    <v-icon>mdi-update</v-icon>
                                 </v-btn>
                             </v-toolbar>
                             <template v-slot:activator="{ props }">
@@ -192,7 +206,6 @@ const deleteTemplateConfirm = (name:string) => {
             <template #text>
                 <v-text-field class="my-1" v-model="data.pluginData.name" hide-details label="name" />
                 <v-text-field class="my-1" v-model="data.pluginData.url" hide-details label="url" />
-                <v-text-field class="my-1" v-model="data.pluginData.token" hide-details label="token" />
                 <span style="color:red">{{ data.errorMessage }}</span>
             </template>
             <template #action>
@@ -207,7 +220,6 @@ const deleteTemplateConfirm = (name:string) => {
             <template #text>
                 <v-text-field class="my-1" v-model="data.templateData.name" hide-details label="name" />
                 <v-text-field class="my-1" v-model="data.templateData.url" hide-details label="url" />
-                <v-text-field class="my-1" v-model="data.templateData.token" hide-details label="token" />
                 <span style="color:red">{{ data.errorMessage }}</span>
             </template>
             <template #action>
