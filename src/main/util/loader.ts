@@ -1,10 +1,12 @@
 import { ipcMain } from "electron";
+import * as os from "os";
 import fs from "fs";
 import path from "path";
+import { DATA_FOLDER } from "../interface";
 
 export const Loader = (key:string, folder:string, ext:string = ".json") => {
     ipcMain.handle(`load_all_${key}`, (e) => {
-        const root = path.join("data", folder)
+        const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const r:Array<string> = []
         const ffs = fs.readdirSync(root, {withFileTypes: true})
@@ -16,12 +18,12 @@ export const Loader = (key:string, folder:string, ext:string = ".json") => {
         return JSON.stringify(r)
     })
     ipcMain.on(`delete_all_${key}`, (e) => {
-        const root = path.join("data", folder)
+        const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.rmSync(root, {recursive: true})
         fs.mkdirSync(root, {recursive: true})
     })
     ipcMain.handle(`list_all_${key}`, (e) => {
-        const root = path.join("data", folder)
+        const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const ps = fs.readdirSync(root, { withFileTypes: false })
         const r:any = []
@@ -32,33 +34,33 @@ export const Loader = (key:string, folder:string, ext:string = ".json") => {
         return JSON.stringify(r)
     })
     ipcMain.on(`save_${key}`, (e, name:string, data:string) => {
-        const root = path.join("data", folder)
+        const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         let filename = name + ext
         let p = path.join(root, filename)
         fs.writeFileSync(p, data)
     })
     ipcMain.on(`rename_${key}`, (e, name:string, newname:string) => {
-        const root = path.join("data", folder)
+        const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         fs.cpSync(path.join(root, `${name}.json`), path.join(root, `${newname}.json`), { recursive: true })
         fs.rmdirSync(path.join(root, `${name}.json`))
     })
     ipcMain.on(`delete_${key}`, (e, name:string) => {
-        const root = path.join("data", folder)
+        const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const filename = name + ext
         const p = path.join(root, filename)
         if (fs.existsSync(p)) fs.rmSync(p)
     })
     ipcMain.on(`delete_all_${key}`, (e, name:string) => {
-        const root = path.join("data", folder)
+        const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const ps = fs.readdirSync(root, { withFileTypes: false })
         ps.forEach(x => fs.rmSync(path.join(root, x)))
     })
     ipcMain.handle(`load_${key}`, (e, name:string) => {
-        const root = path.join("data", folder)
+        const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const filename = name + ext
         const p = path.join(root, filename)

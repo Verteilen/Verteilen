@@ -53,6 +53,7 @@ const locate = (v:string) => {
 }
 
 const setting = () => { settingModal.value = true }
+const message = (e:string) => console.log(e)
 
 const preferenceUpdate = (data:Preference) => {
   Object.assign(preference.value, data)
@@ -77,6 +78,7 @@ onMounted(() => {
     if(backend.value.config.haveBackend){
       backend.value.eventOn('locate', locate)
       backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
+      backend.value.eventOn('message', message)
     }
   })
   
@@ -86,6 +88,7 @@ onUnmounted(() => {
   emitter?.off('modeSelect', modeSelect)
   emitter?.off('setting', setting)
   backend.value.eventOff('locate', locate)
+  backend.value.eventOff('message', message)
 })
 
 </script>

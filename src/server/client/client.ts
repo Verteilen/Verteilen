@@ -1,9 +1,10 @@
 import * as path from 'path';
 import { check } from 'tcp-port-used';
 import { WebSocket, WebSocketServer } from 'ws';
-import { CLIENT_UPDATETICK, Header, Messager, Messager_log, Plugin, PluginList, PORT } from '../interface';
+import { CLIENT_UPDATETICK, DATA_FOLDER, Header, Messager, Messager_log, Plugin, PluginList, PORT } from '../interface';
 import { ClientAnalysis } from './analysis';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import * as os from 'os'
 
 /**
  * The calculation node worker
@@ -111,8 +112,9 @@ export class Client {
     }
 
     private loadPlugins = () => {
-        const pluginPath = Client.workerPath("plugin").replace('.exe', '') + '.json'
-
+        const f = path.join(os.homedir(), DATA_FOLDER)
+        const pluginPath = path.join(f, 'plugin.json')
+        if(!existsSync(f)) mkdirSync(f)
         if(!existsSync(pluginPath)){
             writeFileSync(pluginPath, JSON.stringify(this.plugins, null, 4))
         }else{

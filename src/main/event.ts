@@ -1,10 +1,12 @@
 import { ipcMain } from "electron";
-import fs from "fs";
+import * as path from "path";
+import * as fs from "fs";
+import * as os from "os";
 import { Loader } from './util/loader'
 import { Client } from "./client/client";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { Job, Parameter, PluginList, Preference, Project, TemplateData, TemplateDataProject } from "./interface";
+import { DATA_FOLDER, Job, Parameter, PluginList, Preference, Project, TemplateData, TemplateDataProject } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { Util_Server } from "./util/server/server";
 import { ExportProjects, ImportProject, ExportProject, ImportParameter, ExportParameter } from "./util/io";
@@ -78,10 +80,12 @@ export class BackendEvent {
         })
         
         ipcMain.on('save_preference', (e, preference:string) => {
-            fs.writeFileSync('preference.json', preference)
+            const p = path.join(os.homedir(), DATA_FOLDER, 'preference.json')
+            fs.writeFileSync(p, preference)
         })
         ipcMain.handle('load_preference', (e) => {
-            const exist = fs.existsSync('preference.json');
+            const p = path.join(os.homedir(), DATA_FOLDER, 'preference.json')
+            const exist = fs.existsSync(p);
             messager_log(`[Event] Read preference.js, file exist: ${exist}`)
             if(!exist){
                 const record:Preference = {
@@ -92,11 +96,11 @@ export class BackendEvent {
                     notification: false,
                     plugin_token: []
                 }
-                fs.writeFileSync('preference.json', JSON.stringify(record, null, 4))
+                fs.writeFileSync(p, JSON.stringify(record, null, 4))
                 i18n.global.locale = 'en'
                 return JSON.stringify(record)
             } else {
-                const file = fs.readFileSync('preference.json', { encoding: 'utf8', flag: 'r' })
+                const file = fs.readFileSync(p, { encoding: 'utf8', flag: 'r' })
                 const jsonString = file.toString()
                 this.util.preference = JSON.parse(jsonString)
                 return jsonString

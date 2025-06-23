@@ -11,6 +11,7 @@ const id2 = powerSaveBlocker.start('prevent-app-suspension')
 console.log("prevent-display-sleep: ", powerSaveBlocker.isStarted(id1))
 console.log("prevent-app-suspension: ", powerSaveBlocker.isStarted(id2))
 
+app.commandLine.appendSwitch('--no-sandbox')
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');

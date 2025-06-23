@@ -1,4 +1,4 @@
-import fs from "fs";
+import * as fs from "fs";
 import { dialog } from "electron";
 import { mainWindow } from "./../electron";
 import { Parameter, Project } from "../interface";
