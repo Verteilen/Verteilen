@@ -123,7 +123,7 @@ const updateTemplate = (pl:PluginPageTemplate) => {
                 <v-col cols="6">
                     <h2 class="pl-6">{{ $t('plugin') }}</h2>
                     <br />
-                    <v-list style="overflow-y: auto;" class="h-100">
+                    <v-list style="height: calc(100vh - 220px);">
                         <v-list-group v-for="(container, index) in plugin.plugins" >
                             <v-toolbar density="compact" class="mr-3">
                                 <v-btn icon color="error" @click="deletePlugin(container.title!)">
@@ -156,7 +156,7 @@ const updateTemplate = (pl:PluginPageTemplate) => {
                 <v-col cols="6">
                     <h2 class="pl-6">{{ $t('template') }}</h2>
                     <br />
-                    <v-list style="overflow-y: auto;" class="h-100">
+                    <v-list style="height: calc(100vh - 220px);">
                         <v-list-group v-for="(group, index) in plugin.templates">
                             <v-toolbar density="compact" class="mr-3">
                                 <v-btn icon color="error" @click="deleteTemplate(group.name)">
