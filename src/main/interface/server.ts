@@ -41,7 +41,6 @@ export interface UserProfile {
     picture_url?: string
     preference: Preference
     type: UserType
-    plugin_token: Array<PluginToken>
     description?: string
     password?: string
     permission: GlobalPermission

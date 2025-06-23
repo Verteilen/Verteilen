@@ -7,14 +7,15 @@
     },
     "win": {
         "target": "msi",
-        "icon": "src/renderer/assets/icon.png"
+        "icon": "src/renderer/assets/icon.ico"
     },
     "msi": {
         "runAfterFinish": false
     },
     "linux":  {
         "target": "deb",
-        "maintainer": "Elly"
+        "maintainer": "Elly",
+        "icon": "src/renderer/assets/icon.ico"
     },
     "extraFiles": [
         "README.md",
@@ -22,6 +23,22 @@
         "bin/"
     ],
     "files": [
+        "!*.*",
+        "!**.*",
+        "!node_modules/app-builder-bin",
+        "!node_modules/electron/dist",
+        "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+        "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+        "!**/node_modules/*.d.ts",
+        "!**/node_modules/.bin",
+        "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+        "!.editorconfig",
+        "!**/._*",
+        "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+        "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+        "!**/{appveyor.yml,.travis.yml,circle.yml}",
+        "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
+        "package.json",
         {
             "from": "build/main",
             "to": "main",
@@ -31,25 +48,6 @@
             "from": "build/renderer",
             "to": "renderer",
             "filter": ["**/*"]
-        },
-        {
-            "from": "src/main/static",
-            "to": "static",
-            "filter": ["**/*"]
-        },
-        "!bin",
-        "!src",
-        "!data",
-        "!.git",
-        "!.github",
-        "!build",
-        "!dist",
-        "!docs",
-        "!util",
-        "!scripts",
-        "!record.json",
-        "!preference.json",
-        "!log.json",
-        "!node_modules/express"
+        }
     ]
 }

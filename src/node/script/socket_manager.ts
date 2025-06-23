@@ -82,6 +82,11 @@ export class WebsocketManager {
         p.websocket.send(JSON.stringify(d))
     }
 
+    /**
+     * Open shell connection with target node
+     * @param uuid node UUID
+     * @param text input data
+     */
     shell_enter = (uuid:string, text:string) => {
         const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == SocketState.OPEN)
         if (p == undefined){
@@ -95,6 +100,11 @@ export class WebsocketManager {
         p.websocket.send(JSON.stringify(d))
     }
 
+    /**
+     * Close shell connection with target node
+     * @param uuid Node UUID
+     * @returns 
+     */
     shell_close = (uuid:string) => {
         const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == SocketState.OPEN)
         if (p == undefined){
@@ -108,6 +118,11 @@ export class WebsocketManager {
         p.websocket.send(JSON.stringify(d))
     }
 
+    /**
+     * Check folder structure with target node
+     * @param uuid Node UUID
+     * @param path the folder path to check
+     */
     shell_folder = (uuid:string, path:string) => {
         const p = this.targets.find(x => x.uuid == uuid && x.websocket.readyState == SocketState.OPEN)
         if (p == undefined){
@@ -123,7 +138,7 @@ export class WebsocketManager {
 
     /**
      * Trying to connect a node by target URL
-     * @param url target url
+     * @param Node target url
      * @param uuid generate UUID, New or retry connect base on value is defined or not
      * @returns The connection package
      */
