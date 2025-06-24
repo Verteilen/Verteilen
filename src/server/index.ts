@@ -35,17 +35,6 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
                     res.sendStatus(403)
                 }
             })
-            app.use((req, res, next) => {
-                if(req.cookies.token == undefined) {
-                    res.sendStatus(403)
-                }else{
-                    if(backendEvent.IsPass(req.cookies.token)) {
-                        next()
-                    }else{
-                        res.sendStatus(403)
-                    }
-                }
-            }, middle ? middle : express.static(path.join(__dirname, 'public')))
             // The simple web response to let frontend know that backend exists
             app.get('/user', (req, res) => {
                 res.send(backendEvent.GetUserType(req.cookies.token))
@@ -64,6 +53,17 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
                     res.sendStatus(200)
                 }
             })
+            app.use((req, res, next) => {
+                if(req.cookies.token == undefined) {
+                    res.sendStatus(403)
+                }else{
+                    if(backendEvent.IsPass(req.cookies.token)) {
+                        next()
+                    }else{
+                        res.sendStatus(403)
+                    }
+                }
+            }, middle ? middle : express.static(path.join(__dirname, 'public')))
             app.listen(p, () => {
                 console.log(Chalk.greenBright(`server run at ${p}`))
             })
@@ -89,7 +89,7 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
         }
 
         await Promise.allSettled([webport, socketport])
-        return [app, wsServer]
+        resolve([app, wsServer])
     })
 }
 

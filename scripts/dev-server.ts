@@ -34,7 +34,6 @@ async function restartExpress() {
         expressProcess.kill();
         expressProcess = null;
     }
-
     await util.Share_Call()
     cluster.fork()
 }
@@ -53,8 +52,10 @@ async function main() {
     Chokidar.watch(path, {
         cwd: path,
     }).on('change', (path) => {
-        console.log(Chalk.blueBright(`[express] `) + `Change in ${path}. reloading... 🚀`);
-        restartExpress();
+        if(expressProcess != null){
+            console.log(Chalk.blueBright(`[express] `) + `Change in ${path}. reloading... 🚀`);
+            restartExpress();
+        }
     });
 }
 
