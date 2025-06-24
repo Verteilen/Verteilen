@@ -131,7 +131,8 @@
         "setting": "設定",
         "role": "權限組",
         "service": "服務",
-        "plugin": "插件"
+        "plugin": "插件",
+        "profile": "個人資料"
     },
     "tooltip": {
         "select-server": "作為伺服器下指令的一方",

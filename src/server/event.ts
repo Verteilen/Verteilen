@@ -219,15 +219,16 @@ export class BackendEvent {
             const p:UserProfile = JSON.parse(fs.readFileSync(target_path).toString())
             if(p.token == token){
                 return {
-                    picture_url: p.picture_url,
                     name: p.name,
                     type: p.type,
+                    picture_url: false,
                     description: p.description
                 }
             }
         }
         return {
             name: "GUEST",
+            picture_url: false,
             type: UserType.GUEST
         }
     }
@@ -240,9 +241,6 @@ export class BackendEvent {
             const target_path = path.join(pa, token + '.json')
             const p:UserProfile = JSON.parse(fs.readFileSync(target_path).toString())
             if(p.token == token){
-                if(data.pic != undefined){
-                    p.picture_url = data.pic
-                }
                 if(data.name != undefined){
                     p.name = data.name
                 }

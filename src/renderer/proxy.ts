@@ -26,7 +26,7 @@ export class BackendProxy {
      * Start init process, this will detect the mode and save it in the {@link config}
      */
     init = () => {
-        return new Promise<void>((resolve) => {
+        const k = new Promise<void>((resolve) => {
             checkIfExpress((e:UserProfileClient | undefined) => {
                 console.log("auth", e)
                 this.user = e
@@ -34,9 +34,18 @@ export class BackendProxy {
                 this.config.isAdmin = e ? e.type == UserType.ADMIN : false
                 this.is_init = true
                 this.config.haveBackend = this.config.isElectron || this.config.isExpress
-                resolve()
+
+                if(this.user != undefined){
+                    fetch('/pic').then(x => {
+                        this.user!.picture_url = x.ok
+                        resolve()
+                    })
+                }else{
+                    resolve()
+                }
             })
-        })   
+        })  
+        return Promise.all([k])
     }
 
     /**

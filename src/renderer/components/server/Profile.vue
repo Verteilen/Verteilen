@@ -39,11 +39,16 @@ const ImportConfirm = async () => {
 <template>
     <v-container fluid class="ma-0 pa-0">
         <div class="pa-5 mt-3">
-            <v-row>
+            <v-row style="padding: 20px 10%;">
                 <v-col cols="2" class="ma-0 pa-0">
-                    <v-img alt="Picture" cover :src="propss.backend.user?.picture_url ?? '/icon/user.png'">
-                    </v-img>
-                    <v-btn class="mt-1 w-100" color="primary" @click="selectPicture">{{ $t('modify') }}</v-btn>
+                    <v-hover v-slot="{ isHovering, props }">
+                        <v-card v-bind="props">
+                            <v-img alt="Picture" cover :src="propss.backend.user?.picture_url ? '/pic' : 'assets/icon/user.png'"></v-img>
+                            <v-overlay :model-value="!!isHovering" contained class="align-center justify-center">
+                                <v-btn @click="selectPicture" color="primary" variant="flat">{{ $t('modify') }}</v-btn>
+                            </v-overlay>
+                        </v-card>
+                    </v-hover>
                 </v-col>
                 <v-col cols="10">
                     <v-text-field :disabled="!data.editMode" v-model="propss.backend.user!.name" :label="$t('profile.username')" variant="outlined"></v-text-field>

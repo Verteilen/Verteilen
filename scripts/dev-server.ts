@@ -44,6 +44,7 @@ function stop() {
 }
 
 async function main() {
+    await util.Share_Call()
     expressProcess = cluster.fork()
     expressProcess.on('message', (message) => {
         console.log(Chalk.blueBright(`[dev-server fork] `) + `${message}`);

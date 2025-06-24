@@ -1,9 +1,10 @@
 import Chalk from 'chalk'
 import express from 'express'
 import ws from 'ws'
+import os, { homedir } from 'os'
 import { backendEvent } from './event'
 import cookieParser from 'cookie-parser'
-import { ConsolePORT, Header, WebPORT } from './interface'
+import { ConsolePORT, DATA_FOLDER, Header, WebPORT } from './interface'
 import path from 'path'
 import multer from 'multer'
 import bodyPreser from 'body-parser'
@@ -37,19 +38,41 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
             })
             // The simple web response to let frontend know that backend exists
             app.get('/user', (req, res) => {
-                res.send(backendEvent.GetUserType(req.cookies.token))
+                const token = req.cookies.token
+                if(token == undefined){
+                    res.sendStatus(403)
+                    return
+                }
+                res.send(backendEvent.GetUserType(token))
+            })
+            app.get('/pic', (req, res) => {
+                const token = req.cookies.token
+                if(token == undefined){
+                    res.sendStatus(403)
+                    return
+                }
+                
+                const p = path.join(homedir(), DATA_FOLDER, 'user', token, token + '.pic')
+                if(fs.existsSync(p)) {
+                    res.sendFile(p)
+                }else{
+                    res.sendStatus(404)
+                }
             })
             app.post('/pic', upload.single('pic'), (req, res) => {
+                const token = req.cookies.token
+                if(token == undefined){
+                    res.sendStatus(403)
+                    return
+                }
+                
                 if(req.file == undefined){
                     res.sendStatus(204)
                 }else{
-                    const p = `public/uploads/${req.cookies.token}`
+                    const p = path.join(os.homedir(), DATA_FOLDER, 'user', token)
                     if(!fs.existsSync(p)) fs.mkdirSync(p, {recursive: true})
-                    const n = `${p}/pic.png`
+                    const n = path.join(p, token + '.pic')
                     fs.writeFileSync(n, req.file.buffer)
-                    backendEvent.ChangeProfile(req.cookies.token, {
-                        pic: n.replace('public/', '')
-                    })
                     res.sendStatus(200)
                 }
             })
