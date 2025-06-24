@@ -1,89 +1,42 @@
 process.env.NODE_ENV = 'development';
 
 import Chalk from 'chalk';
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import Chokidar from 'chokidar';
-import * as FileSystem from 'fs';
-import { EOL } from 'os';
+import cluster, { Worker } from 'cluster'
+import { main as app } from './../src/server/index'
 import Path from 'path';
 import * as Vite from 'vite';
-import compileTs from './private/tsc';
 import * as util from './utility';
 
 let viteServer:Vite.ViteDevServer | null = null;
-let electronProcess:ChildProcessWithoutNullStreams | null = null;
-let electronProcessLocker = false;
-let rendererPort:number | undefined = 0;
+let expressProcess:Worker | null = null;
+let rendererMiddle:Vite.Connect.Server | undefined = undefined;
 
 async function startRenderer() {
     viteServer = await Vite.createServer({
+        server: { middlewareMode: true },
         configFile: Path.join(__dirname, '..', 'vite.config.js'),
         mode: 'development',
     });
-
-    return viteServer.listen();
+    return viteServer.middlewares;
 }
 
-async function startElectron() {
-    if (electronProcess) { // single instance lock
+async function startExpress() {
+    if (expressProcess) { // single instance lock
         return;
     }
-
-    try {
-        await compileTs(Path.join(__dirname, '..', 'src', 'main'));
-    } catch {
-        console.log(Chalk.redBright('Could not start Electron because of the above typescript error(s).'));
-        electronProcessLocker = false;
-        return;
-    }
-
-    const args:Array<string> = [
-        Path.join(__dirname, '..', 'node_modules', 'electron', 'cli.js'),
-        Path.join(__dirname, '..', 'build', 'main', 'main.js'),
-        rendererPort!.toString(),
-        "--no-sandbox"
-    ];
-    electronProcess = spawn('node', args);
-    electronProcessLocker = false;
-
-    electronProcess?.stdout.on('data', data => {
-        if (data == EOL) {
-            return;
-        }
-
-        process.stdout.write(Chalk.blueBright(`[electron] `) + Chalk.white(data.toString()))
-    });
-
-    electronProcess?.stderr.on('data', data => 
-        process.stderr.write(Chalk.blueBright(`[electron] `) + Chalk.white(data.toString()))
-    );
-
-    electronProcess?.on('exit', () => stop());
+    app(rendererMiddle);
 }
 
-function restartElectron() {
-    if (electronProcess) {
-        electronProcess.removeAllListeners('exit');
-        electronProcess.kill();
-        electronProcess = null;
+async function restartExpress() {
+    if (expressProcess) {
+        expressProcess.removeAllListeners('exit');
+        expressProcess.kill();
+        expressProcess = null;
     }
 
-    if (!electronProcessLocker) {
-        electronProcessLocker = true;
-        startElectron();
-    }
-}
-
-/*
-The working dir of Electron is build/main instead of src/main because of TS.
-tsc does not copy static files, so copy them over manually for dev server.
-*/
-function copy(path) {
-    FileSystem.cpSync(
-        Path.join(__dirname, '..', 'src', 'main', path),
-        Path.join(__dirname, '..', 'build', 'main', path),
-        { recursive: true }
-    );
+    await util.Share_Call()
+    cluster.fork()
 }
 
 function stop() {
@@ -92,31 +45,36 @@ function stop() {
 }
 
 async function main() {
-    await util.Share_Call()
-    
-    console.log(`${Chalk.greenBright('=======================================')}`);
-    console.log(`${Chalk.greenBright('Starting Electron + Vite Dev Server...')}`);
-    console.log(`${Chalk.greenBright('=======================================')}`);
-
-    const devServer = await startRenderer();
-    rendererPort = devServer.config.server.port;
-
-    startElectron();
-
-    const path = Path.join(__dirname, '..', 'src', 'main');
+    expressProcess = cluster.fork()
+    expressProcess.on('message', (message) => {
+        console.log(Chalk.blueBright(`[dev-server fork] `) + `${message}`);
+    })
+    const path = Path.join(__dirname, '..', 'src', 'server');
     Chokidar.watch(path, {
         cwd: path,
     }).on('change', (path) => {
-        console.log(Chalk.blueBright(`[electron] `) + `Change in ${path}. reloading... 🚀`);
-
-        if (path.startsWith(Path.join('static', '/'))) {
-            copy(path);
-        }
-
-        restartElectron();
+        console.log(Chalk.blueBright(`[express] `) + `Change in ${path}. reloading... 🚀`);
+        restartExpress();
     });
 }
 
+async function clus() {
+    console.log(`${Chalk.greenBright('=======================================')}`);
+    console.log(`${Chalk.greenBright('Starting Express + Vite Dev Server...')}`);
+    console.log(`${Chalk.greenBright('=======================================')}`);
+
+    rendererMiddle = await startRenderer();
+    startExpress();
+
+    process.on('SIGTERM', () => {
+        stop()
+    })
+}
+
 if (require.main === module) {
-    main();
+    if(cluster.isPrimary){
+        main()
+    }else{
+        clus()
+    }
 }

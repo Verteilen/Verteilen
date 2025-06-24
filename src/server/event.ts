@@ -63,7 +63,9 @@ export class BackendEvent {
     }
 
     IsPass = (token:string) => {
-        return true
+        const pa_root = path.join(os.homedir(), DATA_FOLDER)
+        const pa = path.join(pa_root, 'user')
+        return fs.existsSync(path.join(pa, token + '.json'))
     }
 
     //#region Manager Side
