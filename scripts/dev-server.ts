@@ -35,7 +35,9 @@ async function restartExpress() {
         expressProcess = null;
     }
     await util.Share_Call()
-    cluster.fork()
+    if(!expressProcess) {
+        expressProcess = cluster.fork()
+    }
 }
 
 function stop() {
