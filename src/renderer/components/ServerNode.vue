@@ -690,7 +690,10 @@ onUnmounted(() => {
             @clean="msgClean"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="9">
-          <RolePage />
+          <RolePage 
+            :preference="props.preference"
+            :items="[]"
+          />
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="10">
           <ServicePage />

@@ -31,7 +31,7 @@ export class BackendProxy {
                 console.log("auth", e)
                 this.user = e
                 this.config.isExpress = e != undefined
-                this.config.isAdmin = e ? e.type == UserType.ADMIN : false
+                this.config.isAdmin = e ? (e.type == UserType.ADMIN || e.type == UserType.ROOT) : false
                 this.is_init = true
                 this.config.haveBackend = this.config.isElectron || this.config.isExpress
 
