@@ -11,6 +11,7 @@ import * as util from './utility';
 let viteServer:Vite.ViteDevServer | null = null;
 let expressProcess:Worker | null = null;
 let rendererMiddle:Vite.Connect.Server | undefined = undefined;
+let lock = false
 
 async function startRenderer() {
     viteServer = await Vite.createServer({
@@ -37,6 +38,9 @@ async function restartExpress() {
     await util.Share_Call()
     if(!expressProcess) {
         expressProcess = cluster.fork()
+        setTimeout(() => {
+            lock = false
+        }, 1000);
     }
 }
 
@@ -55,7 +59,8 @@ async function main() {
     Chokidar.watch(path, {
         cwd: path,
     }).on('change', (path) => {
-        if(expressProcess != null){
+        if(expressProcess != null && !lock){
+            lock = true
             console.log(Chalk.blueBright(`[express] `) + `Change in ${path}. reloading... 🚀`);
             restartExpress();
         }
