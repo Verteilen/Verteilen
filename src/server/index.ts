@@ -37,6 +37,15 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
                 }
             })
             // The simple web response to let frontend know that backend exists
+            app.post('/user', (req, res) => {
+                const token = req.cookies.token
+                if(token == undefined){
+                    res.sendStatus(403)
+                    return
+                }
+                backendEvent.ChangeProfile(token, req.body)
+                res.sendStatus(200)
+            })
             app.get('/user', (req, res) => {
                 const token = req.cookies.token
                 if(token == undefined){

@@ -1,3 +1,4 @@
+import { reactive } from "vue";
 import { AppConfig, RawSend, UserProfileClient, UserType } from "./interface";
 import { checkifElectron, checkIfExpress } from "./platform";
 import { ConsoleManager, Listener } from "./script/console_manager";
@@ -9,9 +10,14 @@ export class BackendProxy {
     config:AppConfig
     consoleM: ConsoleManager | undefined
     is_init: boolean
-    user?: UserProfileClient
+    user: UserProfileClient = reactive({
+        picture_url: false,
+        name: "",
+        type: UserType.GUEST,
+    })
 
     constructor(){
+        this.user = reactive(this.user)
         this.config = {
             isElectron: checkifElectron(),
             isExpress: false,
@@ -29,7 +35,7 @@ export class BackendProxy {
         const k = new Promise<void>((resolve) => {
             checkIfExpress((e:UserProfileClient | undefined) => {
                 console.log("auth", e)
-                this.user = e
+                Object.assign(this.user, e)
                 this.config.isExpress = e != undefined
                 this.config.isAdmin = e ? (e.type == UserType.ADMIN || e.type == UserType.ROOT) : false
                 this.is_init = true
