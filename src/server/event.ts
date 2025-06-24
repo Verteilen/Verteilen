@@ -5,11 +5,12 @@ import * as fs from "fs";
 import * as os from "os";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { DATA_FOLDER, GlobalPermission, Header, Libraries, LocalPermiision, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
+import { DATA_FOLDER, GlobalPermission, Header, Libraries, LocalPermiision, Preference, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
 import { v6 as uuidv6 } from 'uuid'
+import { PluginInit } from './util/plugin';
 
 export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
@@ -40,6 +41,7 @@ export class BackendEvent {
         Loader(typeMap, 'log', 'log')
         Loader(typeMap, 'lib', 'lib', '')
         Loader(typeMap, 'user', 'user')
+        PluginInit(typeMap)
         const n = new ConsoleServerManager(socket, messager_log, typeMap)
         this.manager.push(n)
         return n
@@ -81,11 +83,10 @@ export class BackendEvent {
         }
         socket.send(JSON.stringify(d))
     }
-
     private message = (socket:ws.WebSocket, message:string, tag?:string) => {
         console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
     }
-    private load_record_obsolete = (dummy: number, socket:ws.WebSocket) => {
+    private load_record_obsolete = (socket:ws.WebSocket, dummy: number) => {
         if(!fs.existsSync('record.json')) return undefined
         const data = fs.readFileSync('record.json').toString()
         fs.rmSync('record.json')
@@ -99,32 +100,21 @@ export class BackendEvent {
         const pa = path.join(os.homedir(), DATA_FOLDER, "user")
         if(!fs.existsSync(pa)) fs.mkdirSync(pa)
         if(token != undefined){
-            const files = fs.readdirSync(pa)
-            for(let i = 0; i < files.length; i++){
-                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
-                if(p.token == token){
-                    p.preference = JSON.parse(preference)
-                    fs.writeFileSync(path.join(pa, files[i]), JSON.stringify(p))
-                    break
-                }
-            }
+            const target = path.join(pa, token + '.json')
+            const p:UserProfile = JSON.parse(fs.readFileSync(target).toString())
+            p.preference = JSON.parse(preference)
+            fs.writeFileSync(target, JSON.stringify(p, null, 4))
         }
     }
     private load_preference = (socket:ws.WebSocket, token?:string) => {
         const pa = path.join(os.homedir(), DATA_FOLDER, "user")
         if(!fs.existsSync(pa)) fs.mkdirSync(pa)
         if(token != undefined){
-            const files = fs.readdirSync(pa)
-            for(let i = 0; i < files.length; i++){
-                const p:UserProfile = JSON.parse(fs.readFileSync(path.join(pa, files[i])).toString())
-                if(p.token == token){
-                    const d:Header = {
-                        name: "load_preference-feedback",
-                        data: JSON.stringify(p.preference)
-                    }
-                    socket.send(JSON.stringify(d))
-                    break
-                }
+            const file = path.join(pa, token + '.json')
+            if(fs.existsSync(file)){
+                const p:UserProfile = JSON.parse(fs.readFileSync(file).toString())
+                const d:Header = { name: "load_preference-feedback", data: JSON.stringify(p.preference) }
+                socket.send(JSON.stringify(d))
             }
         }
     }
@@ -158,8 +148,11 @@ export class BackendEvent {
 
     //#region Server
     Root = () => {
-        if(!fs.existsSync('data/user')) fs.mkdirSync('data/user');
-        if(!fs.existsSync("data/user/root.json")){
+        const pa_root = path.join(os.homedir(), DATA_FOLDER)
+        const pa = path.join(pa_root, 'user')
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa);
+        const c = fs.readdirSync(pa).length
+        if(c == 0){
             const perl:LocalPermiision = {
                 view: true,
                 create: true,
@@ -177,7 +170,7 @@ export class BackendEvent {
             }
             const root:UserProfile = {
                 token: uuidv6(),
-                type: UserType.ADMIN,
+                type: UserType.ROOT,
                 preference: {
                     lan: 'en',
                     log: true,
@@ -193,35 +186,41 @@ export class BackendEvent {
                 permission_tasks: [],
                 permission_nodes: [],
             }
-            fs.writeFileSync("data/user/root.json", JSON.stringify(root, null, 2))
+            fs.writeFileSync(path.join(pa, root.token + '.json'), JSON.stringify(root, null, 2))
             console.log(`Login with root using: ${root.token} `)
         }else{
-            const root:UserProfile = JSON.parse(fs.readFileSync("data/user/root.json").toString());
-            console.log(`Login with root using: ${root.token} `)
+            const files = fs.readdirSync(pa).filter(x => x.endsWith('.json'))
+            for(let file of files){
+                const user:UserProfile = JSON.parse(fs.readFileSync(path.join(pa, file)).toString())
+                if(user.type == UserType.ROOT){
+                    console.log(`Login with root using: ${user.token} `)
+                }
+            }
         }
-        if(!fs.existsSync("server.json")){
+        const server_setting = path.join(pa_root, "server.json")
+        if(!fs.existsSync(server_setting)){
             this.setting = {
                 open_guest: false
             }
-            fs.writeFileSync("server.json", JSON.stringify(this.setting, null, 2))
+            fs.writeFileSync(server_setting, JSON.stringify(this.setting, null, 2))
         }else{
-            this.setting = JSON.parse(fs.readFileSync("server.json").toString());
+            this.setting = JSON.parse(fs.readFileSync(server_setting).toString());
         }
     }
 
     GetUserType = (token?:string):UserProfileClient => {
-        if(!fs.existsSync('data/user')) fs.mkdirSync('data/user');
+        const pa_root = path.join(os.homedir(), DATA_FOLDER)
+        const pa = path.join(pa_root, 'user')
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa);
         if(token != undefined){
-            const files = fs.readdirSync('data/user')
-            for(let i = 0; i < files.length; i++){
-                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
-                if(p.token == token){
-                    return {
-                        picture_url: p.picture_url,
-                        name: p.name,
-                        type: p.type,
-                        description: p.description
-                    }
+            const target_path = path.join(pa, token + '.json')
+            const p:UserProfile = JSON.parse(fs.readFileSync(target_path).toString())
+            if(p.token == token){
+                return {
+                    picture_url: p.picture_url,
+                    name: p.name,
+                    type: p.type,
+                    description: p.description
                 }
             }
         }
@@ -232,24 +231,24 @@ export class BackendEvent {
     }
 
     ChangeProfile = (token:string | undefined, data:any) => {
+        const pa_root = path.join(os.homedir(), DATA_FOLDER)
+        const pa = path.join(pa_root, 'user')
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa);
         if(token != undefined){
-            const files = fs.readdirSync('data/user')
-            for(let i = 0; i < files.length; i++){
-                const p:UserProfile = JSON.parse(fs.readFileSync(path.join("data", "user", files[i])).toString())
-                if(p.token == token){
-                    if(data.pic != undefined){
-                        p.picture_url = data.pic
-                    }
-                    if(data.name != undefined){
-                        p.name = data.name
-                    }
-                    if(data.description != undefined){
-                        p.description = data.description
-                    }
-                    fs.writeFileSync(path.join("data", "user", files[i]), JSON.stringify(p, null, 2))
-                    console.log("Update")
-                    break
+            const target_path = path.join(pa, token + '.json')
+            const p:UserProfile = JSON.parse(fs.readFileSync(target_path).toString())
+            if(p.token == token){
+                if(data.pic != undefined){
+                    p.picture_url = data.pic
                 }
+                if(data.name != undefined){
+                    p.name = data.name
+                }
+                if(data.description != undefined){
+                    p.description = data.description
+                }
+                fs.writeFileSync(target_path, JSON.stringify(p, null, 2))
+                console.log("Update")
             }
         }else{
             console.log("token is null")

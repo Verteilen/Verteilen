@@ -1,6 +1,7 @@
-import { PluginToken, Preference } from "./record"
+import { Preference } from "./record"
 
 export enum UserType {
+    ROOT,
     ADMIN,
     GUEST,
     USER

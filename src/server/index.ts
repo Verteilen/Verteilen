@@ -8,7 +8,6 @@ import path from 'path'
 import multer from 'multer'
 import bodyPreser from 'body-parser'
 import * as fs from 'fs'
-import { ImportParameter } from './util/io'
 
 let wsServer: ws.Server | undefined = undefined
 let app:express.Express | undefined = undefined
