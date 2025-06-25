@@ -186,6 +186,7 @@
             "ffmpeg_download": "FFmpeg Download",
             "concat": "FFmpeg concat",
             "blender": "Blender Render",
+            "blender_cluster": "Blender Cluster Render",
             "aftereffect": "After Effect Render"
         },
         "parameter": {
