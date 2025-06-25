@@ -196,7 +196,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                         state: ExecuteState.RUNNING,
                         job: job
                     })
-                    job.index = 1
+                    job.index = 0
                     job.runtime_uuid = runtime
                     this.ExecuteJob(project, task, job, ns[0], false)
                 }
@@ -259,7 +259,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             const rindex = work.work.findIndex(x => x.state == ExecuteState.RUNNING)
             if(rindex != -1) return
             const index = work.work.findIndex(x => x.state == ExecuteState.NONE)
-            if(index == 0) this.proxy?.executeSubtaskStart([task, work.id - 1, ns.uuid ])
+            if(index == 0) this.proxy?.executeSubtaskStart([task, work.id, ns.uuid ])
             if(index == -1) return
             work.work[index].state = ExecuteState.RUNNING
             try {
@@ -274,7 +274,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
     }
 
     private ExecuteJob = (project:Project, task:Task, job:Job, wss:WebsocketPack, iscron:boolean) => {
-        const n:number = job.index! - 1
+        const n:number = job.index!
         this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
         this.proxy?.executeJobStart([ job, n, wss.uuid ])
         
@@ -288,6 +288,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             job.string_args[i] = e.replacePara(job.string_args[i])
             this.messager_log(`String replace: ${b} ${job.string_args[i]}`)
         }
+        console.log("ExecuteJob", n, job.index, job)
         const h:Header = {
             name: 'execute_job',
             channel: this.uuid,
@@ -327,7 +328,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         // Create the cronjob instance here
         for(let i = 0; i < taskCount; i++){
             const d:CronJobState = {
-                id: i + 1,
+                id: i,
                 uuid: "",
                 work: task.jobs.map(x => ({
                     uuid: x.uuid,

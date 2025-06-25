@@ -12,7 +12,6 @@ interface PROPS {
 const data = defineModel<ExecutePair>()
 const props = defineProps<PROPS>()
 const totalLength = ref(4)
-const panelValue:Ref<Array<number>> = ref([])
 const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const start = ref(0)
 const end = ref(0)
