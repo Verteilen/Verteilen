@@ -1,6 +1,7 @@
-import { PluginToken, Preference } from "./record"
+import { Preference } from "./record"
 
 export enum UserType {
+    ROOT,
     ADMIN,
     GUEST,
     USER
@@ -38,7 +39,6 @@ export interface LocalPermissionContainer2 {
 export interface UserProfile {
     token: string
     name: string
-    picture_url?: string
     preference: Preference
     type: UserType
     description?: string
@@ -50,7 +50,7 @@ export interface UserProfile {
 }
 
 export interface UserProfileClient {
-    picture_url?: string
+    picture_url: boolean
     name: string
     type: UserType
     description?: string

@@ -4,8 +4,16 @@ import byteSize from "byte-size";
 import path from 'path'
 import * as fs from 'fs'
 
+/**
+ * The official repo for placing json location.json which specified the executable location\
+ * This includes the OS difference
+ */
 const location:string = "https://raw.githubusercontent.com/Verteilen/worker/refs/heads/main/location.json"
 
+/**
+ * This check if user have worker executable download\
+ * If not it will get the worker executable download from the src {@link location}
+ */
 export const checker = async () => {
     let exe = ""
     let link = ""
@@ -21,7 +29,6 @@ export const checker = async () => {
     if(process.platform == 'win32') link = loca.windows;
     else link = loca.linux;
     return new Promise<void>(async (resolve, reject) => {
-        let p = true
         const bar = new ProgressBar("[:bar] :remaining", {total: 100})
         console.log(`start download worker executable from ${link}`)
         const download = new Downloader({

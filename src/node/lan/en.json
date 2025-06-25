@@ -131,7 +131,8 @@
         "setting": "Setting",
         "role": "Role",
         "service": "Service",
-        "plugin": "Plugin"
+        "plugin": "Plugin",
+        "profile": "Profile"
     },
     "tooltip": {
         "select-server": "The one who send the command to client",

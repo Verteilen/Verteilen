@@ -1,9 +1,9 @@
-import { ipcMain } from "electron"
 import * as path from "path";
 import * as fs from 'fs';
 import * as os from 'os';
-import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2, ToastData, DATA_FOLDER } from "../interface"
-import { mainWindow } from "../electron";
+import * as ws from 'ws';
+import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2, ToastData, DATA_FOLDER, Header } from "../interface"
+import { TypeMap } from "./loader";
 
 const GetCurrentPlugin = ():PluginPageData => {
     const b:PluginPageData = {
@@ -52,7 +52,7 @@ const GetCurrentPlugin = ():PluginPageData => {
     return b
 }
 
-const import_template = async (name:string, url:string, token:string) => {
+const import_template = async (socket:ws.WebSocket, name:string, url:string, token:string) => {
     const root = path.join(os.homedir(), DATA_FOLDER, 'template')
     const error_children:Array<[string, string]> = []
     const tokens = [undefined, ...token.split(' ')]
@@ -84,7 +84,8 @@ const import_template = async (name:string, url:string, token:string) => {
     }
     if(ob == undefined) {
         const p:ToastData = { title: "Import Failed", type: "error", message: `Cannot find the json from url ${url}, or maybe just the wrong token` }
-        mainWindow?.webContents.send("makeToast", JSON.stringify(p))
+        const h:Header = { name: "makeToast", data: JSON.stringify(p) }
+        socket.send(JSON.stringify(h))
         return JSON.stringify(GetCurrentPlugin())
     } 
     ob.url = url
@@ -132,12 +133,13 @@ const import_template = async (name:string, url:string, token:string) => {
     })
     for(let x of error_children){
         const p:ToastData = { title: x[0], type: "error", message: x[1] }
-        mainWindow?.webContents.send("makeToast", JSON.stringify(p))
+        const h:Header = { name: "makeToast", data: JSON.stringify(p) }
+        socket.send(JSON.stringify(h))
     }
     return JSON.stringify(GetCurrentPlugin())
 }
 
-const import_plugin = async (name:string, url:string, token:string) => {
+const import_plugin = async (socket:ws.WebSocket, name:string, url:string, token:string) => {
     const root = path.join(os.homedir(), DATA_FOLDER, 'plugin')
     const tokens = [undefined, ...token.split(' ')]
     if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true});
@@ -165,7 +167,8 @@ const import_plugin = async (name:string, url:string, token:string) => {
     }
     if(ob == undefined) {
         const p:ToastData = { title: "Import Failed", type: "error", message: `Cannot find the json from url ${url}, or maybe just the wrong token` }
-        mainWindow?.webContents.send("makeToast", JSON.stringify(p))
+        const h:Header = { name: "makeToast", data: JSON.stringify(p) }
+        socket.send(JSON.stringify(h))
         return JSON.stringify(GetCurrentPlugin())
     }
     ob.url = url
@@ -173,30 +176,35 @@ const import_plugin = async (name:string, url:string, token:string) => {
     return JSON.stringify(GetCurrentPlugin())
 }
 
-export const PluginInit = () => {
-    ipcMain.handle('get_plugin', async () => {
+export const PluginInit = (typeMap:TypeMap) => {
+    typeMap['get_plugin'] = async (socket:ws.WebSocket) => {
         const root = path.join(os.homedir(), DATA_FOLDER, 'template')
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true});
-        return JSON.stringify(GetCurrentPlugin())
-    })
-    ipcMain.handle('import_template', async (event, name:string, url:string, token:string) => {
-        return import_template(name, url, token)
-    })
-    ipcMain.handle('import_plugin', async (event, name:string, url:string, token:string) => {
-        return import_plugin(name, url, token)
-    })
-    ipcMain.handle('import_template_delete', (event, name:string) => {
+        const h:Header = { name: "get_plugin-feedback", data: JSON.stringify(GetCurrentPlugin()) }
+        socket.send(JSON.stringify(h)) 
+    }
+    typeMap['import_template'] = async (socket:ws.WebSocket, name:string, url:string, token:string) => {
+        const h:Header = { name: "import_template-feedback", data: import_template(socket, name, url, token) }
+        socket.send(JSON.stringify(h)) 
+    }
+    typeMap['import_plugin'] = async (socket:ws.WebSocket, name:string, url:string, token:string) => {
+        const h:Header = { name: "import_plugin-feedback", data: import_plugin(socket, name, url, token) }
+        socket.send(JSON.stringify(h)) 
+    }
+    typeMap['import_template_delete'] = (socket:ws.WebSocket, name:string) => {
         const root = path.join(os.homedir(), DATA_FOLDER, 'template')
         if(fs.existsSync(path.join(root, name + '.json'))) fs.rmSync(path.join(root, name + '.json'));
         if(fs.existsSync(path.join(root, name))) fs.rmdirSync(path.join(root, name), { recursive: true, });
-        return JSON.stringify(GetCurrentPlugin())
-    })
-    ipcMain.handle('import_plugin_delete', (event, name:string) => {
+        const h:Header = { name: "import_template_delete-feedback", data: JSON.stringify(GetCurrentPlugin()) }
+        socket.send(JSON.stringify(h)) 
+    }
+    typeMap['import_plugin_delete'] = (socket:ws.WebSocket, name:string) => {
         const root = path.join(os.homedir(), DATA_FOLDER, 'plugin')
         if(fs.existsSync(path.join(root, name + '.json'))) fs.rmSync(path.join(root, name + '.json'));
-        return JSON.stringify(GetCurrentPlugin())
-    })
-    ipcMain.handle('get_template', (event, group:string, filename:string) => {
+        const h:Header = { name: "import_plugin_delete-feedback", data: JSON.stringify(GetCurrentPlugin()) }
+        socket.send(JSON.stringify(h)) 
+    }
+    typeMap['get_template'] = (socket:ws.WebSocket, group:string, filename:string) => {
         const config = GetCurrentPlugin()
         let find = false
         let target = ''
@@ -212,12 +220,14 @@ export const PluginInit = () => {
         }
         if (!fs.existsSync(target)) {
             console.error("Path not found", target)
-            return undefined
+            const h:Header = { name: "get_template-feedback", data: undefined }
+            socket.send(JSON.stringify(h)) 
         }
         const data = fs.readFileSync(target)
-        return data.toString('utf-8')
-    })
-    ipcMain.handle('get_parameter', (event, group:string, filename:string) => {
+        const h:Header = { name: "get_template-feedback", data: data.toString('utf-8') }
+        socket.send(JSON.stringify(h)) 
+    }
+    typeMap['get_parameter'] = (socket:ws.WebSocket, group:string, filename:string) => {
         const config = GetCurrentPlugin()
         let find = false
         let target = ''
@@ -233,9 +243,11 @@ export const PluginInit = () => {
         }
         if (!fs.existsSync(target)) {
             console.error("Path not found", target)
-            return undefined
+            const h:Header = { name: "get_parameter-feedback", data: undefined }
+            socket.send(JSON.stringify(h)) 
         }
         const data = fs.readFileSync(target)
-        return data.toString('utf-8')
-    })
+        const h:Header = { name: "get_parameter-feedback", data: data.toString('utf-8') }
+        socket.send(JSON.stringify(h)) 
+    }
 }

@@ -131,7 +131,7 @@ export class ClientJobExecute {
                     }
                 case JobType.COMMAND:
                     {
-                        this.os.command(this.job.string_args[2], this.job.string_args[0], this.job.string_args[1]).then(m => {
+                        this.os.command(this.job.string_args[1], this.job.string_args[2], this.job.string_args[0]).then(m => {
                             resolve(m)
                         }).catch(err => {
                             reject(err)

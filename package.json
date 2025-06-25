@@ -1,10 +1,12 @@
 {
   "name": "verteilen",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
-    "dev": "ts-node scripts/dev-server.ts",
+    "vite": "vite",
+    "dev-server": "ts-node scripts/dev-server.ts",
+    "dev": "ts-node scripts/dev.ts",
     "web": "ts-node scripts/web.ts && cd ./build/renderer && http-server -p 8000",
     "express": "ts-node scripts/express.ts && cd ./build/server && node .",
     "node": "ts-node src/node/index.ts",

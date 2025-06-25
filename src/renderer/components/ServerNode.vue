@@ -561,10 +561,10 @@ onUnmounted(() => {
       <v-navigation-drawer temporary v-model="data.drawer">
         <v-list density="compact" nav>
           <v-list-item v-if="props.backend.config.isExpress"
-            :prepend-avatar="props.backend.user?.picture_url ?? '/icon/user.png'"
+            :prepend-avatar="props.backend.user?.picture_url ? '/pic' : 'assets/icon/user.png'"
             :title="props.backend.user?.name"
             :value="100" 
-            @click="data.page = 100"
+            @click="data.page = 100; data.title = 'toolbar.profile'"
           > 
           </v-list-item>
           <div v-for="(tab, index) in tabs" :key="index">
@@ -690,7 +690,10 @@ onUnmounted(() => {
             @clean="msgClean"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="9">
-          <RolePage />
+          <RolePage 
+            :preference="props.preference"
+            :items="[]"
+          />
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.isExpress" :value="10">
           <ServicePage />
