@@ -274,9 +274,9 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
     }
 
     private ExecuteJob = (project:Project, task:Task, job:Job, wss:WebsocketPack, iscron:boolean) => {
-        const n:number = job.index!
+        const n:number = job.index! - 1
         this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
-        this.proxy?.executeJobStart([ job, n - 1, wss.uuid ])
+        this.proxy?.executeJobStart([ job, n, wss.uuid ])
         
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
