@@ -288,7 +288,6 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             job.string_args[i] = e.replacePara(job.string_args[i])
             this.messager_log(`String replace: ${b} ${job.string_args[i]}`)
         }
-        console.log("ExecuteJob", n, job.index, job)
         const h:Header = {
             name: 'execute_job',
             channel: this.uuid,
