@@ -675,6 +675,7 @@ onUnmounted(() => {
           <LibraryPage
             :backend="props.backend"
             :preference="props.preference"
+            :parameters="data.parameters"
             @edit="(d, d1) => libEdit(d, d1)"
             @save="(d, d1, d2) => libSave(d, d1, d2)"
             @load="d => libLoad(d)"

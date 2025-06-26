@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch, watchEffect } from 'vue';
-import { BusType, Libraries, Preference } from '../../interface';
+import { BusType, Libraries, Parameter, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Lib } from '../../util/lib';
 import { BackendProxy } from '../../proxy';
+import ParameterSelectionDialog from '../dialog/ParameterSelectionDialog.vue';
 
 interface PROPS {
     backend: BackendProxy
     preference: Preference
+    parameters: Array<Parameter>
 }
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -31,6 +32,8 @@ const data:Ref<DATA> = ref({
     createModel: false,
     isEdit: false,
     editData: { name: "" },
+    paraModal: false,
+    parameter: undefined,
     dirty: false,
     types: [],
     titleError: false,
@@ -42,6 +45,7 @@ const data:Ref<DATA> = ref({
 
 const openBottom = computed(() => data.value.messages.length > 0)
 const selection = computed(() => data.value.select < 0 ? undefined : model.value?.libs[data.value.select])
+const hasPara = computed(() => data.value.parameter != undefined)
 
 watch(() => data.value.select, (newv:any, oldv:any) => {
     if(model.value == undefined || oldv == newv) return
@@ -110,6 +114,10 @@ const confirmCreate = () => {
     emits('save', data.value.editData.name + '.js' , "", true)
 }
 
+const detailOpen = () => {
+    data.value.paraModal = true
+}
+
 const confirmEdit = () => {
     if(selection.value == undefined) return
     if(data.value.editData.name.length == 0){
@@ -142,7 +150,13 @@ onUnmounted(() => {
     <v-container fluid class="ma-0 pa-0" v-if="model != undefined">
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
-                <v-text-field max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
+                <v-text-field max-width="400px" class="px-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
+                <v-chip v-if="hasPara" prepend-icon="mdi-paperclip" @click="detailOpen" color="success">
+                    {{ $t('parameter-setting') }}: {{ data.parameter?.title }}
+                </v-chip>
+                <v-chip v-if="!hasPara" prepend-icon="mdi-paperclip" @click="detailOpen" color="warning">
+                    {{ $t('parameter-select') }}
+                </v-chip>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -188,7 +202,7 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="data.leftSize" class="border border-e-lg">
-                <v-list :style="{ 'fontSize': props.preference.font + 'px' }" :items="model.libs" v-model:selected="data.select">
+                <v-list class="my-1" style="height: 100%" :style="{ 'fontSize': props.preference.font + 'px' }" :items="model.libs" v-model:selected="data.select">
                     <v-list-item v-for="(lib, i) in model.libs" :key="i" :value="i">  
                         {{ lib.name }}.js
                     </v-list-item>
@@ -244,6 +258,10 @@ onUnmounted(() => {
                 </template>
             </v-card>
         </v-dialog>
+        <ParameterSelectionDialog v-model="data.paraModal" 
+            :items="props.parameters"
+            @select="x => data.parameter = x">
+        </ParameterSelectionDialog>
     </v-container>
 </template>
 

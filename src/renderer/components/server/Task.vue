@@ -5,6 +5,7 @@ import { BusType, DataType, Parameter, Preference, Project, Task } from '../../i
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, Util_Task } from '../../util/Task';
 import TaskDialog from '../dialog/TaskDialog.vue';
+import ParameterSelectionDialog from '../dialog/ParameterSelectionDialog.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -286,32 +287,10 @@ onUnmounted(() => {
                 </template>
             </v-card>
         </v-dialog>
-        <v-dialog width="500" v-model="data.paraModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pen</v-icon>
-                    {{ $t('parameter-select') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
-                    </v-text-field>
-                    <v-list>
-                        <v-list-item v-for="(p, i) in [{ title: 'None', uuid: '' }, ...props.parameters]" :key="i">
-                            <v-list-item-title>
-                                {{ p.title }}
-                            </v-list-item-title>
-                            <v-list-item-subtitle>
-                                {{ p.uuid }}
-                            </v-list-item-subtitle>
-                            <template v-slot:append>
-                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); data.paraModal = false"
-                                ></v-btn>
-                            </template>
-                        </v-list-item>
-                    </v-list>
-                </v-card-text>
-            </v-card>
-        </v-dialog>
+        <ParameterSelectionDialog v-model="data.paraModal" 
+            :items="props.parameters"
+            @select_uuid="selectParameter">
+        </ParameterSelectionDialog>
     </div>
 </template>
 
