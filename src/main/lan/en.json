@@ -32,7 +32,8 @@
         "selectAll": "Select All",
         "language": "Language",
         "log": "Log",
-        "font": "Font Size"
+        "font": "Font Size",
+        "animation": "animation"
     },
     "settings": {
         "system": "System",

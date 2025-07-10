@@ -558,7 +558,7 @@ onUnmounted(() => {
           </v-menu>
         </template>
       </v-app-bar>
-      <v-navigation-drawer temporary v-model="data.drawer">
+      <v-navigation-drawer temporary v-model="data.drawer" :scrim="props.preference?.animation">
         <v-list density="compact" nav>
           <v-list-item v-if="props.backend.config.isExpress"
             :prepend-avatar="props.backend.user?.picture_url ? '/pic' : 'assets/icon/user.png'"

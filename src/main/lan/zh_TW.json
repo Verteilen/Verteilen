@@ -32,7 +32,8 @@
         "selectAll": "全選",
         "language": "語言",
         "log": "紀錄",
-        "font": "字型大小"
+        "font": "字型大小",
+        "animation": "動畫"
     },
     "settings": {
         "system": "系統",

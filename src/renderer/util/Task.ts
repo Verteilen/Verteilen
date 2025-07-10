@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Ref } from "vue";
-import { DataType, Project, Task, TaskTable } from "../interface";
+import { DataType, Preference, Project, Task, TaskTable } from "../interface";
 import { i18n } from '../plugins/i18n';
 
 type getselect = () => Project | undefined
@@ -39,6 +39,7 @@ export interface DialogDATA {
     errorMessage: string
     titleError: boolean
     para_keys:Array<string>
+    preference?: Preference
 }
 
 export class Util_Task {

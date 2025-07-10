@@ -89,6 +89,7 @@ export interface Preference {
      */
     log: boolean
     plugin_token: Array<PluginToken>
+    animation: boolean
 }
 
 export interface Library {

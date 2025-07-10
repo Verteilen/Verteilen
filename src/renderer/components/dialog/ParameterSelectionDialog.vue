@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { Parameter } from '../../interface';
+import { Parameter, Preference } from '../../interface';
+import DialogBase from './DialogBase.vue';
 
 const model = defineModel<boolean>()
 const props = defineProps<{
-    items: Array<Parameter>
+    items: Array<Parameter>,
+    preference?: Preference
 }>()
 const search = ref('')
 const emits = defineEmits<{
@@ -29,30 +31,28 @@ const selectParameter = (uuid: string) => {
 </script>
 
 <template>
-    <v-dialog width="500" v-model="model" class="text-white">
-        <v-card>
-            <v-card-title>
-                <v-icon>mdi-pen</v-icon>
-                {{ $t('parameter-select') }}
-            </v-card-title>
-            <v-card-text>
-                <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search">
-                </v-text-field>
-                <v-list>
-                    <v-list-item v-for="(p, i) in [{ title: 'None', uuid: '' }, ...item_result]" :key="i">
-                        <v-list-item-title>
-                            {{ p.title }}
-                        </v-list-item-title>
-                        <v-list-item-subtitle>
-                            {{ p.uuid }}
-                        </v-list-item-subtitle>
-                        <template v-slot:append>
-                            <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid);"
-                            ></v-btn>
-                        </template>
-                    </v-list-item>
-                </v-list>
-            </v-card-text>
-        </v-card>
-    </v-dialog>
+    <DialogBase width="500" v-model="model!" class="text-white" :preference="props.preference">
+        <template #title>
+            <v-icon>mdi-pen</v-icon>
+            {{ $t('parameter-select') }}
+        </template>
+        <template #text>
+            <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search">
+            </v-text-field>
+            <v-list>
+                <v-list-item v-for="(p, i) in [{ title: 'None', uuid: '' }, ...item_result]" :key="i">
+                    <v-list-item-title>
+                        {{ p.title }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle>
+                        {{ p.uuid }}
+                    </v-list-item-subtitle>
+                    <template v-slot:append>
+                        <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid);"
+                        ></v-btn>
+                    </template>
+                </v-list-item>
+            </v-list>
+        </template>
+    </DialogBase>
 </template>

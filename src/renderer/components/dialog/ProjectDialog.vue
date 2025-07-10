@@ -89,7 +89,8 @@ const confirm = () => {
 <template>
     <DialogBase width="500" v-model="data" :color=" isDark ? 
         'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 
-        'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'">
+        'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'"
+        :preference="propss.preference">
         <template #title>
             <div v-if="propss.isEdit">
                 <v-icon>mdi-pencil</v-icon>

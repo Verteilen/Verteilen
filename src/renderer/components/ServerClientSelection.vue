@@ -76,7 +76,7 @@ const clientClick = () => {
                 </v-tooltip>
             </v-col>
             <v-col>
-                <v-tooltip location="bottom" text="Tooltip">
+                <v-tooltip location="bottom" text="Tooltip" :no-click-animation="!propss.preference.animation">
                     <template v-slot:activator="{ props }">
                         <v-btn variant="outlined" color="secondary" v-bind="props" prepend-icon="mdi-network" stacked class="buttonHeight w-100 mx-1" @click="clientClick()">
                             <span :style="{ 'fontSize': propss.preference.font + 'px' }">

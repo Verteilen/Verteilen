@@ -2,7 +2,7 @@ import { init, formula } from 'expressionparser'
 
 const parser = init(formula, (term: string) => {
   if (term === "a") {
-    return true;
+    return { o: "HelloWorld" };
   } else if (term === "n"){
     return 5
   }
@@ -11,5 +11,5 @@ const parser = init(formula, (term: string) => {
   }
 });
 
-const r = parser.expressionToValue("IF(a, STRING([\"sss\", n]), \"\")"); // true
+const r = parser.expressionToValue("a"); // true
 console.log(r)

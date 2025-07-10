@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { AppConfig, Plugin, Ref } from "vue";
-import { Parameter, PluginPageData, Project, ProjectTable } from "../interface";
+import { Parameter, PluginPageData, Preference, Project, ProjectTable } from "../interface";
 import { i18n } from '../plugins/i18n';
 import { BuildIn_ProjectTempGroup } from '../template/projectTemplate';
 import { BackendProxy } from '../proxy';
@@ -55,6 +55,7 @@ export interface DialogDATA {
     errorMessage: string
     titleError: boolean
     temps:Array<Temp>
+    preference?: Preference
 }
 
 export const ValueToGroupName = (v:number) => BuildIn_ProjectTempGroup.find(x => x.value == v)?.group
