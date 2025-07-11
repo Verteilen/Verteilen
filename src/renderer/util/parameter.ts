@@ -1,6 +1,6 @@
 import { v6 as uuid6 } from 'uuid';
 import { Ref } from "vue";
-import { DataType, Parameter, ParameterContainer, PluginPageData } from "../interface";
+import { DataType, Parameter, ParameterContainer, PluginPageData, Preference } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { BuildIn_ParameterTempGroup } from '../template/projectTemplate';
 import { BackendProxy } from '../proxy';
@@ -47,11 +47,13 @@ export interface DialogDATA {
 export interface DialogDATACreate extends DialogDATA{
     targetData: ParameterContainer
     options: Array<OPTION>
+    preference?: Preference
 }
 
 export interface DialogDATACreateSet extends DialogDATA {
     targetData: EDIT
     temps: Array<Temp>
+    preference?: Preference
 }
 
 export interface DATA {

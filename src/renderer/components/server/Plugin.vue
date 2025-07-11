@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { PluginList, PluginPageData, PluginPageTemplate } from '../../interface';
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
@@ -7,7 +7,6 @@ import { i18n } from '../../plugins/i18n';
 interface PROP {
     plugin: PluginPageData
 }
-
 const propss = defineProps<PROP>()
 const emits = defineEmits<{
     (e: 'added-template', name:string, url:string): void
@@ -24,7 +23,16 @@ const data = ref({
     templateDeleteData: '',
     pluginData: { name: '', url: '', token: '' },
     templateData: { name: '', url: '', token: '' },
-    errorMessage: ''
+    errorMessage: '',
+    loading_plugin: false,
+    loading_template: false,
+})
+
+watch(() => propss.plugin.plugins, () => {
+    data.value.loading_plugin = false
+})
+watch(() => propss.plugin.templates, () => {
+    data.value.loading_template = false
 })
 
 const importPlugin = () => {
@@ -86,10 +94,12 @@ const deleteTemplateConfirm = (name:string) => {
 }
 
 const updatePlugin = (pl:PluginList) => {
+    data.value.loading_plugin = true
     emits('added-plugin', pl.title!, pl.url!);
 }
 
 const updateTemplate = (pl:PluginPageTemplate) => {
+    data.value.loading_template = true
     emits('added-template', pl.name!, pl.url!);
 }
 
@@ -121,80 +131,84 @@ const updateTemplate = (pl:PluginPageTemplate) => {
         <div class="pt-3 px-5 text-left">
             <v-row style="height: calc(100vh - 130px)">
                 <v-col cols="6">
-                    <h2 class="pl-6">{{ $t('plugin') }}</h2>
-                    <br />
-                    <v-list style="height: calc(100vh - 220px);">
-                        <v-list-group v-for="(container, index) in plugin.plugins" >
-                            <v-toolbar density="compact" class="mr-3">
-                                <v-btn icon color="error" @click="deletePlugin(container.title!)">
-                                    <v-icon>mdi-delete</v-icon>
-                                </v-btn>
-                                <v-btn icon color="info" @click="updatePlugin(container)">
-                                    <v-icon>mdi-update</v-icon>
-                                </v-btn>
-                            </v-toolbar>
-                            <template v-slot:activator="{ props }">
-                                <v-list-item v-bind="props" :key="index">
-                                    <v-list-item-title>{{ container.title }}</v-list-item-title>
-                                </v-list-item>
-                            </template>
-                            <v-list-group v-for="(group, index) in container.plugins" >
+                    <v-card :loading="data.loading_plugin" class="pt-4">
+                        <h2 class="pl-6">{{ $t('plugin') }}</h2>
+                        <br />
+                        <v-list style="height: calc(100vh - 220px);">
+                            <v-list-group v-for="(container, index) in plugin.plugins" >
+                                <v-toolbar density="compact" class="mr-3">
+                                    <v-btn icon color="error" @click="deletePlugin(container.title!)" :disabled="data.loading_plugin">
+                                        <v-icon>mdi-delete</v-icon>
+                                    </v-btn>
+                                    <v-btn icon color="info" @click="updatePlugin(container)" :disabled="data.loading_plugin">
+                                        <v-icon>mdi-update</v-icon>
+                                    </v-btn>
+                                </v-toolbar>
                                 <template v-slot:activator="{ props }">
                                     <v-list-item v-bind="props" :key="index">
-                                        <v-list-item-title>{{ group.name }} {{ group.version }}</v-list-item-title>
-                                        <v-list-item-subtitle>{{ group.description }}</v-list-item-subtitle>
+                                        <v-list-item-title>{{ container.title }}</v-list-item-title>
                                     </v-list-item>
                                 </template>
-                                <v-list-item v-for="(item, index2) in group.contents"  :key="index2">
-                                    <v-list-item-title>{{ item.filename }}</v-list-item-title>
-                                    <v-list-item-subtitle>"{{ item.platform }}_{{ item.arch }}"</v-list-item-subtitle>
-                                </v-list-item>
+                                <v-list-group v-for="(group, index) in container.plugins" >
+                                    <template v-slot:activator="{ props }">
+                                        <v-list-item v-bind="props" :key="index">
+                                            <v-list-item-title>{{ group.name }} {{ group.version }}</v-list-item-title>
+                                            <v-list-item-subtitle>{{ group.description }}</v-list-item-subtitle>
+                                        </v-list-item>
+                                    </template>
+                                    <v-list-item v-for="(item, index2) in group.contents"  :key="index2">
+                                        <v-list-item-title>{{ item.filename }}</v-list-item-title>
+                                        <v-list-item-subtitle>"{{ item.platform }}_{{ item.arch }}"</v-list-item-subtitle>
+                                    </v-list-item>
+                                </v-list-group>
                             </v-list-group>
-                        </v-list-group>
-                    </v-list>
+                        </v-list>
+                    </v-card>
                 </v-col>
                 <v-col cols="6">
-                    <h2 class="pl-6">{{ $t('template') }}</h2>
-                    <br />
-                    <v-list style="height: calc(100vh - 220px);">
-                        <v-list-group v-for="(group, index) in plugin.templates">
-                            <v-toolbar density="compact" class="mr-3">
-                                <v-btn icon color="error" @click="deleteTemplate(group.name)">
-                                    <v-icon>mdi-delete</v-icon>
-                                </v-btn>
-                                <v-btn icon color="info" @click="updateTemplate(group)">
-                                    <v-icon>mdi-update</v-icon>
-                                </v-btn>
-                            </v-toolbar>
-                            <template v-slot:activator="{ props }">
-                                <v-list-item v-bind="props" :key="index">
-                                    <v-list-item-title>{{ group.name }}</v-list-item-title>
-                                </v-list-item>
-                            </template>
-                            <v-list-group>
+                    <v-card :loading="data.loading_template" class="pt-4">
+                        <h2 class="pl-6">{{ $t('template') }}</h2>
+                        <br />
+                        <v-list style="height: calc(100vh - 220px);">
+                            <v-list-group v-for="(group, index) in plugin.templates">
+                                <v-toolbar density="compact" class="mr-3">
+                                    <v-btn icon color="error" @click="deleteTemplate(group.name)" :disabled="data.loading_template">
+                                        <v-icon>mdi-delete</v-icon>
+                                    </v-btn>
+                                    <v-btn icon color="info" @click="updateTemplate(group)" :disabled="data.loading_template">
+                                        <v-icon>mdi-update</v-icon>
+                                    </v-btn>
+                                </v-toolbar>
                                 <template v-slot:activator="{ props }">
                                     <v-list-item v-bind="props" :key="index">
-                                        <v-list-item-title>{{ $t('project') }}</v-list-item-title>
+                                        <v-list-item-title>{{ group.name }}</v-list-item-title>
                                     </v-list-item>
                                 </template>
-                                <v-list-item v-for="(project, index2) in group.project" :key="index2">
-                                    <v-list-item-title>{{ project.title }}</v-list-item-title>
-                                    <v-list-item-subtitle>Group: {{ project.group }}</v-list-item-subtitle>
-                                </v-list-item>
-                            </v-list-group>
-                            <v-list-group>
-                                <template v-slot:activator="{ props }">
-                                    <v-list-item v-bind="props" :key="index">
-                                        <v-list-item-title>{{ $t('parameter') }}</v-list-item-title>
+                                <v-list-group>
+                                    <template v-slot:activator="{ props }">
+                                        <v-list-item v-bind="props" :key="index">
+                                            <v-list-item-title>{{ $t('project') }}</v-list-item-title>
+                                        </v-list-item>
+                                    </template>
+                                    <v-list-item v-for="(project, index2) in group.project" :key="index2">
+                                        <v-list-item-title>{{ project.title }}</v-list-item-title>
+                                        <v-list-item-subtitle>Group: {{ project.group }}</v-list-item-subtitle>
                                     </v-list-item>
-                                </template>
-                                <v-list-item v-for="(parameter, index3) in group.parameter" :key="index3">
-                                    <v-list-item-title>{{ parameter.title }}</v-list-item-title>
-                                    <v-list-item-subtitle>Group: {{ parameter.group }}</v-list-item-subtitle>
-                                </v-list-item>
+                                </v-list-group>
+                                <v-list-group>
+                                    <template v-slot:activator="{ props }">
+                                        <v-list-item v-bind="props" :key="index">
+                                            <v-list-item-title>{{ $t('parameter') }}</v-list-item-title>
+                                        </v-list-item>
+                                    </template>
+                                    <v-list-item v-for="(parameter, index3) in group.parameter" :key="index3">
+                                        <v-list-item-title>{{ parameter.title }}</v-list-item-title>
+                                        <v-list-item-subtitle>Group: {{ parameter.group }}</v-list-item-subtitle>
+                                    </v-list-item>
+                                </v-list-group>
                             </v-list-group>
-                        </v-list-group>
-                    </v-list>
+                        </v-list>
+                    </v-card>
                 </v-col>
             </v-row>
         </div>

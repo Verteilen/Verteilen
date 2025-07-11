@@ -620,6 +620,7 @@ onUnmounted(() => {
             :select="data.selectTask"
             :owner="data.selectProject"
             :libs="data.libs"
+            :preference="props.preference"
             @added="e => addJob(e)" 
             @edit="(e, e2) => editJob(e, e2)" 
             @delete="e => deleteJob(e)"

@@ -123,7 +123,8 @@ const confirm = () => {
 
             <DialogBase width="60vw" height="80vh" v-model="selectTempModel" :color="isDark ? 
                 'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 
-                'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'">
+                'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'"
+                :preference="propss.preference">
                 <template #title>
                     <v-icon>mdi-select</v-icon>
                     {{ $t('modal.project-template-select') }}

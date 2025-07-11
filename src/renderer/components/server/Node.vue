@@ -9,6 +9,7 @@ import NodeInfoDialog from '../dialog/NodeInfoDialog.vue';
 import NodeShellDialog from '../dialog/NodeShellDialog.vue';
 import NodePluginDialog from '../dialog/NodePluginDialog.vue';
 import { BackendProxy } from '../../proxy';
+import DialogBase from '../dialog/DialogBase.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -222,42 +223,38 @@ onUnmounted(() => {
                 </v-btn>
             </template>
         </v-data-table>
-        <v-dialog width="500" v-model="connectionModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-web</v-icon>
-                    {{ $t('modal.new-node') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field v-model="connectionData.url" required :label="$t('modal.enter-node-address')"></v-text-field>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmConnection">{{ $t('create') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
-        <NodeInfoDialog v-model="infoModal" :item="infoTarget" />
-        <NodeShellDialog v-model="consoleModal" :backend="props.backend" :item="consoleTarget" :manager="props.manager" />
-        <NodePluginDialog v-model="pluginModal" :backend="props.backend" :item="pluginTarget" :plugin="props.plugin" />
-        <v-dialog width="500" v-model="deleteModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.delete-node') }}
-                </v-card-title>
-                <v-card-text>
-                    <p>{{ $t('modal.delete-node-confirm') }}</p>
-                    <br />
-                    <p v-for="(p, i) in deleteData">
-                        {{ i }}. {{ p }}
-                    </p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
-                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
+        <NodeInfoDialog v-model="infoModal" :item="infoTarget" :preference="props.preference" />
+        <NodeShellDialog v-model="consoleModal" :backend="props.backend" :item="consoleTarget" :manager="props.manager" :preference="props.preference" />
+        <NodePluginDialog v-model="pluginModal" :backend="props.backend" :item="pluginTarget" :plugin="props.plugin" :preference="props.preference" />
+        <DialogBase width="500" v-model="connectionModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-web</v-icon>
+                {{ $t('modal.new-node') }}
+            </template>
+            <template #text>
+                <v-text-field v-model="connectionData.url" required :label="$t('modal.enter-node-address')"></v-text-field>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="confirmConnection">{{ $t('create') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase width="500" v-model="deleteModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-pencil</v-icon>
+                {{ $t('modal.delete-node') }}
+            </template>
+            <template #text>
+                <p>{{ $t('modal.delete-node-confirm') }}</p>
+                <br />
+                <p v-for="(p, i) in deleteData">
+                    {{ i }}. {{ p }}
+                </p>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
+                <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+            </template>
+        </DialogBase>
     </div>
 </template>
 

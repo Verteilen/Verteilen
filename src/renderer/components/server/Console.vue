@@ -423,6 +423,7 @@ onUnmounted(() => {
         />
         <NumberDialog v-model="data.skipModal" 
             :default-value="0" 
+            :preference="props.preference"
             @submit="confirmSkip" 
             :title="$t('modal.skip-step')" 
             icon="mdi-debug-step-over" 

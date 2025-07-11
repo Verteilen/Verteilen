@@ -2,8 +2,9 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Project, Property, Rename, Task } from '../../interface';
+import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Preference, Project, Property, Rename, Task } from '../../interface';
 import { i18n } from './../../plugins/i18n';
+import DialogBase from '../dialog/DialogBase.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -12,6 +13,7 @@ interface PROPS {
     select: Task | undefined
     owner: Project | undefined
     libs: Libraries
+    preference: Preference
 }
 
 interface JobTable extends Job {
@@ -419,41 +421,37 @@ onUnmounted(() => {
                 </v-expansion-panels>
             </div>
         </div>
-        <v-dialog width="500" v-model="createModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-hammer</v-icon>
-                    {{ $t('modal.new-job') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-select class="mb-1" hide-details v-model="createData.category" :items="categorise" item-title="text" item-value="value"></v-select>
-                    <v-select class="mb-1" hide-details v-if="createData.category == 0" v-model="createData.type" :items="types2" item-title="text" item-value="value"></v-select>
-                    <v-select class="mb-1" hide-details v-if="createData.category == 1" v-model="createData.type" :items="types" item-title="text" item-value="value"></v-select>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
-        <v-dialog width="500" v-model="deleteModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.delete-job') }}
-                </v-card-title>
-                <v-card-text>
-                    <p>{{ $t('modal.delete-job-confirm') }}</p>
-                    <br />
-                    <p v-for="(p, i) in deleteData">
-                        {{ i }}. {{ p }}
-                    </p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
-                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
+        <DialogBase width="500" v-model="createModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-hammer</v-icon>
+                {{ $t('modal.new-job') }}
+            </template>
+            <template #text>
+                <v-select class="mb-1" hide-details v-model="createData.category" :items="categorise" item-title="text" item-value="value"></v-select>
+                <v-select class="mb-1" hide-details v-if="createData.category == 0" v-model="createData.type" :items="types2" item-title="text" item-value="value"></v-select>
+                <v-select class="mb-1" hide-details v-if="createData.category == 1" v-model="createData.type" :items="types" item-title="text" item-value="value"></v-select>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase width="500" v-model="deleteModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-pencil</v-icon>
+                {{ $t('modal.delete-job') }}
+            </template>
+            <template #text>
+                <p>{{ $t('modal.delete-job-confirm') }}</p>
+                <br />
+                <p v-for="(p, i) in deleteData">
+                    {{ i }}. {{ p }}
+                </p>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
+                <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+            </template>
+        </DialogBase>
     </div>
 </template>
 

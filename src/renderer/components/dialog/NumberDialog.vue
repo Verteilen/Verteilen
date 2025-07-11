@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { Preference } from '../../interface';
+import DialogBase from './DialogBase.vue';
 
 interface PROPS {
     defaultValue?: number
     title?: string
     label?: string
     icon?: string
+    preference?: Preference
 }
 
 const props = defineProps<PROPS>()
@@ -25,18 +28,16 @@ watch(() => data.value, () => {
 
 </script>
 <template>
-    <v-dialog v-model="data" width="500">
-        <v-card>
-            <v-card-title>
-                <v-icon>{{ props.icon }}</v-icon>
-                {{ props.title }}
-            </v-card-title>
-            <v-card-title>
-                <v-text-field type="number" v-model="buffer" hide-details :label="props.label"></v-text-field>
-            </v-card-title>
-            <template v-slot:actions>
-                <v-btn class="mt-3" color="primary" @click="confirm">{{ $t('confirm') }}</v-btn>
-            </template>
-        </v-card>
-    </v-dialog>
+    <DialogBase v-model="data!" width="500" :preference="props.preference">
+        <template #title>
+            <v-icon>{{ props.icon }}</v-icon>
+            {{ props.title }}
+        </template>
+        <template #text>
+            <v-text-field type="number" v-model="buffer" hide-details :label="props.label"></v-text-field>
+        </template>
+        <template #action>
+            <v-btn class="mt-3" color="primary" @click="confirm">{{ $t('confirm') }}</v-btn>
+        </template>
+    </DialogBase>
 </template>

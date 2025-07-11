@@ -398,6 +398,7 @@ onUnmounted(() => {
             :target-data="data.createData"
             :options="data.options"
             :temps="data.temps"
+            :preference="props.preference"
             @confirm-create="confirmCreate"
             @confirm-edit="confirmEdit">
         </ParameterDialog>
@@ -407,9 +408,10 @@ onUnmounted(() => {
             :title-error="data.titleError"
             :target-data="data.editData"
             :temps="data.temps"
+            :preference="props.preference"
             @submit="confirmSubmitSet">
         </ParameterSetDialog>
-        <DialogBase width="500" v-model="data.cloneModal">
+        <DialogBase width="500" v-model="data.cloneModal" :preference="props.preference">
             <template #title>
                 <v-icon>mdi-content-paste</v-icon>
                 {{ $t('modal.clone-parameter-set') }}
@@ -422,49 +424,45 @@ onUnmounted(() => {
                 <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="cloneSelectConfirm">{{ $t('create') }}</v-btn>
             </template>
         </DialogBase>
-        <v-dialog width="500" v-model="data.selectModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pen</v-icon>
-                    {{ $t('parameter-select') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
-                    </v-text-field>
-                    <v-list>
-                        <v-list-item v-for="(p, i) in selectSearchF" :key="i">
-                            <v-list-item-title>
-                                {{ p.title }}
-                            </v-list-item-title>
-                            <v-list-item-subtitle>
-                                {{ p.uuid }}
-                            </v-list-item-subtitle>
-                            <template v-slot:append>
-                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); data.selectModal = false"
-                                ></v-btn>
-                            </template>
-                        </v-list-item>
-                    </v-list>
-                </v-card-text>
-            </v-card>
-        </v-dialog>
-        <v-dialog width="500" v-model="data.filterModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pen</v-icon>
-                    {{ $t('search') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-checkbox class="pl-3" :label="$t('filter.show-hidden')" v-model="data.buffer_filter.showhidden" hide-details></v-checkbox>
-                    <v-checkbox class="pl-3" :label="$t('filter.show-runtime')" v-model="data.buffer_filter.showruntime" hide-details></v-checkbox>
-                    <v-select class="pl-3" :label="$t('filter.type')" v-model="data.buffer_filter.type" :items="data.options" item-text="text" hide-details></v-select>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="confirmFilter">{{ $t('confirm') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
-        <DialogBase :persistent="true" width="800" v-model="data.objectModal" class="text-white">
+        <DialogBase width="500" v-model="data.selectModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-pen</v-icon>
+                {{ $t('parameter-select') }}
+            </template>
+            <template #text>
+                <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
+                </v-text-field>
+                <v-list>
+                    <v-list-item v-for="(p, i) in selectSearchF" :key="i">
+                        <v-list-item-title>
+                            {{ p.title }}
+                        </v-list-item-title>
+                        <v-list-item-subtitle>
+                            {{ p.uuid }}
+                        </v-list-item-subtitle>
+                        <template v-slot:append>
+                            <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); data.selectModal = false"
+                            ></v-btn>
+                        </template>
+                    </v-list-item>
+                </v-list>
+            </template>
+        </DialogBase>
+        <DialogBase width="500" v-model="data.filterModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-pen</v-icon>
+                {{ $t('search') }}
+            </template>
+            <template #text>
+                <v-checkbox class="pl-3" :label="$t('filter.show-hidden')" v-model="data.buffer_filter.showhidden" hide-details></v-checkbox>
+                <v-checkbox class="pl-3" :label="$t('filter.show-runtime')" v-model="data.buffer_filter.showruntime" hide-details></v-checkbox>
+                <v-select class="pl-3" :label="$t('filter.type')" v-model="data.buffer_filter.type" :items="data.options" item-text="text" hide-details></v-select>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="confirmFilter">{{ $t('confirm') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase :persistent="true" width="800" v-model="data.objectModal" class="text-white" :preference="props.preference">
             <template #title>
                 <v-icon>mdi-pen</v-icon>
                 {{ $t('types.object') }}
@@ -479,21 +477,19 @@ onUnmounted(() => {
                 <v-btn class="mt-3" color="primary" @click="confirmObjectModify">{{ $t('confirm') }}</v-btn>
             </template>
         </DialogBase>
-        <v-dialog width="500" v-model="data.deleteModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.delete-parameter') }}
-                </v-card-title>
-                <v-card-text>
-                    <p>{{ $t('modal.delete-parameter-confirm') }}</p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
-                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
+        <DialogBase width="500" v-model="data.deleteModal" class="text-white">
+            <template #title>
+                <v-icon>mdi-pencil</v-icon>
+                {{ $t('modal.delete-parameter') }}
+            </template>
+            <template #text>
+                <p>{{ $t('modal.delete-parameter-confirm') }}</p>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
+                <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+            </template>
+        </DialogBase>
     </div>
 </template>
 
