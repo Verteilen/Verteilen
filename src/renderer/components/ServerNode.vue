@@ -502,6 +502,7 @@ onMounted(() => {
   emitter?.on('updateHandle', updateHandleCall)
 
   props.backend.wait_init().then(() => {
+    props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
       props.backend.consoleM = new ConsoleManager(`ws://${window.location.hostname}:${ConsolePORT}/server`, messager_log, {
         on: emitter!.on,
@@ -530,6 +531,7 @@ onUnmounted(() => {
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   props.backend.send('client_stop');
+  props.backend.eventOff('debuglog', debug_feedback)
   props.backend.eventOff('makeToast', makeToastFromBackend)
   props.backend.eventOff('createProject', menuCreateProject)
   props.backend.eventOff('menu_export_project', menu_export_project)
