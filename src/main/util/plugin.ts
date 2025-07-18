@@ -68,7 +68,7 @@ const import_template = async (name:string, url:string, token:string) => {
         }else{
             req = {
                 method: 'GET',
-                cache: "no-cache",
+                cache: "no-store",
                 headers: {
                     "Authorization": token ? `Bearer ${token}` : ''
                 }
