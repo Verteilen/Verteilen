@@ -68,6 +68,7 @@ const import_template = async (socket:ws.WebSocket, name:string, url:string, tok
         }else{
             req = {
                 method: 'GET',
+                cache: "no-cache",
                 headers: {
                     "Authorization": token ? `Bearer ${token}` : ''
                 }
