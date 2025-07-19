@@ -200,6 +200,10 @@ export interface Plugin {
     contents: Array<PluginContent>
 }
 
+export interface PluginWithToken extends Plugin {
+    token: Array<string>
+}
+
 export interface PluginList {
     title?: string
     url?: string

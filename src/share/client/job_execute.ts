@@ -148,7 +148,7 @@ export class ClientJobExecute {
                             return
                         }
 
-                        const archTarget = target.contents.find(x => x.arch == process.arch)
+                        const archTarget = target.contents.find(x => x.arch == process.arch && x.platform == process.platform)
                         if(archTarget == undefined){
                             reject("Cannot find plugin match arch " + this.job.string_args[0] + "  " + process.arch)
                             return

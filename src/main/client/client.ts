@@ -121,6 +121,12 @@ export class Client {
             this.plugins = JSON.parse(readFileSync(pluginPath).toString())
         }
     }
+
+    savePlugin = () => {
+        const f = path.join(os.homedir(), DATA_FOLDER)
+        const pluginPath = path.join(f, 'plugin.json')
+        writeFileSync(pluginPath, JSON.stringify(this.plugins, null, 4))
+    }
     
     public static workerPath = (filename:string = "worker", extension:string = ".exe") => {
         // @ts-ignore

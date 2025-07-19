@@ -70,7 +70,7 @@ const import_template = async (name:string, url:string, token:string) => {
                 method: 'GET',
                 cache: "no-store",
                 headers: {
-                    "Authorization": token ? `Bearer ${token}` : ''
+                    "Authorization": token ? `Bearer ${t}` : ''
                 }
             }
         }
@@ -150,8 +150,9 @@ const import_plugin = async (name:string, url:string, token:string) => {
         }else{
             req = {
                 method: 'GET',
+                cache: "no-store",
                 headers: {
-                    "Authorization": token ? `Bearer ${token}` : ''
+                    "Authorization": token ? `Bearer ${t}` : ''
                 }
             }
         }

@@ -1,10 +1,11 @@
 import { ChildProcess, spawn } from 'child_process';
 import { WebSocket } from 'ws';
-import { Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, PluginList } from "../interface";
+import { Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, PluginList, PluginToken, PluginWithToken } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientShell } from './shell';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import path from 'path';
 
 /**
  * The analysis worker. decode the message received from cluster server
@@ -131,12 +132,38 @@ export class ClientAnalysis {
         }
     }
 
-    private plugin_download = (plugin:Plugin, source: WebSocket) => {
-        
+    private plugin_download = (plugin:PluginWithToken, source: WebSocket) => {
+        const target = plugin.contents.find(x => x.arch == process.arch && x.platform == process.platform)
+        if(target == undefined){
+            this.messager_log(`[Plugin] Cannot find target plugin for ${plugin.name} on ${process.platform} ${process.arch}`)
+            return
+        }
+        let req:RequestInit = {}
+        const tokens = [undefined, ...plugin.token]
+        for(let t of tokens){
+            if(t == undefined){
+                req = { method: 'GET' }
+            }else{
+                req = {
+                    method: 'GET',
+                    cache: "no-store",
+                    headers: {
+                        "Authorization": token ? `Bearer ${token}` : ''
+                    }
+                }
+            }
+        }
     }
 
     private plugin_remove = (plugin:Plugin, source: WebSocket) => {
-        
+        this.client.plugins.plugins = this.client.plugins.plugins.filter(x => x.name != plugin.name)
+        this.client.savePlugin()
+        const dir = path.dirname(Client.workerPath())
+        plugin.contents.forEach(x => {
+            if(existsSync(path.join(dir, x.filename))){
+                rmSync(path.join(dir, x.filename))
+            }
+        })
     }
 
     private resource_start = (data:number, source: WebSocket) => {

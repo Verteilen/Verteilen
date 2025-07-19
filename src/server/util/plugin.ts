@@ -70,7 +70,7 @@ const import_template = async (socket:ws.WebSocket, name:string, url:string, tok
                 method: 'GET',
                 cache: "no-store",
                 headers: {
-                    "Authorization": token ? `Bearer ${token}` : ''
+                    "Authorization": token ? `Bearer ${t}` : ''
                 }
             }
         }
@@ -152,8 +152,9 @@ const import_plugin = async (socket:ws.WebSocket, name:string, url:string, token
         }else{
             req = {
                 method: 'GET',
+                cache: "no-store",
                 headers: {
-                    "Authorization": token ? `Bearer ${token}` : ''
+                    "Authorization": token ? `Bearer ${t}` : ''
                 }
             }
         }
