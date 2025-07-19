@@ -4,8 +4,10 @@ import { Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, Plug
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientShell } from './shell';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs';
-import path from 'path';
+import { createWriteStream, existsSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import * as path from 'path';
+import { finished } from 'stream/promises';
+import { Readable } from 'stream';
 
 /**
  * The analysis worker. decode the message received from cluster server
@@ -138,6 +140,7 @@ export class ClientAnalysis {
             this.messager_log(`[Plugin] Cannot find target plugin for ${plugin.name} on ${process.platform} ${process.arch}`)
             return
         }
+        const dir = path.dirname(Client.workerPath())
         let req:RequestInit = {}
         const tokens = [undefined, ...plugin.token]
         for(let t of tokens){
@@ -148,9 +151,28 @@ export class ClientAnalysis {
                     method: 'GET',
                     cache: "no-store",
                     headers: {
-                        "Authorization": token ? `Bearer ${token}` : ''
+                        "Authorization": t ? `Bearer ${t}` : ''
                     }
                 }
+            }
+            try{
+                fetch(target.url, req).then(res => {
+                    if(!res.ok || res.body == null){
+                        throw new Error(`Failed to download file: ${res.statusText}`);
+                    }
+                    return res.body
+                }).then(body => {
+                    if(body == undefined) throw new Error("Response body is undefined")
+                    const fileStream = createWriteStream(path.join(dir, target.filename), { flags: 'wx' });
+                    body.getReader().read().then(x => {
+                        fileStream.write(x.value)
+                    }).finally(() => {
+                        fileStream.close()
+                    })
+                })
+                break
+            }catch (error){
+                console.error(error)
             }
         }
     }
