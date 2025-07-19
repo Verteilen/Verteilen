@@ -165,7 +165,8 @@
             "rename": "Rename Path",
             "lua": "Lua",
             "javascript": "Javascript",
-            "command": "Command"
+            "command": "Command",
+            "lib_command": "Plugin Command",
         },
         "jobtype2": {
             "check-path": "Check Path",

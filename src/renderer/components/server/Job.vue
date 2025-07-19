@@ -65,6 +65,7 @@ const checkPatterm = (category:number, type:number, checker:string):boolean => {
         (checker == 'TwoPath' && ( type === JobType.COPY_DIR || type === JobType.COPY_FILE || type === JobType.RENAME )) ||
         (checker == 'OnePath' && ( type === JobType.DELETE_DIR || type === JobType.DELETE_FILE || type === JobType.CREATE_DIR )) ||
         (checker == 'Command' && ( type === JobType.COMMAND )) ||
+        (checker == 'Lib_Command' && ( type === JobType.LIB_COMMAND)) ||
         (checker == 'Writer' && ( type === JobType.CREATE_FILE )) ||
         (checker == 'Javascript' && (type == JobType.JAVASCRIPT))
     );
@@ -401,6 +402,10 @@ onUnmounted(() => {
                                         <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
                                         <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
                                         <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
+                                    </div>
+                                    <div v-else-if="checkPatterm(c.category, c.type, 'Lib_Command')">
+                                        <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
+                                        <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'Javascript')">
                                         <codemirror-js v-model="c.script"

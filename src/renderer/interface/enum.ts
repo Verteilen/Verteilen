@@ -55,7 +55,8 @@ export enum JobType {
     CREATE_DIR,
     RENAME,
     JAVASCRIPT,
-    COMMAND
+    COMMAND,
+    LIB_COMMAND,
 }
 
 export enum JobType2 {
@@ -142,7 +143,8 @@ export const JobTypeText: { [key:number]:string } = {
     5: 'enum.jobtype.create-dir',
     6: 'enum.jobtype.rename',
     7: 'enum.jobtype.javascript',
-    8: 'enum.jobtype.command'
+    8: 'enum.jobtype.command',
+    9: 'enum.jobtype.lib_command',
 }
 
 export const JobType2Text: { [key:number]:string } = {
