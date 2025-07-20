@@ -77,10 +77,13 @@ watch(() => pluginModal.value, () => {
         if(props.backend.config.haveBackend){
             const p = props.nodes.find(x => x.ID == pluginUUID.value)
             props.backend.send('resource_start', p?.ID)
+            props.backend.send('plugin_info', p?.ID)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == pluginUUID.value)
             const d:Header = { name: 'resource_start', data: 0 }
+            const d2:Header = { name: 'plugin_info', data: 0 }
             p?.websocket.send(JSON.stringify(d))
+            p?.websocket.send(JSON.stringify(d2))
         }
     }else{
         if(props.backend.config.haveBackend){

@@ -240,7 +240,8 @@ export class WebsocketManager {
                 state: x.websocket.readyState,
                 url: x.websocket.url,
                 connection_rate: x.ms,
-                system: x.information
+                system: x.information,
+                plugins: x.plugins
             }
         })
 
@@ -316,6 +317,7 @@ export class WebsocketManager {
     }
 
     private plugin_info_reply = (data:Array<Plugin>, source:WebsocketPack | undefined) => {
-
+        if(source == undefined || source.last == undefined) return
+        source.plugins = data
     }
 }

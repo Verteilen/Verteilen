@@ -35,11 +35,11 @@ const nodeType = computed(() => {
 })
 
 const InstalledState = (name:string, version?:string) => {
-    if(props.item == undefined) return { code: -1 }
+    if(props.item == undefined) return { code: -1 } // Cannot download
     const k = props.item.plugins?.find(x => x.name == name)
-    if(k == undefined) return { code: 0 }
-    else if(k.version != version) return { code: 1, version: k.version }
-    else return { code: 2 }
+    if(k == undefined) return { code: 0 } // Cannot find download source match
+    else if(k.version !== version) return { code: 1, version: k.version } // Can update
+    else return { code: 2 } // Remove
 }
 
 const closePage = () => {

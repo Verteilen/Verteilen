@@ -123,14 +123,15 @@ export class ClientAnalysis {
     }
 
     private plugin_info = (data:number, source: WebSocket) => {
-        if(existsSync('plugin.json')){
-            const p:Array<Plugin> = JSON.parse(readFileSync('plugin.json').toString())
-            const h:Header = { name: 'plugin_info_reply', data: p }
+        const pat = path.join(os.homedir(), DATA_FOLDER, "plugin.json")
+        if(existsSync(pat)){
+            const p:PluginList = JSON.parse(readFileSync(pat).toString())
+            const h:Header = { name: 'plugin_info_reply', data: p.plugins }
             source.send(JSON.stringify(h))
         }else{
-            const p:Array<Plugin> = []
-            const h:Header = { name: 'plugin_info_reply', data: p }
-            writeFileSync('plugin.json', JSON.stringify(p))
+            const p:PluginList = { plugins: [] }
+            const h:Header = { name: 'plugin_info_reply', data: p.plugins }
+            writeFileSync(pat, JSON.stringify(p))
             source.send(JSON.stringify(h))
         }
     }
@@ -201,12 +202,14 @@ export class ClientAnalysis {
                     fileStream.end();
                     const list = this.client.plugins.plugins
                     const index = list.findIndex(x => x.name == plugin.name)
+                    plugin.token = t ? [t] : []
                     if(index == -1){
                         list.push(plugin)
                     }else{
                         list[index] = plugin
                     }
                     this.client.savePlugin()
+                    this.plugin_info(0, source)
                     pass = true
                 })
             }
@@ -226,6 +229,7 @@ export class ClientAnalysis {
                 rmSync(path.join(dir, x.filename))
             }
         })
+        this.plugin_info(0, source)
     }
 
     private resource_start = (data:number, source: WebSocket) => {
