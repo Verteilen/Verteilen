@@ -166,7 +166,7 @@
             "lua": "Lua",
             "javascript": "Javascript",
             "command": "Command",
-            "lib_command": "Plugin Command",
+            "lib_command": "Plugin Command"
         },
         "jobtype2": {
             "check-path": "Check Path",

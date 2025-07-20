@@ -1,11 +1,12 @@
 import { ChildProcess, spawn } from 'child_process';
 import { WebSocket } from 'ws';
-import { Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, PluginList, PluginToken, PluginWithToken } from "../interface";
+import { DATA_FOLDER, Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, PluginList, PluginToken, PluginWithToken } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientShell } from './shell';
-import { createWriteStream, existsSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { createWriteStream, existsSync, mkdir, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import { finished } from 'stream/promises';
 import { Readable } from 'stream';
 
@@ -134,53 +135,83 @@ export class ClientAnalysis {
         }
     }
 
-    private plugin_download = (plugin:PluginWithToken, source: WebSocket) => {
+    private get_releases = async (repo:string, token:string | undefined) => {
+        const qu = await fetch(`https://api.github.com/repos/${repo}/releases`, {
+            headers: {
+                Authorization: token ? `token ${token}`: '',
+                Accept: "application/vnd.github.v3.raw"
+            }
+        })
+        return qu.json()
+    }
+
+    private filterout = async (repo:string, token:string | undefined, version:string, filename:string) => {
+        const json:Array<any> = await this.get_releases(repo, token)
+        const v = json.find(x => x.tag_name == version)
+        if(!v) return
+        const f = v.assets.find(x => x.name == filename)
+        if(!f) return
+        return f.id
+    }
+
+    private plugin_download = async (plugin:PluginWithToken, source: WebSocket) => {
         const target = plugin.contents.find(x => x.arch == process.arch && x.platform == process.platform)
         if(target == undefined){
             this.messager_log(`[Plugin] Cannot find target plugin for ${plugin.name} on ${process.platform} ${process.arch}`)
             return
         }
-        const dir = path.dirname(Client.workerPath())
+        const links = target.url.split('/')
+        const filename = links[links.length - 1]
+        const version = links[links.length - 2]
+        const REPO = `${links[3]}/${links[4]}`
+        const dir = path.join(os.homedir(), DATA_FOLDER, "exe")
+        if(!existsSync(dir)) mkdirSync(dir, { recursive: true })
         let req:RequestInit = {}
         const tokens = [undefined, ...plugin.token]
         for(let t of tokens){
-            if(t == undefined){
-                req = { method: 'GET' }
-            }else{
-                req = {
-                    method: 'GET',
-                    cache: "no-store",
-                    headers: {
-                        "Authorization": t ? `Bearer ${t}` : ''
-                    }
+            const id = this.filterout(REPO, t, version, filename)
+            req = { 
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    Authorization: t ? `token ${t}` : '',
+                    Accept: "application/octet-stream"
                 }
             }
-            try{
-                fetch(target.url, req).then(res => {
-                    if(!res.ok || res.body == null){
-                        throw new Error(`Failed to download file: ${res.statusText}`);
+            fetch(`https://api.github.com/repos/${REPO}/releases/assets/${id}`, req).then(res => {
+                if(!res.ok){
+                    throw new Error(`Failed to download file: ${res.status} ${res.statusText}`);
+                }
+                return res.blob()
+            }).then(blob => {
+                return blob.stream().getReader().read()
+            })
+            .then(reader => {
+                const fileStream = createWriteStream(path.join(dir, target.filename), { flags: 'wx' });
+                if(reader.done){
+                    fileStream.end();
+                    const index = this.client.plugins.plugins.findIndex(x => x.name == plugin.name)
+                    if(index == -1){
+                        this.client.plugins.plugins.push(plugin)
+                    }else{
+                        this.client.plugins.plugins[index] = plugin
                     }
-                    return res.body
-                }).then(body => {
-                    if(body == undefined) throw new Error("Response body is undefined")
-                    const fileStream = createWriteStream(path.join(dir, target.filename), { flags: 'wx' });
-                    body.getReader().read().then(x => {
-                        fileStream.write(x.value)
-                    }).finally(() => {
-                        fileStream.close()
-                    })
-                })
-                break
-            }catch (error){
-                console.error(error)
-            }
+                    this.client.savePlugin()
+                    this.messager_log(`[Plugin] Downloaded ${plugin.name} successfully`)
+                }else{
+                    fileStream.write(Buffer.from(reader.value))
+                }
+            }).catch(err => {
+                this.messager_log(`[Plugin] Download failed for ${plugin.name}: ${err.message}`)
+            })
         }
     }
 
     private plugin_remove = (plugin:Plugin, source: WebSocket) => {
         this.client.plugins.plugins = this.client.plugins.plugins.filter(x => x.name != plugin.name)
         this.client.savePlugin()
-        const dir = path.dirname(Client.workerPath())
+        const dir = path.join(os.homedir(), DATA_FOLDER, "exe")
+        if(!existsSync(dir)) mkdirSync(dir, { recursive: true })
         plugin.contents.forEach(x => {
             if(existsSync(path.join(dir, x.filename))){
                 rmSync(path.join(dir, x.filename))

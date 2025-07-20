@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuid6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ConnectionText, Header, NodeTable, PluginPageData, Preference } from '../../interface';
+import { BusType, ConnectionText, Header, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { WebsocketManager } from '../../script/socket_manager';
 import NodeInfoDialog from '../dialog/NodeInfoDialog.vue';
@@ -67,6 +67,27 @@ watch(() => infoModal.value, () => {
             props.backend.send('resource_end', p?.ID)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
+            const d:Header = { name: 'resource_end', data: 0 }
+            p?.websocket.send(JSON.stringify(d))
+        }
+    }
+})
+watch(() => pluginModal.value, () => {
+    if(pluginModal.value){
+        if(props.backend.config.haveBackend){
+            const p = props.nodes.find(x => x.ID == pluginUUID.value)
+            props.backend.send('resource_start', p?.ID)
+        }else{
+            const p = props.manager?.targets.find(x => x.uuid == pluginUUID.value)
+            const d:Header = { name: 'resource_start', data: 0 }
+            p?.websocket.send(JSON.stringify(d))
+        }
+    }else{
+        if(props.backend.config.haveBackend){
+            const p = props.nodes.find(x => x.ID == pluginUUID.value)
+            props.backend.send('resource_end', p?.ID)
+        }else{
+            const p = props.manager?.targets.find(x => x.uuid == pluginUUID.value)
             const d:Header = { name: 'resource_end', data: 0 }
             p?.websocket.send(JSON.stringify(d))
         }
@@ -162,6 +183,29 @@ const showconsole = (uuid:string) => {
     }
 }
 
+const plugin_download = (plugin:Plugin) => {
+    if(pluginTarget.value == undefined) return
+    if(props.backend.config.haveBackend){
+        props.backend.send("plugin_download", pluginTarget.value.ID, JSON.stringify(plugin), props.preference.plugin_token.map(x => x.token).join(' '))
+    }else{
+        const p = props.manager?.targets.find(x => x.uuid == pluginTarget.value?.ID)
+        const p2:PluginWithToken = {...plugin, token: props.preference.plugin_token.map(x => x.token)}
+        const h:Header = { name: 'plugin_download', data: plugin }
+        p?.websocket.send(JSON.stringify(h))
+    }
+}
+
+const plugin_remove = (plugin:Plugin) => {
+    if(pluginTarget.value == undefined) return
+    if(props.backend.config.haveBackend){
+        props.backend.send("plugin_remove", pluginTarget.value.ID, JSON.stringify(plugin))
+    }else{
+        const p = props.manager?.targets.find(x => x.uuid == pluginTarget.value?.ID)
+        const h:Header = { name: 'plugin_remove', data: plugin }
+        p?.websocket.send(JSON.stringify(h))
+    }
+}
+
 onMounted(() => {
     emitter?.on('updateHandle', serverUpdate)
 })
@@ -225,7 +269,8 @@ onUnmounted(() => {
         </v-data-table>
         <NodeInfoDialog v-model="infoModal" :item="infoTarget" :preference="props.preference" />
         <NodeShellDialog v-model="consoleModal" :backend="props.backend" :item="consoleTarget" :manager="props.manager" :preference="props.preference" />
-        <NodePluginDialog v-model="pluginModal" :backend="props.backend" :item="pluginTarget" :plugin="props.plugin" :preference="props.preference" />
+        <NodePluginDialog v-model="pluginModal" :backend="props.backend" :item="pluginTarget" :plugin="props.plugin" :preference="props.preference"
+            @download="plugin_download" @remove="plugin_remove" />
         <DialogBase width="500" v-model="connectionModal" class="text-white" :preference="props.preference">
             <template #title>
                 <v-icon>mdi-web</v-icon>
