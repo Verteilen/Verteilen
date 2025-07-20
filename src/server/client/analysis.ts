@@ -1,11 +1,12 @@
 import { ChildProcess, spawn } from 'child_process';
 import { WebSocket } from 'ws';
-import { Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, PluginList, PluginToken, PluginWithToken } from "../interface";
+import { DATA_FOLDER, Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, PluginList, PluginToken, PluginWithToken } from "../interface";
 import { Client } from './client';
 import { ClientExecute } from "./execute";
 import { ClientShell } from './shell';
-import { createWriteStream, existsSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { createWriteStream, existsSync, mkdir, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import { finished } from 'stream/promises';
 import { Readable } from 'stream';
 
@@ -140,7 +141,8 @@ export class ClientAnalysis {
             this.messager_log(`[Plugin] Cannot find target plugin for ${plugin.name} on ${process.platform} ${process.arch}`)
             return
         }
-        const dir = path.dirname(Client.workerPath())
+        const dir = path.join(os.homedir(), DATA_FOLDER, "exe")
+        if(!existsSync(dir)) mkdirSync(dir, { recursive: true })
         let req:RequestInit = {}
         const tokens = [undefined, ...plugin.token]
         for(let t of tokens){
@@ -168,9 +170,16 @@ export class ClientAnalysis {
                         fileStream.write(x.value)
                     }).finally(() => {
                         fileStream.close()
+                        const index = this.client.plugins.plugins.findIndex(x => x.name == plugin.name)
+                        if(index == -1){
+                            this.client.plugins.plugins.push(plugin)
+                        }else{
+                            this.client.plugins.plugins[index] = plugin
+                        }
+                        this.client.savePlugin()
+                        this.messager_log(`[Plugin] Downloaded ${plugin.name} successfully`)
                     })
                 })
-                break
             }catch (error){
                 console.error(error)
             }
@@ -180,7 +189,8 @@ export class ClientAnalysis {
     private plugin_remove = (plugin:Plugin, source: WebSocket) => {
         this.client.plugins.plugins = this.client.plugins.plugins.filter(x => x.name != plugin.name)
         this.client.savePlugin()
-        const dir = path.dirname(Client.workerPath())
+        const dir = path.join(os.homedir(), DATA_FOLDER, "exe")
+        if(!existsSync(dir)) mkdirSync(dir, { recursive: true })
         plugin.contents.forEach(x => {
             if(existsSync(path.join(dir, x.filename))){
                 rmSync(path.join(dir, x.filename))

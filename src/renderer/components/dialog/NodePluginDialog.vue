@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { NodeTable, Plugin, PluginPageData, Preference } from '../../interface';
+import { NodeTable, Plugin, PluginList, PluginPageData, Preference } from '../../interface';
 import { BackendProxy } from '../../proxy';
 import DialogBase from './DialogBase.vue';
 
-
-const modal = defineModel<boolean>({ required: true })
 interface PROPS {
     backend: BackendProxy
     item: NodeTable | undefined
@@ -13,13 +11,19 @@ interface PROPS {
     preference?: Preference
 }
 
+const modal = defineModel<boolean>({ required: true })
 const props = defineProps<PROPS>()
+const emit = defineEmits<{
+    (e: 'download', k:Plugin): void
+    (e: 'remove', k:Plugin): void
+}>()
 const selectID = ref('')
 const filterPlugins = computed(() => {
     if(props.item == undefined) return props.plugin.plugins
-    return props.plugin.plugins.map(x => {
+    const buffer:Array<PluginList> = JSON.parse(JSON.stringify(props.plugin.plugins))
+    return buffer.map(x => {
         x.plugins = x.plugins.filter(y => {
-            const k = y.contents.find(z => z.platform == props.item?.system?.platform && z.arch == props.item.system.arch)
+            const k = y.contents.find(z => z.platform == props.item?.system?.platform && z.arch == props.item?.system?.arch)
             return k != undefined
         })
         return x
@@ -43,11 +47,11 @@ const closePage = () => {
 }
 
 const download = (k:Plugin) => {
-
+    emit('download', k)
 }
 
 const remove = (k:Plugin) => {
-    
+    emit('remove', k)
 }
 
 </script>

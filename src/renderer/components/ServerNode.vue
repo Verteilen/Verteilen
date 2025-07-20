@@ -259,21 +259,25 @@ const msgClean = () => util.self.clearMessage()
 //#region Plugin
 const pluginAdded = (name:string, url:string) => {
   props.backend.invoke("import_plugin", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
+    console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
 const templateAdded = (name:string, url:string) => {
   props.backend.invoke("import_template", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
+    console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
 const pluginDelete = (name:string) => {
   props.backend.invoke("import_plugin_delete", name).then(x => {
+    console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
 const templateDelete = (name:string) => {
   props.backend.invoke("import_template_delete", name).then(x => {
+    console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }

@@ -77,7 +77,7 @@ export class BackendEvent {
         Loader('node', 'node')
         Loader('log', 'log')
         Loader('lib', 'lib', '')
-        PluginInit()
+        PluginInit(this)
 
         ipcMain.handle('load_record_obsolete', (e) => {
             if(!fs.existsSync('record.json')) return undefined

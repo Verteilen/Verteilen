@@ -1,4 +1,4 @@
-import { Header, Job, ResourceType, SystemLoad } from '../interface'
+import { Header, Job, PluginList, ResourceType, SystemLoad } from '../interface'
 import { ClientHTTP } from './http'
 import { ClientJobExecute } from './job_execute'
 import { ClientResource } from './resource'
@@ -47,11 +47,12 @@ function ERROR (err){
 export function RUN(){
     // The cluster currently spawn should execute a job
     if(process.env.type == 'JOB'){
-        if(process.env.job == undefined){
+        if(process.env.job == undefined || process.env.plugin == undefined){
             process.exit(1)
         }
         const d:Job = JSON.parse(process.env.job)
-        const worker = new ClientJobExecute(messager, messager_log, d, undefined)
+        const p:PluginList = JSON.parse(process.env.plugin)
+        const worker = new ClientJobExecute(messager, messager_log, d, undefined, p)
         worker.execute().then(x => {
             process.exit(0)
         })
