@@ -142,11 +142,12 @@ export class ClientAnalysis {
                 Accept: "application/vnd.github.v3.raw"
             }
         })
-        return qu.json()
+        return qu.text()
     }
 
     private filterout = async (repo:string, token:string | undefined, version:string, filename:string) => {
-        const json:Array<any> = await this.get_releases(repo, token)
+        const text = await this.get_releases(repo, token)
+        const json:Array<any> = JSON.parse(text)
         const v = json.find(x => x.tag_name == version)
         if(!v) return
         const f = v.assets.find(x => x.name == filename)
@@ -168,42 +169,51 @@ export class ClientAnalysis {
         if(!existsSync(dir)) mkdirSync(dir, { recursive: true })
         let req:RequestInit = {}
         const tokens = [undefined, ...plugin.token]
+        const fileStream = createWriteStream(path.join(dir, target.filename), { flags: 'a' });
+        let pass = false
         for(let t of tokens){
-            const id = this.filterout(REPO, t, version, filename)
-            req = { 
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    Authorization: t ? `token ${t}` : '',
-                    Accept: "application/octet-stream"
+            if(pass) break
+            try{
+                const id = await this.filterout(REPO, t, version, filename)
+                req = { 
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        Authorization: t ? `token ${t}` : '',
+                        Accept: "application/octet-stream"
+                    }
                 }
-            }
-            fetch(`https://api.github.com/repos/${REPO}/releases/assets/${id}`, req).then(res => {
-                if(!res.ok){
-                    throw new Error(`Failed to download file: ${res.status} ${res.statusText}`);
-                }
-                return res.blob()
-            }).then(blob => {
-                return blob.stream().getReader().read()
-            })
-            .then(reader => {
-                const fileStream = createWriteStream(path.join(dir, target.filename), { flags: 'wx' });
-                if(reader.done){
+                const url = `https://api.github.com/repos/${REPO}/releases/assets/${id}`
+                fetch(url, req).then(res => {
+                    if(!res.ok){
+                        throw new Error(`Failed to download file: ${res.status} ${res.statusText}`);
+                    }
+                    return res.blob()
+                }).then(blob => {
+                    return blob.stream().getReader().read()
+                })
+                .then(reader => {
+                    if(!reader.done){
+                        fileStream.write(Buffer.from(reader.value))
+                    }
+                }).finally(() => {
+                    this.messager_log(`[Plugin] Downloaded ${plugin.name} successfully`)
                     fileStream.end();
-                    const index = this.client.plugins.plugins.findIndex(x => x.name == plugin.name)
+                    const list = this.client.plugins.plugins
+                    const index = list.findIndex(x => x.name == plugin.name)
+                    plugin.token = t ? [t] : []
                     if(index == -1){
-                        this.client.plugins.plugins.push(plugin)
+                        list.push(plugin)
                     }else{
-                        this.client.plugins.plugins[index] = plugin
+                        list[index] = plugin
                     }
                     this.client.savePlugin()
-                    this.messager_log(`[Plugin] Downloaded ${plugin.name} successfully`)
-                }else{
-                    fileStream.write(Buffer.from(reader.value))
-                }
-            }).catch(err => {
+                    pass = true
+                })
+            }
+            catch(err:any){
                 this.messager_log(`[Plugin] Download failed for ${plugin.name}: ${err.message}`)
-            })
+            }
         }
     }
 
