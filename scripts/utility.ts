@@ -31,7 +31,7 @@ export async function Build_Server(){
 
 export async function PKG_Program(platform:string, arch?:string){
     const exeDir = Path.join(__dirname, "..", "bin")
-    if(existsSync(exeDir)) await rmdir(exeDir)
+    if(existsSync(exeDir)) await rmdir(exeDir, {recursive: true})
     const exePath = Path.join(exeDir, platform == "win" ? 'worker.exe' : 'worker');
     const programPath = Path.join(__dirname, '..', 'build', 'program', 'worker.js');
     return pkg.exec(["-d", "-t", `node16-${platform}-${arch || 'x64'}`, "-o", exePath, "--public-packages", "*", programPath])
