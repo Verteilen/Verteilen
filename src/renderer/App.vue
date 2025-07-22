@@ -10,6 +10,7 @@ import SettingDialog from './components/dialog/SettingDialog.vue';
 import { BusType, Preference, WebPORT } from './interface';
 import { i18n } from './plugins/i18n';
 import { BackendProxy } from './proxy';
+import { vuetify } from './plugins/vuetify';
 
 const theme = useTheme()
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -20,12 +21,14 @@ const preference:Ref<Preference> = ref({
   notification: false,
   theme: "dark",
   plugin_token: [],
+  animation: true,
 })
 const backend:Ref<BackendProxy> = ref(new BackendProxy())
 const config = computed(() => backend.value.config)
 
 const mode = ref(config.value.isElectron ? -1 : 1)
 const settingModal = ref(false)
+const defaultTransition = ref()
 
 const token = computed(() => {
   return backend.value.getCookie('token')
@@ -62,6 +65,7 @@ const preferenceUpdate = (data:Preference) => {
   const t = i18n.global
   // @ts-ignore
   t.locale = preference.value.lan
+  vuetify.defaults.value!.global = data.animation ? {} : defaultTransition.value
 }
 
 const load_preference = (x:string) => {
@@ -72,6 +76,7 @@ const load_preference = (x:string) => {
 }
 
 onMounted(() => {
+  defaultTransition.value = vuetify.defaults.value?.global
   emitter?.on('modeSelect', modeSelect)
   emitter?.on('setting', setting)
   backend.value.wait_init().then(() => {

@@ -22,7 +22,7 @@ const confirm = () => {
 </script>
 
 <template>
-    <DialogBase width="500" v-model="data!" class="text-white">
+    <DialogBase width="500" v-model="data!" class="text-white" :preference="props.preference">
         <template #title v-if="props.isEdit">
             <v-icon>mdi-pencil</v-icon>
             {{ $t('modal.edit-parameter') }}

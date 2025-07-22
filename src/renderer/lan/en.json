@@ -32,7 +32,8 @@
         "selectAll": "Select All",
         "language": "Language",
         "log": "Log",
-        "font": "Font Size"
+        "font": "Font Size",
+        "animation": "animation"
     },
     "settings": {
         "system": "System",
@@ -164,7 +165,8 @@
             "rename": "Rename Path",
             "lua": "Lua",
             "javascript": "Javascript",
-            "command": "Command"
+            "command": "Command",
+            "lib_command": "Plugin Command"
         },
         "jobtype2": {
             "check-path": "Check Path",
@@ -186,6 +188,7 @@
             "ffmpeg_download": "FFmpeg Download",
             "concat": "FFmpeg concat",
             "blender": "Blender Render",
+            "blender_cluster": "Blender Cluster Render",
             "aftereffect": "After Effect Render"
         },
         "parameter": {

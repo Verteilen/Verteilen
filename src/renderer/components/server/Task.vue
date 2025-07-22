@@ -5,6 +5,8 @@ import { BusType, DataType, Parameter, Preference, Project, Task } from '../../i
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, Util_Task } from '../../util/Task';
 import TaskDialog from '../dialog/TaskDialog.vue';
+import ParameterSelectionDialog from '../dialog/ParameterSelectionDialog.vue';
+import DialogBase from '../dialog/DialogBase.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -266,52 +268,30 @@ onUnmounted(() => {
             :error-message="data.errorMessage"
             :title-error="data.titleError"
             :edit-data="data.editData" 
+            :preference="props.preference"
             @submit="DialogSubmit" />
-        <v-dialog width="500" v-model="data.deleteModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.delete-task') }}
-                </v-card-title>
-                <v-card-text>
-                    <p>{{ $t('modal.delete-task-confirm') }}</p>
-                    <br />
-                    <p v-for="(p, i) in data.deleteData">
-                        {{ i }}. {{ p }}
-                    </p>
-                </v-card-text>
-                <template v-slot:actions>
-                    <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
-                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
-                </template>
-            </v-card>
-        </v-dialog>
-        <v-dialog width="500" v-model="data.paraModal" class="text-white">
-            <v-card>
-                <v-card-title>
-                    <v-icon>mdi-pen</v-icon>
-                    {{ $t('parameter-select') }}
-                </v-card-title>
-                <v-card-text>
-                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
-                    </v-text-field>
-                    <v-list>
-                        <v-list-item v-for="(p, i) in [{ title: 'None', uuid: '' }, ...props.parameters]" :key="i">
-                            <v-list-item-title>
-                                {{ p.title }}
-                            </v-list-item-title>
-                            <v-list-item-subtitle>
-                                {{ p.uuid }}
-                            </v-list-item-subtitle>
-                            <template v-slot:append>
-                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); data.paraModal = false"
-                                ></v-btn>
-                            </template>
-                        </v-list-item>
-                    </v-list>
-                </v-card-text>
-            </v-card>
-        </v-dialog>
+        <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-pencil</v-icon>
+                {{ $t('modal.delete-task') }}
+            </template>
+            <template #text>
+                <p>{{ $t('modal.delete-task-confirm') }}</p>
+                <br />
+                <p v-for="(p, i) in data.deleteData">
+                    {{ i }}. {{ p }}
+                </p>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
+                <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+            </template>
+        </DialogBase>
+        <ParameterSelectionDialog v-model="data.paraModal" 
+            :items="props.parameters"
+            :preference="props.preference"
+            @select_uuid="selectParameter">
+        </ParameterSelectionDialog>
     </div>
 </template>
 

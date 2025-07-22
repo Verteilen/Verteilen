@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import * as vm from 'vm';
 import { DataType, JavascriptLib, Job, Libraries, Messager, Messager_log, Parameter } from '../interface';
 import { ClientJobParameter } from './job_parameter';
@@ -268,7 +266,7 @@ export class ClientJavascript {
     private getnumber(key:string){
         if(key == 'ck'){
             const r = getjob?.()?.index
-            if(r != undefined) return r - 1
+            if(r != undefined) return r
             return 0
         }
         const p = getpara?.() ?? undefined

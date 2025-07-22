@@ -259,21 +259,25 @@ const msgClean = () => util.self.clearMessage()
 //#region Plugin
 const pluginAdded = (name:string, url:string) => {
   props.backend.invoke("import_plugin", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
+    console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
 const templateAdded = (name:string, url:string) => {
   props.backend.invoke("import_template", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
+    console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
 const pluginDelete = (name:string) => {
   props.backend.invoke("import_plugin_delete", name).then(x => {
+    console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
 const templateDelete = (name:string) => {
   props.backend.invoke("import_template_delete", name).then(x => {
+    console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
@@ -502,6 +506,7 @@ onMounted(() => {
   emitter?.on('updateHandle', updateHandleCall)
 
   props.backend.wait_init().then(() => {
+    props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
       props.backend.consoleM = new ConsoleManager(`ws://${window.location.hostname}:${ConsolePORT}/server`, messager_log, {
         on: emitter!.on,
@@ -530,6 +535,7 @@ onUnmounted(() => {
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   props.backend.send('client_stop');
+  props.backend.eventOff('debuglog', debug_feedback)
   props.backend.eventOff('makeToast', makeToastFromBackend)
   props.backend.eventOff('createProject', menuCreateProject)
   props.backend.eventOff('menu_export_project', menu_export_project)
@@ -558,7 +564,7 @@ onUnmounted(() => {
           </v-menu>
         </template>
       </v-app-bar>
-      <v-navigation-drawer temporary v-model="data.drawer">
+      <v-navigation-drawer temporary v-model="data.drawer" :scrim="props.preference?.animation">
         <v-list density="compact" nav>
           <v-list-item v-if="props.backend.config.isExpress"
             :prepend-avatar="props.backend.user?.picture_url ? '/pic' : 'assets/icon/user.png'"
@@ -620,6 +626,7 @@ onUnmounted(() => {
             :select="data.selectTask"
             :owner="data.selectProject"
             :libs="data.libs"
+            :preference="props.preference"
             @added="e => addJob(e)" 
             @edit="(e, e2) => editJob(e, e2)" 
             @delete="e => deleteJob(e)"
@@ -675,6 +682,7 @@ onUnmounted(() => {
           <LibraryPage
             :backend="props.backend"
             :preference="props.preference"
+            :parameters="data.parameters"
             @edit="(d, d1) => libEdit(d, d1)"
             @save="(d, d1, d2) => libSave(d, d1, d2)"
             @load="d => libLoad(d)"

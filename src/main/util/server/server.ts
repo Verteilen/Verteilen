@@ -87,6 +87,12 @@ export class Util_Server {
         p?.websocket.send(JSON.stringify(d))
     }
 
+    private plugin_info = (uuid:string) => {
+        const p = this.websocket_manager!.targets.find(x => x.uuid == uuid)
+        const d:Header = { name: 'plugin_info', data: 0 }
+        p?.websocket.send(JSON.stringify(d))
+    }
+
     private console_execute = (uuid:string, type:number) => {
         const target = this.execute_manager.find(x => x.record!.uuid == uuid)
         if(target == undefined) return
@@ -233,6 +239,9 @@ export class Util_Server {
         })
         ipcMain.on('resource_end', (e, uuid) => {
             this.resource_end(uuid)
+        })
+        ipcMain.on('plugin_info', (e, uuid) => {
+            this.plugin_info(uuid)
         })
         // Shell
         ipcMain.on('shell_enter', (e, uuid, value) => {

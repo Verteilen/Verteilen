@@ -6,11 +6,12 @@ import { Loader } from './util/loader'
 import { Client } from "./client/client";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { DATA_FOLDER, Job, Parameter, PluginList, Preference, Project, TemplateData, TemplateDataProject } from "./interface";
+import { DATA_FOLDER, Job, Parameter, Preference, Project } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { Util_Server } from "./util/server/server";
 import { ExportProjects, ImportProject, ExportProject, ImportParameter, ExportParameter } from "./util/io";
 import { PluginInit } from "./util/plugin";
+import { mainWindow } from "./electron";
 
 export class BackendEvent {
     menu_state = false
@@ -20,7 +21,13 @@ export class BackendEvent {
 
     Init = () => {
         if(this.client != undefined) return
-        this.client = new Client(messager, messager_log)
+        this.client = new Client((...args:Array<string | undefined>) => {
+            messager(...args)
+            mainWindow?.webContents.send('debuglog', args.join(' '));
+        }, (msg:string, tag?:string, meta?:string) => {
+            messager_log(msg, tag, meta)
+            mainWindow?.webContents.send('debuglog', tag == undefined ? msg : `[${tag}] ${msg}`);
+        })
         this.client.Init()
     }
 
@@ -70,7 +77,7 @@ export class BackendEvent {
         Loader('node', 'node')
         Loader('log', 'log')
         Loader('lib', 'lib', '')
-        PluginInit()
+        PluginInit(this)
 
         ipcMain.handle('load_record_obsolete', (e) => {
             if(!fs.existsSync('record.json')) return undefined
@@ -94,7 +101,8 @@ export class BackendEvent {
                     font: 18,
                     theme: "dark",
                     notification: false,
-                    plugin_token: []
+                    plugin_token: [],
+                    animation: true,
                 }
                 fs.writeFileSync(p, JSON.stringify(record, null, 4))
                 i18n.global.locale = 'en'

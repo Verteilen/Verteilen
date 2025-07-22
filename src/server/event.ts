@@ -180,6 +180,7 @@ export class BackendEvent {
                     theme: "dark",
                     notification: false,
                     plugin_token: [],
+                    animation: true,
                 },
                 name: "root",
                 description: "Root User",

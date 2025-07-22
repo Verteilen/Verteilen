@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, Header, NodeTable, ShellFolder, Single } from '../../interface';
+import { BusType, Header, NodeTable, Preference, ShellFolder, Single } from '../../interface';
 import { WebsocketManager } from '../../script/socket_manager';
 import { BackendProxy } from '../../proxy';
+import DialogBase from './DialogBase.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -11,6 +12,7 @@ interface PROPS {
     item: NodeTable | undefined
     backend: BackendProxy
     manager: WebsocketManager | undefined
+    preference?: Preference
 }
 
 const myDiv:Ref<HTMLDivElement | null> = ref(null);
@@ -130,61 +132,59 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <v-dialog persistent width="90vw" v-model="modal" class="text-white">
-        <v-card>
-            <v-card-title>
-                <v-icon>mdi-console</v-icon>
-                {{ item?.ID }}
-            </v-card-title>
-            <v-card-text>
-                <v-row>
-                    <v-col cols="5">
-                        <v-row>
-                            <v-col cols="1">
-                                <v-btn class="w-100" variant="text" icon="mdi-arrow-left" @click="lastFolder">
+    <DialogBase persistent width="90vw" v-model="modal" class="text-white" :preference="props.preference">
+        <template #title>
+            <v-icon>mdi-console</v-icon>
+            {{ item?.ID }}
+        </template>
+        <template #text>
+            <v-row>
+                <v-col cols="5">
+                    <v-row>
+                        <v-col cols="1">
+                            <v-btn class="w-100" variant="text" icon="mdi-arrow-left" @click="lastFolder">
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="11">
+                            <v-text-field class="mb-2" hide-details density="compact" v-model="path" @keydown.enter="enterPath"></v-text-field>        
+                        </v-col>
+                    </v-row>
+                    <v-list style="height: 50vh; overflow-y: scroll;" :items="folderContent">
+                        <v-list-item
+                            v-for="(item, i) in folderContent"
+                            density="compact"
+                            :key="i"
+                            :title="item.value"
+                        >
+                            <template v-slot:prepend>
+                                <v-icon>{{ item.icon }}</v-icon>
+                            </template>
+                            <template v-slot:append>
+                                <v-btn variant="text" icon="mdi-arrow-right" hide-details size="sm" rounded v-if="item.type == 0" @click="enterFolder(item.value)">
                                 </v-btn>
-                            </v-col>
-                            <v-col cols="11">
-                                <v-text-field class="mb-2" hide-details density="compact" v-model="path" @keydown.enter="enterPath"></v-text-field>        
-                            </v-col>
-                        </v-row>
-                        <v-list style="height: 50vh; overflow-y: scroll;" :items="folderContent">
-                            <v-list-item
-                                v-for="(item, i) in folderContent"
-                                density="compact"
-                                :key="i"
-                                :title="item.value"
-                            >
-                                <template v-slot:prepend>
-                                    <v-icon>{{ item.icon }}</v-icon>
-                                </template>
-                                <template v-slot:append>
-                                    <v-btn variant="text" icon="mdi-arrow-right" hide-details size="sm" rounded v-if="item.type == 0" @click="enterFolder(item.value)">
-                                    </v-btn>
-                                </template>
-                            </v-list-item>
-                        </v-list>
-                    </v-col>
-                    <v-col cols="7" style="background-color: black; color:#00FF00">
-                        <div style="height: 50vh; overflow-y: scroll; font-size: 12px;" class="mb-1" ref="myDiv">
-                            <p v-for="(c, i) in consoleMessages" :key="i">{{ c }}</p>
-                        </div>
-                        <v-row>
-                            <v-col cols="10">
-                                <v-text-field @keydown.up="check_up" @keydown.down="check_down" hide-details density="compact" v-model="consoleCommand" @keydown.enter="sendCommand"></v-text-field>        
-                            </v-col>
-                            <v-col cols="2">
-                                <v-btn class="mt-2 w-100" @click="cleanConsole">{{ $t('clean') }}</v-btn>
-                            </v-col>
-                        </v-row>
-                    </v-col>
-                </v-row>
-            </v-card-text>
-            <template v-slot:actions>
-                <v-btn color="error" @click="closeConsole">
-                    {{ $t('close') }}
-                </v-btn>
-            </template>
-        </v-card>
-    </v-dialog>
+                            </template>
+                        </v-list-item>
+                    </v-list>
+                </v-col>
+                <v-col cols="7" style="background-color: black; color:#00FF00">
+                    <div style="height: 50vh; overflow-y: scroll; font-size: 12px;" class="mb-1" ref="myDiv">
+                        <p v-for="(c, i) in consoleMessages" :key="i">{{ c }}</p>
+                    </div>
+                    <v-row>
+                        <v-col cols="10">
+                            <v-text-field @keydown.up="check_up" @keydown.down="check_down" hide-details density="compact" v-model="consoleCommand" @keydown.enter="sendCommand"></v-text-field>        
+                        </v-col>
+                        <v-col cols="2">
+                            <v-btn class="mt-2 w-100" @click="cleanConsole">{{ $t('clean') }}</v-btn>
+                        </v-col>
+                    </v-row>
+                </v-col>
+            </v-row>
+        </template>
+        <template #action>
+            <v-btn color="error" @click="closeConsole">
+                {{ $t('close') }}
+            </v-btn>
+        </template>
+    </DialogBase>
 </template>

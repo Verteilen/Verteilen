@@ -16,6 +16,7 @@ export interface WebsocketPack {
     load?: NodeLoad
     ms?: number
     last?: number
+    plugins?: Array<Plugin>
 }
 
 export interface CronWebsocketPack {
@@ -198,6 +199,10 @@ export interface Plugin {
     description: string
     version?: string
     contents: Array<PluginContent>
+}
+
+export interface PluginWithToken extends Plugin {
+    token: Array<string>
 }
 
 export interface PluginList {

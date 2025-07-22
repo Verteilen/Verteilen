@@ -149,11 +149,11 @@ export class Util_Server_Console_Proxy {
     }
     
     execute_subtask_start = (d:[Task, number, string]) => {
-        if(this.model.record!.task_detail.length > d[1]){
-            this.model.record!.task_detail[d[1]].node = d[2]
+        try{
+            this.model.record!.task_detail[d[1]].node = d[2] ?? ''
             this.model.record!.task_detail[d[1]].state = ExecuteState.RUNNING
-        }else{
-            console.error(`subtask_start ${d[1]} is out of range: ${this.model.record!.task_detail.length}`)
+        }catch(error:any) {
+            console.error(`execute_subtask_start`, error.message)
         }
     }
 
@@ -167,11 +167,10 @@ export class Util_Server_Console_Proxy {
     }
 
     execute_subtask_end = (d:[Task, number, string]) => {
-        if(this.model.record!.task_detail.length > d[1]){
-            //model.value![1].task_detail[d[1]].node = ""
+        try{
             this.model.record!.task_detail[d[1]].state = ExecuteState.FINISH
-        }else{
-            console.error(`subtask_start ${d[1]} is out of range: ${this.model.record!.task_detail.length}`)
+        }catch(error:any) {
+            console.error(`execute_subtask_end`, error.message)
         }
     }
     

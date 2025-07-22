@@ -9,7 +9,7 @@ interface PROPS {
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');    
 
-    const props = defineProps<PROPS>()
+const props = defineProps<PROPS>()
 const alllog:Ref<Array<string>> = ref([])
 
 const debuglog = (message:string) => {

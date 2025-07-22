@@ -55,7 +55,8 @@ export enum JobType {
     CREATE_DIR,
     RENAME,
     JAVASCRIPT,
-    COMMAND
+    COMMAND,
+    LIB_COMMAND,
 }
 
 export enum JobType2 {
@@ -68,6 +69,7 @@ export enum ProjectTemplate {
     FFmpeg_Download = 200,
     FFmpeg_Concat = 201,
     Blender = 300,
+    Blender_Cluster = 301,
     AfterEffect = 400,
 }
 
@@ -141,7 +143,8 @@ export const JobTypeText: { [key:number]:string } = {
     5: 'enum.jobtype.create-dir',
     6: 'enum.jobtype.rename',
     7: 'enum.jobtype.javascript',
-    8: 'enum.jobtype.command'
+    8: 'enum.jobtype.command',
+    9: 'enum.jobtype.lib_command',
 }
 
 export const JobType2Text: { [key:number]:string } = {
@@ -154,6 +157,7 @@ export const ProjectTemplateText: { [key:number]:string } = {
     200: 'enum.project.ffmpeg_download',
     201: 'enum.project.concat',
     300: 'enum.project.blender',
+    301: 'enum.project.blender_cluster',
     400: 'enum.project.aftereffect',
 }
 

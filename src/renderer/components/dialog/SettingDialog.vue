@@ -69,7 +69,7 @@ const removeConfirm = () => {
 </script>
 
 <template>
-    <v-dialog persistent width="600" v-model="modal" class="text-white">
+    <DialogBase persistent width="600" v-model="modal" class="text-white" :preference="props.item" nocard>
         <v-card :style="{ 'fontSize': props.item?.font + 'px' }"
             :class="{ 'bg-dark': props.item?.theme == 'dark', 'bg-light': props.item?.theme == 'light' }">
             <v-card-title>
@@ -116,6 +116,7 @@ const removeConfirm = () => {
                             <v-select v-model="buffer.theme" :items="themes" hide-details />
                             <br />
                             <v-slider :min="12" :max="36" :step="1" hide-details :label="$t('menu.font') + ' ' + buffer.font" v-model="buffer.font"></v-slider>
+                            <v-checkbox hide-details :label="$t('menu.animation')" v-model="buffer.animation"></v-checkbox>
                         </v-tabs-window-item>
                         <v-tabs-window-item :value="2">
                             <v-checkbox hide-details :label="$t('menu.log')" v-model="buffer.log"></v-checkbox>
@@ -154,7 +155,7 @@ const removeConfirm = () => {
                 </v-btn>
             </template>
         </v-card>
-    </v-dialog>
+    </DialogBase>
 </template>
 
 <style scoped>

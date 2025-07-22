@@ -54,7 +54,7 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
             const cron:CronJobState | undefined = r[0]
             const work:WorkState | undefined = r[1]
             if(cron != undefined && work != undefined){
-                index = cron.id - 1
+                index = cron.id
             }
         }
         const d:FeedBack = { 
@@ -108,11 +108,11 @@ export class ExecuteManager_Feedback extends ExecuteManager_Base{
                 return
             }
 
-            this.proxy?.executeJobFinish([work.job, cron.id - 1, source.uuid, data.meta])
-            data.index = cron.id - 1
+            this.proxy?.executeJobFinish([work.job, cron.id, source.uuid, data.meta])
+            data.index = cron.id
             work.state = data.meta == 0 ? ExecuteState.FINISH : ExecuteState.ERROR
             if(this.check_cron_end(cron)){
-                this.proxy?.executeSubtaskFinish([this.current_t, cron.id - 1, cron.uuid ])
+                this.proxy?.executeSubtaskFinish([this.current_t, cron.id, cron.uuid ])
                 this.messager_log(`[Execute] Subtask finish: ${this.current_t!.uuid}`)
                 cron.uuid = ''
             }

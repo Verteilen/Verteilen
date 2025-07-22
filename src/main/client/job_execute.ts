@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, OnePath, Parameter, TwoPath } from "../interface";
+import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, OnePath, Parameter, PluginList, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { ClientJavascript } from "./javascript";
 import { ClientJobParameter } from "./job_parameter";
@@ -31,13 +31,15 @@ export class ClientJobExecute {
     private os:ClientOS
     private para:ClientJobParameter
     private job:Job
+    private plugin:PluginList
 
-    constructor(_messager:Messager, _messager_log:Messager_log, _job:Job, _source:WebSocket | undefined){
+    constructor(_messager:Messager, _messager_log:Messager_log, _job:Job, _source:WebSocket | undefined, _plugin:PluginList){
         this.messager = _messager
         this.messager_log = _messager_log
         this.tag = _job.uuid
         this.runtime = _job.runtime_uuid || ''
         this.job = _job
+        this.plugin = _plugin
         this.para = new ClientJobParameter()
         this.os = new ClientOS(() => this.tag, () => this.job.runtime_uuid || '', _messager, _messager_log)
         this.javascript = new ClientJavascript(_messager, _messager_log, () => this.job)
@@ -132,6 +134,27 @@ export class ClientJobExecute {
                 case JobType.COMMAND:
                     {
                         this.os.command(this.job.string_args[1], this.job.string_args[2], this.job.string_args[0]).then(m => {
+                            resolve(m)
+                        }).catch(err => {
+                            reject(err)
+                        })
+                        break
+                    }
+                case JobType.LIB_COMMAND:
+                    {
+                        const target = this.plugin.plugins.find(x => x.name == this.job.string_args[0])
+                        if(target == undefined){
+                            reject("Cannot find plugin " + this.job.string_args[0])
+                            return
+                        }
+
+                        const archTarget = target.contents.find(x => x.arch == process.arch && x.platform == process.platform)
+                        if(archTarget == undefined){
+                            reject("Cannot find plugin match arch " + this.job.string_args[0] + "  " + process.arch)
+                            return
+                        }
+
+                        this.os.lib_command(archTarget.filename, this.job.string_args[1]).then(m => {
                             resolve(m)
                         }).catch(err => {
                             reject(err)

@@ -32,8 +32,8 @@ const emits = defineEmits<{
     (e: 'stop'):void
 }>()
 const data:Ref<DATA> = ref({
-    leftSize: 3,
-    rightSize: 9,
+    leftSize: 4,
+    rightSize: 8,
     tag: 2,
     createModal: false,
     skipModal: false,
@@ -88,9 +88,13 @@ const updateHandle = () => {
         if(!queryWait.value && p_model.value?.record != undefined){
             queryWait.value = true
             props.backend.invoke("console_record", p_model.value.record.uuid).then(x => {
-                const t = JSON.parse(x)
-                if(p_model.value?.record != undefined && t != undefined) p_model.value!.record = t
-                queryWait.value = false
+                try{
+                    const t = JSON.parse(x)
+                    if(p_model.value?.record != undefined && t != undefined) p_model.value!.record = t
+                    queryWait.value = false
+                }catch(err:any){
+                    console.warn(err.message)
+                }
             })
         }
     }else{
@@ -387,6 +391,7 @@ onUnmounted(() => {
                         Debug Log
                     </v-list-item>
                 </v-list>
+                <p>{{ model.record?.uuid }}</p>
                 <v-list mandatory v-if="props.execute.length > 0" color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
                     <v-list-item v-for="(exe, i) in props.execute" :key="i" 
                         :active="exe.record?.uuid == model.record?.uuid"
@@ -423,6 +428,7 @@ onUnmounted(() => {
         />
         <NumberDialog v-model="data.skipModal" 
             :default-value="0" 
+            :preference="props.preference"
             @submit="confirmSkip" 
             :title="$t('modal.skip-step')" 
             icon="mdi-debug-step-over" 

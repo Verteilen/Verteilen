@@ -14,6 +14,7 @@ export class ClientExecute {
     private libraries:Libraries | undefined = undefined
     private tag: string = ''
     private workers:Array<ChildProcess> = []
+    private client:Client;
 
     private messager:Messager
     private messager_log:Messager_log
@@ -24,6 +25,7 @@ export class ClientExecute {
 
     constructor(_uuid:string, _messager:Messager, _messager_log:Messager_log, _client:Client){
         this.uuid =_uuid
+        this.client = _client
         this.messager = _messager
         this.messager_log = _messager_log
     }
@@ -62,6 +64,7 @@ export class ClientExecute {
                     ...process.env,
                     type: "JOB",
                     job: JSON.stringify(job),
+                    plugin: JSON.stringify(this.client.plugins),
                     parameter: JSON.stringify(this.parameter),
                     libraries: JSON.stringify(this.libraries),
                 }

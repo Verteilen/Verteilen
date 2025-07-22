@@ -1,6 +1,8 @@
 import { exec, spawn } from 'child_process';
-import fs from "fs";
+import * as fs from "fs";
+import * as path from "path";
 import { Messager, Messager_log, OnePath, TwoPath } from "../interface";
+import { Client } from './client';
 
 type getstring = ()=>string
 
@@ -117,6 +119,10 @@ export class ClientOS {
         }, 1000);
     }
     
+    lib_command = async (command:string, args:string):Promise<string> => {
+        return this.command(command, args, path.dirname(Client.workerPath(command)))
+    }
+
     /**
      * Call command on terminal
      * @param cwd The system location

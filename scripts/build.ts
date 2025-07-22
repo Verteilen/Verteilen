@@ -39,11 +39,6 @@ function RemoveFolders(){
         recursive: true,
         force: true,
     })
-    
-    rmSync(Path.join(__dirname, '..', 'dist'), {
-        recursive: true,
-        force: true,
-    })
 }
 
 export async function main(){
