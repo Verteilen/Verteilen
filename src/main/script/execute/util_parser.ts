@@ -1,6 +1,10 @@
 import { formula, init } from "expressionparser";
 import { DataType, ENV_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
 
+/**
+ * The worker which helps parsing parameter variables into argument\
+ * Including expression executing
+ */
 export class Util_Parser {
 
     paras:Array<KeyValue> = []
@@ -24,6 +28,12 @@ export class Util_Parser {
         ]
     }
 
+    /**
+     * Input a object data, and deep search all of subobject\
+     * Phrasing it into keyvalue data
+     * @param obj Object
+     * @returns Array of keyvalue data
+     */
     private static getDeepKeys = (obj:any):Array<[string, any]> => {
         let keys:Array<[string, any]> = []
         for(var key in obj) {
@@ -38,6 +48,9 @@ export class Util_Parser {
         return keys
     }
 
+    /**
+     * Parameter containers into keyvalue list
+     */
     static _to_keyvalue = (p:Array<ParameterContainer>):Array<KeyValue> => {
         const r:Array<KeyValue> = []
         r.push(...p.filter(x => x.type != DataType.Object).map(x => { return { key: x.name, value: x.value.toString() } }))
@@ -50,6 +63,14 @@ export class Util_Parser {
         return r
     }
 
+    /**
+     * Search all the string result and replace to target string\
+     * @example 
+     * replaceAll("ABCBCAB", "AB", "KK") // Result: KKCBCKK
+     * @param str string data
+     * @param fi feature
+     * @param tar replace target
+     */
     static replaceAll = (str:string, fi:string, tar:string):string => {
         let p = str
         while(p.includes(fi)) p = p.replace(fi, tar)
