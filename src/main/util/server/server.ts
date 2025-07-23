@@ -23,6 +23,7 @@ export class Util_Server {
     preference:Preference | undefined
     config:AppConfig | undefined
     updatehandle: any
+    // message, trace message, error message return data, for update
     re: Array<any> = []
 
     constructor(backend:BackendEvent){
@@ -156,7 +157,9 @@ export class Util_Server {
         target.record!.task_detail = []
         target.manager!.Release()
         const index = this.execute_manager.findIndex(x => x.record!.uuid == uuid)
+        const r = this.execute_manager[index].manager!.uuid
         this.execute_manager.splice(index, 1)
+        mainWindow?.webContents.send('console-delete', r)
     }
 
     private console_skip = (uuid:string, type:number, state:ExecuteState = ExecuteState.FINISH) => {

@@ -64,7 +64,7 @@ const import_template = async (socket:ws.WebSocket, name:string, url:string, tok
     let ob:TemplateData | undefined = undefined
     for(let t of tokens){
         if(t == undefined){
-            req = { method: 'GET' }
+            req = { method: 'GET', cache: "no-store" }
         }else{
             req = {
                 method: 'GET',
@@ -148,7 +148,7 @@ const import_plugin = async (socket:ws.WebSocket, name:string, url:string, token
     let ob:PluginList | undefined = undefined
     for(let t of tokens){
         if(t == undefined){
-            req = { method: 'GET' }
+            req = { method: 'GET', cache: "no-store" }
         }else{
             req = {
                 method: 'GET',

@@ -73,7 +73,7 @@ const import_template = async (name:string, url:string, token:string) => {
     let ob:TemplateData | undefined = undefined
     for(let t of tokens){
         if(t == undefined){
-            req = { method: 'GET' }
+            req = { method: 'GET', cache: "no-store" }
         }else{
             req = {
                 method: 'GET',
@@ -155,7 +155,7 @@ const import_plugin = async (name:string, url:string, token:string) => {
     let ob:PluginList | undefined = undefined
     for(let t of tokens){
         if(t == undefined){
-            req = { method: 'GET' }
+            req = { method: 'GET', cache: "no-store" }
         }else{
             req = {
                 method: 'GET',

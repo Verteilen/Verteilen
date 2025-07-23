@@ -239,6 +239,10 @@ const consoleStop = () => {
     else data.value.select_manager = 0
   })
 }
+const consoleDelete = (uuid:string) => {
+  const index = data.value.execute_manager.findIndex(x => x.manager?.uuid == uuid)
+  data.value.execute_manager.splice(index, 1)
+}
 const consoleSelect = (e:number) => { data.value.select_manager = e }
 //#endregion
 
@@ -432,13 +436,13 @@ const dataset_init = () => {
     props.backend.eventOn('folderReply', (data) => emitter?.emit('folderReply', data) )
     props.backend.eventOn('frontend_update', repull)
   }
-
   props.backend.eventOn('makeToast', makeToastFromBackend)
   props.backend.eventOn('msgAppend', msgAppend)
-  props.backend.send('menu', true)
+  props.backend.eventOn('console-delete', consoleDelete)
   props.backend.eventOn('createProject', menuCreateProject)
   props.backend.eventOn('menu_export_project', menu_export_project)
   props.backend.eventOn('import_project_feedback', import_project_feedback)
+  props.backend.send('menu', true)
   if(!props.backend.config.haveBackend) return
   props.backend.send('client_start');
   const p0 = props.backend.invoke('console_list').then((xs:Array<any>) => {
@@ -536,6 +540,7 @@ onUnmounted(() => {
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   props.backend.send('client_stop');
   props.backend.eventOff('debuglog', debug_feedback)
+  props.backend.eventOff('console-delete', consoleDelete)
   props.backend.eventOff('makeToast', makeToastFromBackend)
   props.backend.eventOff('createProject', menuCreateProject)
   props.backend.eventOff('menu_export_project', menu_export_project)
