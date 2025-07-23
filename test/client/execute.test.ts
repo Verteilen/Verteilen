@@ -25,7 +25,8 @@ describe("Client Execute Test", () => {
             (str) => console.log(str),
             (str) => console.log(str),
             job!,
-            undefined
+            undefined,
+            { plugins: [] },
         )
         await expect(execute.execute()).rejects.toBeDefined()
     })
@@ -45,7 +46,8 @@ describe("Client Execute Test", () => {
             (str) => console.log(str),
             (str) => console.log(str),
             job!,
-            undefined
+            undefined,
+            { plugins: [] }
         )
         await expect(execute.execute()).resolves.toBeDefined()
     })
