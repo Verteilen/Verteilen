@@ -34,14 +34,14 @@ export class Util_Parser {
      * @param obj Object
      * @returns Array of keyvalue data
      */
-    private static getDeepKeys = (obj:any):Array<[string, any]> => {
+    private static getDeepKeys = (obj:any, name?:string):Array<[string, any]> => {
         let keys:Array<[string, any]> = []
         for(var key in obj) {
-            keys.push([key, obj[key]]);
+            keys.push([name ? name + "." + key : key, obj[key]]);
             if(typeof obj[key] === "object") {
                 var subkeys = this.getDeepKeys(obj[key]);
                 keys = keys.concat(subkeys.map(function(subkey) {
-                    return [key + "." + subkey[0], subkey[1]];
+                    return [name ? name + "." + key + "." + subkey[0] : key + "." + subkey[0], subkey[1]];
                 }));
             }
         }
@@ -57,7 +57,7 @@ export class Util_Parser {
         const objs = p.filter(x => x.type == DataType.Object)
         for(const obj of objs){
             const v = JSON.parse(obj.value)
-            const keys = this.getDeepKeys(v)
+            const keys = this.getDeepKeys(v, obj.name)
             r.push(...keys.map(x => { return { key: x[0], value: x[1].toString() } }))
         }
         return r

@@ -43,6 +43,10 @@ describe('Parser testing (replacePara)', () => {
             { name: 'n2', value: 9, type: DataType.Number, hidden: false, runtimeOnly: false },
             { name: 's1', value: "Test", type: DataType.Number, hidden: false, runtimeOnly: false },
             { name: 'b1', value: true, type: DataType.Number, hidden: false, runtimeOnly: false },
+            { name: 'o1', value: JSON.stringify({ 
+                t: "Test", t2: "Hello",
+                deep: { d: "World" }
+            }, null, 4), type: DataType.Object, hidden: false, runtimeOnly: false },
         ]}
         e = new Util_Parser([...Util_Parser.to_keyvalue(p), { key: 'ck', value: 1 }])
     })
@@ -74,5 +78,10 @@ describe('Parser testing (replacePara)', () => {
     })
     test("Prevent replace", () => {
         expect(e!.replacePara("%OK% Hello")).toBe("%OK% Hello")
+    })
+    test("Object replace", () => {
+        expect(e!.replacePara("%o1.t%")).toBe("Test")
+        expect(e!.replacePara("%o1.t2%")).toBe("Hello")
+        expect(e!.replacePara("%o1.deep.d%")).toBe("World")
     })
 })
