@@ -1,5 +1,5 @@
 import { formula, init } from "expressionparser";
-import { ENV_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
+import { DataType, ENV_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
 
 export class Util_Parser {
 
@@ -24,8 +24,30 @@ export class Util_Parser {
         ]
     }
 
+    private static getDeepKeys = (obj:any):Array<[string, any]> => {
+        let keys:Array<[string, any]> = []
+        for(var key in obj) {
+            keys.push([key, obj[key]]);
+            if(typeof obj[key] === "object") {
+                var subkeys = this.getDeepKeys(obj[key]);
+                keys = keys.concat(subkeys.map(function(subkey) {
+                    return [key + "." + subkey[0], subkey[1]];
+                }));
+            }
+        }
+        return keys
+    }
+
     static _to_keyvalue = (p:Array<ParameterContainer>):Array<KeyValue> => {
-        return p.map(x => { return { key: x.name, value: x.value.toString() } })
+        const r:Array<KeyValue> = []
+        r.push(...p.filter(x => x.type != DataType.Object).map(x => { return { key: x.name, value: x.value.toString() } }))
+        const objs = p.filter(x => x.type == DataType.Object)
+        for(const obj of objs){
+            const v = JSON.parse(obj.value)
+            const keys = this.getDeepKeys(v)
+            r.push(...keys.map(x => { return { key: x[0], value: x[1].toString() } }))
+        }
+        return r
     }
 
     static replaceAll = (str:string, fi:string, tar:string):string => {
