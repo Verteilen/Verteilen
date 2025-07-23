@@ -55,7 +55,7 @@ describe('Parser testing (replacePara)', () => {
         e = undefined
     })
     test("KeyValue Checker", () => {
-        expect(e!.count).toBe(5)
+        expect(e!.count).toBe(9)
     })
     test("Number replace", () => {
         expect(e!.replacePara("%n1% Hello")).toBe("7 Hello")
