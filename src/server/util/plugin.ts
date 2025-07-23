@@ -2,8 +2,9 @@ import * as path from "path";
 import * as fs from 'fs';
 import * as os from 'os';
 import * as ws from 'ws';
-import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2, ToastData, DATA_FOLDER, Header } from "../interface"
+import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2, ToastData, DATA_FOLDER, Header, Plugin, PluginWithToken } from "../interface"
 import { TypeMap } from "./loader";
+import { BackendEvent } from "../event";
 
 const GetCurrentPlugin = ():PluginPageData => {
     const b:PluginPageData = {
@@ -178,7 +179,7 @@ const import_plugin = async (socket:ws.WebSocket, name:string, url:string, token
     return JSON.stringify(GetCurrentPlugin())
 }
 
-export const PluginInit = (typeMap:TypeMap) => {
+export const PluginInit = (typeMap:TypeMap, backend:BackendEvent) => {
     typeMap['get_plugin'] = async (socket:ws.WebSocket) => {
         const root = path.join(os.homedir(), DATA_FOLDER, 'template')
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true});
@@ -251,5 +252,18 @@ export const PluginInit = (typeMap:TypeMap) => {
         const data = fs.readFileSync(target)
         const h:Header = { name: "get_parameter-feedback", data: data.toString('utf-8') }
         socket.send(JSON.stringify(h)) 
+    }
+    typeMap['plugin_download'] = (socket:ws.WebSocket, uuid:string, plugin:string, tokens:string) => {
+        const p:Plugin = JSON.parse(plugin)
+        const p2:PluginWithToken = {...p, token: tokens.split(' ') }
+        const t = backend.util.websocket_manager?.targets.find(x => x.uuid == uuid)
+        const h:Header = { name: 'plugin_download', data: p2 }
+        t?.websocket.send(JSON.stringify(h))
+    }
+    typeMap['plugin_remove'] = (socket:ws.WebSocket, uuid:string, plugin:string) => {
+        const p:Plugin = JSON.parse(plugin)
+        const t = backend.util.websocket_manager?.targets.find(x => x.uuid == uuid)
+        const h:Header = { name: 'plugin_remove', data: p }
+        t?.websocket.send(JSON.stringify(h))
     }
 }

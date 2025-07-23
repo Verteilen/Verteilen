@@ -41,7 +41,7 @@ export class BackendEvent {
         Loader(typeMap, 'log', 'log')
         Loader(typeMap, 'lib', 'lib', '')
         Loader(typeMap, 'user', 'user')
-        PluginInit(typeMap)
+        PluginInit(typeMap, this)
         const n = new ConsoleServerManager(socket, messager_log, typeMap)
         this.manager.push(n)
         return n
