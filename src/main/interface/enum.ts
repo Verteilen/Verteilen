@@ -104,6 +104,7 @@ export enum JavascriptLib {
     ENV = 1 << 1, 
     MESSAGE = 1 << 2,
     HTTP = 1 << 3,
+    PATH = 1 << 4,
 }
 
 export const DataTypeText: { [key:number]:string } = {

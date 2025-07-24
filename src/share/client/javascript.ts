@@ -2,6 +2,7 @@ import * as vm from 'vm';
 import { DataType, JavascriptLib, Job, Libraries, Messager, Messager_log, Parameter } from '../interface';
 import { ClientJobParameter } from './job_parameter';
 import { ClientOS } from './os';
+import path from 'path';
 
 export const safeEval = (code:string, context?:any, opts?:vm.RunningCodeInNewContextOptions | string) => {
     let sandbox = {}
@@ -46,6 +47,7 @@ const runtime = () => getjob!?.()?.runtime_uuid ?? 'unknown'
 
 export class ClientJavascript {
 
+    path: any
     os:any
     env:any
     message:any
@@ -54,6 +56,11 @@ export class ClientJavascript {
     constructor(_messager: Messager, _messager_log: Messager_log, _getjob:Getjob) {
         messager = _messager
         messager_log = _messager_log
+        this.path = {
+            filename: this.filename,
+            extname: this.extname,
+            dirname: this.dirname,
+        }
         this.os = {
             exec: this.exec,
             command: this.command,
@@ -155,7 +162,7 @@ export class ClientJavascript {
      * @returns Calcuate result
      */
     JavascriptExecute = (javascript:string, log?:Messager) => {
-        let context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE | JavascriptLib.HTTP, log)
+        let context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE | JavascriptLib.HTTP | JavascriptLib.PATH, log)
         let result = 0
         context = Object.assign(context, { result: result })
         const r = safeEval(javascript, context)
@@ -164,6 +171,7 @@ export class ClientJavascript {
 
     private getJavascriptEnv(flags:JavascriptLib = JavascriptLib.ALL, log?:Messager){
         let javascriptEnv = {}
+        if((flags & JavascriptLib.PATH) == JavascriptLib.PATH) javascriptEnv = Object.assign(javascriptEnv, { path: this.path })
         if((flags & JavascriptLib.OS) == JavascriptLib.OS) javascriptEnv = Object.assign(javascriptEnv, { os: this.os })
         if((flags & JavascriptLib.ENV) == JavascriptLib.ENV) javascriptEnv = Object.assign(javascriptEnv, { env: this.env })
         if((flags & JavascriptLib.MESSAGE) == JavascriptLib.MESSAGE) {
@@ -189,6 +197,19 @@ export class ClientJavascript {
         })
     
         return javascriptEnv
+    }
+    private filename(p:string, extension: boolean){
+        if(extension){
+            return path.basename(p)
+        }else{
+            return path.basename(p).replace(path.extname(p), "")
+        }
+    }
+    private extname(p:string){
+        return path.extname(p)
+    }
+    private dirname(p:string){
+        return path.dirname(p)
     }
     private exec(command:string, args:string, cwd?:string){
         clientos?.command_exec(command, args, cwd)
