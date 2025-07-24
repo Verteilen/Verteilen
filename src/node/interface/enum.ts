@@ -9,7 +9,16 @@ export enum DataType {
     Boolean, 
     Number, 
     String,
+    Object,
     Expression,
+    Textarea,
+    Select,
+}
+
+export enum DataTypeBase {
+    Boolean, 
+    Number, 
+    String,
     Object,
 }
 
@@ -101,8 +110,10 @@ export const DataTypeText: { [key:number]:string } = {
     0: 'types.boolean',
     1: 'types.number',
     2: 'types.string',
-    3: 'types.expression',
-    4: 'types.object',
+    3: 'types.object',
+    4: 'types.expression',
+    5: 'types.textarea',
+    6: 'types.select',
 }
 
 export const ExecuteStateText: { [key:number]:string } = {
