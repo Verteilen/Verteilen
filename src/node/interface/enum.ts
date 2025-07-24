@@ -13,13 +13,13 @@ export enum DataType {
     Expression,
     Textarea,
     Select,
+    List,
 }
 
 export enum DataTypeBase {
     Boolean, 
     Number, 
     String,
-    Object,
 }
 
 export enum ResourceType {
@@ -115,6 +115,7 @@ export const DataTypeText: { [key:number]:string } = {
     4: 'types.expression',
     5: 'types.textarea',
     6: 'types.select',
+    7: 'types.list',
 }
 
 export const ExecuteStateText: { [key:number]:string } = {

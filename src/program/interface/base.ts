@@ -8,7 +8,7 @@ export interface ParameterConfigTrigger {
 export interface ParameterContainer {
     s?: boolean
     name: string
-    meta?:string
+    meta?: any
     config?: ParameterConfigTrigger
     type: DataType
     hidden: boolean

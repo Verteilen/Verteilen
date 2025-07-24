@@ -227,7 +227,10 @@
         "string": "String",
         "boolean": "Boolean",
         "expression": "Expression",
-        "object": "Object"
+        "object": "Object",
+        "textarea": "Textarea",
+        "select": "Select",
+        "list": "List"
     },
     "expression": {
         "title": "Title",
