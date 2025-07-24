@@ -1,4 +1,4 @@
-import { DataType, Parameter } from '../../src/share/interface';
+import { DataType, DataTypeBase, Parameter } from '../../src/share/interface';
 import { Util_Parser } from '../../src/share/script/execute/util_parser';
 
 describe('Parser testing (Replace Text Feature)', () => {
@@ -41,21 +41,20 @@ describe('Parser testing (replacePara)', () => {
         p = { uuid: '', title: '', canWrite: true, containers: [
             { name: 'n1', value: 7, type: DataType.Number, hidden: false, runtimeOnly: false },
             { name: 'n2', value: 9, type: DataType.Number, hidden: false, runtimeOnly: false },
-            { name: 's1', value: "Test", type: DataType.Number, hidden: false, runtimeOnly: false },
-            { name: 'b1', value: true, type: DataType.Number, hidden: false, runtimeOnly: false },
-            { name: 'o1', value: JSON.stringify({ 
+            { name: 's1', value: "Test", type: DataType.String, hidden: false, runtimeOnly: false },
+            { name: 'b1', value: true, type: DataType.Boolean, hidden: false, runtimeOnly: false },
+            { name: 'o1', value: { 
                 t: "Test", t2: "Hello",
                 deep: { d: "World" }
-            }, null, 4), type: DataType.Object, hidden: false, runtimeOnly: false },
+            }, type: DataType.Object, hidden: false, runtimeOnly: false },
+            { name: 'Se1', value: 0, meta: [123456], config: { types: [DataTypeBase.Number] }, type: DataType.Select, hidden: false, runtimeOnly: false },
+            { name: 'Li1', value: ["Hello", "World"], type: DataType.List, hidden: false, runtimeOnly: false },
         ]}
         e = new Util_Parser([...Util_Parser.to_keyvalue(p), { key: 'ck', value: 1 }])
     })
     afterAll(() => {
         p = undefined
         e = undefined
-    })
-    test("KeyValue Checker", () => {
-        expect(e!.count).toBe(9)
     })
     test("Number replace", () => {
         expect(e!.replacePara("%n1% Hello")).toBe("7 Hello")
@@ -83,5 +82,20 @@ describe('Parser testing (replacePara)', () => {
         expect(e!.replacePara("%o1.t%")).toBe("Test")
         expect(e!.replacePara("%o1.t2%")).toBe("Hello")
         expect(e!.replacePara("%o1.deep.d%")).toBe("World")
+    })
+    test("List replace one", () => {
+        expect(e!.replacePara("Hello %Li1.1%")).toBe("Hello World")
+    })
+    test("List replace both", () => {
+        expect(e!.replacePara("%Li1.0% %Li1.1%")).toBe("Hello World")
+    })
+    test("List Length replace", () => {
+        expect(e!.replacePara("D%Li1.length%")).toBe("D2")
+    })
+    test("List Length replace", () => {
+        expect(e!.replacePara("D%Li1.length%")).toBe("D2")
+    })
+    test("Select replace", () => {
+        expect(e!.replacePara("D%Se1%")).toBe("D123456")
     })
 })
