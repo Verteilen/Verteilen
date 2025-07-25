@@ -6,38 +6,26 @@ export class ClientJobParameter {
      * @param data Target KeyValue
      */
     feedbacknumber = (data:Setter) => {
-        const p:Header = {
-            name: "feedbacknumber",
-            data: {
-                key: data.key,
-                value: data.value
-            }
-        }
-        console.log(JSON.stringify(p))
+        this.feedback("feedbacknumber", data)
     }
     feedbackboolean = (data:Setter) => {
-        const p:Header = {
-            name: "feedbackboolean",
-            data: {
-                key: data.key,
-                value: data.value
-            }
-        }
-        console.log(JSON.stringify(p))
+        this.feedback("feedbackboolean", data)
     }
     feedbackstring = (data:Setter) => {
-        const p:Header = {
-            name: "feedbackstring",
-            data: {
-                key: data.key,
-                value: data.value
-            }
-        }
-        console.log(JSON.stringify(p))
+        this.feedback("feedbackstring", data)
     }
     feedbackobject = (data:Setter) => {
+        this.feedback("feedbackobject", data)
+    }
+    feedbacklist = (data:Setter) => {
+        this.feedback("feedbacklist", data)
+    }
+    feedbackselect = (data:Setter) => {
+        this.feedback("feedbackselect", data)
+    }
+    private feedback = (title:string, data:Setter) => {
         const p:Header = {
-            name: "feedbackobject",
+            name: title,
             data: {
                 key: data.key,
                 value: data.value
