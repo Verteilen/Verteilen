@@ -38,8 +38,8 @@ export interface EmitterProxy<T> {
 }
 
 export interface ExecuteProxy {
-    executeProjectStart: (data:Project) => void
-    executeProjectFinish: (data:Project) => void
+    executeProjectStart: (data:[Project, number]) => void
+    executeProjectFinish: (data:[Project, number]) => void
     /**
      * * 0.Task: Task instance
      * * 1.number: The amounts of subtask need

@@ -52,8 +52,8 @@ export class Util_Server_Console_Proxy {
 
     public get execute_proxy() : ExecuteProxy {
         const d:ExecuteProxy = {
-            executeProjectStart: (data:Project):void => { this.execute_project_start(data) },
-            executeProjectFinish: (data:Project):void => { this.execute_project_finish(data) },
+            executeProjectStart: (data:[Project, number]):void => { this.execute_project_start(data) },
+            executeProjectFinish: (data:[Project, number]):void => { this.execute_project_finish(data) },
             executeTaskStart: (data:[Task, number]):void => { this.execute_task_start(data) },
             executeTaskFinish: (data:Task):void => { this.execute_task_finish(data) },
             executeSubtaskStart: (data:[Task, number, string]):void => { this.execute_subtask_start(data) },
@@ -67,10 +67,10 @@ export class Util_Server_Console_Proxy {
         return d
     }
 
-    execute_project_start = (d:Project) => {
-        const index = this.model.record!.projects.findIndex(x => x.uuid == d.uuid)
+    execute_project_start = (d:[Project, number]) => {
+        const index = d[1]
         if(index == -1) return
-        this.model.record!.project = d.uuid
+        this.model.record!.project = d[0].uuid
         this.model.record!.project_index = index
         this.model.record!.project_state[index].state = ExecuteState.RUNNING
         this.model.record!.task_state = this.model.record!.projects[index].task.map(x => {
@@ -90,14 +90,15 @@ export class Util_Server_Console_Proxy {
                 state: ExecuteState.NONE
             })
         }
+        console.log("project start: ", this.model.record!.projects.length, index)
     }
     
-    execute_project_finish = (d:Project) => {
+    execute_project_finish = (d:[Project, number]) => {
         if(this.model.record!.process_type >= 1) {
             this.model.record!.running = false
             this.model.record!.stop = true
         }
-        const index = this.model.record!.projects.findIndex(x => x.uuid == d.uuid)
+        const index = d[1]
         const size = this.model.record!.projects.length
         if(index == -1) return
         this.model.record!.project = ""
@@ -149,11 +150,11 @@ export class Util_Server_Console_Proxy {
     }
     
     execute_subtask_start = (d:[Task, number, string]) => {
-        if(this.model.record!.task_detail.length > d[1]){
-            this.model.record!.task_detail[d[1]].node = d[2]
+        try{
+            this.model.record!.task_detail[d[1]].node = d[2] ?? ''
             this.model.record!.task_detail[d[1]].state = ExecuteState.RUNNING
-        }else{
-            console.error(`subtask_start ${d[1]} is out of range: ${this.model.record!.task_detail.length}`)
+        }catch(error:any) {
+            console.error(`execute_subtask_start`, error.message)
         }
     }
 
@@ -167,11 +168,10 @@ export class Util_Server_Console_Proxy {
     }
 
     execute_subtask_end = (d:[Task, number, string]) => {
-        if(this.model.record!.task_detail.length > d[1]){
-            //model.value![1].task_detail[d[1]].node = ""
+        try{
             this.model.record!.task_detail[d[1]].state = ExecuteState.FINISH
-        }else{
-            console.error(`subtask_start ${d[1]} is out of range: ${this.model.record!.task_detail.length}`)
+        }catch(error:any) {
+            console.error(`execute_subtask_end`, error.message)
         }
     }
     

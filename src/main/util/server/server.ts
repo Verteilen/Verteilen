@@ -1,3 +1,4 @@
+import { v6 as uuidv6 } from 'uuid';
 import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair, RENDER_UPDATETICK, BusAnalysis, WebsocketPack, Header } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 import { WebsocketManager } from "../../script/socket_manager"
@@ -23,7 +24,9 @@ export class Util_Server {
     preference:Preference | undefined
     config:AppConfig | undefined
     updatehandle: any
-    // message, trace message, error message return data, for update
+    /**
+     * message, trace message, error message return data, for update
+     */
     re: Array<any> = []
 
     constructor(backend:BackendEvent){
@@ -296,6 +299,7 @@ export class Util_Server {
             this.console_skip2(uuid, type)
         })
         ipcMain.handle('console_add', (event, name:string, record:Record) => {
+            record.projects.forEach(x => x.uuid = uuidv6())
             const em:ExecuteManager = new ExecuteManager(
                 name,
                 this.websocket_manager!, 
@@ -338,8 +342,8 @@ export class Util_Server {
 
     CombineProxy = (eps:Array<ExecuteProxy>) => {
         const p:ExecuteProxy = {
-            executeProjectStart: (data:Project):void => { eps.forEach(x => x.executeProjectStart(JSON.parse(JSON.stringify(data)))) },
-            executeProjectFinish: (data:Project):void => { eps.forEach(x => x.executeProjectFinish(JSON.parse(JSON.stringify(data)))) },
+            executeProjectStart: (data:[Project, number]):void => { eps.forEach(x => x.executeProjectStart(JSON.parse(JSON.stringify(data)))) },
+            executeProjectFinish: (data:[Project, number]):void => { eps.forEach(x => x.executeProjectFinish(JSON.parse(JSON.stringify(data)))) },
             executeTaskStart: (data:[Task, number]):void => { eps.forEach(x => x.executeTaskStart(JSON.parse(JSON.stringify(data)))) },
             executeTaskFinish: (data:Task):void => { eps.forEach(x => x.executeTaskFinish(JSON.parse(JSON.stringify(data)))) },
             executeSubtaskStart: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskStart(JSON.parse(JSON.stringify(data)))) },

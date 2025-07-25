@@ -1,11 +1,11 @@
 import { v6 as uuid6 } from 'uuid'
-import { AppConfig, ConditionResult, ExecutePair, ExecuteProxy, ExecuteRecordTask, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Task } from "../../interface"
+import { ConditionResult, ExecutePair, ExecuteProxy, ExecuteRecordTask, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Task } from "../../interface"
+import * as fs from 'fs'
 
 export class Util_Server_Log_Proxy {
     model:ExecutePair
     logs:Log
     preference:Preference
-    config:AppConfig
 
     private task_index:number = 0
     private uuid:string = ''
@@ -13,17 +13,16 @@ export class Util_Server_Log_Proxy {
         return this.logs.logs.find(x => x.uuid == this.uuid)!
     }
 
-    constructor(_model:ExecutePair, _log:Log, _preference:Preference, _config:AppConfig){
+    constructor(_model:ExecutePair, _log:Log, _preference:Preference){
         this.model = _model
         this.logs = _log
         this.preference = _preference
-        this.config = _config
     }
 
     public get execute_proxy() : ExecuteProxy {
         const d:ExecuteProxy = {
-            executeProjectStart: (data:Project):void => { this.execute_project_start(data) },
-            executeProjectFinish: (data:Project):void => { this.execute_project_finish(data) },
+            executeProjectStart: (data:[Project, number]):void => { this.execute_project_start(data) },
+            executeProjectFinish: (data:[Project, number]):void => { this.execute_project_finish(data) },
             executeTaskStart: (data:[Task, number]):void => { this.execute_task_start(data) },
             executeTaskFinish: (data:Task):void => { this.execute_task_finish(data) },
             executeSubtaskStart: (data:[Task, number, string]):void => { this.execute_subtask_start(data) },
@@ -37,7 +36,7 @@ export class Util_Server_Log_Proxy {
         return d
     }
 
-    execute_project_start = async (d:Project) => {
+    execute_project_start = async (d:[Project, number]) => {
         const target = this.model.record!.projects[this.model.record!.project_index]
         const title = await this.getnewname(target.title)
         this.uuid = uuid6()
@@ -49,7 +48,7 @@ export class Util_Server_Log_Proxy {
             project: target,
             state: ExecuteState.RUNNING,
             start_timer: Date.now(),
-            parameter: d.parameter!,
+            parameter: d[0].parameter!,
             end_timer: 0,
             logs: target.task.map(x => {
                 return {
@@ -64,10 +63,9 @@ export class Util_Server_Log_Proxy {
             })
         }
         this.logs.logs = [newlog].concat(this.logs.logs)
-        console.log("Debug Log", this.logs)
     }
 
-    execute_project_finish = (d:Project) => {
+    execute_project_finish = (d:[Project, number]) => {
         if(this.target_log == undefined) return
         this.target_log!.state = ExecuteState.FINISH
         this.target_log!.end_timer = Date.now()
@@ -182,12 +180,11 @@ export class Util_Server_Log_Proxy {
     }
 
     getnewname = async (name:string) => {
-        if(!this.config.isElectron) return name
         const root = "data/log"
         let count = 0
         let filename = name
         let p = `${root}/${filename}`
-        while(await window.electronAPI.invoke('exist', p + ".json")){
+        while(fs.existsSync(p + ".json")){
             count = count + 1
             filename = `${name} ${count}`
             p = `${root}/${filename}`

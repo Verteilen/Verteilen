@@ -1,5 +1,6 @@
-import { ExecuteState, Header, Libraries, Record, WebsocketPack } from "../interface";
+import { ExecuteState, Header, Libraries, WebsocketPack } from "../interface";
 import { ExecuteManager_Runner } from "./execute/runner";
+import { v6 as uuidv6 } from 'uuid';
 
 /**
  * Cluster server calculation worker\
@@ -14,7 +15,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
         else if(this.current_p == undefined && this.current_projects.length > 0){
             this.current_p = this.current_projects[0]
             this.messager_log(`[Execute] Project Start ${this.current_p.uuid}`)
-            this.proxy?.executeProjectStart(this.current_p)
+            this.proxy?.executeProjectStart([this.current_p, 0])
             this.SyncParameter(this.current_p)
         }
         else if (this.current_p != undefined){
@@ -168,7 +169,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
         // Not yet start
         if (this.current_p == undefined) {
             this.current_p = this.current_projects[0]
-            this.proxy?.executeProjectStart(this.current_p)
+            this.proxy?.executeProjectStart([this.current_p, 0])
             this.SyncParameter(this.current_p)
             this.state = ExecuteState.RUNNING
             return 0
@@ -176,7 +177,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
             // When it's in the processing stage
             // Let's find the current processing project, and increments it's index for it
             const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
-            this.proxy?.executeProjectFinish(this.current_p)
+            this.proxy?.executeProjectFinish([this.current_p, index])
             if (index == this.current_projects.length - 1){
                 // If it's last project
                 this.current_p = undefined
@@ -189,7 +190,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
                 this.current_t = undefined
                 this.state = ExecuteState.RUNNING
                 this.messager_log(`[Execute] Skip project ${index}. ${this.current_p.uuid}`)
-                this.proxy?.executeProjectStart(this.current_p)
+                this.proxy?.executeProjectStart([this.current_p, index + 1])
                 this.SyncParameter(this.current_p)
                 return index
             }
