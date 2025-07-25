@@ -185,6 +185,7 @@
         },
         "project": {
             "default": "範例",
+            "default_short": "短範例",
             "ffmpeg_download": "FFmpeg 下載影片",
             "concat": "FFmpeg 合成影片",
             "blender": "Blender 渲染",

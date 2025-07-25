@@ -185,6 +185,7 @@
         },
         "project": {
             "default": "Example",
+            "default_short": "Example Short",
             "ffmpeg_download": "FFmpeg Download",
             "concat": "FFmpeg concat",
             "blender": "Blender Render",
