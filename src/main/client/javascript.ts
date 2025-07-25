@@ -1,8 +1,9 @@
 import * as vm from 'vm';
-import { DataType, JavascriptLib, Job, Libraries, Messager, Messager_log, Parameter } from '../interface';
+import { DATA_FOLDER, DataType, JavascriptLib, Job, Libraries, Messager, Messager_log, Parameter } from '../interface';
 import { ClientJobParameter } from './job_parameter';
 import { ClientOS } from './os';
-import path from 'path';
+import * as path from 'path';
+import * as os from 'os'
 
 export const safeEval = (code:string, context?:any, opts?:vm.RunningCodeInNewContextOptions | string) => {
     let sandbox = {}
@@ -65,6 +66,8 @@ export class ClientJavascript {
         this.os = {
             exec: this.exec,
             command: this.command,
+            plugin_exec: this.plugin_exec,
+            plugin_command: this.plugin_command,
             copyfile: this.copyfile,
             copydir: this.copydir,
             deletefile: this.deletefile,
@@ -229,6 +232,14 @@ export class ClientJavascript {
         clientos?.command_exec(command, args, cwd)
     }
     private command(command:string, args:string, cwd?:string){
+        clientos?.command_sync(command, args, cwd)
+    }
+    private plugin_exec(command:string, args:string){
+        const cwd = path.join(os.homedir(), DATA_FOLDER, 'exe')
+        clientos?.command_exec(command, args, cwd)
+    }
+    private plugin_command(command:string, args:string){
+        const cwd = path.join(os.homedir(), DATA_FOLDER, 'exe')
         clientos?.command_sync(command, args, cwd)
     }
     private copyfile(from:string, to:string){
