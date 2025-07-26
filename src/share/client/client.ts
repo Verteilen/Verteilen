@@ -24,10 +24,15 @@ export class Client {
     private analysis:Array<ClientAnalysis>
     private updatehandle 
 
+    /**
+     * Get connected client count
+     */
     public get count() : number {
         return this.sources.length
     }
-    
+    /**
+     * Get connected client list instance
+     */
     public get clients() : Array<WebSocket> {
         return this.sources
     }

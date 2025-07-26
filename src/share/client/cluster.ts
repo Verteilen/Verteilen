@@ -35,8 +35,11 @@ const messager_log = (msg:string, tag?:string, meta?:string) => {
     }
     console.log(JSON.stringify(d))
 }
-
-function ERROR (err){
+/**
+ * Return the error message to main thread
+ * @param err Error instance
+ */
+const ERROR = (err) => {
     const d:Header = {
         name: "error",
         meta: "Execute job failed",
@@ -45,45 +48,64 @@ function ERROR (err){
     console.log(JSON.stringify(d))
     process.exit(1)
 }
+/**
+ * Job execute task
+ */
+const execute_job = () => {
+    if(process.env.job == undefined || process.env.plugin == undefined){
+        process.exit(1)
+    }
+    const d:Job = JSON.parse(process.env.job)
+    const p:PluginList = JSON.parse(process.env.plugin)
+    const worker = new ClientJobExecute(messager, messager_log, d, undefined, p)
+    worker.execute().then(x => {
+        process.exit(0)
+    })
+    .catch(err => ERROR(err))
+}
+/**
+ * Query resource task
+ */
+const execute_resource = () => {
+    const r:ClientResource = new ClientResource()
+    messager("Resource query")
+    const cache:SystemLoad | undefined = process.env.cache == undefined ? undefined : JSON.parse(process.env.cache)
+    const type:ResourceType = cache == undefined ? ResourceType.ALL : ResourceType.BATTERY | ResourceType.LOAD | ResourceType.NETWORK | ResourceType.RAM
+    r.Query(cache, type).then(x => {
+        const h:Header = {
+            name: 'resource',
+            data: x
+        }
+        console.log(JSON.stringify(h))
+    }).catch(err => ERROR(err))
+}
+/**
+ * Query http task
+ */
+const execute_http = () => {
+    const m:string = process.env.method || 'GET'
+    const u:string = process.env.url || ''
+    const p:any = process.env.params
+    const r:ClientHTTP = new ClientHTTP(u, m, p)
+    r.RUN()
+}
 
 /**
  * The entry point for the cluster thread.
  */
 export function RUN(){
     // The cluster currently spawn should execute a job
-    if(process.env.type == 'JOB'){
-        if(process.env.job == undefined || process.env.plugin == undefined){
+    switch(process.env.type){
+        case 'JOB':
+            execute_job()
+            break
+        case 'RESOURCE':
+            execute_resource()
+            break
+        case 'HTTP':
+            execute_http()
+            break
+        default:
             process.exit(1)
-        }
-        const d:Job = JSON.parse(process.env.job)
-        const p:PluginList = JSON.parse(process.env.plugin)
-        const worker = new ClientJobExecute(messager, messager_log, d, undefined, p)
-        worker.execute().then(x => {
-            process.exit(0)
-        })
-        .catch(err => ERROR(err))
-    }
-    else if (process.env.type == 'RESOURCE'){
-        const r:ClientResource = new ClientResource()
-        messager("Resource query")
-        const cache:SystemLoad | undefined = process.env.cache == undefined ? undefined : JSON.parse(process.env.cache)
-        const type:ResourceType = cache == undefined ? ResourceType.ALL : ResourceType.BATTERY | ResourceType.LOAD | ResourceType.NETWORK | ResourceType.RAM
-        r.Query(cache, type).then(x => {
-            const h:Header = {
-                name: 'resource',
-                data: x
-            }
-            console.log(JSON.stringify(h))
-        }).catch(err => ERROR(err))
-    }
-    else if (process.env.type == 'HTTP'){
-        const m:string = process.env.method || 'GET'
-        const u:string = process.env.url || ''
-        const p:any = process.env.params
-        const r:ClientHTTP = new ClientHTTP(u, m, p)
-        r.RUN()
-    }
-    else{
-        process.exit(1)
     }
 }

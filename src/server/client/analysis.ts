@@ -39,6 +39,10 @@ export class ClientAnalysis {
      * Analysis the package
      * @param h Package
      * @param source Websocket instance
+     * @return 
+     * * 0: Successfully execute command
+     * * 1: The header is undefined, cannot process
+     * * 2: Cannot find the header name match with function typeMap
      */
     analysis = (h:Header | undefined, source:WebSocket) => {
         const typeMap = {
@@ -60,21 +64,23 @@ export class ClientAnalysis {
         }
 
         if (h == undefined){
-            this.messager_log('[Source Analysis] Analysis Failed, Value is undefined')
-            return;
+            this.messager_log('[Client Analysis] Analysis Failed, Value is undefined')
+            return 1
         }
         if (h.message != undefined && h.message.length > 0){
-            this.messager_log(`[Source Analysis] ${h.message}`)
+            this.messager_log(`[Client Analysis] ${h.message}`)
         }
         if (h.data == undefined) {
-            this.messager_log('[Source Analysis] Analysis Failed, Data is undefined')
-            return
+            this.messager_log('[Client Analysis] Analysis Warn, Data is undefined')
+            h.data = 0
         }
         if(typeMap.hasOwnProperty(h.name)){
             const castingFunc = typeMap[h.name]
             castingFunc(h.data, source, h.channel)
+            return 0
         }else{
-            this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
+            this.messager_log(`[Client Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
+            return 2
         }
     }
 

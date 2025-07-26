@@ -212,7 +212,7 @@ const consoleAdded = (name:string, record:Record) => {
     em.libs = data.value.libs
     const p:ExecutePair = {manager: em, record: er}
     const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
-    const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference, config.value)
+    const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference)
     em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
     r = util.console.receivedPack(p, record)
     if(r){
@@ -225,8 +225,6 @@ const consoleAdded = (name:string, record:Record) => {
         type: 'warning'
       })
     }
-    if(!r){
-  }
   }
 }
 const consoleStop = () => {

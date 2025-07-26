@@ -44,7 +44,7 @@ export class ClientOS {
         this.messager = _messager
         this.messager_log = _messager_log
     }
-
+    
     file_copy = (data:TwoPath) => {
         this.messager(`[OS Action] File copy, ${data.from} => ${data.to}`, this.tag())
         fs.copyFileSync(data.from, data.to)
