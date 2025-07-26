@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import WebSocket from "ws";
 import { Header, Setter } from "../interface";
 

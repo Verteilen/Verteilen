@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import { createI18n } from 'vue-i18n'
 import en from './../lan/en.json'
 import zh_TW from './../lan/zh_TW.json'

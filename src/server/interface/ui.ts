@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 export interface AppConfig {
     isExpress: boolean
     isElectron: boolean

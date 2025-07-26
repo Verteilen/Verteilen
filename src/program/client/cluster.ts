@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import { Header, Job, PluginList, ResourceType, SystemLoad } from '../interface'
 import { ClientHTTP } from './http'
 import { ClientJobExecute } from './job_execute'

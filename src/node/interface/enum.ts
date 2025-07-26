@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 export enum SocketState {
     CONNECTING = 0,
     OPEN = 1,
