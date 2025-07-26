@@ -9,6 +9,9 @@ import { WebsocketManager } from "../socket_manager";
 import { Util_Parser } from './util_parser';
 import { WebSocket } from 'ws';
 
+/**
+ * The base class of task scheduler, contain some basic funcationality
+ */
 export class ExecuteManager_Base {
     uuid: string
     name: string
@@ -45,6 +48,10 @@ export class ExecuteManager_Base {
         this.messager_log = _messager_log
     }
 
+    /**
+     * This will let nodes update the parameter and lib
+     * @param target 
+     */
     protected sync_local_para = (target:Parameter) => {
         this.current_nodes.forEach(x => this.sync_para(target, x))
         this.proxy?.updateParameter(target)

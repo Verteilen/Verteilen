@@ -42,6 +42,9 @@ export interface EmitterProxy<T> {
     emit<Key extends keyof T> (type: T, handler: T[Key]): void
 }
 
+/**
+ * The middleware for task scheduler worker with singal sender
+ */
 export interface ExecuteProxy {
     executeProjectStart: (data:[Project, number]) => void
     executeProjectFinish: (data:[Project, number]) => void
