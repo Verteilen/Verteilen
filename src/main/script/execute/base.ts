@@ -13,15 +13,51 @@ import { WebSocket } from 'ws';
  * The base class of task scheduler, contain some basic funcationality
  */
 export class ExecuteManager_Base {
+    /**
+     * The task scheduler UUID
+     */
     uuid: string
     name: string
+    /**
+     * Register record\
+     * This record holds the project data you want to process
+     */
     record: Record
+    /**
+     * Current select task\
+     * If it's undefined, it means:
+     * * It's finish the current task
+     * * It has not start processing yet
+     */
     current_t:Task | undefined = undefined
+    /**
+     * Current select project\
+     * If it's undefined, it means:
+     * * It's finish the current project
+     * * It has not start processing yet
+     */
     current_p:Project | undefined = undefined
+    /**
+     * The list of projects you want to process\
+     * Each project UUID should be unique by now\
+     * Prevent findIndex error, When there is repeat project source
+     */
     current_projects:Array<Project> = []
+    /**
+     * The connection nodes list
+     */
     current_nodes:Array<WebsocketPack> = []
+    /**
+     * Cron job type execute record
+     */
     current_cron:Array<CronJobState> = []
+    /**
+     * Single job type execute record
+     */
     current_job:Array<WorkState> = []
+    /**
+     * Current execute task use multithread setting
+     */
     current_multithread = 1
     current_task_count = -1
     /**
@@ -30,6 +66,11 @@ export class ExecuteManager_Base {
      * * FINISH: Everything is finish processing
      */
     state:ExecuteState = ExecuteState.NONE
+    /**
+     * * NONE: Not yet start
+     * * RUNNING: In the processing stage
+     * * FINISH: Everything is finish processing
+     */
     t_state:ExecuteState = ExecuteState.NONE 
     jobstack = 0
     first = false

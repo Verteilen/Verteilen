@@ -15,6 +15,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
      * The update function for let this worker start each iteration
      */
     Update = () => {
+        // Only works when state is set to running
         if(this.state != ExecuteState.RUNNING) return
         else if(this.current_p == undefined && this.current_projects.length > 0){
             this.current_p = this.current_projects[0]
