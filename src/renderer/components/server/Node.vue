@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuid6 } from 'uuid';
-import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { computed, inject, onBeforeUpdate, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { BusType, ConnectionText, Header, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { WebsocketManager } from '../../script/socket_manager';

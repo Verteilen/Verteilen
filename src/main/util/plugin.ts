@@ -165,13 +165,15 @@ const import_plugin = async (name:string, url:string, token:string) => {
                 }
             }
         }
+        let tex = ""
         try{
             const res = await fetch(url, req)
-            const tex = await res.text()
+            tex = await res.text()
             ob = JSON.parse(tex)
+            console.log("Fetch plugin json successfully")
             break
         }catch (error){
-            console.error(error)
+            console.warn(error, tex)
         }
     }
     if(ob == undefined) {
