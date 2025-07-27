@@ -192,16 +192,14 @@ const movedown = (uuid:string) => {
 }
 
 const isFirst = (uuid:string) => {
-    if(props.select == undefined) return
-    const index = props.select.jobs.findIndex(x => x.uuid == uuid)
+    const index = items.value.findIndex(x => x.uuid == uuid)
     return index <= 0
 }
 
 const isLast = (uuid:string) => {
-    if(props.select == undefined) return
-    const index = props.select.jobs.findIndex(x => x.uuid == uuid)
+    const index = items.value.findIndex(x => x.uuid == uuid)
     if(index == -1) return true
-    return index == props.select.jobs.length - 1
+    return index == items.value.length - 1
 }
 
 const updateLocate = () => {

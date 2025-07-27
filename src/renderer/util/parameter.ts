@@ -1,6 +1,6 @@
 import { v6 as uuid6 } from 'uuid';
 import { Ref } from "vue";
-import { DataType, Parameter, ParameterContainer, PluginPageData, Preference } from "../interface";
+import { DataType, DataTypeBase, Parameter, ParameterContainer, PluginPageData, Preference } from "../interface";
 import { i18n } from "../plugins/i18n";
 import { BuildIn_ParameterTempGroup } from '../template/projectTemplate';
 import { BackendProxy } from '../proxy';
@@ -61,7 +61,14 @@ export interface DATA {
     cloneModal: boolean
     cloneName: string
     objectModal: boolean
+    selecterModal: boolean
+    selecterModal1: boolean
+    textareaModal: boolean
+    listModal: boolean
     objectTarget: ParameterContainer | undefined
+    selecterTarget: ParameterContainer | undefined
+    textareaTarget: ParameterContainer | undefined
+    listTarget: ParameterContainer | undefined
     selectModal: boolean
     selectSearch: string | undefined
     createModal: boolean
@@ -74,6 +81,7 @@ export interface DATA {
     filter: FILTER
     buffer_filter: FILTER
     options: Array<OPTION>
+    options1: Array<OPTION>
     dirty: boolean
     buffer: Parameter
     errorMessage: string
@@ -81,6 +89,7 @@ export interface DATA {
     temps: Array<Temp>
     search: string | undefined
     search_para: string | undefined
+    object_temp: string
 }
 
 export const ValueToGroupName = (v:number) => BuildIn_ParameterTempGroup.find(x => x.value == v)?.group
@@ -146,9 +155,16 @@ export class Util_Parameter {
         }
         const p:ParameterContainer = JSON.parse(JSON.stringify(this.data.value.createData))
         if(p.type == DataType.String) p.value = ""
-        if(p.type == DataType.Object) p.value = "{\n\t\n}\n"
-        if(p.type == DataType.Number || p.type == DataType.Expression) p.value = 0
-        if(p.type == DataType.Boolean) p.value = true
+        else if(p.type == DataType.Object) p.value = {}
+        else if(p.type == DataType.Boolean) p.value = true
+        else if(p.type == DataType.Select) {
+            p.meta = [0]
+            p.value = 0
+            p.config = { types: [DataTypeBase.Number] }
+        }
+        else if(p.type == DataType.List) p.value = [""]
+        else if(p.type == DataType.Textarea) p.value = ""
+        else if(p.type == DataType.Number || p.type == DataType.Expression) p.value = 0
         this.data.value.buffer.containers.push(p)
         this.data.value.createModal = false
         this.data.value.dirty = true

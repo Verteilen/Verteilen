@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import { Job, Parameter, Project, Task } from "./base"
 import { ExecuteState } from "./enum"
 import { ExecutionLog, Log } from "./record"
@@ -37,9 +42,12 @@ export interface EmitterProxy<T> {
     emit<Key extends keyof T> (type: T, handler: T[Key]): void
 }
 
+/**
+ * The middleware for task scheduler worker with singal sender
+ */
 export interface ExecuteProxy {
-    executeProjectStart: (data:Project) => void
-    executeProjectFinish: (data:Project) => void
+    executeProjectStart: (data:[Project, number]) => void
+    executeProjectFinish: (data:[Project, number]) => void
     /**
      * * 0.Task: Task instance
      * * 1.number: The amounts of subtask need

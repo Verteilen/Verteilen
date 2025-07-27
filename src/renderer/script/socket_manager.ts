@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import { v6 as uuidv6 } from 'uuid';
 import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, Plugin, ShellFolder, Single, SocketState, SystemLoad, WebsocketPack } from "../interface";
 import * as jsEnv from "browser-or-node";

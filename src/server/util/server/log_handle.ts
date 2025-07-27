@@ -21,8 +21,8 @@ export class Util_Server_Log_Proxy {
 
     public get execute_proxy() : ExecuteProxy {
         const d:ExecuteProxy = {
-            executeProjectStart: (data:Project):void => { this.execute_project_start(data) },
-            executeProjectFinish: (data:Project):void => { this.execute_project_finish(data) },
+            executeProjectStart: (data:[Project, number]):void => { this.execute_project_start(data) },
+            executeProjectFinish: (data:[Project, number]):void => { this.execute_project_finish(data) },
             executeTaskStart: (data:[Task, number]):void => { this.execute_task_start(data) },
             executeTaskFinish: (data:Task):void => { this.execute_task_finish(data) },
             executeSubtaskStart: (data:[Task, number, string]):void => { this.execute_subtask_start(data) },
@@ -36,7 +36,7 @@ export class Util_Server_Log_Proxy {
         return d
     }
 
-    execute_project_start = async (d:Project) => {
+    execute_project_start = async (d:[Project, number]) => {
         const target = this.model.record!.projects[this.model.record!.project_index]
         const title = await this.getnewname(target.title)
         this.uuid = uuid6()
@@ -48,7 +48,7 @@ export class Util_Server_Log_Proxy {
             project: target,
             state: ExecuteState.RUNNING,
             start_timer: Date.now(),
-            parameter: d.parameter!,
+            parameter: d[0].parameter!,
             end_timer: 0,
             logs: target.task.map(x => {
                 return {
@@ -63,10 +63,9 @@ export class Util_Server_Log_Proxy {
             })
         }
         this.logs.logs = [newlog].concat(this.logs.logs)
-        console.log("Debug Log", this.logs)
     }
 
-    execute_project_finish = (d:Project) => {
+    execute_project_finish = (d:[Project, number]) => {
         if(this.target_log == undefined) return
         this.target_log!.state = ExecuteState.FINISH
         this.target_log!.end_timer = Date.now()

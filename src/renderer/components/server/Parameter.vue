@@ -2,7 +2,7 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, DataType, DataTypeText, Parameter, ParameterContainer, ParameterTemplate, ParameterTemplateText, PluginPageData, Preference } from '../../interface';
+import { AppConfig, BusType, DataType, DataTypeBase, DataTypeText, Parameter, ParameterContainer, ParameterTemplate, ParameterTemplateText, PluginPageData, Preference, ToastData } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, IndexToValue, Temp, Util_Parameter, ValueToGroupName } from '../../util/parameter';
 import DialogBase from '../dialog/DialogBase.vue'
@@ -44,7 +44,14 @@ const data:Ref<DATA> = ref({
     cloneModal: false,
     cloneName: "",
     objectModal: false,
+    selecterModal: false,
+    selecterModal1: false,
+    textareaModal: false,
+    listModal: false,
     objectTarget: undefined,
+    selecterTarget: undefined,
+    textareaTarget: undefined,
+    listTarget: undefined,
     selectModal: false,
     selectSearch: '',
     createModal: false,
@@ -57,13 +64,15 @@ const data:Ref<DATA> = ref({
     filter: { showhidden: false, showruntime: false, type: -1 },
     buffer_filter: { showhidden: false, showruntime: false, type: -1 },
     options: [],
+    options1: [],
     dirty: false,
     buffer: { uuid: '', title: '', canWrite: true, containers: [] },
     errorMessage: '',
     titleError: false,
     search: '',
     search_para: '',
-    temps: []
+    temps: [],
+    object_temp: ''
 })
 
 const util:Util_Parameter = new Util_Parameter(props.backend, () => props.plugin, data, () => props.parameters, () => props.select)
@@ -88,6 +97,29 @@ const items_final = computed(() => data.value.buffer.containers
 const temp_name = computed(() => {
     if(data.value.editData.temp == undefined) return ''
     return data.value.temps.find(x => x.value == data.value.editData.temp)?.text
+})
+const select_option = computed(() => {
+    if(data.value.selecterTarget == undefined) return []
+    const a:Array<any> = data.value.selecterTarget.meta
+    const c = data.value.selecterTarget.config!.types
+    return a.map((x, index) => {
+        let str = String(index) + ":  "
+        switch(c[index]){
+            case DataTypeBase.Boolean:
+                str += x ? "True" : "False"
+                break;
+            case DataTypeBase.Number:
+                str += String(x)
+                break;
+            case DataTypeBase.String:
+                str += "\"" + String(x) + "\""
+                break;
+        }
+        return {
+            title: str,
+            value: index,
+        }
+    })
 })
 
 const updateParameter = () => util.updateParameter()
@@ -218,6 +250,12 @@ const updateLocate = () => {
         }
     })
     data.value.options.push({ title: "All", value: -1 })
+    data.value.options1 = Object.keys(DataTypeBase).filter(key => isNaN(Number(key))).map((x, index) => {
+        return {
+            title: DataTypeTranslate(index),
+            value: index
+        }
+    })
 }
 
 const import_parameter_feedback = (e:IpcRendererEvent, v:string) => {
@@ -241,14 +279,85 @@ const paraEdit = () => {
     data.value.editData.name = props.select.title
 }
 
-const modifyContent = (d:ParameterContainer) => {
-    data.value.objectModal = true
-    data.value.objectTarget = d
+const specialPopupClose = () => {
+    data.value.objectModal = false
+    data.value.selecterModal = false
+    data.value.selecterModal1 = false
+    data.value.textareaModal = false
+    data.value.listModal = false
 }
 
-const confirmObjectModify = () => {
-    data.value.objectModal = false
+const confirmSpecialModify = () => {
+    specialPopupClose()
     saveParameter()
+}
+
+const confirmSpecialModify_O = () => {
+    if(data.value.objectTarget == undefined) return
+    try{
+        data.value.objectTarget.value = JSON.parse(data.value.object_temp)
+    }catch(err:any){
+        const t:ToastData = {
+            title: "Parse Error",
+            type: "error",
+            message: err.message,
+        }
+        emitter?.emit('makeToast', t)
+        console.error(err)
+        return
+    }
+    specialPopupClose()
+    saveParameter()
+}
+
+const selectAdd = () => {
+    if(data.value.selecterTarget == undefined) return
+    if(data.value.selecterTarget.config == undefined) data.value.selecterTarget.config = { types: [DataTypeBase.Number] }
+    const config = data.value.selecterTarget.config
+    const type = config.types[config.types.length - 1]
+    config.types.push(type)
+    switch(type){
+        case DataTypeBase.Boolean:
+            data.value.selecterTarget.meta.push(false)
+            break;
+        case DataTypeBase.Number:
+            data.value.selecterTarget.meta.push(0)
+            break;
+        case DataTypeBase.String:
+            data.value.selecterTarget.meta.push("")
+            break;
+    }
+}
+
+const modifyContent = (d:ParameterContainer) => {
+    specialPopupClose()
+    data.value.objectModal = true
+    data.value.objectTarget = d
+    data.value.object_temp = JSON.stringify(d.value, null, 4)
+}
+
+const modifyContent_T = (d:ParameterContainer) => {
+    specialPopupClose()
+    data.value.textareaModal = true
+    data.value.textareaTarget = d
+}
+
+const modifyContent_S = (d:ParameterContainer) => {
+    specialPopupClose()
+    data.value.selecterModal = true
+    data.value.selecterTarget = d
+}
+
+const modifyContent_S1 = (d:ParameterContainer) => {
+    specialPopupClose()
+    data.value.selecterModal1 = true
+    data.value.selecterTarget = d
+}
+
+const modifyContent_L = (d:ParameterContainer) => {
+    specialPopupClose()
+    data.value.listModal = true
+    data.value.listTarget = d
 }
 
 const moveup = (name:string) => util.moveup(name)
@@ -374,11 +483,21 @@ onUnmounted(() => {
                     </v-btn>
                 </template>
                 <template v-slot:item.value="{ item }">
-                    <v-checkbox density="compact" hide-details v-if="item.type == 0" v-model="item.value" @input="setdirty"></v-checkbox>
-                    <v-text-field density="compact" hide-details v-else-if="item.type == 1" type="number" v-model.number="item.value" @input="setdirty"></v-text-field>
-                    <v-text-field density="compact" hide-details v-else-if="item.type == 2" v-model="item.value" @input="setdirty"></v-text-field>
-                    <v-text-field density="compact" hide-details v-else-if="item.type == 3" v-model="item.meta" @input="setdirty"></v-text-field>
-                    <v-btn class="w-100" color="primary" variant="text" density="compact" hide-details v-else-if="item.type == 4" @click="modifyContent(item)">{{ $t("modify") }}</v-btn>
+                    <v-checkbox density="compact" hide-details v-if="item.type == DataType.Boolean" v-model="item.value" @input="setdirty"></v-checkbox>
+                    <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Number" type="number" v-model.number="item.value" @input="setdirty"></v-text-field>
+                    <v-text-field density="compact" hide-details v-else-if="item.type == DataType.String" v-model="item.value" @input="setdirty"></v-text-field>
+                    <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Expression" v-model="item.meta" @input="setdirty"></v-text-field>
+                    <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Object" @click="modifyContent(item)">{{ $t("modify") }}</v-btn>
+                    <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Textarea" @click="modifyContent_T(item)">{{ $t("modify") }}</v-btn>
+                    <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.List" @click="modifyContent_L(item)">{{ $t("modify") }}</v-btn>
+                    <v-row v-else-if="item.type == DataType.Select">
+                        <v-col cols="4">
+                            <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details @click="modifyContent_S(item)">{{ $t("modify") }}</v-btn>
+                        </v-col>
+                        <v-col cols="8">
+                            <v-btn class="w-100" color="warning" variant="tonal" density="compact" hide-details @click="modifyContent_S1(item)">{{ $t("types.select") }}</v-btn>
+                        </v-col>
+                    </v-row>
                 </template>
                 <template v-slot:item.hidden="{ item }">
                     <v-chip :color="item.hidden ? 'success' : 'error'">{{ item.hidden }}</v-chip>
@@ -468,13 +587,96 @@ onUnmounted(() => {
                 {{ $t('types.object') }}
             </template>
             <template #text v-if="data.objectTarget != undefined">
-                <codemirror-json v-model="data.objectTarget.value" 
+                <codemirror-json v-model="data.object_temp" 
                     style="text-align:left;"
                     :style="{ height: '40vh' }"
                     @change="setdirty"/>
             </template>
             <template #action>
-                <v-btn class="mt-3" color="primary" @click="confirmObjectModify">{{ $t('confirm') }}</v-btn>
+                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify_O">{{ $t('confirm') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase :persistent="true" width="800" v-model="data.selecterModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-pen</v-icon>
+                {{ $t('types.select') }}
+            </template>
+            <template #text v-if="data.selecterTarget != undefined">
+                <v-sheet>
+                    <v-btn variant="text" class="mx-1" color="primary" @click="selectAdd">{{ $t('create') }}</v-btn>
+                    <v-btn variant="text" class="mx-1" color="error" @click="data.selecterTarget.meta = []">{{ $t('clean') }}</v-btn>
+                </v-sheet>
+                <v-card style="height: 50vh; overflow-y: auto;" class="border-thin border-primary" v-if="data.selecterTarget.config">
+                    <v-row v-for="(item, index) in data.selecterTarget.meta" :key="index">
+                        <v-col cols="1" class="mt-1 pl-4">
+                            <v-chip>{{ index }}</v-chip>
+                        </v-col>
+                        <v-col cols="2">
+                            <v-select v-model="data.selecterTarget.config.types[index]" :items="data.options1" density="compact" hide-details></v-select>
+                        </v-col>
+                        <v-col cols="9">
+                            <v-checkbox density="compact" hide-details v-if="data.selecterTarget.config.types[index] === DataTypeBase.Boolean" v-model="data.selecterTarget.meta[index]"></v-checkbox>
+                            <v-text-field density="compact" hide-details v-else-if="data.selecterTarget.config.types[index] === DataTypeBase.Number" type="number" v-model.number="data.selecterTarget.meta[index]"></v-text-field>
+                            <v-text-field density="compact" hide-details v-else-if="data.selecterTarget.config.types[index] === DataTypeBase.String" v-model="data.selecterTarget.meta[index]"></v-text-field>
+                        </v-col>
+                    </v-row>
+                </v-card>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase :persistent="true" width="800" v-model="data.selecterModal1" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-pen</v-icon>
+                {{ $t('types.select') }}
+            </template>
+            <template #text v-if="data.selecterTarget != undefined">
+                <v-select class="w-100" v-model="data.selecterTarget.value" :items="select_option">
+                </v-select>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase :persistent="true" width="800" v-model="data.textareaModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-pen</v-icon>
+                {{ $t('types.textarea') }}
+            </template>
+            <template #text v-if="data.textareaTarget != undefined">
+                <v-textarea v-model="data.textareaTarget.value" 
+                    style="text-align:left;"
+                    placeholder="Enter Text Here..."
+                    :style="{ height: '40vh' }"
+                    @change="setdirty"/>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase :persistent="true" width="800" v-model="data.listModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-pen</v-icon>
+                {{ $t('types.list') }}
+            </template>
+            <template #text v-if="data.listTarget != undefined">
+                <v-sheet>
+                    <v-btn variant="text" class="mx-1" color="primary" @click="data.listTarget.value.push('')">{{ $t('create') }}</v-btn>
+                    <v-btn variant="text" class="mx-1" color="error" @click="data.listTarget.value = []">{{ $t('clean') }}</v-btn>
+                </v-sheet>
+                <v-card style="height: 50vh; overflow-y: auto;" class="border-thin border-primary">
+                    <div v-for="(ttt, index) in data.listTarget.value" :key="index">
+                        <v-text-field :label="String(index)" hide-details single-line v-model="data.listTarget.value[index]">
+                            <template v-slot:prepend>
+                                <v-btn color="error" icon="mdi-delete" variant="text" @click="data.listTarget.value.splice(index, 1)"></v-btn>
+                            </template>
+                        </v-text-field>
+                    </div>
+                </v-card>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
             </template>
         </DialogBase>
         <DialogBase width="500" v-model="data.deleteModal" class="text-white">

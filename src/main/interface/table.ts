@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import { Node } from './base'
 import { Plugin, SystemLoad } from './struct'
 

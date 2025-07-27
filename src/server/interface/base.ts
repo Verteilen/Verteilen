@@ -1,10 +1,20 @@
-import { DataType } from "./enum"
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
+import { DataType, DataTypeBase } from "./enum"
 import { LocalPermiision } from "./server"
+
+export interface ParameterConfigTrigger {
+    types: Array<DataTypeBase>
+}
 
 export interface ParameterContainer {
     s?: boolean
     name: string
-    meta?:string
+    meta?: any
+    config?: ParameterConfigTrigger
     type: DataType
     hidden: boolean
     runtimeOnly: boolean

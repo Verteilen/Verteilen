@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import { v6 as uuidv6 } from 'uuid';
 import { CronJobState, DataType, ExecuteState, Header, Job, Project, Task, WebsocketPack } from "../../interface";
 import { ExecuteManager_Feedback } from "./feedback";
@@ -36,19 +41,19 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
              * * B: We are finish all the tasks, Go to next project
              */
             const index = this.current_projects.findIndex(x => x.uuid == project.uuid)
-            if(index == this.current_projects.length - 1){
-                // * Case A: Finish entire thing
+            if(index < this.current_projects.length - 1){
+                // * Case A: Next project
                 this.messager_log(`[Execute] Project Finish ${this.current_p!.uuid}`)
-                this.proxy?.executeProjectFinish(this.current_p!)
-                this.current_p = undefined
-                this.state = ExecuteState.FINISH
+                this.proxy?.executeProjectFinish([this.current_p!, index])
+                this.current_p = this.current_projects[index + 1]
+                this.proxy?.executeProjectStart([this.current_p!, index + 1])
                 this.t_state = ExecuteState.NONE
             }else{
-                // * Case B: Next project
+                // * Case B: Finish entire thing
                 this.messager_log(`[Execute] Project Finish ${this.current_p!.uuid}`)
-                this.proxy?.executeProjectFinish(this.current_p!)
-                this.current_p = this.current_projects[index + 1]
-                this.proxy?.executeProjectStart(this.current_p!)
+                this.proxy?.executeProjectFinish([this.current_p!, index])
+                this.current_p = undefined
+                this.state = ExecuteState.FINISH
                 this.t_state = ExecuteState.NONE
             }
         }

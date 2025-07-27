@@ -391,7 +391,6 @@ onUnmounted(() => {
                         Debug Log
                     </v-list-item>
                 </v-list>
-                <p>{{ model.record?.uuid }}</p>
                 <v-list mandatory v-if="props.execute.length > 0" color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
                     <v-list-item v-for="(exe, i) in props.execute" :key="i" 
                         :active="exe.record?.uuid == model.record?.uuid"

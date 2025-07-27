@@ -1,6 +1,15 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import { formula, init } from "expressionparser";
-import { ENV_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
+import { DataType, ENV_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
 
+/**
+ * The worker which helps parsing parameter variables into argument\
+ * Including expression executing
+ */
 export class Util_Parser {
 
     paras:Array<KeyValue> = []
@@ -24,10 +33,61 @@ export class Util_Parser {
         ]
     }
 
-    static _to_keyvalue = (p:Array<ParameterContainer>):Array<KeyValue> => {
-        return p.map(x => { return { key: x.name, value: x.value.toString() } })
+    /**
+     * Input a object data, and deep search all of subobject\
+     * Phrasing it into keyvalue data
+     * @param obj Object
+     * @returns Array of keyvalue data
+     */
+    private static getDeepKeys = (obj:any, name?:string):Array<[string, any]> => {
+        let keys:Array<[string, any]> = []
+        for(var key in obj) {
+            keys.push([name ? name + "." + key : key, obj[key]]);
+            if(typeof obj[key] === "object") {
+                var subkeys = this.getDeepKeys(obj[key]);
+                keys = keys.concat(subkeys.map(function(subkey) {
+                    return [name ? name + "." + key + "." + subkey[0] : key + "." + subkey[0], subkey[1]];
+                }));
+            }
+        }
+        return keys
     }
 
+    /**
+     * Parameter containers into keyvalue list
+     */
+    static _to_keyvalue = (p:Array<ParameterContainer>):Array<KeyValue> => {
+        const r:Array<KeyValue> = []
+        r.push(...p.filter(x => x.type == DataType.Boolean || x.type == DataType.String || x.type == DataType.Textarea || x.type == DataType.Number || x.type == DataType.Expression).map(x => { return { key: x.name, value: x.value.toString() } }))
+        const objs = p.filter(x => x.type == DataType.Object)
+        const lists = p.filter(x => x.type == DataType.List)
+        const selects = p.filter(x => x.type == DataType.Select)
+        for(const obj of objs){
+            const v = obj.value
+            const keys = this.getDeepKeys(v, obj.name)
+            r.push(...keys.map(x => { return { key: x[0], value: x[1].toString() } }))
+        }
+        for(const list of lists){
+            const a:Array<any> = list.value
+            r.push(...a.map((x, index) => { return { key: list.name + "." + String(index), value: x } }))
+            r.push({ key: list.name + ".length", value: a.length })
+        }
+        for(const select of selects){
+            const a:Array<any> = select.meta
+            const target = a[select.value]
+            r.push({ key: select.name, value: target })
+        }
+        return r
+    }
+
+    /**
+     * Search all the string result and replace to target string\
+     * @example 
+     * replaceAll("ABCBCAB", "AB", "KK") // Result: KKCBCKK
+     * @param str string data
+     * @param fi feature
+     * @param tar replace target
+     */
     static replaceAll = (str:string, fi:string, tar:string):string => {
         let p = str
         while(p.includes(fi)) p = p.replace(fi, tar)

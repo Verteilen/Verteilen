@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 export enum SocketState {
     CONNECTING = 0,
     OPEN = 1,
@@ -9,8 +14,17 @@ export enum DataType {
     Boolean, 
     Number, 
     String,
-    Expression,
     Object,
+    Expression,
+    Textarea,
+    Select,
+    List,
+}
+
+export enum DataTypeBase {
+    Boolean, 
+    Number, 
+    String,
 }
 
 export enum ResourceType {
@@ -66,6 +80,7 @@ export enum JobType2 {
 
 export enum ProjectTemplate {
     DEFAULT = 0,
+    DEFAULT_SHORT = 1,
     FFmpeg_Download = 200,
     FFmpeg_Concat = 201,
     Blender = 300,
@@ -95,14 +110,18 @@ export enum JavascriptLib {
     ENV = 1 << 1, 
     MESSAGE = 1 << 2,
     HTTP = 1 << 3,
+    PATH = 1 << 4,
 }
 
 export const DataTypeText: { [key:number]:string } = {
     0: 'types.boolean',
     1: 'types.number',
     2: 'types.string',
-    3: 'types.expression',
-    4: 'types.object',
+    3: 'types.object',
+    4: 'types.expression',
+    5: 'types.textarea',
+    6: 'types.select',
+    7: 'types.list',
 }
 
 export const ExecuteStateText: { [key:number]:string } = {
@@ -154,6 +173,7 @@ export const JobType2Text: { [key:number]:string } = {
 
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
+    1: 'enum.project.default_short',
     200: 'enum.project.ffmpeg_download',
     201: 'enum.project.concat',
     300: 'enum.project.blender',

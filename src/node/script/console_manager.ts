@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import { BusType, EmitterProxy, Header, RawSend } from "../interface"
 
 export type Listener = (...args: any[]) => void

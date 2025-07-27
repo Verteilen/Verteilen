@@ -212,7 +212,7 @@ const consoleAdded = (name:string, record:Record) => {
     em.libs = data.value.libs
     const p:ExecutePair = {manager: em, record: er}
     const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
-    const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference, config.value)
+    const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference)
     em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
     r = util.console.receivedPack(p, record)
     if(r){
@@ -225,8 +225,6 @@ const consoleAdded = (name:string, record:Record) => {
         type: 'warning'
       })
     }
-    if(!r){
-  }
   }
 }
 const consoleStop = () => {
@@ -238,6 +236,10 @@ const consoleStop = () => {
     if(data.value.execute_manager.length == 0) data.value.select_manager = -1
     else data.value.select_manager = 0
   })
+}
+const consoleDelete = (uuid:string) => {
+  const index = data.value.execute_manager.findIndex(x => x.manager?.uuid == uuid)
+  data.value.execute_manager.splice(index, 1)
 }
 const consoleSelect = (e:number) => { data.value.select_manager = e }
 //#endregion
@@ -432,13 +434,13 @@ const dataset_init = () => {
     props.backend.eventOn('folderReply', (data) => emitter?.emit('folderReply', data) )
     props.backend.eventOn('frontend_update', repull)
   }
-
   props.backend.eventOn('makeToast', makeToastFromBackend)
   props.backend.eventOn('msgAppend', msgAppend)
-  props.backend.send('menu', true)
+  props.backend.eventOn('console-delete', consoleDelete)
   props.backend.eventOn('createProject', menuCreateProject)
   props.backend.eventOn('menu_export_project', menu_export_project)
   props.backend.eventOn('import_project_feedback', import_project_feedback)
+  props.backend.send('menu', true)
   if(!props.backend.config.haveBackend) return
   props.backend.send('client_start');
   const p0 = props.backend.invoke('console_list').then((xs:Array<any>) => {
@@ -536,6 +538,7 @@ onUnmounted(() => {
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   props.backend.send('client_stop');
   props.backend.eventOff('debuglog', debug_feedback)
+  props.backend.eventOff('console-delete', consoleDelete)
   props.backend.eventOff('makeToast', makeToastFromBackend)
   props.backend.eventOff('createProject', menuCreateProject)
   props.backend.eventOff('menu_export_project', menu_export_project)

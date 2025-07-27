@@ -185,6 +185,7 @@
         },
         "project": {
             "default": "Example",
+            "default_short": "Example Short",
             "ffmpeg_download": "FFmpeg Download",
             "concat": "FFmpeg concat",
             "blender": "Blender Render",
@@ -227,7 +228,10 @@
         "string": "String",
         "boolean": "Boolean",
         "expression": "Expression",
-        "object": "Object"
+        "object": "Object",
+        "textarea": "Textarea",
+        "select": "Select",
+        "list": "List"
     },
     "expression": {
         "title": "Title",

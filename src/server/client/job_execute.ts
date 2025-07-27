@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import WebSocket from "ws";
 import { Job, JobCategory, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Messager, Messager_log, OnePath, Parameter, PluginList, TwoPath } from "../interface";
 import { i18n } from "../plugins/i18n";

@@ -59,7 +59,7 @@ export class Util_Server {
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
         this.parameter = new Util_Server_Parameter(this.data, this.config, this.update)
-        this.console = new Util_Server_Console(this.data)
+        this.console = new Util_Server_Console()
         this.lib = new Util_Server_Lib(this.data, this.update)
         this.self = new Util_Server_Self(this.data)
     }
@@ -101,8 +101,8 @@ export class Util_Server {
 
     CombineProxy = (eps:Array<ExecuteProxy>) => {
         const p:ExecuteProxy = {
-            executeProjectStart: (data:Project):void => { eps.forEach(x => x.executeProjectStart(JSON.parse(JSON.stringify(data)))) },
-            executeProjectFinish: (data:Project):void => { eps.forEach(x => x.executeProjectFinish(JSON.parse(JSON.stringify(data)))) },
+            executeProjectStart: (data:[Project, number]):void => { eps.forEach(x => x.executeProjectStart(JSON.parse(JSON.stringify(data)))) },
+            executeProjectFinish: (data:[Project, number]):void => { eps.forEach(x => x.executeProjectFinish(JSON.parse(JSON.stringify(data)))) },
             executeTaskStart: (data:[Task, number]):void => { eps.forEach(x => x.executeTaskStart(JSON.parse(JSON.stringify(data)))) },
             executeTaskFinish: (data:Task):void => { eps.forEach(x => x.executeTaskFinish(JSON.parse(JSON.stringify(data)))) },
             executeSubtaskStart: (data:[Task, number, string]):void => { eps.forEach(x => x.executeSubtaskStart(JSON.parse(JSON.stringify(data)))) },

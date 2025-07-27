@@ -63,6 +63,7 @@ watch(() => modal.value, () => {
     name.value = ''
     projects.value = []
     nodes.value = []
+    error_message.value = ''
 })
 
 const updateTab = () => {

@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import * as path from 'path';
 import { check } from 'tcp-port-used';
 import { WebSocket, WebSocketServer } from 'ws';
@@ -19,10 +24,15 @@ export class Client {
     private analysis:Array<ClientAnalysis>
     private updatehandle 
 
+    /**
+     * Get connected client count
+     */
     public get count() : number {
         return this.sources.length
     }
-    
+    /**
+     * Get connected client list instance
+     */
     public get clients() : Array<WebSocket> {
         return this.sources
     }

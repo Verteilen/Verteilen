@@ -1,3 +1,8 @@
+// ========================
+//                           
+//      Share Codebase     
+//                           
+// ========================
 import { exec, spawn } from 'child_process';
 import * as fs from "fs";
 import * as path from "path";
@@ -39,7 +44,7 @@ export class ClientOS {
         this.messager = _messager
         this.messager_log = _messager_log
     }
-
+    
     file_copy = (data:TwoPath) => {
         this.messager(`[OS Action] File copy, ${data.from} => ${data.to}`, this.tag())
         fs.copyFileSync(data.from, data.to)
