@@ -44,8 +44,8 @@ export class ClientResource {
                 result.virtual = system.virtual
             }
             if(os != undefined){
-                result.platform = os.platform
-                result.arch = os.arch
+                result.platform = process.platform
+                result.arch = process.arch
                 result.hostname = os.hostname
             }
             if(cpu != undefined){
