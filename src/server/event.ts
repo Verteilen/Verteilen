@@ -5,12 +5,13 @@ import * as fs from "fs";
 import * as os from "os";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { DATA_FOLDER, GlobalPermission, Header, Libraries, LocalPermiision, Preference, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
+import { DATA_FOLDER, GlobalPermission, Header, Job, JobCategory, JobType, Libraries, LocalPermiision, PluginList, Preference, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
 import { v6 as uuidv6 } from 'uuid'
 import { PluginInit } from './util/plugin';
+import { ClientJobExecute } from './client/job_execute';
 
 export class BackendEvent {
     manager:Array<ConsoleServerManager> = []
@@ -78,12 +79,19 @@ export class BackendEvent {
             }
             socket.send(JSON.stringify(d))
         }
-        const r = this.jsCall.JavascriptExecute(content, javascript_messager_feedback)
-        const d:Header = {
-            name: 'javascript-feedback',
-            data: r?.toString() ?? ''
+
+        const d:Job = {
+            uuid: 'javascript',
+            category: JobCategory.Execution,
+            type: JobType.JAVASCRIPT,
+            script: content,
+            string_args: [],
+            number_args: [],
+            boolean_args: []
         }
-        socket.send(JSON.stringify(d))
+        const p:PluginList = { plugins: [] }
+        const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
+        worker.execute()
     }
     private message = (socket:ws.WebSocket, message:string, tag?:string) => {
         console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);

@@ -6,8 +6,8 @@
 import { exec, spawn } from 'child_process';
 import * as fs from "fs";
 import * as path from "path";
-import { Messager, Messager_log, OnePath, TwoPath } from "../interface";
-import { Client } from './client';
+import * as os from "os";
+import { DATA_FOLDER, Messager, Messager_log, OnePath, TwoPath } from "../interface";
 
 type getstring = ()=>string
 
@@ -125,7 +125,8 @@ export class ClientOS {
     }
     
     lib_command = async (command:string, args:string):Promise<string> => {
-        return this.command(command, args, path.dirname(Client.workerPath(command)))
+        const cc = process.platform == "win32" ? command : "./" + command
+        return this.command(cc, args, path.join(os.homedir(), DATA_FOLDER, "exe"))
     }
 
     /**
@@ -183,11 +184,14 @@ export class ClientOS {
         })
     }
 
-    command_sync = (command:string, args:string, cwd?:string):string => {
-        return Promise.all([this.command(command, args, cwd)])[0]
+    command_sync = async (command:string, args:string, cwd?:string):Promise<string> => {
+        return this.command(command, args, cwd)
     }
 
     command_exec = (command:string, args:string, cwd?:string) => {
+        this.messager_log(`[OS Action] Command cwd: ${cwd}`, this.tag())
+        this.messager_log(`[OS Action] Command command: ${command}`, this.tag())
+        this.messager_log(`[OS Action] Command args: ${args}`, this.tag())
         const child = exec(`${command} ${args}`, { 
                 cwd: cwd, 
                 windowsHide: true

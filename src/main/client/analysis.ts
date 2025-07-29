@@ -3,7 +3,7 @@
 //      Share Codebase     
 //                           
 // ========================
-import { ChildProcess, spawn } from 'child_process';
+import { ChildProcess, exec, spawn } from 'child_process';
 import { WebSocket } from 'ws';
 import { DATA_FOLDER, Header, Job, Libraries, Messager, Messager_log, Parameter, Plugin, PluginList, PluginToken, PluginWithToken } from "../interface";
 import { Client } from './client';
@@ -219,6 +219,13 @@ export class ClientAnalysis {
                     }
                     this.client.savePlugin()
                     this.plugin_info(0, source)
+
+                    if(process.platform == 'linux'){
+                        exec(`chmod +x ${path.join(dir, target.filename)}`, (err) => {
+                            this.messager_log(`[Plugin] Permission failed ${err?.message}`)
+                        })
+                    }
+
                     pass = true
                 })
             }
