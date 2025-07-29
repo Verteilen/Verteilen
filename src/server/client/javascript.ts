@@ -248,7 +248,7 @@ export class ClientJavascript {
     private plugin_command(command:string, args:string){
         const cwd = path.join(os.homedir(), DATA_FOLDER, 'exe')
         const cc = process.platform == "win32" ? command : "./" + command
-        clientos?.command_sync(cc, args, cwd)
+        return clientos?.command_sync(cc, args, cwd)
     }
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})

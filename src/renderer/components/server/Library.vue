@@ -220,7 +220,7 @@ onUnmounted(() => {
                 <div class="text-white text-left px-6" v-if="openBottom" style="height: calc(40vh - 100px); overflow-y: scroll; line-height: 15px;">
                     <div class="float_button text-white" style="z-index: 5;">
                         <v-btn-group>
-                            <v-btn color="primary" @click="clean">{{ $t('clear') }}</v-btn>
+                            <v-btn variant="outlined" color="primary" @click="clean">{{ $t('clear') }}</v-btn>
                         </v-btn-group>
                     </div>
                     <p v-for="(item, i) in data.messages" :key="i">{{ item }}</p>
@@ -268,7 +268,7 @@ onUnmounted(() => {
 <style scoped>
 .float_button{
     position: fixed;
-    top: 68vh;
+    top: calc(100vh - 100px);
     right: 80px;
 }
 </style>

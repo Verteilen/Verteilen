@@ -1,6 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Task, Job, JobCategory, JobType, ConditionResult, Project, Parameter } from '../../../interface';
-import { GetDefaultProject_Parameter } from '../../parameter/Default';
 
 const ck_print = ():Task => {
     const checker:Job = {
