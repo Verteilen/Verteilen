@@ -172,8 +172,7 @@ export class ClientJavascript {
                 if(t != undefined) script += ("\n" + t.content + "\n")
             })
         }
-        
-        script += ('\n' + javascript)
+        script += ('pass=0\n' + javascript)
         const r = safeEval(script, context)
         return r
     }
@@ -187,7 +186,9 @@ export class ClientJavascript {
         let context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE | JavascriptLib.HTTP | JavascriptLib.PATH, log)
         let result = 0
         context = Object.assign(context, { result: result })
-        const r = safeEval(javascript, context)
+        let script = ''
+        script += ('pass=0\n' + javascript)
+        const r = safeEval(script, context)
         return r
     }
 
@@ -241,11 +242,13 @@ export class ClientJavascript {
     }
     private plugin_exec(command:string, args:string){
         const cwd = path.join(os.homedir(), DATA_FOLDER, 'exe')
-        clientos?.command_exec(command, args, cwd)
+        const cc = process.platform == "win32" ? command : "./" + command
+        clientos?.command_exec(cc, args, cwd)
     }
     private plugin_command(command:string, args:string){
         const cwd = path.join(os.homedir(), DATA_FOLDER, 'exe')
-        clientos?.command_sync(command, args, cwd)
+        const cc = process.platform == "win32" ? command : "./" + command
+        clientos?.command_sync(cc, args, cwd)
     }
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})

@@ -6,6 +6,7 @@ import { DEFAULT_JsExample } from '../../js/Default/Example';
 import { DEFAULT_JsPrintExample } from '../../js/Default/PrintExample';
 import { DEFAULT_JsSaveExample } from '../../js/Default/SaveExample';
 import { DEFAULT_JsExpressionExample } from '../../js/Default/Expression';
+import { DEFAULT_JsLibPrintExample } from '../../js/Default/LibCaller';
 
 const path_checker = ():Task => {
     const checker:Job = {
@@ -292,6 +293,60 @@ const load_parameter_multicore = ():Task => {
     return t
 }
 
+const calllib = ():Task => {
+    const script:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.LIB_COMMAND,
+        script: "",
+        string_args: ["Default", ""],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Call Lib Exe",
+        description: "",
+        setupjob: false,
+        cronjob: false,
+        cronjobKey: "",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            script
+        ]
+    }
+    return t
+}
+
+const calllibjs = ():Task => {
+    const script:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.JAVASCRIPT,
+        script: DEFAULT_JsLibPrintExample,
+        string_args: [],
+        number_args: [],
+        boolean_args: []
+    }
+    const t:Task = {
+        uuid: uuidv6(),
+        title: "Call Lib JS Exe",
+        description: "",
+        setupjob: false,
+        cronjob: false,
+        cronjobKey: "",
+        multi: false,
+        multiKey: "",
+        properties: [],
+        jobs: [
+            script
+        ]
+    }
+    return t
+}
+
 export const GetDefaultProjectTemplate = (r:Project):Project => {
     const para:Parameter = {
         title: "Default Parameter",
@@ -311,6 +366,8 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
         js_cron_print(),
         save_parameter(),
         load_parameter_multicore(),
+        calllib(),
+        calllibjs(),
     ]
     return r
 }

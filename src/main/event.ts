@@ -6,12 +6,13 @@ import { Loader } from './util/loader'
 import { Client } from "./client/client";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { DATA_FOLDER, Job, Parameter, Preference, Project } from "./interface";
+import { DATA_FOLDER, Job, JobCategory, JobType, Parameter, PluginList, Preference, Project } from "./interface";
 import { i18n } from "./plugins/i18n";
 import { Util_Server } from "./util/server/server";
 import { ExportProjects, ImportProject, ExportProject, ImportParameter, ExportParameter } from "./util/io";
 import { PluginInit } from "./util/plugin";
 import { mainWindow } from "./electron";
+import { ClientJobExecute } from "./client/job_execute";
 
 export class BackendEvent {
     menu_state = false
@@ -65,9 +66,18 @@ export class BackendEvent {
                 messager_log(msg, tag)
                 event.sender.send('javascript-feedback', msg)
             }
-            const javascript:ClientJavascript = new ClientJavascript(javascript_messager_feedback, javascript_messager_log_feedback, () => this.job)
-            const r = javascript.JavascriptExecute(content)
-            event.sender.send('javascript-feedback', r?.toString() ?? '')
+            const d:Job = {
+                uuid: 'javascript',
+                category: JobCategory.Execution,
+                type: JobType.JAVASCRIPT,
+                script: content,
+                string_args: [],
+                number_args: [],
+                boolean_args: []
+            }
+            const p:PluginList = { plugins: [] }
+            const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_log_feedback, d, undefined, p)
+            worker.execute()
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {
             console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
