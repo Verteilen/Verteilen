@@ -21,6 +21,11 @@ export class Util_Parser {
         this.paras = _paras
     }
 
+    clone = () => {
+        const b:Array<KeyValue> = JSON.parse(JSON.stringify(this.paras))
+        return new Util_Parser(b)
+    }
+
     /**
      * Turn parameter into a list of keyvalue structure\
      * Exclude the expression datatype
@@ -146,7 +151,11 @@ export class Util_Parser {
                 if(index != -1) term = Util_Parser.replaceAll(term, "_ck_", this.paras[index].value)
             }
             const index = this.paras.findIndex(x => x.key == term)
-            if(index != -1) return Number(this.paras[index].value)
+            if(index != -1) {
+                const n = Number(this.paras[index].value)
+                if(Number.isNaN(n)) return this.paras[index].value
+                return n
+            }
             else return 0
         });
         const r = parser.expressionToValue(str).toString()

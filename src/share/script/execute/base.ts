@@ -274,22 +274,32 @@ export class ExecuteManager_Base {
     }
 
     static string_args_transform = (task:Task, job:Job, messager_log:Messager, localPara:Parameter, n:number) => {
-        const e = ExecuteManager_Base.parameter_update(localPara)
-        
+        let e = ExecuteManager_Base.parameter_update(localPara, n)
+        e = ExecuteManager_Base.property_update(task, e)
+
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
             if(b == null || b == undefined || b.length == 0) continue
-            for(let j = 0; j < task.properties.length; j++){
-                job.string_args[i] = Util_Parser.replaceAll(job.string_args[i], `%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
-            }
-            e.paras.push({ key: 'ck', value: n.toString() })
             job.string_args[i] = e.replacePara(job.string_args[i])
-            messager_log(`String replace: "${b}" -> "${job.string_args[i]}"`)
+            //messager_log(`String replace: "${b}" -> "${job.string_args[i]}"`)
         }
     }
 
-    static parameter_update = (localPara:Parameter) => {
-        const e = new Util_Parser([...Util_Parser.to_keyvalue(localPara)])
+    static property_update = (task:Task, e:Util_Parser) => {
+        for(let j = 0; j < task.properties.length; j++){
+            const target = task.properties[j];
+            const times = target.deep ? target.deep : 1
+            let act:any = target.expression
+            for(let k = 0; k < times; k++){
+                act = e.replacePara(`%{${act}}%`)
+            }
+            e.paras.push({ key: task.properties[j].name, value: act})
+        }
+        return e
+    }
+
+    static parameter_update = (localPara:Parameter, n:number) => {
+        const e = new Util_Parser([...Util_Parser.to_keyvalue(localPara), { key: 'ck', value: n.toString() }])
         localPara.containers.forEach((c, index) => {
             if(c.type != DataType.Expression) return
             c.value = e.replacePara(`%{${c.meta}}%`)

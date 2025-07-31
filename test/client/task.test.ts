@@ -49,7 +49,7 @@ describe("Express Test", () => {
                 { name: "b1", type: DataType.Boolean, value: true, hidden: false, runtimeOnly: false },
                 { name: "e1", type: DataType.Expression, value: 0, meta: "n1+n2", hidden: false, runtimeOnly: false },
                 { name: "b1", type: DataType.Object, value: {
-                    data: [ { k: 5, p: 5, n: 5 }, { k: 10, p: 5, n: 5 } ]
+                    data: [ { k: 5, p: 5, n: 5 }, { k: 10, p: 122, n: 5 } ]
                 }, hidden: false, runtimeOnly: false },
             ]
         }
@@ -70,5 +70,22 @@ describe("Express Test", () => {
         expect(job.string_args[0]).toBe("12")
         expect(job.string_args[1]).toBe("KKK Hello World")
         expect(job.string_args[2]).toBe("19")
+    })
+    test("Nest getter", () => {
+        const job:Job = generateJob(["%POS%", "Hello %POS_Deep%"])
+        const task:Task = generateTask(job, [
+            {
+                name: "POS",
+                expression: `STRING(["b1.data.", ck, ".p"])`
+            },
+            {
+                name: "POS_Deep",
+                expression: "POS",
+                deep: 2
+            }
+        ])
+        ExecuteManager_Base.string_args_transform(task, job, (str) => console.log(str), parameter!, 1)
+        expect(job.string_args[0]).toBe("b1.data.1.p")
+        expect(job.string_args[1]).toBe("Hello 122")
     })
 })
