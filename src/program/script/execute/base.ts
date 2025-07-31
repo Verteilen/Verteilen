@@ -231,18 +231,13 @@ export class ExecuteManager_Base {
      * @returns The value, if key cannot be found, it will return -1
      */
     protected get_number(key:string){
-        const f = this.localPara?.containers.find(x => x.name == key && (x.type == DataType.Number || x.type == DataType.Expression)) ?? undefined
-        if(f == undefined) return -1
-        if(f.meta == undefined && f.type == DataType.Expression){
-            f.value = 0
-            return f.value
-        }
-        if(f.type == DataType.Expression){
-            const e = new Util_Parser([...Util_Parser.to_keyvalue(this.localPara!)])
-            return Number(e.replacePara(f.meta || ''))
-        }else{
-            return f.value
-        }
+        return ExecuteManager_Base.get_number_global(key, this.localPara)
+    }
+
+    static get_number_global(key:string, localPara:Parameter | undefined){
+        const e = ExecuteManager_Base.parameter_update(localPara!)
+        const a = e.replacePara(`%{${key}}%`)
+        return Number(a)
     }
 
     /**
@@ -298,8 +293,11 @@ export class ExecuteManager_Base {
         return e
     }
 
-    static parameter_update = (localPara:Parameter, n:number) => {
-        const e = new Util_Parser([...Util_Parser.to_keyvalue(localPara), { key: 'ck', value: n.toString() }])
+    static parameter_update = (localPara:Parameter, n?:number) => {
+        const e = new Util_Parser([...Util_Parser.to_keyvalue(localPara)])
+        if(n){
+            e.paras.push({ key: 'ck', value: n.toString() })
+        }
         localPara.containers.forEach((c, index) => {
             if(c.type != DataType.Expression) return
             c.value = e.replacePara(`%{${c.meta}}%`)

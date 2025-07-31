@@ -21,14 +21,14 @@ describe("Express Test", () => {
             boolean_args: []
         }
     }
-    const generateTask = (Job:Job, property:Array<Property>):Task => {
+    const generateTask = (Job:Job, property:Array<Property>, cronjob?:string):Task => {
         return {
             uuid: "test-task",
             title: "Test Task",
             description: "This is a test task",
             setupjob: false,
-            cronjob: false,
-            cronjobKey: "",
+            cronjob: cronjob ? true: false,
+            cronjobKey: cronjob ?? "",
             multi: false,
             multiKey: "",
             properties: property,
@@ -87,5 +87,10 @@ describe("Express Test", () => {
         ExecuteManager_Base.string_args_transform(task, job, (str) => console.log(str), parameter!, 1)
         expect(job.string_args[0]).toBe("b1.data.1.p")
         expect(job.string_args[1]).toBe("Hello 122")
+    })
+    test("Cronjob Key Testing", () => {
+        expect(ExecuteManager_Base.get_number_global("e1", parameter)).toBe(12)
+        expect(ExecuteManager_Base.get_number_global("n1", parameter)).toBe(7)
+        expect(ExecuteManager_Base.get_number_global("b1.data.0.p", parameter)).toBe(5)
     })
 })
