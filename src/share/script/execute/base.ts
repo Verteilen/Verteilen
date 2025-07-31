@@ -4,7 +4,7 @@
 //                           
 // ========================
 import { v6 as uuid6 } from 'uuid';
-import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, JobCategory, JobType, JobType2, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
+import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, Job, JobCategory, JobType, JobType2, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 import { Util_Parser } from './util_parser';
 import { WebSocket } from 'ws';
@@ -243,7 +243,6 @@ export class ExecuteManager_Base {
         }else{
             return f.value
         }
-        
     }
 
     /**
@@ -272,6 +271,31 @@ export class ExecuteManager_Base {
 
     protected check_socket_state = (target:WebsocketPack) => {
         return target.current_job.length == 0 ? ExecuteState.NONE : ExecuteState.RUNNING
+    }
+
+    static string_args_transform = (task:Task, job:Job, messager_log:Messager, localPara:Parameter, n:number) => {
+        const e = ExecuteManager_Base.parameter_update(localPara)
+        
+        for(let i = 0; i < job.string_args.length; i++){
+            const b = job.string_args[i]
+            if(b == null || b == undefined || b.length == 0) continue
+            for(let j = 0; j < task.properties.length; j++){
+                job.string_args[i] = Util_Parser.replaceAll(job.string_args[i], `%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
+            }
+            e.paras.push({ key: 'ck', value: n.toString() })
+            job.string_args[i] = e.replacePara(job.string_args[i])
+            messager_log(`String replace: "${b}" -> "${job.string_args[i]}"`)
+        }
+    }
+
+    static parameter_update = (localPara:Parameter) => {
+        const e = new Util_Parser([...Util_Parser.to_keyvalue(localPara)])
+        localPara.containers.forEach((c, index) => {
+            if(c.type != DataType.Expression) return
+            c.value = e.replacePara(`%{${c.meta}}%`)
+            e.paras.find(p => p.key == c.name)!.value = c.value
+        })
+        return e
     }
     //#endregion
 }

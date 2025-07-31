@@ -1,16 +1,16 @@
 import { ClientJobParameter } from '../../src/share/client/job_parameter';
 import { ClientJavascript } from '../../src/share/client/javascript';
 import { ClientOS } from '../../src/share/client/os';
-import { DataType, Job, Libraries, Parameter } from '../../src/share/interface';
+import { DataType, Job, JobCategory, JobType, Libraries, Parameter, Task } from '../../src/share/interface';
 
 
 describe("JS Test", () => {
     let js:ClientJavascript | undefined = undefined
-    let job:Job | undefined = undefined
     let os:ClientOS | undefined = undefined
     let para:ClientJobParameter | undefined = undefined
     let parameter:Parameter | undefined = undefined
     let lib:Libraries | undefined = undefined
+
     beforeAll(() => {
         os = new ClientOS(() => "", () => "", (str) => console.log(str), (str) => console.log(str))
         para = new ClientJobParameter()
@@ -29,19 +29,23 @@ describe("JS Test", () => {
         js = new ClientJavascript(
             (str) => console.log(str), 
             (str) => console.log(str), 
-            () => job)
+            () => undefined)
         ClientJavascript.Init(
             (str) => console.log(str), 
             (str) => console.log(str),
-            os,
-            para,
+            os!,
+            para!,
             () => lib,
             () => parameter,
-            () => job
+            () => undefined
         )
     })
     afterAll(() => {
         js = undefined
+        os = undefined
+        para = undefined
+        parameter = undefined
+        lib = undefined
     })
     test("Env test getter", () => {
         expect(js!.JavascriptExecuteWithLib(`return env.getnumber("n1");`, [])).toBe(7)

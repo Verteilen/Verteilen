@@ -283,16 +283,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
         this.messager_log(`[Execute] Job Start ${n}  ${job.uuid}  ${wss.uuid}`)
         this.proxy?.executeJobStart([ job, n, wss.uuid ])
         
-        for(let i = 0; i < job.string_args.length; i++){
-            const b = job.string_args[i]
-            if(b == null || b == undefined || b.length == 0) continue
-            for(let j = 0; j < task.properties.length; j++){
-                job.string_args[i] = Util_Parser.replaceAll(job.string_args[i], `%${task.properties[j].name}%`, `%{${task.properties[j].expression}}%`)
-            }
-            const e = new Util_Parser([...Util_Parser.to_keyvalue(this.localPara!), { key: 'ck', value: n.toString() }])
-            job.string_args[i] = e.replacePara(job.string_args[i])
-            this.messager_log(`String replace: ${b} ${job.string_args[i]}`)
-        }
+        ExecuteManager_Runner.string_args_transform(task, job, this.messager_log, this.localPara!, n)
         const h:Header = {
             name: 'execute_job',
             channel: this.uuid,
