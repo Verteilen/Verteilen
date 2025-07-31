@@ -22,39 +22,35 @@ export class ClientParameter {
      * @param data Target KeyValue
      */
     feedbacknumber = (data:Setter) => {
-        if(this.source == undefined) return
-        const p:Header = {
-            name: "feedback_number",
-            data: {
-                key: data.key,
-                value: data.value
-            }
-        }
-        this.source.send(JSON.stringify(p, null, 2))
+        this.feedback("feedback_number", data)
     }
     /**
      * Update parameter boolean on the cluster server
      * @param data Target KeyValue
      */
     feedbackboolean = (data:Setter) => {
-        if(this.source == undefined) return
-        const p:Header = {
-            name: "feedback_boolean",
-            data: {
-                key: data.key,
-                value: data.value
-            }
-        }
-        this.source.send(JSON.stringify(p, null, 2))
+        this.feedback("feedback_boolean", data)
     }
     /**
      * Update parameter string on the cluster server
      * @param data Target KeyValue
      */
     feedbackstring = (data:Setter) => {
+        this.feedback("feedback_string", data)
+    }
+    feedbackobject = (data:Setter) => {
+        this.feedback("feedback_object", data)
+    }
+    feedbacklist = (data:Setter) => {
+        this.feedback("feedback_list", data)
+    }
+    feedbackselect = (data:Setter) => {
+        this.feedback("feedback_select", data)
+    }
+    private feedback = (title:string, data:Setter) => {
         if(this.source == undefined) return
         const p:Header = {
-            name: "feedback_string",
+            name: title,
             data: {
                 key: data.key,
                 value: data.value

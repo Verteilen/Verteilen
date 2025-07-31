@@ -45,7 +45,8 @@ describe('Parser testing (replacePara)', () => {
             { name: 'b1', value: true, type: DataType.Boolean, hidden: false, runtimeOnly: false },
             { name: 'o1', value: { 
                 t: "Test", t2: "Hello",
-                deep: { d: "World" }
+                deep: { d: "World" },
+                data: [ { iframe: 5, p: 5, n: 5 }, { iframe: 10, p: 5, n: 5 } ]
             }, type: DataType.Object, hidden: false, runtimeOnly: false },
             { name: 'Se1', value: 0, meta: [123456], config: { types: [DataTypeBase.Number] }, type: DataType.Select, hidden: false, runtimeOnly: false },
             { name: 'Li1', value: ["Hello", "World"], type: DataType.List, hidden: false, runtimeOnly: false },
@@ -82,6 +83,11 @@ describe('Parser testing (replacePara)', () => {
         expect(e!.replacePara("%o1.t%")).toBe("Test")
         expect(e!.replacePara("%o1.t2%")).toBe("Hello")
         expect(e!.replacePara("%o1.deep.d%")).toBe("World")
+        expect(e!.replacePara("%o1.data.length%")).toBe("2")
+        expect(e!.replacePara("%o1.data.length%")).toBe("2")
+        expect(e!.replacePara("%o1.data.length%")).toBe("2")
+        expect(e!.replacePara("%o1.data.0.iframe%")).toBe("5")
+        expect(e!.replacePara("%o1.data.1.iframe%")).toBe("10")
     })
     test("List replace one", () => {
         expect(e!.replacePara("Hello %Li1.1%")).toBe("Hello World")

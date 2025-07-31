@@ -44,21 +44,31 @@ describe("JS Test", () => {
         js = undefined
     })
     test("Env test getter", () => {
-        expect(js!.JavascriptExecuteWithLib(`result = env.getnumber("n1")`, [])).toBe(7)
-        expect(js!.JavascriptExecuteWithLib(`result = env.getnumber("n2")`, [])).toBe(5)
-        expect(js!.JavascriptExecuteWithLib(`result = env.getstring("s1")`, [])).toBe("Hello World")
-        expect(js!.JavascriptExecuteWithLib(`result = env.getboolean("b1")`, [])).toBe(true)
-        expect(js!.JavascriptExecuteWithLib(`result = env.getnumber("nnn")`, [])).toBe(0)
-        expect(js!.JavascriptExecuteWithLib(`result = env.getstring("sss")`, [])).toBe("")
-        expect(js!.JavascriptExecuteWithLib(`result = env.getboolean("bbb")`, [])).toBe(false)
+        expect(js!.JavascriptExecuteWithLib(`return env.getnumber("n1");`, [])).toBe(7)
+        expect(js!.JavascriptExecuteWithLib(`return env.getnumber("n2");`, [])).toBe(5)
+        expect(js!.JavascriptExecuteWithLib(`return env.getstring("s1");`, [])).toBe("Hello World")
+        expect(js!.JavascriptExecuteWithLib(`return env.getboolean("b1");`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`return env.getnumber("nnn");`, [])).toBe(undefined)
+        expect(js!.JavascriptExecuteWithLib(`return env.getstring("sss");`, [])).toBe(undefined)
+        expect(js!.JavascriptExecuteWithLib(`return env.getboolean("bbb");`, [])).toBe(undefined)
+    })
+    test("Env test loop", () => {
+        expect(js!.JavascriptExecuteWithLib(`
+        result = 0;
+        n = env.getnumber("n2");
+        for(i=0;i<3;i++){
+            result += n;
+        }
+        return result;
+        `, [])).toBe(15)
     })
     test("Env test has", () => {
-        expect(js!.JavascriptExecuteWithLib(`result = env.hasnumber("n1")`, [])).toBe(true)
-        expect(js!.JavascriptExecuteWithLib(`result = env.hasnumber("n2")`, [])).toBe(true)
-        expect(js!.JavascriptExecuteWithLib(`result = env.hasstring("s1")`, [])).toBe(true)
-        expect(js!.JavascriptExecuteWithLib(`result = env.hasboolean("b1")`, [])).toBe(true)
-        expect(js!.JavascriptExecuteWithLib(`result = env.hasnumber("nnn")`, [])).toBe(false)
-        expect(js!.JavascriptExecuteWithLib(`result = env.hasstring("sss")`, [])).toBe(false)
-        expect(js!.JavascriptExecuteWithLib(`result = env.hasboolean("bbb")`, [])).toBe(false)
+        expect(js!.JavascriptExecuteWithLib(`return env.hasnumber("n1");`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`return env.hasnumber("n2");`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`return env.hasstring("s1");`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`return env.hasboolean("b1");`, [])).toBe(true)
+        expect(js!.JavascriptExecuteWithLib(`return env.hasnumber("nnn");`, [])).toBe(false)
+        expect(js!.JavascriptExecuteWithLib(`return env.hasstring("sss");`, [])).toBe(false)
+        expect(js!.JavascriptExecuteWithLib(`return env.hasboolean("bbb");`, [])).toBe(false)
     })
 })

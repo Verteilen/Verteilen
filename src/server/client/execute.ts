@@ -99,6 +99,15 @@ export class ClientExecute {
             else if(msg.name == 'feedbacknumber'){
                 para.feedbacknumber(msg.data)
             }
+            else if(msg.name == 'feedbackobject'){
+                para.feedbackobject(msg.data)
+            }
+            else if(msg.name == 'feedbacklist'){
+                para.feedbacklist(msg.data)
+            }
+            else if(msg.name == 'feedbackselect'){
+                para.feedbackselect(msg.data)
+            }
         }
         const workerFeedback = (str:string) => {
             for(let i = 0; i < str.length; i++){

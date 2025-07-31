@@ -44,6 +44,11 @@ export class Util_Parser {
         for(var key in obj) {
             keys.push([name ? name + "." + key : key, obj[key]]);
             if(typeof obj[key] === "object") {
+                if(Array.isArray(obj[key])) {
+                    if(typeof obj[key]['length'] === 'number'){
+                        keys.push([name ? name + "." + key + ".length" : key + ".length", obj[key]['length']]);
+                    }
+                }
                 var subkeys = this.getDeepKeys(obj[key]);
                 keys = keys.concat(subkeys.map(function(subkey) {
                     return [name ? name + "." + key + "." + subkey[0] : key + "." + subkey[0], subkey[1]];
