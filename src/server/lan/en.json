@@ -235,7 +235,8 @@
     },
     "expression": {
         "title": "Title",
-        "value": "Expression"
+        "value": "Expression",
+        "deep": "Depth"
     },
     "headers": {
         "title": "Title",

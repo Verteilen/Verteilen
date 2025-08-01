@@ -143,6 +143,9 @@ export class Util_Server {
                 else if (p[0] == 'execute') this.console_execute(x.record!.uuid, p[1])
             }
         })
+        const logss = this.logs.logs.filter(x => x.dirty && x.output)
+        logss.forEach(x => x.dirty = false)
+        mainWindow?.webContents.send("logUpdate", JSON.stringify(logss))
         return re
     }
 

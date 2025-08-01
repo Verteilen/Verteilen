@@ -417,6 +417,16 @@ const makeToastFromBackend = (e:string) => {
     emitter?.emit('makeToast', JSON.parse(e))
 }
 
+const logUpdate = (e:string) => {
+  const as:Array<ExecutionLog> = JSON.parse(e)
+  as.forEach(x => {
+    x.dirty = true
+    const index = data.value.logs.logs.findIndex(y => y.uuid == x.uuid)
+    if(index == -1) data.value.logs.logs.push(x)
+    else data.value.logs.logs[index] = x;
+  })
+}
+
 const dataset_init = () => {
   updateTab()
   data.value.title = tabs.value.find(x => x[2] == 0)![1]
@@ -435,6 +445,7 @@ const dataset_init = () => {
     props.backend.eventOn('frontend_update', repull)
   }
   props.backend.eventOn('makeToast', makeToastFromBackend)
+  props.backend.eventOn('logUpdate', logUpdate)
   props.backend.eventOn('msgAppend', msgAppend)
   props.backend.eventOn('console-delete', consoleDelete)
   props.backend.eventOn('createProject', menuCreateProject)
@@ -497,7 +508,19 @@ const dataset_init = () => {
   })
 }
 
+const InitCaller = () => {
+  if(data.value.page > 20){
+    data.value.page = 0
+    return
+  }
+  nextTick(() => {
+    data.value.page += 1
+    InitCaller()
+  })
+}
+
 onMounted(() => {
+  InitCaller()
   document.addEventListener('keydown', hotkey)
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
@@ -540,6 +563,7 @@ onUnmounted(() => {
   props.backend.eventOff('debuglog', debug_feedback)
   props.backend.eventOff('console-delete', consoleDelete)
   props.backend.eventOff('makeToast', makeToastFromBackend)
+  props.backend.eventOff('logUpdate', logUpdate)
   props.backend.eventOff('createProject', menuCreateProject)
   props.backend.eventOff('menu_export_project', menu_export_project)
   props.backend.eventOff('import_project_feedback', import_project_feedback)

@@ -210,6 +210,7 @@ const plugin_remove = (plugin:Plugin) => {
 }
 
 onMounted(() => {
+    console.log("Node Mounted")
     emitter?.on('updateHandle', serverUpdate)
 })
 

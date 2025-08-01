@@ -1,6 +1,6 @@
 {
     "name": "verteilen_node",
-    "version": "0.8.6",
+    "version": "0.8.10",
     "bin": {
         "verteilen_node": "./index.js"
     },

@@ -44,7 +44,10 @@ const categorise:Ref<Array<any>> = ref([])
 const dirty = ref(false)
 
 const hasSelect = computed(() => items.value.filter(x => x.s).length > 0)
-
+const rules = {
+    required: (value:any) => !!value || 'Required.',
+    deep: (value:any) => (typeof value == 'number' && value >= 1) || 'Number must bigger than 0'
+}
 
 const setdirty = () => {
     dirty.value = true
@@ -80,9 +83,24 @@ const expressionNameCheck = (x:string) => {
     return x.length == 0 || x == null || items2.value.filter(y => x == y.name).length >= 2
 }
 
+const upProperty = (index: number) => {
+    setdirty()
+    const buffer = items2.value[index]
+    items2.value[index] = items2.value[index - 1]
+    items2.value[index - 1] = buffer
+}
+
+const downProperty = (index: number) => {
+    setdirty()
+    const buffer = items2.value[index]
+    items2.value[index] = items2.value[index + 1]
+    items2.value[index + 1] = buffer
+}
+
 const deleteProperty = (name:string) => {
-    dirty.value = true
-    items2.value = items2.value.filter(x => x.name != name)
+    setdirty()
+    const index = items2.value.findIndex(x => x.name == name)
+    items2.value.splice(index, 1)
 }
 
 const JobCategoryTranslate = (t:number):string => {
@@ -104,7 +122,7 @@ const createJob = () => {
 }
 
 const createProperty = () => {
-    items2.value.push({name: "default", expression: "1 + 1"})
+    items2.value.push({name: "default", expression: "1 + 1", deep: 1})
     setdirty()
 }
 
@@ -324,16 +342,33 @@ onUnmounted(() => {
                 <h4 class="text-info"> {{ $t('property') }} </h4>
                 <br />
                 <v-row v-for="(c, i) in items2" :key="i">
-                    <v-col cols="3">
+                    <v-col cols="2" class="my-0 py-0">
                         <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
                     </v-col>
-                    <v-col cols="8">
+                    <v-col cols="6" class="my-0 py-0">
                         <v-text-field hide-detail v-model="c.expression" :label="$t('expression.value')" @input="setdirty"></v-text-field>
                     </v-col>
-                    <v-col cols="1" class="mt-1">
-                        <v-btn flat icon @click="deleteProperty(c.name)">
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
+                    <v-col cols="2" class="my-0 py-0">
+                        <v-text-field type="number" :rules="[rules.required, rules.deep]" :min="1" hide-detail v-model.number="c.deep" :label="$t('expression.deep')" @input="setdirty"></v-text-field>
+                    </v-col>
+                    <v-col cols="2" class="my-0 py-0">
+                        <v-row>
+                            <v-col cols="4">
+                                <v-btn flat icon @click="upProperty(i)" :disabled="i == 0">
+                                    <v-icon>mdi-arrow-up</v-icon>
+                                </v-btn>
+                            </v-col>
+                            <v-col cols="4">
+                                <v-btn flat icon @click="downProperty(i)" :disabled="i == items2.length - 1">
+                                    <v-icon>mdi-arrow-down</v-icon>
+                                </v-btn>
+                            </v-col>
+                            <v-col cols="4">
+                                <v-btn flat icon @click="deleteProperty(c.name)">
+                                    <v-icon>mdi-delete</v-icon>
+                                </v-btn>
+                            </v-col>
+                        </v-row>
                     </v-col>
                 </v-row>
             </div>

@@ -26,6 +26,7 @@ const clearMessage = () => {
 }
 
 onMounted(() => {
+  console.log("Self Mounted")
   props.backend.wait_init().then(() => {
     props.backend.eventOn('msgAppend', msgAppend);
   })

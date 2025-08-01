@@ -24,6 +24,7 @@ export interface ParameterContainer {
 export interface Property {
     name: string
     expression: string
+    deep?: number
 }
 
 export interface Parameter {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { PluginList, PluginPageData, PluginPageTemplate } from '../../interface';
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
@@ -102,6 +102,10 @@ const updateTemplate = (pl:PluginPageTemplate) => {
     data.value.loading_template = true
     emits('added-template', pl.name!, pl.url!);
 }
+
+onMounted(() => {
+    console.log("Plugin Mounted")
+})
 
 </script>
 

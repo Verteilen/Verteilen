@@ -234,6 +234,7 @@ const updateLocate = () => {
 }
 
 onMounted(() => {
+    console.log("Project Mounted")
     updateLocate()
     updateFields()
     emitter?.on('updateProject', updateProject)

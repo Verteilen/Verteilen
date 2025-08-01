@@ -5,7 +5,7 @@ import DialogBase from './DialogBase.vue';
 
 const data = defineModel<boolean>()
 const props = defineProps<DialogDATA>()
-    const emits = defineEmits<{
+const emits = defineEmits<{
     (e: 'submit', d:CreateField): void
 }>()
 const buffer:Ref<CreateField> = ref({cronjob: false, cronjobKey: "", title: "", description: "", setupjob: false, multi: false, multiKey: ""})

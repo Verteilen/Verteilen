@@ -370,6 +370,7 @@ const goreturn = () => {
 }
 
 onMounted(() => {
+    console.log("Parameter Mounted")
     updateLocate()
     emitter?.on('updateLocate', updateLocate)
     emitter?.on('updateParameter', updateParameter)

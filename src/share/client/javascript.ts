@@ -25,7 +25,7 @@ export const safeEval = (code:string, context?:any, opts?:vm.RunningCodeInNewCon
             });
         })();
     `
-    code = clearContext + resultKey + '=' + code
+    code = clearContext + resultKey + `=(function(){\n${code}\n})();`
     if (context != undefined) {
         Object.keys(context).forEach(function (key) {
             sandbox[key] = context[key]
@@ -172,7 +172,7 @@ export class ClientJavascript {
                 if(t != undefined) script += ("\n" + t.content + "\n")
             })
         }
-        script += ('pass=0\n' + javascript)
+        script += javascript
         const r = safeEval(script, context)
         return r
     }
@@ -187,7 +187,7 @@ export class ClientJavascript {
         let result = 0
         context = Object.assign(context, { result: result })
         let script = ''
-        script += ('pass=0\n' + javascript)
+        script += javascript
         const r = safeEval(script, context)
         return r
     }
@@ -359,7 +359,7 @@ export class ClientJavascript {
     }
     private set(key:string, value:any){
         const target = this._set(key)
-        if(target == undefined) return undefined
+        if(target == undefined) return
         switch(target.type){
             case DataType.Boolean:
                 this.setboolean(key, value)
@@ -384,7 +384,7 @@ export class ClientJavascript {
     }
     private setboolean(key:string, value:boolean){
         const target = this._set(key, (x) => x == DataType.Boolean)
-        if(target == undefined) return undefined
+        if(target == undefined) return
 
         target.value = value
         para?.feedbackboolean({key:key,value:value})
@@ -395,35 +395,35 @@ export class ClientJavascript {
             return
         }
         const target = this._set(key, (x) => x == DataType.Number)
-        if(target == undefined) return undefined
+        if(target == undefined) return
 
         target.value = value
         para?.feedbacknumber({key:key,value:value})
     }
     private setstring(key:string, value:string){
         const target = this._set(key, (x) => (x == DataType.String || x == DataType.Textarea))
-        if(target == undefined) return undefined
+        if(target == undefined) return
         
         target.value = value
         para?.feedbackstring({key:key,value:value})
     }
     private setobject(key:string, value:any){
         const target = this._set(key, (x) => x == DataType.Object)
-        if(target == undefined) return undefined
+        if(target == undefined) return
         
         target.value = value
         para?.feedbackobject({key:key,value:value})
     }
     private setlist(key:string, value:Array<string>){
         const target = this._set(key, (x) => x == DataType.List)
-        if(target == undefined) return undefined
+        if(target == undefined) return
         
         target.value = value
         para?.feedbackobject({key:key,value:value})
     }
     private setselect(key:string, value:number){
         const target = this._set(key, (x) => x == DataType.Select)
-        if(target == undefined) return undefined
+        if(target == undefined) return
         
         target.value = value
         para?.feedbackobject({key:key,value:value})
