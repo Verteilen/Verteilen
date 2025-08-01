@@ -5,7 +5,7 @@ then
 
 echo "fast mode"
 
-docker build -t e87870823/verteilen_server -f ./scripts/docker_node_fast.Dockerfile . --progress=plain
+docker build -t e87870823/verteilen_server -f ./scripts/docker_server_fast.Dockerfile . --progress=plain
 read -p "Press enter to continue"
 
 elif [[ "$1" == "--publish" ]];
@@ -21,7 +21,7 @@ else
 
 echo "full mode"
 
-docker build -t e87870823/verteilen_server -f ./scripts/docker_node.Dockerfile . --progress=plain
+docker build -t e87870823/verteilen_server -f ./scripts/docker_server.Dockerfile . --progress=plain
 read -p "Press enter to continue"
 
 fi
