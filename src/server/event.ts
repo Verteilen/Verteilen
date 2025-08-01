@@ -108,7 +108,7 @@ export class BackendEvent {
     }
     private save_preference = (socket:ws.WebSocket, preference:string, token?:string) => {
         const pa = path.join(os.homedir(), DATA_FOLDER, "user")
-        if(!fs.existsSync(pa)) fs.mkdirSync(pa)
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true})
         if(token != undefined){
             const target = path.join(pa, token + '.json')
             const p:UserProfile = JSON.parse(fs.readFileSync(target).toString())
@@ -118,7 +118,7 @@ export class BackendEvent {
     }
     private load_preference = (socket:ws.WebSocket, token?:string) => {
         const pa = path.join(os.homedir(), DATA_FOLDER, "user")
-        if(!fs.existsSync(pa)) fs.mkdirSync(pa)
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true})
         if(token != undefined){
             const file = path.join(pa, token + '.json')
             if(fs.existsSync(file)){
@@ -160,7 +160,7 @@ export class BackendEvent {
     Root = () => {
         const pa_root = path.join(os.homedir(), DATA_FOLDER)
         const pa = path.join(pa_root, 'user')
-        if(!fs.existsSync(pa)) fs.mkdirSync(pa);
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true});
         const c = fs.readdirSync(pa).length
         if(c == 0){
             const perl:LocalPermiision = {
@@ -222,7 +222,7 @@ export class BackendEvent {
     GetUserType = (token?:string):UserProfileClient => {
         const pa_root = path.join(os.homedir(), DATA_FOLDER)
         const pa = path.join(pa_root, 'user')
-        if(!fs.existsSync(pa)) fs.mkdirSync(pa);
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true});
         if(token != undefined){
             const target_path = path.join(pa, token + '.json')
             const p:UserProfile = JSON.parse(fs.readFileSync(target_path).toString())
@@ -245,7 +245,7 @@ export class BackendEvent {
     ChangeProfile = (token:string | undefined, data:any) => {
         const pa_root = path.join(os.homedir(), DATA_FOLDER)
         const pa = path.join(pa_root, 'user')
-        if(!fs.existsSync(pa)) fs.mkdirSync(pa);
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true});
         if(token != undefined){
             const target_path = path.join(pa, token + '.json')
             const p:UserProfile = JSON.parse(fs.readFileSync(target_path).toString())
