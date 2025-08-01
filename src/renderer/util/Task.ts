@@ -75,7 +75,7 @@ export class Util_Task {
 
     updateParameter = () => {
         const p = this.select_props
-        this.data.value.para_keys = p?.parameter?.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
+        this.data.value.para_keys = p?.parameter?.containers.filter(x => x.type == DataType.Number || x.type == DataType.Expression).map(x => x.name) ?? []
     }
 
     createProject = () => {

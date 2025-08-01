@@ -1,6 +1,6 @@
 {
     "name": "verteilen_server",
-    "version": "0.8.6",
+    "version": "0.8.10",
     "description": "Compute tool for multi computer",
     "main": "index.js",
     "repository": "https://github.com/Elly2018/Compute-Tool",
