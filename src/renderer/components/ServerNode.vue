@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { AppConfig, computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
 import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ConsolePORT, ExecutePair, FrontendUpdate } from '../interface';
 import { BackendProxy } from '../proxy';
@@ -262,13 +262,23 @@ const msgClean = () => util.self.clearMessage()
 const pluginAdded = (name:string, url:string) => {
   props.backend.invoke("import_plugin", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
     console.log("plugin result", JSON.parse(x))
-    data.value.plugin = JSON.parse(x)
+    nextTick(() => {
+      data.value.plugin = { plugins: [], templates: [] }
+      nextTick(() => {
+        data.value.plugin = JSON.parse(x)
+      })
+    })
   })
 }
 const templateAdded = (name:string, url:string) => {
   props.backend.invoke("import_template", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
     console.log("plugin result", JSON.parse(x))
-    data.value.plugin = JSON.parse(x)
+    nextTick(() => {
+      data.value.plugin = { plugins: [], templates: [] }
+      nextTick(() => {
+        data.value.plugin = JSON.parse(x)
+      })
+    })
   })
 }
 const pluginDelete = (name:string) => {
@@ -508,19 +518,23 @@ const dataset_init = () => {
   })
 }
 
-const InitCaller = () => {
+let delayy = 0
+const InitCaller = (delay:boolean) => {
   if(data.value.page > 20){
     data.value.page = 0
     return
   }
   nextTick(() => {
-    data.value.page += 1
-    InitCaller()
+    if(delayy == 2){
+      data.value.page += 1
+      delayy = 0
+    }
+    delayy += 1
+    InitCaller(delay)
   })
 }
 
 onMounted(() => {
-  InitCaller()
   document.addEventListener('keydown', hotkey)
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
@@ -530,7 +544,11 @@ onMounted(() => {
   emitter?.on('updateLocate', updateLocate)
   emitter?.on('updateHandle', updateHandleCall)
 
+  if(props.backend.config.haveBackend){
+    InitCaller(true)
+  }
   props.backend.wait_init().then(() => {
+    InitCaller(!props.backend.config.isElectron)
     props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
       props.backend.consoleM = new ConsoleManager(`ws://${window.location.hostname}:${ConsolePORT}/server`, messager_log, {
