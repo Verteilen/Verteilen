@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair, RENDER_UPDATETICK, BusAnalysis, WebsocketPack, Header } from "../../interface"
+import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair, RENDER_UPDATETICK, BusAnalysis, WebsocketPack, Header, DATA_FOLDER } from "../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
 import { WebsocketManager } from "../../script/socket_manager"
 import { Util_Server_Console, Util_Server_Console_Proxy } from "./console_handle"
@@ -8,7 +8,10 @@ import { messager, messager_log } from "../../debugger"
 import { Util_Server_Log_Proxy } from "./log_handle"
 import { i18n } from "../../plugins/i18n"
 import { TypeMap } from "../loader"
-import ws from 'ws'
+import * as fs from 'fs';
+import * as ws from 'ws'
+import * as path from 'path';
+import * as os from 'os';
 
 export type save_and_update = () => void
 
@@ -226,7 +229,7 @@ export class Util_Server {
         em.proxy = this.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
         const r = this.console.receivedPack(p, record)
         if(r) this.execute_manager.push(p)
-            const h:Header = {
+        const h:Header = {
             name: "console_add-feedback",
             data: r ? er : undefined
         }
@@ -262,6 +265,12 @@ export class Util_Server {
                 else if (p[0] == 'skip') this.console_skip(undefined, x.record!.uuid, p[1], p[2])
                 else if (p[0] == 'execute') this.console_execute(undefined, x.record!.uuid, p[1])
             }
+        })
+        const logss = this.logs.logs.filter(x => x.dirty && x.output)
+        logss.forEach(x => {
+            x.dirty = false
+            const filename = path.join(os.homedir(), DATA_FOLDER, "log", `${x.uuid}.json`)
+            fs.writeFileSync(filename, JSON.stringify(x, null, 4))
         })
         return re
     }

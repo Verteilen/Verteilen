@@ -284,6 +284,7 @@ const stop = () => {
 //#endregion
 
 onMounted(() => {
+    console.log("Console Mounted")
     emitter?.on('updateHandle', updateHandle)
 })
 

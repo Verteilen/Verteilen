@@ -30,6 +30,7 @@ const updateLocate = () => {
 }
 
 onMounted(() => {
+    console.log("Role Mounted")
     updateLocate()
     updateFields()
     emitter?.on('updateLocate', updateLocate)

@@ -137,6 +137,7 @@ const save = () => {
 }
 
 onMounted(() => {
+    console.log("Library Mounted")
     props.backend.eventOn('javascript-feedback', javascriptFeedback)
 })
 

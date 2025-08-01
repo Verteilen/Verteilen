@@ -100,6 +100,7 @@ const exportConfirm = (mode:number) => {
 }
 
 onMounted(() => {
+    console.log("Log Mounted")
     emitter?.on('slowUpdateHandle', slowUpdateHandle)
 })
 

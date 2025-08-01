@@ -235,7 +235,8 @@
     },
     "expression": {
         "title": "標題",
-        "value": "表達式"
+        "value": "表達式",
+        "deep": "深度"
     },
     "headers": {
         "title": "名稱",

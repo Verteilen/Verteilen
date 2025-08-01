@@ -168,10 +168,11 @@ const goreturn = () => {
 }
 
 onMounted(() => {
+    console.log("Task Mounted")
     updateFields()
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateLocate', updateLocate)
-    data.value.para_keys = props.select?.parameter?.containers.filter(x => x.type == DataType.Number).map(x => x.name) ?? []
+    data.value.para_keys = props.select?.parameter?.containers.filter(x => x.type == DataType.Number || x.type == DataType.Expression).map(x => x.name) ?? []
 })
 
 onUnmounted(() => {

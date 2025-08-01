@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ref, ref } from 'vue';
+import { onMounted, Ref, ref } from 'vue';
 import { BackendProxy } from '../../proxy';
 import { DATA } from '../../util/profile';
 import { UserType } from '../../interface';
@@ -56,6 +56,10 @@ const ImportConfirm = async () => {
         data.value.importModal = false
     })
 }
+
+onMounted(() => {
+    console.log("Profile Mounted")
+})
 
 </script>
 
