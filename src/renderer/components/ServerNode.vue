@@ -389,15 +389,19 @@ const onAnalysis = (d:BusAnalysis) => {
 const popSetting = () => { emitter?.emit('setting') }
 
 const hotkey = (event:KeyboardEvent) => {
-  if (event.altKey && Number(event.key) >= 1 && Number(event.key) <= 7) {
+  if (event.altKey) {
     event.preventDefault()
-    if(event.key == "1") data.value.page = 0
-    else if(event.key == "2") data.value.page = 1
-    else if(event.key == "3") data.value.page = 2
-    else if(event.key == "4") data.value.page = 3
-    else if(event.key == "5") data.value.page = 4
-    else if(event.key == "6") data.value.page = 5
-    else if(event.key == "7") data.value.page = 6
+    console.log(event.key)
+    if(event.key == 'p') data.value.page = 0 // Project
+    else if(event.key == 't') data.value.page = 1 // Task
+    else if(event.key == 'j') data.value.page = 2 // Job
+    else if(event.key == 'v') data.value.page = 3 // Parameter
+    else if(event.key == 'n') data.value.page = 4 // Node
+    else if(event.key == 'c') data.value.page = 5 // Console
+    else if(event.key == 'l') data.value.page = 6 // Log
+    else if(event.key == 'q') data.value.page = 7 // Library
+    else if(event.key == 'e') data.value.page = 8 // Self
+    else if(event.key == 'r' && data.value.page == 5) emitter?.emit('hotkey', 'c_r') // Restore console
   }
 }
 
