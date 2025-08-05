@@ -336,13 +336,14 @@ export class Util_Server {
                 console.log("Skip project, index: %d, next count: %d", index, count)
             }
         }else if (type == 1){
+            const begining = target.record!.task_state[0].state == ExecuteState.NONE
             // Task
-            target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+            if(!begining) target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
             target.record!.task_index += 1
             if(target.record!.task_index == target.record!.task_state.length) {
                 this.console_skip(socket, uuid, 0)
             }else{
-                target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+                if(!begining) target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
                 target.record!.task_detail = []
                 const p = target.record!.projects[target.record!.project_index]
                 const t = p.task[target.record!.task_index]
