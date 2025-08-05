@@ -426,9 +426,9 @@ const repull = (u:FrontendUpdate) => {
   return c
 }
 
-const makeToastFromBackend = (e:string) => {
+const makeToastFromBackend = (e:any) => {
     console.log("makeToastFromBackend", e)
-    emitter?.emit('makeToast', JSON.parse(e))
+    emitter?.emit('makeToast', e)
 }
 
 const logUpdate = (e:string) => {
