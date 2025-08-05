@@ -13,6 +13,7 @@
         "vue-i18n": "^10.0.5",
         "progress": "^2.0.3",
         "byte-size": "^9.0.1",
-        "nodejs-file-downloader": "^4.13.0"
+        "nodejs-file-downloader": "^4.13.0",
+        "argparse": "^2.0.1"
     }
 }

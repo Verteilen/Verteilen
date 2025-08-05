@@ -25,7 +25,6 @@ export class Util_Server {
 
     backend: BackendEvent
     console:Util_Server_Console
-    preference:Preference | undefined
     config:AppConfig | undefined
     updatehandle: any
     re: Array<any> = []
@@ -196,7 +195,7 @@ export class Util_Server {
         target.manager!.Stop()
     }
 
-    private console_add = (socket:ws.WebSocket, name:string, record:Record) => {
+    private console_add = (socket:ws.WebSocket, name:string, record:Record, preference:Preference) => {
         record.projects.forEach(x => x.uuid = uuidv6())
         const em:ExecuteManager = new ExecuteManager(
             name,
@@ -225,7 +224,7 @@ export class Util_Server {
         em.libs = this.libs
         const p:ExecutePair = { manager: em, record: er }
         const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
-        const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, this.logs, this.preference!)
+        const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, this.logs, preference!)
         em.proxy = this.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
         const r = this.console.receivedPack(p, record)
         if(r) this.execute_manager.push(p)

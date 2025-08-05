@@ -1,6 +1,6 @@
 {
   "name": "verteilen",
-  "version": "0.8.10",
+  "version": "0.8.11",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
@@ -35,6 +35,7 @@
     "@iconify-json/fa": "^1.2.1",
     "@iconify-json/mdi": "^1.2.3",
     "@mdi/font": "^7.4.47",
+    "@types/argparse": "^2.0.17",
     "@types/bcrypt": "^5.0.2",
     "@types/body-parser": "^1.19.6",
     "@types/byte-size": "^8.1.2",
@@ -70,6 +71,7 @@
     "@codemirror/lint": "^6.8.5",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@intlify/devtools-types": "^11.1.1",
+    "argparse": "^2.0.1",
     "bcrypt": "^5.1.1",
     "body-parser": "^2.2.0",
     "browser-or-node": "^3.0.0",

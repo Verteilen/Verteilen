@@ -166,7 +166,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
         if(type == 2) {
             data.value.skipModal = true
         }else{
-            props.backend.send('console_skip', model.value.record?.uuid, type, state)
+            props.backend.send('console_skip', model.value.record?.uuid, type, state, props.backend.config.isExpress ? "" : undefined)
         }
     }else{
         if(type == 0){
