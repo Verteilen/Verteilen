@@ -161,11 +161,12 @@ const execute = (type:number) => {
  * @param state The override state, default is FINISH
  */
 const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
+    console.log("skip", type, state)
     if(props.backend.config.haveBackend){
         if(type == 2) {
             data.value.skipModal = true
         }else{
-            props.backend.send('console_skip', model.value.record?.uuid, type, state)
+            props.backend.send('console_skip', model.value.record?.uuid, type, state, props.backend.config.isExpress ? "" : undefined)
         }
     }else{
         if(type == 0){
@@ -199,13 +200,14 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                 console.log("Skip project, index: %d, next count: %d", index, count)
             }
         }else if (type == 1){
+            const begining = model.value.record!.task_state[0].state == ExecuteState.NONE
             // Task
-            model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+            if(!begining) model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
             model.value.record!.task_index += 1
             if(model.value.record!.task_index == model.value.record!.task_state.length) {
                 skip(0)
             }else{
-                model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+                if(!begining) model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
                 model.value.record!.task_detail = []
                 const p = model.value.record!.projects[model.value.record!.project_index]
                 const t = p.task[model.value.record!.task_index]

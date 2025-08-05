@@ -120,6 +120,7 @@ export type BusType = {
 
     analysis: BusAnalysis
     debuglog: string
+    hotkey: string
     isExpress: boolean
 
     delay: Setter

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, Parameter, Preference, Project, Task } from '../../interface';
+import { BusType, DataType, Parameter, Preference, Project, Task, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, Util_Task } from '../../util/Task';
 import TaskDialog from '../dialog/TaskDialog.vue';
@@ -61,8 +61,11 @@ const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_task_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
 const para_title = computed(() => props.parameters.find(x => x.uuid == props.select?.parameter_uuid)?.title)
 
-const updateTask = () => util.updateTask()
 const updateParameter = () => util.updateParameter()
+const updateTask = () => {
+    util.updateTask()
+    updateParameter()
+}
 const createProject = () => util.createProject()
 const detailOpen = () => emits('parameter', props.select!.parameter_uuid)
 
@@ -143,6 +146,19 @@ const movedown = (uuid:string) => {
     })
 }
 
+const TaskType = (item:TaskTable) => {
+    if(!item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('normaljob')
+    else if(item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('setupjob')
+    else if(!item.setupjob && item.cronjob && !item.multi) return i18n.global.t('cronjob')
+    else return i18n.global.t('multicore')
+}
+const TaskTypeColor = (item:TaskTable) => {
+    if(!item.setupjob && !item.cronjob && !item.multi) return ''
+    else if(item.setupjob && !item.cronjob && !item.multi) return 'warning'
+    else if(!item.setupjob && item.cronjob && !item.multi) return 'info'
+    else return 'success'
+}
+
 const isFirst = (uuid:string) => util.isFirst(uuid)
 const isLast = (uuid:string) => util.isLast(uuid)
 
@@ -152,8 +168,7 @@ const updateFields = () => {
         { title: 'Order', align: 'center', key: 'Order' },
         { title: i18n.global.t('headers.title'), align: 'center', key: 'title' },
         { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
-        { title: i18n.global.t('headers.cronjob'), align: 'center', key: 'cronjob' },
-        { title: i18n.global.t('headers.multi'), align: 'center', key: 'multi' },
+        { title: i18n.global.t('headers.type'), align: 'center', key: 'type' },
         { title: i18n.global.t('headers.job-count'), align: 'center', key: 'jobCount' },
         { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail' },
     ]
@@ -172,7 +187,6 @@ onMounted(() => {
     updateFields()
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateLocate', updateLocate)
-    data.value.para_keys = props.select?.parameter?.containers.filter(x => x.type == DataType.Number || x.type == DataType.Expression).map(x => x.name) ?? []
 })
 
 onUnmounted(() => {
@@ -255,11 +269,8 @@ onUnmounted(() => {
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
                 </template>
-                <template v-slot:item.cronjob="{ item }">
-                    <v-chip :color="(item.cronjob || item.setupjob) ? 'success' : 'error'">{{ item.cronjob || item.setupjob }}</v-chip>
-                </template>
-                <template v-slot:item.multi="{ item }">
-                    <v-chip :color="item.multi ? 'success' : 'error'">{{ item.multi }}</v-chip>
+                <template v-slot:item.type="{ item }">
+                    <v-chip :color="TaskTypeColor(item)">{{ TaskType(item) }}</v-chip>
                 </template>
             </v-data-table>
         </div>

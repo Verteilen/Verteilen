@@ -45,6 +45,9 @@ export class BackendProxy {
                     fetch('/pic').then(x => {
                         this.user!.picture_url = x.ok
                         resolve()
+                    }).catch(() => {
+                        this.user!.picture_url = false
+                        resolve()
                     })
                 }else{
                     resolve()

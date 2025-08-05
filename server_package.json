@@ -1,6 +1,6 @@
 {
     "name": "verteilen_server",
-    "version": "0.8.6",
+    "version": "0.8.10",
     "description": "Compute tool for multi computer",
     "main": "index.js",
     "repository": "https://github.com/Elly2018/Compute-Tool",
@@ -14,6 +14,7 @@
         "express": "^4.21.2",
         "tcp-port-used": "^1.0.2",
         "ws": "^8.18.0",
-        "vue-i18n": "^10.0.5"
+        "vue-i18n": "^10.0.5",
+        "uuid": "^11.0.5"
     }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { AppConfig, computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
 import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ConsolePORT, ExecutePair, FrontendUpdate } from '../interface';
 import { BackendProxy } from '../proxy';
@@ -262,13 +262,23 @@ const msgClean = () => util.self.clearMessage()
 const pluginAdded = (name:string, url:string) => {
   props.backend.invoke("import_plugin", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
     console.log("plugin result", JSON.parse(x))
-    data.value.plugin = JSON.parse(x)
+    nextTick(() => {
+      data.value.plugin = { plugins: [], templates: [] }
+      nextTick(() => {
+        data.value.plugin = JSON.parse(x)
+      })
+    })
   })
 }
 const templateAdded = (name:string, url:string) => {
   props.backend.invoke("import_template", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
     console.log("plugin result", JSON.parse(x))
-    data.value.plugin = JSON.parse(x)
+    nextTick(() => {
+      data.value.plugin = { plugins: [], templates: [] }
+      nextTick(() => {
+        data.value.plugin = JSON.parse(x)
+      })
+    })
   })
 }
 const pluginDelete = (name:string) => {
@@ -379,15 +389,19 @@ const onAnalysis = (d:BusAnalysis) => {
 const popSetting = () => { emitter?.emit('setting') }
 
 const hotkey = (event:KeyboardEvent) => {
-  if (event.altKey && Number(event.key) >= 1 && Number(event.key) <= 7) {
+  if (event.altKey) {
     event.preventDefault()
-    if(event.key == "1") data.value.page = 0
-    else if(event.key == "2") data.value.page = 1
-    else if(event.key == "3") data.value.page = 2
-    else if(event.key == "4") data.value.page = 3
-    else if(event.key == "5") data.value.page = 4
-    else if(event.key == "6") data.value.page = 5
-    else if(event.key == "7") data.value.page = 6
+    console.log(event.key)
+    if(event.key == 'p') data.value.page = 0 // Project
+    else if(event.key == 't') data.value.page = 1 // Task
+    else if(event.key == 'j') data.value.page = 2 // Job
+    else if(event.key == 'v') data.value.page = 3 // Parameter
+    else if(event.key == 'n') data.value.page = 4 // Node
+    else if(event.key == 'c') data.value.page = 5 // Console
+    else if(event.key == 'l') data.value.page = 6 // Log
+    else if(event.key == 'q') data.value.page = 7 // Library
+    else if(event.key == 'e') data.value.page = 8 // Self
+    else if(event.key == 'r' && data.value.page == 5) emitter?.emit('hotkey', 'c_r') // Restore console
   }
 }
 
@@ -412,9 +426,9 @@ const repull = (u:FrontendUpdate) => {
   return c
 }
 
-const makeToastFromBackend = (e:string) => {
+const makeToastFromBackend = (e:any) => {
     console.log("makeToastFromBackend", e)
-    emitter?.emit('makeToast', JSON.parse(e))
+    emitter?.emit('makeToast', e)
 }
 
 const logUpdate = (e:string) => {
@@ -508,19 +522,23 @@ const dataset_init = () => {
   })
 }
 
-const InitCaller = () => {
+let delayy = 0
+const InitCaller = (delay:boolean) => {
   if(data.value.page > 20){
     data.value.page = 0
     return
   }
   nextTick(() => {
-    data.value.page += 1
-    InitCaller()
+    if(delayy == 2){
+      data.value.page += 1
+      delayy = 0
+    }
+    delayy += 1
+    InitCaller(delay)
   })
 }
 
 onMounted(() => {
-  InitCaller()
   document.addEventListener('keydown', hotkey)
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
@@ -530,7 +548,11 @@ onMounted(() => {
   emitter?.on('updateLocate', updateLocate)
   emitter?.on('updateHandle', updateHandleCall)
 
+  if(props.backend.config.haveBackend){
+    InitCaller(true)
+  }
   props.backend.wait_init().then(() => {
+    InitCaller(!props.backend.config.isElectron)
     props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
       props.backend.consoleM = new ConsoleManager(`ws://${window.location.hostname}:${ConsolePORT}/server`, messager_log, {

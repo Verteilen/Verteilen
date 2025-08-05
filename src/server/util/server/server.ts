@@ -25,7 +25,6 @@ export class Util_Server {
 
     backend: BackendEvent
     console:Util_Server_Console
-    preference:Preference | undefined
     config:AppConfig | undefined
     updatehandle: any
     re: Array<any> = []
@@ -196,7 +195,7 @@ export class Util_Server {
         target.manager!.Stop()
     }
 
-    private console_add = (socket:ws.WebSocket, name:string, record:Record) => {
+    private console_add = (socket:ws.WebSocket, name:string, record:Record, preference:Preference) => {
         record.projects.forEach(x => x.uuid = uuidv6())
         const em:ExecuteManager = new ExecuteManager(
             name,
@@ -225,7 +224,7 @@ export class Util_Server {
         em.libs = this.libs
         const p:ExecutePair = { manager: em, record: er }
         const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
-        const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, this.logs, this.preference!)
+        const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, this.logs, preference!)
         em.proxy = this.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
         const r = this.console.receivedPack(p, record)
         if(r) this.execute_manager.push(p)
@@ -336,13 +335,14 @@ export class Util_Server {
                 console.log("Skip project, index: %d, next count: %d", index, count)
             }
         }else if (type == 1){
+            const begining = target.record!.task_state[0].state == ExecuteState.NONE
             // Task
-            target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+            if(!begining) target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
             target.record!.task_index += 1
             if(target.record!.task_index == target.record!.task_state.length) {
                 this.console_skip(socket, uuid, 0)
             }else{
-                target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+                if(!begining) target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
                 target.record!.task_detail = []
                 const p = target.record!.projects[target.record!.project_index]
                 const t = p.task[target.record!.task_index]

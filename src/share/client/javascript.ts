@@ -54,6 +54,7 @@ const runtime = () => getjob!?.()?.runtime_uuid ?? 'unknown'
 
 export class ClientJavascript {
 
+    waiting: number = 0
     path: any
     os:any
     env:any
@@ -159,7 +160,7 @@ export class ClientJavascript {
      * @param libs Libraries header names
      * @returns Calcuate result
      */
-    JavascriptExecuteWithLib = (javascript:string, libs:Array<string>, log?:Messager) => {
+    JavascriptExecuteWithLib = (javascript:string, libs:Array<string>, log?:Messager):Promise<any> => {
         let context = this.getJavascriptEnv(JavascriptLib.ALL, log)
         let result = 0
         context = Object.assign(context, { result: result })
@@ -174,7 +175,16 @@ export class ClientJavascript {
         }
         script += javascript
         const r = safeEval(script, context)
-        return r
+
+        return new Promise<any>((resolve) => {
+            let handle:any = undefined
+            handle = setInterval(() => {
+                if(this.waiting == 0){
+                    clearInterval(handle)
+                    resolve(r)
+                }
+            }, 100);
+        })
     }
 
     /**
@@ -182,14 +192,22 @@ export class ClientJavascript {
      * @param js js script text
      * @returns Calcuate result
      */
-    JavascriptExecute = (javascript:string, log?:Messager) => {
+    JavascriptExecute = (javascript:string, log?:Messager):Promise<any> => {
         let context = this.getJavascriptEnv(JavascriptLib.OS | JavascriptLib.MESSAGE | JavascriptLib.HTTP | JavascriptLib.PATH, log)
         let result = 0
         context = Object.assign(context, { result: result })
         let script = ''
         script += javascript
         const r = safeEval(script, context)
-        return r
+        return new Promise<any>((resolve) => {
+            let handle:any = undefined
+            handle = setInterval(() => {
+                if(this.waiting == 0){
+                    clearInterval(handle)
+                    resolve(r)
+                }
+            }, 100);
+        })
     }
 
     private getJavascriptEnv(flags:JavascriptLib = JavascriptLib.ALL, log?:Messager){
@@ -235,20 +253,34 @@ export class ClientJavascript {
         return path.dirname(p)
     }
     private exec(command:string, args:string, cwd?:string){
+        this.waiting = this.waiting + 1
         clientos?.command_exec(command, args, cwd)
+        this.waiting = this.waiting - 1
     }
     private command(command:string, args:string, cwd?:string){
-        clientos?.command_sync(command, args, cwd)
+        this.waiting = this.waiting + 1
+        return clientos?.command_sync(command, args, cwd).then(() => {
+            this.waiting = this.waiting - 1
+        }).catch(() => {
+            this.waiting = this.waiting - 1
+        })
     }
     private plugin_exec(command:string, args:string){
+        this.waiting = this.waiting + 1
         const cwd = path.join(os.homedir(), DATA_FOLDER, 'exe')
         const cc = process.platform == "win32" ? command : "./" + command
         clientos?.command_exec(cc, args, cwd)
+        this.waiting = this.waiting - 1
     }
     private plugin_command(command:string, args:string){
+        this.waiting = this.waiting + 1
         const cwd = path.join(os.homedir(), DATA_FOLDER, 'exe')
         const cc = process.platform == "win32" ? command : "./" + command
-        return clientos?.command_sync(cc, args, cwd)
+        return clientos?.command_sync(cc, args, cwd).then(() => {
+            this.waiting = this.waiting - 1
+        }).catch(() => {
+            this.waiting = this.waiting - 1
+        })
     }
     private copyfile(from:string, to:string){
         clientos?.file_copy({from:from,to:to})

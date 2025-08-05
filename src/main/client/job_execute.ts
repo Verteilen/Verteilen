@@ -176,7 +176,7 @@ export class ClientJobExecute {
      * @returns Promise instance
      */
     private execute_job_con = () => {
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<string>(async (resolve, reject) => {
             switch(this.job.type as JobType2){
                 case JobType2.CHECK_PATH:
                     {
@@ -190,7 +190,7 @@ export class ClientJobExecute {
                     }
                 case JobType2.JAVASCRIPT:
                     {
-                        const r = this.javascript.JavascriptExecuteWithLib(this.job.script, this.job.string_args)
+                        const r = await this.javascript.JavascriptExecuteWithLib(this.job.script, this.job.string_args)
                         if(r != undefined && r == 0){
                             resolve(`Execute Javascript successfully`)
                         }else{

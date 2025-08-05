@@ -72,7 +72,7 @@ describe("Express Test", () => {
         expect(job.string_args[2]).toBe("19")
     })
     test("Nest getter", () => {
-        const job:Job = generateJob(["%POS%", "Hello %POS_Deep%"])
+        const job:Job = generateJob(["%POS%", "Hello %POS_Deep%", "%POS_Deepp%"])
         const task:Task = generateTask(job, [
             {
                 name: "POS",
@@ -82,11 +82,16 @@ describe("Express Test", () => {
                 name: "POS_Deep",
                 expression: "POS",
                 deep: 2
+            },
+            {
+                name: "POS_Deepp",
+                expression: "POS_Deep + 1"
             }
         ])
         ExecuteManager_Base.string_args_transform(task, job, (str) => console.log(str), parameter!, 1)
         expect(job.string_args[0]).toBe("b1.data.1.p")
         expect(job.string_args[1]).toBe("Hello 122")
+        expect(job.string_args[2]).toBe("123")
     })
     test("Cronjob Key Testing", () => {
         expect(ExecuteManager_Base.get_number_global("e1", parameter)).toBe(12)
