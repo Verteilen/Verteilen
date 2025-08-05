@@ -171,7 +171,7 @@ const libJs = (code:string) => { props.backend.send('javascript', code) }
 const consoleAdded = (name:string, record:Record) => {
   if(props.backend.config.haveBackend){
     // If we have backend, the instance should be place in the backend
-    props.backend.invoke('console_add', name, record).then(r => {
+    props.backend.invoke('console_add', name, record, props.backend.config.isExpress ? props.preference : undefined).then(r => {
       if(r != undefined){
         data.value.execute_manager.push({ record: r })
         data.value.select_manager = data.value.execute_manager.length - 1
@@ -391,8 +391,7 @@ const popSetting = () => { emitter?.emit('setting') }
 const hotkey = (event:KeyboardEvent) => {
   if (event.altKey) {
     event.preventDefault()
-    console.log(event.key)
-    if(event.key == 'p') data.value.page = 0 // Project
+    if(event.key == 'a') data.value.page = 0 // Project
     else if(event.key == 't') data.value.page = 1 // Task
     else if(event.key == 'j') data.value.page = 2 // Job
     else if(event.key == 'v') data.value.page = 3 // Parameter

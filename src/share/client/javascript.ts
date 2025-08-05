@@ -179,7 +179,7 @@ export class ClientJavascript {
         return new Promise<any>((resolve) => {
             let handle:any = undefined
             handle = setInterval(() => {
-                if(waiting == 0 && time > 5){
+                if(waiting == 0 && time > 1){
                     clearInterval(handle)
                     resolve(r)
                 }
@@ -206,7 +206,7 @@ export class ClientJavascript {
         return new Promise<any>((resolve) => {
             let handle:any = undefined
             handle = setInterval(() => {
-                if(waiting == 0 && time > 5){
+                if(waiting == 0 && time > 1){
                     clearInterval(handle)
                     resolve(r)
                 }
