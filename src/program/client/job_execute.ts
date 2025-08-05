@@ -75,7 +75,7 @@ export class ClientJobExecute {
      * @returns Promise instance
      */
     private execute_job_exe = () => {
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<string>(async (resolve, reject) => {
             switch(this.job.type as JobType){
                 case JobType.COPY_FILE:
                     {
@@ -128,12 +128,11 @@ export class ClientJobExecute {
                     }
                 case JobType.JAVASCRIPT:
                     {
-                        try{
-                            this.javascript.JavascriptExecuteWithLib(this.job.script, this.job.string_args)
-                        }catch(k:any){
+                        await this.javascript.JavascriptExecuteWithLib(this.job.script, this.job.string_args).then(() => {
+                            resolve(`Execute Javascript successfully`)
+                        }).catch(k => {
                             reject(k.message)
-                        }
-                        resolve(`Execute Javascript successfully`)
+                        })
                         break
                     }
                 case JobType.COMMAND:
