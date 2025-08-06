@@ -59,6 +59,7 @@ const execute_job = () => {
     const p:PluginList = JSON.parse(process.env.plugin)
     const worker = new ClientJobExecute(messager, messager_log, d, undefined, p)
     worker.execute().then(x => {
+        messager_log(x)
         process.exit(0)
     })
     .catch(err => ERROR(err))
