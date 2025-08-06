@@ -61,7 +61,7 @@ const parser = computed(() => {
     return u
 })
 const replaceString = (v:string) => {
-    if(v.length == 0) return v
+    if(v == undefined || v.length == 0) return v
     return parser.value.replacePara(v)
 }
 const rules = {

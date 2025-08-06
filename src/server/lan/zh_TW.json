@@ -113,7 +113,9 @@
         "delete-plugin": "刪除插件",
         "delete-template": "刪除樣板",
         "delete-plugin-confirm": "確定刪除選取的插件嗎?",
-        "delete-template-confirm": "確定刪除選取的樣板嗎?"
+        "delete-template-confirm": "確定刪除選取的樣板嗎?",
+        "delete-job": "刪除工作",
+        "delete-job-confirm": "確定刪除選取的工作嗎?"
     },
     "toolbar": {
         "server": "伺服器",
