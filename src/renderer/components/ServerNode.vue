@@ -820,5 +820,6 @@ onUnmounted(() => {
   align-content: center;
   align-self: center;
   text-align: center;
+  top: 0px;
 }
 </style>
