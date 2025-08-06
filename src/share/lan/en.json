@@ -308,5 +308,6 @@
     "setting": "Setting",
     "guide": "Guide",
     "plugin": "Plugin",
-    "template": "Template"
+    "template": "Template",
+    "loading": "Loading"
 }

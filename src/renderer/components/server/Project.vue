@@ -30,6 +30,7 @@ const emits = defineEmits<{
 }>()
 const data:Ref<DATA> = ref({
     items: [],
+    itemPrePage: -1,
     fields: [],
     importModal: false,
     importData: [],
@@ -306,19 +307,11 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="pt-3">
-            <v-data-table style="background: transparent" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-tooltip location="bottom">
-                        <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="datachoose(item.ID)" size="small">
-                                <v-icon>mdi-location-enter</v-icon>
-                            </v-btn>
-                        </template>
-                        {{ $t('enter') }}
-                    </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
                             <v-btn variant="text" v-bind="props" flat icon @click="dataedit(item.ID)" size="small">

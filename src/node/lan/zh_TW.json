@@ -308,5 +308,6 @@
     "setting": "設定",
     "guide": "指南",
     "plugin": "插件",
-    "template": "樣板"
+    "template": "樣板",
+    "loading": "讀取中"
 }

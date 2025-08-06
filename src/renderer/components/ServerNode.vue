@@ -42,6 +42,7 @@ const data:Ref<DATA> = ref({
     websocket_manager: undefined,
     execute_manager: [],
 
+    loading: true,
     drawer: false,
     title: "",
     page: 0,
@@ -525,6 +526,9 @@ let delayy = 0
 const InitCaller = (delay:boolean) => {
   if(data.value.page > 20){
     data.value.page = 0
+    setTimeout(() => {
+      data.value.loading = false
+    }, 800);
     return
   }
   nextTick(() => {
@@ -548,9 +552,11 @@ onMounted(() => {
   emitter?.on('updateHandle', updateHandleCall)
 
   if(props.backend.config.haveBackend){
+    data.value.loading = true
     InitCaller(true)
   }
   props.backend.wait_init().then(() => {
+    data.value.loading = true
     InitCaller(!props.backend.config.isElectron)
     props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
@@ -572,6 +578,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  data.value.loading = true
   document.removeEventListener('keydown', hotkey)
   data.value.execute_manager = []
   emitter?.off('updateNode', server_clients_update)
@@ -595,6 +602,9 @@ onUnmounted(() => {
 
 <template>
   <v-container fluid class="pa-0 ma-0">
+    <div v-if="data.loading" class="loading">
+      <p>{{ $t('loading') }}</p>
+    </div>
     <v-layout>
       <v-app-bar :elevation="2" class="text-left">
         <template v-slot:prepend>
@@ -775,5 +785,18 @@ onUnmounted(() => {
 }
 .bg-light {
   background-image: linear-gradient(to bottom, rgb(240, 240, 240), rgb(240, 255, 245));
+}
+.loading {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  padding: auto auto;
+  margin: auto auto;
+  background-color: rgba(1, 1, 1, 1);
+  z-index: 10000;
+  align-items: center;
+  align-content: center;
+  align-self: center;
+  text-align: center;
 }
 </style>
