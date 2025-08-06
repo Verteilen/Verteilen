@@ -394,7 +394,6 @@ const popSetting = () => { emitter?.emit('setting') }
 
 const hotkey = (event:KeyboardEvent) => {
   if (event.altKey) {
-    event.preventDefault()
     if(event.key == 'q') data.value.page = 0 // Project
     else if(event.key == 'w') data.value.page = 1 // Task
     else if(event.key == 'e') data.value.page = 2 // Job
@@ -405,10 +404,11 @@ const hotkey = (event:KeyboardEvent) => {
     else if(event.key == 'f') data.value.page = 7 // Library
     else if(event.key == 'g') data.value.page = 11 // Plugin
     else if(event.key == 'z') data.value.page = 8 // Self
+    else if(event.key == 'x') data.value.page = 9 // Role
+    else if(event.key == 'c') data.value.page = 10 // Service
     else if(event.key == 'x' && data.value.page == 5) emitter?.emit('hotkey', 'c_r') // Restore console
   }
   if (event.ctrlKey) {
-    event.preventDefault()
     if(event.key == 'a' && data.value.page == 0) emitter?.emit('hotkey', 'create_project')
     if(event.key == 'a' && data.value.page == 1) emitter?.emit('hotkey', 'create_task')
     if(event.key == 'a' && data.value.page == 2) emitter?.emit('hotkey', 'create_job')
@@ -484,8 +484,9 @@ const dataset_init = () => {
   props.backend.send('menu', true)
   if(!props.backend.config.haveBackend) return
   props.backend.send('client_start');
-  const p0 = props.backend.invoke('console_list').then((xs:Array<any>) => {
-    data.value.execute_manager = xs.map(x => ({ record: x }))
+  const p0 = props.backend.invoke('console_list').then((xs:any) => {
+    if(xs == undefined) xs = []
+    data.value.execute_manager = Array.isArray(xs) ? xs.map(x => ({ record: x })) : [{record: xs}]
     console.log("execute", data.value.execute_manager)
   })
   const p1 = props.backend.invoke('load_all_node').then(x => {

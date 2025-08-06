@@ -132,8 +132,8 @@
         "library": "運行庫 (F)",
         "client": "客戶端 (Z)",
         "setting": "設定",
-        "role": "權限組",
-        "service": "服務",
+        "role": "權限組 (X)",
+        "service": "服務 (C)",
         "plugin": "插件 (G)",
         "profile": "個人資料"
     },

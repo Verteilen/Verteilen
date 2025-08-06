@@ -132,8 +132,8 @@
         "library": "Library (F)",
         "client": "Self (Z)",
         "setting": "Setting",
-        "role": "Role",
-        "service": "Service",
+        "role": "Role (X)",
+        "service": "Service (C)",
         "plugin": "Plugin (G)",
         "profile": "Profile"
     },
