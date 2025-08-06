@@ -185,7 +185,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <DialogBase v-model="modal" :persistent="true" width="800" :style="{ 'fontSize': props.preference.font + 'px' }" :preference="props.preference">
+    <DialogBase v-model="modal" width="800" :style="{ 'fontSize': props.preference.font + 'px' }" :preference="props.preference">
         <template #title>
             <v-icon>mdi-console</v-icon>
             {{ $t('modal.console-create') }}
