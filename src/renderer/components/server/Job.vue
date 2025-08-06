@@ -271,9 +271,16 @@ const goreturn = () => {
     emits('return')
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_job'){
+        createJob()
+    }
+}
+
 onMounted(() => {
     updateLocate()
     updateJob()
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateJob', updateJob)
     emitter?.on('updateLocate', updateLocate)
     emitter?.on('renameScript', libRename)
@@ -281,6 +288,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateJob', updateJob)
     emitter?.off('updateLocate', updateLocate)
     emitter?.off('renameScript', libRename)
@@ -500,7 +508,7 @@ onUnmounted(() => {
                 {{ $t('modal.new-job') }}
             </template>
             <template #text>
-                <v-select class="mb-1" hide-details v-model="createData.category" :items="categorise" item-title="text" item-value="value"></v-select>
+                <v-select class="mb-1" hide-details v-model="createData.category" :autofocus="true" :items="categorise" item-title="text" item-value="value"></v-select>
                 <v-select class="mb-1" hide-details v-if="createData.category == 0" v-model="createData.type" :items="types2" item-title="text" item-value="value"></v-select>
                 <v-select class="mb-1" hide-details v-if="createData.category == 1" v-model="createData.type" :items="types" item-title="text" item-value="value"></v-select>
             </template>

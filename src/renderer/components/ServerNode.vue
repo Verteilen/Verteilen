@@ -250,8 +250,7 @@ const consoleSelect = (e:number) => { data.value.select_manager = e }
 //#endregion
 
 //#region Log
-const LogClean = (index:number) => {
-  props.backend.send('delete_log', data.value.logs.logs[index])
+const LogClean = () => {
   if(!props.backend.config.haveBackend) return
   props.backend.send('delete_all_log')
   data.value.logs.logs = []
@@ -404,8 +403,21 @@ const hotkey = (event:KeyboardEvent) => {
     else if(event.key == 's') data.value.page = 5 // Console
     else if(event.key == 'd') data.value.page = 6 // Log
     else if(event.key == 'f') data.value.page = 7 // Library
+    else if(event.key == 'g') data.value.page = 11 // Plugin
     else if(event.key == 'z') data.value.page = 8 // Self
     else if(event.key == 'x' && data.value.page == 5) emitter?.emit('hotkey', 'c_r') // Restore console
+  }
+  if (event.ctrlKey) {
+    event.preventDefault()
+    if(event.key == 'a' && data.value.page == 0) emitter?.emit('hotkey', 'create_project')
+    if(event.key == 'a' && data.value.page == 1) emitter?.emit('hotkey', 'create_task')
+    if(event.key == 'a' && data.value.page == 2) emitter?.emit('hotkey', 'create_job')
+    if(event.key == 'a' && data.value.page == 3) emitter?.emit('hotkey', 'create_parameter')
+    if(event.key == 'a' && data.value.page == 4) emitter?.emit('hotkey', 'create_node')
+    if(event.key == 'a' && data.value.page == 5) emitter?.emit('hotkey', 'create_console')
+    if(event.key == 'a' && data.value.page == 7) emitter?.emit('hotkey', 'create_lib')
+    if(event.key == 'a' && data.value.page == 11) emitter?.emit('hotkey', 'create_plugin')
+    if(event.key == 's' && data.value.page == 11) emitter?.emit('hotkey', 'create_template')
   }
 }
 

@@ -229,6 +229,12 @@ const updateTemps = () => {
     })
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_project'){
+        createProject()
+    }
+}
+
 const updateLocate = () => {
     updateTemps()
     updateFields()
@@ -238,6 +244,7 @@ onMounted(() => {
     console.log("Project Mounted")
     updateLocate()
     updateFields()
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateProject', updateProject)
     emitter?.on('recoverProject', recoverProject)
     emitter?.on('createProject', createProject)
@@ -248,6 +255,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateProject', updateProject)
     emitter?.off('recoverProject', recoverProject)
     emitter?.off('createProject', createProject)

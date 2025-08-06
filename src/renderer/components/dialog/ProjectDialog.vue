@@ -102,7 +102,7 @@ const confirm = () => {
             </div>
         </template>
         <template #text>
-            <v-text-field :error="propss.titleError" v-model="buffer.title" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
+            <v-text-field v-model="buffer.title" :autofocus="true" :error="propss.titleError" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
             <v-text-field class="mt-3" v-model="buffer.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
             <div v-if="!propss.isEdit">
                 <br />

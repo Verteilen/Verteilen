@@ -209,12 +209,20 @@ const plugin_remove = (plugin:Plugin) => {
     }
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_node'){
+        createNode()
+    }
+}
+
 onMounted(() => {
     console.log("Node Mounted")
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateHandle', serverUpdate)
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateHandle', serverUpdate)
 })
 

@@ -183,14 +183,22 @@ const goreturn = () => {
     emits('return')
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_task'){
+        createProject()
+    }
+}
+
 onMounted(() => {
     console.log("Task Mounted")
     updateFields()
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateLocate', updateLocate)
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateTask', updateTask)
     emitter?.off('updateLocate', updateLocate)
 })

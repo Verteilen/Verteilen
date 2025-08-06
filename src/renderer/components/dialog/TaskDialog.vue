@@ -29,7 +29,7 @@ const confirm = () => emits('submit', buffer.value)
             {{ $t('modal.modify-task') }}
         </template>
         <template #text>
-            <v-text-field :error="titleError" v-model="buffer.title" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
+            <v-text-field :error="titleError" v-model="buffer.title" :autofocus="true" required :label="$t('modal.enter-task-name')" hide-details></v-text-field>
             <v-text-field class="mt-3" v-model="buffer.description" :label="$t('modal.enter-task-description')" hide-details></v-text-field>
             <br />
             <v-checkbox v-model="buffer.setupjob" :label="$t('setupjob')" hide_details></v-checkbox>

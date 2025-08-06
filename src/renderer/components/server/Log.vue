@@ -18,7 +18,7 @@ interface PROPS {
 }
 
 const emits = defineEmits<{
-    (e: 'clean', index:number):void
+    (e: 'clean'):void
 }>()
 const props = defineProps<PROPS>()
 const tag = ref(0)
@@ -51,7 +51,7 @@ const slowUpdateHandle = () => {
 }
 
 const clean = () => {
-    emits('clean', selection.value)
+    emits('clean')
 }
 
 const recover = () => {

@@ -285,12 +285,20 @@ const stop = () => {
 }
 //#endregion
 
+const onHotkey = (value:string) => {
+    if(value == 'create_console'){
+        createConsole()
+    }
+}
+
 onMounted(() => {
     console.log("Console Mounted")
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateHandle', updateHandle)
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateHandle', updateHandle)
 })
 

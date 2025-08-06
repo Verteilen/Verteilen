@@ -136,13 +136,21 @@ const save = () => {
     emits('save', selection.value.name + '.js', selection.value.content, false)
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_lib'){
+        util.createScript()
+    }
+}
+
 onMounted(() => {
     console.log("Library Mounted")
     props.backend.eventOn('javascript-feedback', javascriptFeedback)
+    emitter?.on('hotkey', onHotkey)
 })
 
 onUnmounted(() => {
     props.backend.eventOff('javascript-feedback', javascriptFeedback)
+    emitter?.off('hotkey', onHotkey)
 })
 
 </script>

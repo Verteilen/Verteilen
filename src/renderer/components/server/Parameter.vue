@@ -370,9 +370,16 @@ const goreturn = () => {
     emits('return')
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_parameter'){
+        createParameter()
+    }
+}
+
 onMounted(() => {
     console.log("Parameter Mounted")
     updateLocate()
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateLocate', updateLocate)
     emitter?.on('updateParameter', updateParameter)
     emitter?.on('recoverParameter', recoverParameter)
@@ -383,6 +390,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateLocate', updateLocate)
     emitter?.off('updateParameter', updateParameter)
     emitter?.off('recoverParameter', recoverParameter)
