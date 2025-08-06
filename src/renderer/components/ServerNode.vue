@@ -72,6 +72,10 @@ watch(() => data.value.page, () => {
   data.value.title = tab[1]; 
 })
 
+const projectbind = computed(() => {
+  if(data.value.selectProject == undefined) return undefined
+  return data.value.parameters.find(x => x.uuid == data.value.selectProject?.parameter_uuid) 
+})
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
 
@@ -684,6 +688,7 @@ onUnmounted(() => {
             :select="data.selectTask"
             :owner="data.selectProject"
             :libs="data.libs"
+            :parameter="projectbind"
             :preference="props.preference"
             @added="e => addJob(e)" 
             @edit="(e, e2) => editJob(e, e2)" 

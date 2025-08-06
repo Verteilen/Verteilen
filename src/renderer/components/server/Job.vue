@@ -2,9 +2,10 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Preference, Project, Property, Rename, Task } from '../../interface';
+import { BusType, ConditionResult, DataType, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Parameter, Preference, Project, Property, Rename, Task } from '../../interface';
 import { i18n } from './../../plugins/i18n';
 import DialogBase from '../dialog/DialogBase.vue';
+import { Util_Parser } from '../../script/execute/util_parser';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -12,6 +13,7 @@ interface PROPS {
     projects: Array<Project>
     select: Task | undefined
     owner: Project | undefined
+    parameter: Parameter | undefined
     libs: Libraries
     preference: Preference
 }
@@ -31,6 +33,7 @@ const emits = defineEmits<{
     (e: 'movedown', uuids:string): void
     (e: 'return'): void
 }>()
+const ck = ref(0)
 const createModal = ref(false)
 const createData = ref({category: 0, type: 0, spe_template: 0})
 const deleteModal = ref(false)
@@ -44,6 +47,23 @@ const categorise:Ref<Array<any>> = ref([])
 const dirty = ref(false)
 
 const hasSelect = computed(() => items.value.filter(x => x.s).length > 0)
+const parser = computed(() => {
+    if(props.parameter == undefined) return new Util_Parser([])
+    const u:Util_Parser = new Util_Parser([...Util_Parser.to_keyvalue(props.parameter),
+        { key: 'ck', value: ck.value }])
+    props.parameter.containers.filter(x => x.type == DataType.Expression).forEach(x => {
+        const index = u.paras.findIndex(y => y.key == x.name)
+        u.paras[index] = { key: x.name, value: u.replacePara(`%{${x.meta}}%`) }
+    })
+    items2.value.forEach(x => {
+        u.paras.push({ key: x.name, value: u.replacePara(`%{${x.expression}}%`) })
+    })
+    return u
+})
+const replaceString = (v:string) => {
+    if(v.length == 0) return v
+    return parser.value.replacePara(v)
+}
 const rules = {
     required: (value:any) => !!value || 'Required.',
     deep: (value:any) => (typeof value == 'number' && value >= 1) || 'Number must bigger than 0'
@@ -341,6 +361,11 @@ onUnmounted(() => {
             <div v-if="select != undefined" class="py-3 pb-5 mx-5">
                 <h4 class="text-info"> {{ $t('property') }} </h4>
                 <br />
+                <v-row>
+                    <v-col>
+                        <v-text-field v-model.number="ck" label="ck" hide-details :min="0" type="number"></v-text-field>
+                    </v-col>
+                </v-row>
                 <v-row v-for="(c, i) in items2" :key="i">
                     <v-col cols="2" class="my-0 py-0">
                         <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
@@ -417,27 +442,37 @@ onUnmounted(() => {
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
                                         <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                        <p class="hint">{{ replaceString(c.string_args[0]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
                                     </div>
                                     <!-- Execution -->
                                     <div v-else-if="checkPatterm(c.category, c.type, 'TwoPath')">
+                                        <p class="hint">{{ replaceString(c.string_args[0]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.from')" hide-details></v-text-field>
+                                        <p class="hint">{{ replaceString(c.string_args[1]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.to')" hide-details></v-text-field>
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'OnePath')">
+                                        <p class="hint">{{ replaceString(c.string_args[0]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'Writer')">
+                                        <p class="hint">{{ replaceString(c.string_args[0]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
                                         <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.content')" hide-details></v-textarea>
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'Command')">
+                                        <p class="hint">{{ replaceString(c.string_args[0]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                        <p class="hint">{{ replaceString(c.string_args[1]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
+                                        <p class="hint">{{ replaceString(c.string_args[2]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'Lib_Command')">
+                                        <p class="hint">{{ replaceString(c.string_args[0]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
+                                        <p class="hint">{{ replaceString(c.string_args[1]) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'Javascript')">
@@ -494,5 +529,9 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-
+.hint {
+    opacity: 60%;
+    text-align: left;
+    margin-top: 10px;
+}
 </style>

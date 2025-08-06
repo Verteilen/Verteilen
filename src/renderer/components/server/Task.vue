@@ -148,7 +148,7 @@ const movedown = (uuid:string) => {
 }
 
 const TaskType = (item:TaskTable) => {
-    if(!item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('normaljob')
+    if(!item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('singlejob')
     else if(item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('setupjob')
     else if(!item.setupjob && item.cronjob && !item.multi) return i18n.global.t('cronjob')
     else return i18n.global.t('multicore')
