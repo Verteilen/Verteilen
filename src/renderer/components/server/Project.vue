@@ -30,6 +30,7 @@ const emits = defineEmits<{
 }>()
 const data:Ref<DATA> = ref({
     items: [],
+    itemPrePage: -1,
     fields: [],
     importModal: false,
     importData: [],
@@ -228,6 +229,12 @@ const updateTemps = () => {
     })
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_project'){
+        createProject()
+    }
+}
+
 const updateLocate = () => {
     updateTemps()
     updateFields()
@@ -237,6 +244,7 @@ onMounted(() => {
     console.log("Project Mounted")
     updateLocate()
     updateFields()
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateProject', updateProject)
     emitter?.on('recoverProject', recoverProject)
     emitter?.on('createProject', createProject)
@@ -247,6 +255,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateProject', updateProject)
     emitter?.off('recoverProject', recoverProject)
     emitter?.off('createProject', createProject)
@@ -306,19 +315,11 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="pt-3">
-            <v-data-table style="background: transparent" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-tooltip location="bottom">
-                        <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="datachoose(item.ID)" size="small">
-                                <v-icon>mdi-location-enter</v-icon>
-                            </v-btn>
-                        </template>
-                        {{ $t('enter') }}
-                    </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
                             <v-btn variant="text" v-bind="props" flat icon @click="dataedit(item.ID)" size="small">

@@ -17,6 +17,7 @@ export interface CreateField {
 
 export interface DATA {
     fields: Array<any>
+    itemPrePage: number
     paraModal:boolean
     dialogModal:boolean
     isEdit: boolean

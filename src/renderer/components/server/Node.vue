@@ -209,12 +209,20 @@ const plugin_remove = (plugin:Plugin) => {
     }
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_node'){
+        createNode()
+    }
+}
+
 onMounted(() => {
     console.log("Node Mounted")
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateHandle', serverUpdate)
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateHandle', serverUpdate)
 })
 
@@ -281,7 +289,7 @@ onUnmounted(() => {
                 {{ $t('modal.new-node') }}
             </template>
             <template #text>
-                <v-text-field v-model="connectionData.url" required :label="$t('modal.enter-node-address')"></v-text-field>
+                <v-text-field v-model="connectionData.url" :autofocus="true" required :label="$t('modal.enter-node-address')"></v-text-field>
             </template>
             <template #action>
                 <v-btn class="mt-3" color="primary" @click="confirmConnection">{{ $t('create') }}</v-btn>

@@ -166,7 +166,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
         if(type == 2) {
             data.value.skipModal = true
         }else{
-            props.backend.send('console_skip', model.value.record?.uuid, type, state, props.backend.config.isExpress ? "" : undefined)
+            props.backend.send('console_skip', model.value.record?.uuid, type, state)
         }
     }else{
         if(type == 0){
@@ -285,12 +285,20 @@ const stop = () => {
 }
 //#endregion
 
+const onHotkey = (value:string) => {
+    if(value == 'create_console'){
+        createConsole()
+    }
+}
+
 onMounted(() => {
     console.log("Console Mounted")
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateHandle', updateHandle)
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateHandle', updateHandle)
 })
 

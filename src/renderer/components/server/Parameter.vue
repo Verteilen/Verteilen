@@ -41,6 +41,7 @@ const fields:Ref<Array<any>> = ref([
 
 const data:Ref<DATA> = ref({
     selectTempModel: false,
+    itemPrePage: -1,
     cloneModal: false,
     cloneName: "",
     objectModal: false,
@@ -369,9 +370,16 @@ const goreturn = () => {
     emits('return')
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_parameter'){
+        createParameter()
+    }
+}
+
 onMounted(() => {
     console.log("Parameter Mounted")
     updateLocate()
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateLocate', updateLocate)
     emitter?.on('updateParameter', updateParameter)
     emitter?.on('recoverParameter', recoverParameter)
@@ -382,6 +390,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateLocate', updateLocate)
     emitter?.off('updateParameter', updateParameter)
     emitter?.off('recoverParameter', recoverParameter)
@@ -468,7 +477,7 @@ onUnmounted(() => {
         </div>
         <div class="py-3 px-5 text-left" style="height: calc(100vh - 130px); overflow-y: auto;">
             <v-checkbox class="pr-5 text-info" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
-            <v-data-table style="background: transparent" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.detail="{ item }">
                     <v-btn variant="text" icon @click="editParameter(item.name)" size="small">
                         <v-icon>mdi-pencil</v-icon>

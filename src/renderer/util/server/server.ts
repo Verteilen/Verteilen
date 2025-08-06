@@ -19,6 +19,7 @@ export interface DATA {
     websocket_manager: WebsocketManager | undefined
     execute_manager: Array<ExecutePair>
 
+    loading: boolean
     drawer: boolean
     title: string
     page:number

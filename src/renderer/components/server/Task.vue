@@ -31,6 +31,7 @@ const emits = defineEmits<{
 }>()
 const data:Ref<DATA> = ref({
     fields: [],
+    itemPrePage: -1,
     paraModal: false,
     dialogModal: false,
     isEdit: false,
@@ -147,7 +148,7 @@ const movedown = (uuid:string) => {
 }
 
 const TaskType = (item:TaskTable) => {
-    if(!item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('normaljob')
+    if(!item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('singlejob')
     else if(item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('setupjob')
     else if(!item.setupjob && item.cronjob && !item.multi) return i18n.global.t('cronjob')
     else return i18n.global.t('multicore')
@@ -182,14 +183,22 @@ const goreturn = () => {
     emits('return')
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_task'){
+        createProject()
+    }
+}
+
 onMounted(() => {
     console.log("Task Mounted")
     updateFields()
+    emitter?.on('hotkey', onHotkey)
     emitter?.on('updateTask', updateTask)
     emitter?.on('updateLocate', updateLocate)
 })
 
 onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
     emitter?.off('updateTask', updateTask)
     emitter?.off('updateLocate', updateLocate)
 })
@@ -248,7 +257,7 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
-            <v-data-table style="background: transparent" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
@@ -256,9 +265,6 @@ onUnmounted(() => {
                     {{ getIndex(item.ID) }}
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-btn variant="text" icon @click="datachoose(item.ID)" size="small">
-                        <v-icon>mdi-location-enter</v-icon>
-                    </v-btn>
                     <v-btn variant="text" icon @click="dataedit(item.ID)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>

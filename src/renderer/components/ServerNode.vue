@@ -42,6 +42,7 @@ const data:Ref<DATA> = ref({
     websocket_manager: undefined,
     execute_manager: [],
 
+    loading: true,
     drawer: false,
     title: "",
     page: 0,
@@ -71,6 +72,10 @@ watch(() => data.value.page, () => {
   data.value.title = tab[1]; 
 })
 
+const projectbind = computed(() => {
+  if(data.value.selectProject == undefined) return undefined
+  return data.value.parameters.find(x => x.uuid == data.value.selectProject?.parameter_uuid) 
+})
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
 
@@ -171,7 +176,7 @@ const libJs = (code:string) => { props.backend.send('javascript', code) }
 const consoleAdded = (name:string, record:Record) => {
   if(props.backend.config.haveBackend){
     // If we have backend, the instance should be place in the backend
-    props.backend.invoke('console_add', name, record).then(r => {
+    props.backend.invoke('console_add', name, record, props.backend.config.isExpress ? props.preference : undefined).then(r => {
       if(r != undefined){
         data.value.execute_manager.push({ record: r })
         data.value.select_manager = data.value.execute_manager.length - 1
@@ -245,8 +250,7 @@ const consoleSelect = (e:number) => { data.value.select_manager = e }
 //#endregion
 
 //#region Log
-const LogClean = (index:number) => {
-  props.backend.send('delete_log', data.value.logs.logs[index])
+const LogClean = () => {
   if(!props.backend.config.haveBackend) return
   props.backend.send('delete_all_log')
   data.value.logs.logs = []
@@ -390,18 +394,30 @@ const popSetting = () => { emitter?.emit('setting') }
 
 const hotkey = (event:KeyboardEvent) => {
   if (event.altKey) {
-    event.preventDefault()
-    console.log(event.key)
-    if(event.key == 'p') data.value.page = 0 // Project
-    else if(event.key == 't') data.value.page = 1 // Task
-    else if(event.key == 'j') data.value.page = 2 // Job
-    else if(event.key == 'v') data.value.page = 3 // Parameter
-    else if(event.key == 'n') data.value.page = 4 // Node
-    else if(event.key == 'c') data.value.page = 5 // Console
-    else if(event.key == 'l') data.value.page = 6 // Log
-    else if(event.key == 'q') data.value.page = 7 // Library
-    else if(event.key == 'e') data.value.page = 8 // Self
-    else if(event.key == 'r' && data.value.page == 5) emitter?.emit('hotkey', 'c_r') // Restore console
+    if(event.key == 'q') data.value.page = 0 // Project
+    else if(event.key == 'w') data.value.page = 1 // Task
+    else if(event.key == 'e') data.value.page = 2 // Job
+    else if(event.key == 'r') data.value.page = 3 // Parameter
+    else if(event.key == 'a') data.value.page = 4 // Node
+    else if(event.key == 's') data.value.page = 5 // Console
+    else if(event.key == 'd') data.value.page = 6 // Log
+    else if(event.key == 'f') data.value.page = 7 // Library
+    else if(event.key == 'g') data.value.page = 11 // Plugin
+    else if(event.key == 'z') data.value.page = 8 // Self
+    else if(event.key == 'x') data.value.page = 9 // Role
+    else if(event.key == 'c') data.value.page = 10 // Service
+    else if(event.key == 'x' && data.value.page == 5) emitter?.emit('hotkey', 'c_r') // Restore console
+  }
+  if (event.ctrlKey) {
+    if(event.key == 'a' && data.value.page == 0) emitter?.emit('hotkey', 'create_project')
+    if(event.key == 'a' && data.value.page == 1) emitter?.emit('hotkey', 'create_task')
+    if(event.key == 'a' && data.value.page == 2) emitter?.emit('hotkey', 'create_job')
+    if(event.key == 'a' && data.value.page == 3) emitter?.emit('hotkey', 'create_parameter')
+    if(event.key == 'a' && data.value.page == 4) emitter?.emit('hotkey', 'create_node')
+    if(event.key == 'a' && data.value.page == 5) emitter?.emit('hotkey', 'create_console')
+    if(event.key == 'a' && data.value.page == 7) emitter?.emit('hotkey', 'create_lib')
+    if(event.key == 'a' && data.value.page == 11) emitter?.emit('hotkey', 'create_plugin')
+    if(event.key == 's' && data.value.page == 11) emitter?.emit('hotkey', 'create_template')
   }
 }
 
@@ -468,8 +484,9 @@ const dataset_init = () => {
   props.backend.send('menu', true)
   if(!props.backend.config.haveBackend) return
   props.backend.send('client_start');
-  const p0 = props.backend.invoke('console_list').then((xs:Array<any>) => {
-    data.value.execute_manager = xs.map(x => ({ record: x }))
+  const p0 = props.backend.invoke('console_list').then((xs:any) => {
+    if(xs == undefined) xs = []
+    data.value.execute_manager = Array.isArray(xs) ? xs.map(x => ({ record: x })) : [{record: xs}]
     console.log("execute", data.value.execute_manager)
   })
   const p1 = props.backend.invoke('load_all_node').then(x => {
@@ -526,6 +543,9 @@ let delayy = 0
 const InitCaller = (delay:boolean) => {
   if(data.value.page > 20){
     data.value.page = 0
+    setTimeout(() => {
+      data.value.loading = false
+    }, 800);
     return
   }
   nextTick(() => {
@@ -549,9 +569,11 @@ onMounted(() => {
   emitter?.on('updateHandle', updateHandleCall)
 
   if(props.backend.config.haveBackend){
+    data.value.loading = true
     InitCaller(true)
   }
   props.backend.wait_init().then(() => {
+    data.value.loading = true
     InitCaller(!props.backend.config.isElectron)
     props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
@@ -573,6 +595,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  data.value.loading = true
   document.removeEventListener('keydown', hotkey)
   data.value.execute_manager = []
   emitter?.off('updateNode', server_clients_update)
@@ -596,6 +619,9 @@ onUnmounted(() => {
 
 <template>
   <v-container fluid class="pa-0 ma-0">
+    <div v-if="data.loading" class="loading">
+      <p>{{ $t('loading') }}</p>
+    </div>
     <v-layout>
       <v-app-bar :elevation="2" class="text-left">
         <template v-slot:prepend>
@@ -628,7 +654,12 @@ onUnmounted(() => {
               :prepend-icon="tab[0]"
               :value="tab[2]" 
               :active="data.page == tab[2]"
-              @click="data.page = tab[2]">{{ $t(tab[1]) }}</v-list-item>
+              @click="data.page = tab[2]">
+                {{ $t(tab[1]).slice(0, $t(tab[1]).length - 4) }} 
+                <span :style="{ 'fontSize': (props.preference.font - 5) + 'px' }">
+                  {{ $t(tab[1]).slice($t(tab[1]).length - 4, $t(tab[1]).length) }}
+                </span> 
+            </v-list-item>
             <v-list-subheader v-else>{{ $t(tab[1]) }}</v-list-subheader>
           </div>
           
@@ -675,6 +706,7 @@ onUnmounted(() => {
             :select="data.selectTask"
             :owner="data.selectProject"
             :libs="data.libs"
+            :parameter="projectbind"
             :preference="props.preference"
             @added="e => addJob(e)" 
             @edit="(e, e2) => editJob(e, e2)" 
@@ -776,5 +808,19 @@ onUnmounted(() => {
 }
 .bg-light {
   background-image: linear-gradient(to bottom, rgb(240, 240, 240), rgb(240, 255, 245));
+}
+.loading {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  padding: auto auto;
+  margin: auto auto;
+  background-color: rgba(1, 1, 1, 1);
+  z-index: 10000;
+  align-items: center;
+  align-content: center;
+  align-self: center;
+  text-align: center;
+  top: 0px;
 }
 </style>

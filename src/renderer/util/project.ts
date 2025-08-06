@@ -31,6 +31,7 @@ export interface PROPS {
 
 export interface DATA {
     items:Array<ProjectTable>
+    itemPrePage: number
     fields: Array<any>
     dialogModal:boolean
     importModal:boolean

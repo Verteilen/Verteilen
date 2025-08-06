@@ -32,7 +32,7 @@ const confirm = () => {
             {{ $t('modal.new-parameter') }}
         </template>
         <template #text>
-            <v-text-field :error="props.titleError" v-model="props.targetData.name" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
+            <v-text-field :error="props.titleError" v-model="props.targetData.name" :autofocus="true" required :label="$t('modal.enter-parameter-name')" hide-details></v-text-field>
             <v-select class="mt-3" v-model="props.targetData.type" :items="only_options" :label="$t('modal.parameter-datatype')" hide-details></v-select>
             <v-checkbox :label="$t('filter.show-hidden')" v-model="props.targetData.hidden" hide-details></v-checkbox>
             <v-checkbox :label="$t('filter.show-runtime')" v-model="props.targetData.runtimeOnly" hide-details></v-checkbox>

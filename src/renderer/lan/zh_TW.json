@@ -113,26 +113,28 @@
         "delete-plugin": "刪除插件",
         "delete-template": "刪除樣板",
         "delete-plugin-confirm": "確定刪除選取的插件嗎?",
-        "delete-template-confirm": "確定刪除選取的樣板嗎?"
+        "delete-template-confirm": "確定刪除選取的樣板嗎?",
+        "delete-job": "刪除工作",
+        "delete-job-confirm": "確定刪除選取的工作嗎?"
     },
     "toolbar": {
         "server": "伺服器",
         "compute": "運算",
         "editor": "編輯器",
         "backend": "後端功能",
-        "project": "專案管理",
-        "task": "流程管理",
-        "job": "工作管理",
-        "parameter": "參數管理",
-        "node": "節點管理",
-        "console": "控制台",
-        "log": "紀錄",
-        "library": "運行庫",
-        "client": "客戶端",
+        "project": "專案管理 (Q)",
+        "task": "流程管理 (W)",
+        "job": "工作管理 (E)",
+        "parameter": "參數管理 (R)",
+        "node": "節點管理 (A)",
+        "console": "控制台 (S)",
+        "log": "紀錄 (D)",
+        "library": "運行庫 (F)",
+        "client": "客戶端 (Z)",
         "setting": "設定",
-        "role": "權限組",
-        "service": "服務",
-        "plugin": "插件",
+        "role": "權限組 (X)",
+        "service": "服務 (C)",
+        "plugin": "插件 (G)",
         "profile": "個人資料"
     },
     "tooltip": {
@@ -308,5 +310,6 @@
     "setting": "設定",
     "guide": "指南",
     "plugin": "插件",
-    "template": "樣板"
+    "template": "樣板",
+    "loading": "讀取中"
 }

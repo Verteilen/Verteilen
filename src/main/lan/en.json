@@ -113,26 +113,28 @@
         "delete-plugin": "Delete Plugin",
         "delete-template": "Delete Template",
         "delete-plugin-confirm": "Are you sure delete plugin you selected",
-        "delete-template-confirm": "Are you sure delete template you selected"
+        "delete-template-confirm": "Are you sure delete template you selected",
+        "delete-job": "Delete Job",
+        "delete-job-confirm": "Are you sure you want to delete this job?"
     },
     "toolbar": {
         "server": "Server",
         "compute": "Compute",
         "editor": "Editor",
         "backend": "Backend Feature",
-        "project": "Project",
-        "task": "Task",
-        "job": "Job",
-        "parameter": "Parameter",
-        "node": "Node",
-        "console": "Console",
-        "log": "Log",
-        "library": "Library",
-        "client": "Self",
+        "project": "Project (Q)",
+        "task": "Task (W)",
+        "job": "Job (E)",
+        "parameter": "Parameter (R)",
+        "node": "Node (A)",
+        "console": "Console (S)",
+        "log": "Log (D)",
+        "library": "Library (F)",
+        "client": "Self (Z)",
         "setting": "Setting",
-        "role": "Role",
-        "service": "Service",
-        "plugin": "Plugin",
+        "role": "Role (X)",
+        "service": "Service (C)",
+        "plugin": "Plugin (G)",
         "profile": "Profile"
     },
     "tooltip": {
@@ -308,5 +310,6 @@
     "setting": "Setting",
     "guide": "Guide",
     "plugin": "Plugin",
-    "template": "Template"
+    "template": "Template",
+    "loading": "Loading"
 }

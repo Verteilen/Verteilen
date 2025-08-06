@@ -1,6 +1,6 @@
 {
   "name": "verteilen",
-  "version": "0.8.11",
+  "version": "0.8.12",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {

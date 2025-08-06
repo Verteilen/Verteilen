@@ -29,6 +29,11 @@ const projects:Ref<Array<[string | null, string | null]>> = ref([])
 const nodes:Ref<Array<string | null>> = ref([])
 const error_message = ref('')
 
+const last_remember:Ref<{
+    projects: Array<[string | null, string | null]>
+    nodes: Array<string | null>
+} | undefined> = ref(undefined)
+
 const ps = computed(() => {
     return props.projects.map(x => {
         return {
@@ -106,6 +111,12 @@ const generateResult = ():Record => {
     return r
 }
 
+const last = () => {
+    if(last_remember.value == undefined) return
+    projects.value = last_remember.value.projects
+    nodes.value = last_remember.value.nodes
+}
+
 const confirm = () => {
     let pass = true
     if(projects.value.length == 0){
@@ -122,6 +133,10 @@ const confirm = () => {
     }
 
     if(pass){
+        last_remember.value = {
+            projects: projects.value,
+            nodes: nodes.value
+        }
         emits('confirm', name.value, generateResult())
         modal.value = false
     }
@@ -170,13 +185,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <DialogBase v-model="modal" :persistent="true" width="800" :style="{ 'fontSize': props.preference.font + 'px' }" :preference="props.preference">
+    <DialogBase v-model="modal" width="800" :style="{ 'fontSize': props.preference.font + 'px' }" :preference="props.preference">
         <template #title>
             <v-icon>mdi-console</v-icon>
             {{ $t('modal.console-create') }}
         </template>
         <template #text>
-            <v-text-field v-model="name" :label="$t('modal.console-name')" hide-detail></v-text-field>
+            <v-text-field v-model="name" :autofocus="true" :label="$t('modal.console-name')" hide-detail></v-text-field>
             <v-tabs v-model="page" tabs show-arrows class="bg-grey-darken-4">
                 <v-tab v-for="(tab, index) in tabs" :style="{ 'fontSize': (props.preference.font - 2) + 'px' }" :value="tab[2]" :key="index">
                     <v-icon>{{ tab[0] }}</v-icon>
@@ -249,6 +264,8 @@ onUnmounted(() => {
             <span style="color: red">{{ error_message }}</span>
         </template>
         <template #action>
+            <v-btn class="mt-3" color="warning" :disabled="last_remember == undefined" @click="last">{{ $t('recover') }}</v-btn>
+            <v-spacer></v-spacer>
             <v-btn class="mt-3" color="primary" @click="confirm">{{ $t('create') }}</v-btn>
             <v-btn class="mt-3" color="error" @click="cancel">{{ $t('cancel') }}</v-btn>
         </template>

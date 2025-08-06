@@ -136,13 +136,21 @@ const save = () => {
     emits('save', selection.value.name + '.js', selection.value.content, false)
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_lib'){
+        util.createScript()
+    }
+}
+
 onMounted(() => {
     console.log("Library Mounted")
     props.backend.eventOn('javascript-feedback', javascriptFeedback)
+    emitter?.on('hotkey', onHotkey)
 })
 
 onUnmounted(() => {
     props.backend.eventOff('javascript-feedback', javascriptFeedback)
+    emitter?.off('hotkey', onHotkey)
 })
 
 </script>
@@ -234,7 +242,7 @@ onUnmounted(() => {
                     {{ $t('modal.create-library') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field class="mb-2" :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-library-name')" hide-details></v-text-field>
+                    <v-text-field class="mb-2" :error="data.titleError" v-model="data.editData.name" :autofocus="true" required :label="$t('modal.enter-library-name')" hide-details></v-text-field>
                     <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>

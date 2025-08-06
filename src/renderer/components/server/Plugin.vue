@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
-import { PluginList, PluginPageData, PluginPageTemplate } from '../../interface';
+import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
+import { BusType, PluginList, PluginPageData, PluginPageTemplate } from '../../interface';
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
+import { Emitter } from 'mitt';
+
+const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROP {
     plugin: PluginPageData
@@ -103,8 +106,22 @@ const updateTemplate = (pl:PluginPageTemplate) => {
     emits('added-template', pl.name!, pl.url!);
 }
 
+const onHotkey = (value:string) => {
+    if(value == 'create_plugin'){
+        importPlugin()
+    }
+    if(value == 'create_template'){
+        importTemplate()
+    }
+}
+
 onMounted(() => {
     console.log("Plugin Mounted")
+    emitter?.on('hotkey', onHotkey)
+})
+
+onUnmounted(() => {
+    emitter?.off('hotkey', onHotkey)
 })
 
 </script>
@@ -222,7 +239,7 @@ onMounted(() => {
                 {{ $t('import-plugin') }}
             </template>
             <template #text>
-                <v-text-field class="my-1" v-model="data.pluginData.name" hide-details label="name" />
+                <v-text-field class="my-1" v-model="data.pluginData.name" hide-details label="name" :autofocus="true" />
                 <v-text-field class="my-1" v-model="data.pluginData.url" hide-details label="url" />
                 <span style="color:red">{{ data.errorMessage }}</span>
             </template>
@@ -236,7 +253,7 @@ onMounted(() => {
                 {{ $t('import-template') }}
             </template>
             <template #text>
-                <v-text-field class="my-1" v-model="data.templateData.name" hide-details label="name" />
+                <v-text-field class="my-1" v-model="data.templateData.name" hide-details label="name" :autofocus="true" />
                 <v-text-field class="my-1" v-model="data.templateData.url" hide-details label="url" />
                 <span style="color:red">{{ data.errorMessage }}</span>
             </template>
