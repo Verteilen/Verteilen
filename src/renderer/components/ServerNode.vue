@@ -653,7 +653,12 @@ onUnmounted(() => {
               :prepend-icon="tab[0]"
               :value="tab[2]" 
               :active="data.page == tab[2]"
-              @click="data.page = tab[2]">{{ $t(tab[1]) }}</v-list-item>
+              @click="data.page = tab[2]">
+                {{ $t(tab[1]).slice(0, $t(tab[1]).length - 4) }} 
+                <span :style="{ 'fontSize': (props.preference.font - 5) + 'px' }">
+                  {{ $t(tab[1]).slice($t(tab[1]).length - 4, $t(tab[1]).length) }}
+                </span> 
+            </v-list-item>
             <v-list-subheader v-else>{{ $t(tab[1]) }}</v-list-subheader>
           </div>
           

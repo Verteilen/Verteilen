@@ -242,7 +242,7 @@ onUnmounted(() => {
                     {{ $t('modal.create-library') }}
                 </v-card-title>
                 <v-card-text>
-                    <v-text-field class="mb-2" :error="data.titleError" v-model="data.editData.name" required :label="$t('modal.enter-library-name')" hide-details></v-text-field>
+                    <v-text-field class="mb-2" :error="data.titleError" v-model="data.editData.name" :autofocus="true" required :label="$t('modal.enter-library-name')" hide-details></v-text-field>
                     <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
                 </v-card-text>
                 <template v-slot:actions>

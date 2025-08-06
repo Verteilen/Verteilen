@@ -289,7 +289,7 @@ onUnmounted(() => {
                 {{ $t('modal.new-node') }}
             </template>
             <template #text>
-                <v-text-field v-model="connectionData.url" required :label="$t('modal.enter-node-address')"></v-text-field>
+                <v-text-field v-model="connectionData.url" :autofocus="true" required :label="$t('modal.enter-node-address')"></v-text-field>
             </template>
             <template #action>
                 <v-btn class="mt-3" color="primary" @click="confirmConnection">{{ $t('create') }}</v-btn>

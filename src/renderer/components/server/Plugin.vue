@@ -239,7 +239,7 @@ onUnmounted(() => {
                 {{ $t('import-plugin') }}
             </template>
             <template #text>
-                <v-text-field class="my-1" v-model="data.pluginData.name" hide-details label="name" />
+                <v-text-field class="my-1" v-model="data.pluginData.name" hide-details label="name" :autofocus="true" />
                 <v-text-field class="my-1" v-model="data.pluginData.url" hide-details label="url" />
                 <span style="color:red">{{ data.errorMessage }}</span>
             </template>
@@ -253,7 +253,7 @@ onUnmounted(() => {
                 {{ $t('import-template') }}
             </template>
             <template #text>
-                <v-text-field class="my-1" v-model="data.templateData.name" hide-details label="name" />
+                <v-text-field class="my-1" v-model="data.templateData.name" hide-details label="name" :autofocus="true" />
                 <v-text-field class="my-1" v-model="data.templateData.url" hide-details label="url" />
                 <span style="color:red">{{ data.errorMessage }}</span>
             </template>
