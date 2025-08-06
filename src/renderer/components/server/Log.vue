@@ -151,7 +151,7 @@ onUnmounted(() => {
                         {{ $t('console.parameter') }}
                     </v-list-item>
                 </v-list>
-                <v-list>
+                <v-list style="overflow-y: scroll; height: calc(100vh - 280px);">
                     <v-list-item v-for="(item, i) in items" :key="i" :value="i" :active="selection == i" @click="selection = i">
                         <template v-slot:prepend>
                             <v-icon color="primary">mdi-book</v-icon>

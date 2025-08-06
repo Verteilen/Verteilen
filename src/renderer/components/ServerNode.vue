@@ -627,7 +627,12 @@ onUnmounted(() => {
         <template v-slot:prepend>
           <v-app-bar-nav-icon @click="data.drawer = true"></v-app-bar-nav-icon>
         </template>
-        <v-app-bar-title>{{ data.title ? $t(data.title) : '' }}</v-app-bar-title>
+        <v-app-bar-title>
+          {{ $t(data.title).slice(0, $t(data.title).length - 4) }} 
+          <span :style="{ 'fontSize': (props.preference.font - 5) + 'px' }">
+            {{ $t(data.title).slice($t(data.title).length - 4, $t(data.title).length) }}
+          </span> 
+        </v-app-bar-title>
         <template v-slot:append>
           <v-menu location="left">
             <template v-slot:activator="{ props }">
