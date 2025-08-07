@@ -279,7 +279,6 @@ onUnmounted(() => {
                 </v-btn>
             </template>
         </v-data-table>
-        {{ props.nodes }}
         <NodeInfoDialog v-model="infoModal" :item="infoTarget" :preference="props.preference" />
         <NodeShellDialog v-model="consoleModal" :backend="props.backend" :item="consoleTarget" :manager="props.manager" :preference="props.preference" />
         <NodePluginDialog v-model="pluginModal" :backend="props.backend" :item="pluginTarget" :plugin="props.plugin" :preference="props.preference"
