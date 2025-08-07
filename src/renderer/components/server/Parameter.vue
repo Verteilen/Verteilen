@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, DataType, DataTypeBase, DataTypeText, Parameter, ParameterContainer, ParameterTemplate, ParameterTemplateText, PluginPageData, Preference, ToastData } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, IndexToValue, Temp, Util_Parameter, ValueToGroupName } from '../../util/parameter';
@@ -165,6 +165,9 @@ const ImportConfirm = () => {
             }
         }).filter(x => x != undefined)
         a.forEach(aa => emits('added', aa))
+        nextTick(() => {
+            updateParameter();
+        })
     })
 }
 

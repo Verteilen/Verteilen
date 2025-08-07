@@ -172,6 +172,9 @@ const ImportConfirm = async () => {
             }
         }).filter(x => x != undefined)
         emits('added', a)
+        nextTick(() => {
+            updateProject();
+        })
     })
 }
 
