@@ -492,6 +492,7 @@ const dataset_init = () => {
   const p1 = props.backend.invoke('load_all_node').then(x => {
     const texts:Array<string> = JSON.parse(x)
     data.value.nodes.push(...texts.map(y => JSON.parse(y)))
+    for(const x of data.value.nodes) x.s = false
     console.log("nodes", data.value.nodes)
   })
   const p2 = props.backend.invoke('list_all_lib').then(x => {

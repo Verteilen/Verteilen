@@ -4,8 +4,10 @@ import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } f
 import { BusType, ExecutePair, Node, Parameter, Preference, Project, Record } from '../../interface';
 import { i18n } from '../../plugins/i18n'
 import DialogBase from './DialogBase.vue';
+import { BackendProxy } from '../../proxy';
 
 interface PROP {
+    backend: BackendProxy
     projects: Array<Project>
     nodes: Array<Node>
     parameters: Array<Parameter>
@@ -28,11 +30,6 @@ const page = ref(0)
 const projects:Ref<Array<[string | null, string | null]>> = ref([])
 const nodes:Ref<Array<string | null>> = ref([])
 const error_message = ref('')
-
-const last_remember:Ref<{
-    projects: Array<[string | null, string | null]>
-    nodes: Array<string | null>
-} | undefined> = ref(undefined)
 
 const ps = computed(() => {
     return props.projects.map(x => {
@@ -112,9 +109,9 @@ const generateResult = ():Record => {
 }
 
 const last = () => {
-    if(last_remember.value == undefined) return
-    projects.value = last_remember.value.projects
-    nodes.value = last_remember.value.nodes
+    if(props.preference.recover == undefined) return
+    projects.value = props.preference.recover.projects
+    nodes.value = props.preference.recover.nodes
 }
 
 const confirm = () => {
@@ -133,10 +130,11 @@ const confirm = () => {
     }
 
     if(pass){
-        last_remember.value = {
+        props.preference.recover = {
             projects: projects.value,
             nodes: nodes.value
         }
+        emitter?.emit('savePreference', props.preference)
         emits('confirm', name.value, generateResult())
         modal.value = false
     }
@@ -264,7 +262,7 @@ onUnmounted(() => {
             <span style="color: red">{{ error_message }}</span>
         </template>
         <template #action>
-            <v-btn class="mt-3" color="warning" :disabled="last_remember == undefined" @click="last">{{ $t('recover') }}</v-btn>
+            <v-btn class="mt-3" color="warning" :disabled="props.preference.recover == undefined" @click="last">{{ $t('recover') }}</v-btn>
             <v-spacer></v-spacer>
             <v-btn class="mt-3" color="primary" @click="confirm">{{ $t('create') }}</v-btn>
             <v-btn class="mt-3" color="error" @click="cancel">{{ $t('cancel') }}</v-btn>
