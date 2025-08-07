@@ -493,6 +493,22 @@ const dataset_init = () => {
     const texts:Array<string> = JSON.parse(x)
     data.value.nodes.push(...texts.map(y => JSON.parse(y)))
     for(const x of data.value.nodes) x.s = false
+    data.value.nodes = data.value.nodes.map(y => {
+      return Object.assign(y, {
+        s: false,
+        state: 0,
+        connection_rate: 0
+      })
+    })
+    data.value.nodes.forEach(y => {
+      if(props.backend.config.haveBackend){
+        console.log("backend node_add", y.url, y.ID)
+        props.backend.send("node_add", y.url, y.ID)
+      }else{
+        console.log("static web node_add", y.url, y.ID)
+        data.value.websocket_manager?.server_start(y.url, y.ID)
+      }
+    })
     console.log("nodes", data.value.nodes)
   })
   const p2 = props.backend.invoke('list_all_lib').then(x => {
@@ -522,21 +538,9 @@ const dataset_init = () => {
       data.value.logs.logs = ll
   })
   Promise.all([p0, p1, p2, p4, ...p35, p6]).then(() => {
-    data.value.nodes = data.value.nodes.map(y => {
-      return Object.assign(y, {
-        s: false,
-        state: 0,
-        connection_rate: 0
-      })
-    })
-    data.value.nodes.forEach(y => {
-      if(props.backend.config.haveBackend){
-        props.backend.send("node_add", y.url, y.ID)
-      }else{
-        data.value.websocket_manager?.server_start(y.url, y.ID)
-      }
-    })
     nextTick(() => allUpdate())
+  }).catch(err => {
+    console.error("Init Promises Call Failed: ", err)
   })
 }
 
@@ -628,7 +632,7 @@ onUnmounted(() => {
         <template v-slot:prepend>
           <v-app-bar-nav-icon @click="data.drawer = true"></v-app-bar-nav-icon>
         </template>
-        <v-app-bar-title>
+        <v-app-bar-title v-if="data.title">
           {{ $t(data.title).slice(0, $t(data.title).length - 4) }} 
           <span :style="{ 'fontSize': (props.preference.font - 5) + 'px' }">
             {{ $t(data.title).slice($t(data.title).length - 4, $t(data.title).length) }}
@@ -648,7 +652,6 @@ onUnmounted(() => {
       <v-navigation-drawer temporary v-model="data.drawer" :scrim="props.preference?.animation">
         <v-list density="compact" nav>
           <v-list-item v-if="props.backend.config.isExpress"
-            :prepend-avatar="props.backend.user?.picture_url ? '/pic' : 'assets/icon/user.png'"
             :title="props.backend.user?.name"
             :value="100" 
             @click="data.page = 100; data.title = 'toolbar.profile'"

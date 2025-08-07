@@ -98,5 +98,11 @@ export function RUN(){
     app.on('window-all-closed', function () {
         if (process.platform !== 'darwin') app.quit()
     });
+
+    app.on('before-quit', (event) => {
+        console.log('Before Quit Event')
+        mainWindow = undefined
+        backendEvent.Destroy()
+    })
 }
 
