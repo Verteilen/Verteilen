@@ -522,21 +522,25 @@ const dataset_init = () => {
       data.value.logs.logs = ll
   })
   Promise.all([p0, p1, p2, p4, ...p35, p6]).then(() => {
-    data.value.nodes = data.value.nodes.map(y => {
-      return Object.assign(y, {
-        s: false,
-        state: 0,
-        connection_rate: 0
+    nextTick(() => {
+      data.value.nodes = data.value.nodes.map(y => {
+        return Object.assign(y, {
+          s: false,
+          state: 0,
+          connection_rate: 0
+        })
       })
+      data.value.nodes.forEach(y => {
+        if(props.backend.config.haveBackend){
+          console.log("backend node_add", y.url, y.ID)
+          props.backend.send("node_add", y.url, y.ID)
+        }else{
+          console.log("static web node_add", y.url, y.ID)
+          data.value.websocket_manager?.server_start(y.url, y.ID)
+        }
+      })
+      nextTick(() => allUpdate())
     })
-    data.value.nodes.forEach(y => {
-      if(props.backend.config.haveBackend){
-        props.backend.send("node_add", y.url, y.ID)
-      }else{
-        data.value.websocket_manager?.server_start(y.url, y.ID)
-      }
-    })
-    nextTick(() => allUpdate())
   })
 }
 

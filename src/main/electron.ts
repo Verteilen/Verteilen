@@ -96,6 +96,7 @@ export function RUN(){
     });
     
     app.on('window-all-closed', function () {
+        backendEvent.Destroy()
         if (process.platform !== 'darwin') app.quit()
     });
 }

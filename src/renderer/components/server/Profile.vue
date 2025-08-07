@@ -64,7 +64,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <v-container fluid class="ma-0 pa-0">
+    <v-container fluid class="ma-0 pa-0" v-if="propss.backend.config.isExpress">
         <div class="pa-5 mt-3">
             <v-row style="padding: 20px 10%;">
                 <v-col cols="2" class="ma-0 pa-0">
