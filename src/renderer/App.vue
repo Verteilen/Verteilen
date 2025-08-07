@@ -46,6 +46,10 @@ const modeSelect = (isclient:boolean) => {
   mode.value = isclient ? 0 : 1
 }
 
+const savePreference = (v:Preference) => {
+  backend.value.send('save_preference', JSON.stringify(preference.value, null, 4), token.value)
+}
+
 const locate = (v:string) => {
   const t = i18n.global
   // @ts-ignore
@@ -77,6 +81,7 @@ const load_preference = (x:string) => {
 
 onMounted(() => {
   defaultTransition.value = vuetify.defaults.value?.global
+  emitter?.on('savePreference', savePreference)
   emitter?.on('modeSelect', modeSelect)
   emitter?.on('setting', setting)
   backend.value.wait_init().then(() => {
@@ -90,6 +95,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  emitter?.off('savePreference', savePreference)
   emitter?.off('modeSelect', modeSelect)
   emitter?.off('setting', setting)
   backend.value.eventOff('locate', locate)

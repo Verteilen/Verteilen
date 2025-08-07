@@ -77,6 +77,11 @@ export interface PluginToken {
     token: string
 }
 
+export interface Preference_Recover {
+    projects: Array<[string | null, string | null]>
+    nodes: Array<string | null>
+}
+
 export interface Preference {
     /**
      * Language setting
@@ -95,6 +100,7 @@ export interface Preference {
     log: boolean
     plugin_token: Array<PluginToken>
     animation: boolean
+    recover?: Preference_Recover
 }
 
 export interface Library {

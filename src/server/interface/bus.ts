@@ -5,7 +5,7 @@
 // ========================
 import { Job, Parameter, Project, Task } from "./base"
 import { ExecuteState } from "./enum"
-import { ExecutionLog, Log } from "./record"
+import { ExecutionLog, Log, Preference } from "./record"
 import { FeedBack, Header, Setter, ShellFolder, Single, WebsocketPack } from "./struct"
 import { NodeTable } from "./table"
 import { ToastData } from "./ui"
@@ -114,6 +114,7 @@ export type BusType = {
     shellReply: Single
     folderReply: ShellFolder
     feedbackMessage: FeedBack
+    savePreference: Preference
 
     renameScript: Rename
     deleteScript: string

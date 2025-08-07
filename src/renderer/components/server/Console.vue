@@ -429,6 +429,7 @@ onUnmounted(() => {
             </v-col>
         </v-row>
         <ConsoleDialog v-model="data.createModal"
+            :backend="props.backend"
             :projects="props.projects"
             :nodes="props.nodes"
             :parameters="props.parameters"
