@@ -119,6 +119,8 @@ export class Util_Server_Console_Proxy {
         this.model.record!.task = d[0].uuid
         this.model.record!.task_index = index
         this.model.record!.task_state[index].state = ExecuteState.RUNNING
+        for(let i = 0; i < index; i++) this.model.record!.task_state[i].state =  ExecuteState.FINISH
+        for(let i = index + 1; i < this.model.record!.task_state.length; i++) this.model.record!.task_state[i].state =  ExecuteState.NONE
         this.model.record!.task_detail = []
         const p = this.model.record!.projects[this.model.record!.project_index]
         const t = p.task[this.model.record!.task_index]

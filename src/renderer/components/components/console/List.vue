@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, Ref, ref } from 'vue';
-import { ConnectionText, ExecutePair, ExecuteStateText, NodeTable, Preference } from '../../../interface';
+import { ConnectionText, ExecutePair, ExecuteState, ExecuteStateText, NodeTable, Preference } from '../../../interface';
 import { i18n } from '../../../plugins/i18n';
 
 interface PROPS {
@@ -36,6 +36,19 @@ const translate_state_color = (ID:string):string => {
     }
     return 'white'
 }
+const translate_pstate_color = (state:ExecuteState):string => {
+    switch(state){
+        default:
+        case ExecuteState.NONE: 
+            return 'white'
+        case ExecuteState.RUNNING: 
+            return 'primary'
+        case ExecuteState.FINISH: 
+            return 'success'
+        case ExecuteState.ERROR: 
+            return 'danger'
+    }
+}
 
 onMounted(() => {
     
@@ -56,7 +69,7 @@ onUnmounted(() => {
                 <span>{{ item.title }}</span>
             </template>
             <template v-slot:item.state="{ index }">
-                <v-chip>
+                <v-chip :color="translate_pstate_color(data.record!.project_state[index].state)">
                     {{ $t(ExecuteStateText[data.record!.project_state[index].state]) }}
                 </v-chip>
             </template>

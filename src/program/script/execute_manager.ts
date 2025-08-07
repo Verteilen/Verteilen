@@ -215,18 +215,23 @@ export class ExecuteManager extends ExecuteManager_Runner {
     private jumpProject = (forward:boolean):number => {
         // There is no project exists
         if (this.current_projects.length == 0) return -2
-        // Not yet start
         if (this.current_p == undefined) {
-            this.current_p = this.current_projects[0]
-            this.proxy?.executeProjectStart([this.current_p, 0])
-            this.SyncParameter(this.current_p)
-            this.state = ExecuteState.RUNNING
-            return 0
+            // Not yet start
+            if(forward){
+                this.current_p = this.current_projects[1]
+                this.proxy?.executeProjectStart([this.current_p, 1])
+                this.SyncParameter(this.current_p)
+                this.state = ExecuteState.RUNNING
+                return 0
+            }else{
+                // You cannot previous when at first
+                return 2
+            }
         } else {
             // When it's in the processing stage
             // Let's find the current processing project, and increments it's index for it
             const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
-            this.proxy?.executeProjectFinish([this.current_p, index])
+            if(forward) this.proxy?.executeProjectFinish([this.current_p, index])
             const atend = forward ? index == this.current_projects.length - 1 : index == 0
             if (atend){
                 // If it's last project
@@ -252,7 +257,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
                 }else{
                     this.messager_log(`[Execute] Previous project ${index}. ${this.current_p.uuid}`)
                 }
-                this.proxy?.executeProjectStart([this.current_p, index + 1])
+                this.proxy?.executeProjectStart([this.current_p, index + (forward ? 1 : -1)])
                 this.SyncParameter(this.current_p)
                 return index
             }

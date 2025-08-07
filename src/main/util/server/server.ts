@@ -168,18 +168,21 @@ export class Util_Server {
         mainWindow?.webContents.send('console-delete', r)
     }
 
-    private console_skip = (uuid:string, type:number, state:ExecuteState = ExecuteState.FINISH) => {
+    private console_skip = (uuid:string, forward:boolean, type:number, state:ExecuteState = ExecuteState.FINISH) => {
         const target = this.execute_manager.find(x => x.record!.uuid == uuid)
         if(target == undefined) return
         if(type == 0){
             // Project
-            target.record!.project_state[target.record!.project_index].state = state != undefined ? state : ExecuteState.FINISH
-            target.record!.project_index += 1
+            target.record!.project_state[target.record!.project_index].state = forward ? (state != undefined ? state : ExecuteState.FINISH) : ExecuteState.NONE
+            target.record!.project_index += forward ? 1 : -1
             if(target.record!.project_index == target.record!.projects.length) {
                 target.record!.project_index = -1
                 this.console_clean(uuid)
             }
             else {
+                if(target.record!.project_index < 0){
+                    target.record!.project_index = 0
+                }
                 target.record!.task_state = target.record!.projects[target.record!.project_index].task.map(x => {
                     return {
                         uuid: x.uuid,
@@ -198,18 +201,20 @@ export class Util_Server {
                         state: ExecuteState.NONE
                     })
                 }
-                const index = target.manager!.SkipProject()
-                console.log("Skip project, index: %d, next count: %d", index, count)
+                const index = forward ? target.manager!.SkipProject() : target.manager!.PreviousProject()
+                console.log("%s project, index: %d, next count: %d", forward ? "Skip" : "Previous", index, count)
             }
         }else if (type == 1){
             const begining = target.record!.task_state[0].state == ExecuteState.NONE
             // Task
-            if(!begining) target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
-            target.record!.task_index += 1
+            if(!begining && forward) target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+            if(!forward) target.record!.task_state[target.record!.task_index].state = ExecuteState.NONE
+            target.record!.task_index += forward ? 1 : -1
             if(target.record!.task_index == target.record!.task_state.length) {
-                this.console_skip(uuid, 0)
+                this.console_skip(uuid, true, 0)
             }else{
-                if(!begining) target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+                if(!begining && forward) target.record!.task_state[target.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+                else if (!forward) target.record!.task_state[target.record!.task_index].state = ExecuteState.RUNNING
                 target.record!.task_detail = []
                 const p = target.record!.projects[target.record!.project_index]
                 const t = p.task[target.record!.task_index]
@@ -222,7 +227,7 @@ export class Util_Server {
                         state: ExecuteState.NONE
                     })
                 }
-                const index = target.manager!.SkipTask()
+                const index = forward ? target.manager!.SkipTask() : target.manager!.PreviousTask()
                 console.log("Skip task, index: %d, next count: %d", index, count)
             }
         }
@@ -296,8 +301,8 @@ export class Util_Server {
         ipcMain.on('console_clean', (event, uuid:string) => {
             this.console_clean(uuid)
         })
-        ipcMain.on('console_skip', (event, uuid:string, type:number, state:ExecuteState) => {
-            this.console_skip(uuid, type, state)
+        ipcMain.on('console_skip', (event, uuid:string, forward:boolean, type:number, state:ExecuteState) => {
+            this.console_skip(uuid, forward, type, state)
         })
         ipcMain.on('console_skip2', (event, uuid:string, type:number) => {
             this.console_skip2(uuid, type)
