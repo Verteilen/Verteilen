@@ -219,7 +219,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
         }
         if (this.current_p == undefined) {
             // Not yet start
-            return forward ? this.skipProjectFirst() : 2
+            return forward ? this.skipProjectFirst() : -2
         } else {
             // When it's in the processing stage
             // Let's find the current processing project, and increments it's index for it
@@ -245,7 +245,7 @@ export class ExecuteManager extends ExecuteManager_Runner {
         this.proxy?.executeProjectStart([this.current_p, 1])
         this.SyncParameter(this.current_p)
         this.state = ExecuteState.RUNNING
-        return 0
+        return 1
     }
 
     private _jumpProject = (forward:boolean):number => {
