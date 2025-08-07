@@ -164,6 +164,8 @@ const ImportConfirm = async () => {
                 try {
                     const buffer:Project = JSON.parse(x)
                     buffer.uuid = uuidv6()
+                    buffer.parameter_uuid = ""
+                    buffer.parameter = undefined
                     return buffer
                 }catch(err){
                     console.error("Convert text to project json format error")

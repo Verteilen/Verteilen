@@ -57,6 +57,8 @@ export interface DialogDATACreateSet extends DialogDATA {
 }
 
 export interface DATA {
+    importModal: boolean,
+    importData: File[],
     selectTempModel: boolean
     itemPrePage: number
     cloneModal: boolean
