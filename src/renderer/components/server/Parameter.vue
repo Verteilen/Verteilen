@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
-import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { AppConfig, BusType, DataType, DataTypeBase, DataTypeText, Parameter, ParameterContainer, ParameterTemplate, ParameterTemplateText, PluginPageData, Preference, ToastData } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, IndexToValue, Temp, Util_Parameter, ValueToGroupName } from '../../util/parameter';
@@ -153,21 +153,22 @@ const importPara = () => {
 
 const ImportConfirm = () => {
     data.value.importModal = false
-    if(props.config.haveBackend) {
-        Promise.all(data.value.importData.map(x => x.text())).then(texts => {
-            const a = texts.map(x => {
-                try {
-                    const buffer:Parameter = JSON.parse(x)
-                    buffer.uuid = uuidv6()
-                    return buffer
-                }catch(err){
-                    console.error("Convert text to project json format error")
-                    return undefined
-                }
-            }).filter(x => x != undefined)
-            a.forEach(aa => emits('added', aa))
+    Promise.all(data.value.importData.map(x => x.text())).then(texts => {
+        const a = texts.map(x => {
+            try {
+                const buffer:Parameter = JSON.parse(x)
+                buffer.uuid = uuidv6()
+                return buffer
+            }catch(err){
+                console.error("Convert text to project json format error")
+                return undefined
+            }
+        }).filter(x => x != undefined)
+        a.forEach(aa => emits('added', aa))
+        nextTick(() => {
+            updateParameter();
         })
-    }
+    })
 }
 
 const exportPara = async () => {

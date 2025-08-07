@@ -158,23 +158,24 @@ const confirmEdit = () => {
 
 const ImportConfirm = async () => {
     data.value.importModal = false
-    if(props.config.haveBackend) {
-        Promise.all(data.value.importData.map(x => x.text())).then(texts => {
-            const a = texts.map(x => {
-                try {
-                    const buffer:Project = JSON.parse(x)
-                    buffer.uuid = uuidv6()
-                    buffer.parameter_uuid = ""
-                    buffer.parameter = undefined
-                    return buffer
-                }catch(err){
-                    console.error("Convert text to project json format error")
-                    return undefined
-                }
-            }).filter(x => x != undefined)
-            emits('added', a)
+    Promise.all(data.value.importData.map(x => x.text())).then(texts => {
+        const a = texts.map(x => {
+            try {
+                const buffer:Project = JSON.parse(x)
+                buffer.uuid = uuidv6()
+                buffer.parameter_uuid = ""
+                buffer.parameter = undefined
+                return buffer
+            }catch(err){
+                console.error("Convert text to project json format error")
+                return undefined
+            }
+        }).filter(x => x != undefined)
+        emits('added', a)
+        nextTick(() => {
+            updateProject();
         })
-    }
+    })
 }
 
 const moveup = (uuid:string) => {
