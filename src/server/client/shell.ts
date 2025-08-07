@@ -105,6 +105,20 @@ export class ClientShell {
         p[1].kill()
     }
 
+    /**
+     * Open shell console
+     * @param input 
+     */
+    close_shell_all = (data:number) => {
+        this.shell_workers.forEach(p => {
+            if(p == undefined){
+                this.messager_log(`[Shell] Cannot find shell instance`)
+                return
+            }
+            p[1].kill()
+        })
+    }
+
     shell_folder = (data:string, source:WebSocket) => {
         if(data.length == 0){
             data = process.cwd()

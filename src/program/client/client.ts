@@ -110,6 +110,7 @@ export class Client {
 
     Release = () => {
         this.analysis.forEach(x => x.stop_all())
+        this.analysis.forEach(x => x.destroy())
         this.analysis = []
     }
 

@@ -278,6 +278,10 @@ export class ClientAnalysis {
         this.exec.forEach(x => x.stop_job())
     }
 
+    destroy = () => {
+        if(this.resource_thread != undefined) this.resource_thread.kill()
+    }
+
     private resource_require = () => {
         if(this.resource_thread != undefined) return
         const shouldRun = this.resource_thread == undefined && (this.resource_cache == undefined || this.resource_wanter.length > 0)
