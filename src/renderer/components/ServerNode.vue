@@ -628,7 +628,7 @@ onUnmounted(() => {
         <template v-slot:prepend>
           <v-app-bar-nav-icon @click="data.drawer = true"></v-app-bar-nav-icon>
         </template>
-        <v-app-bar-title>
+        <v-app-bar-title v-if="data.title">
           {{ $t(data.title).slice(0, $t(data.title).length - 4) }} 
           <span :style="{ 'fontSize': (props.preference.font - 5) + 'px' }">
             {{ $t(data.title).slice($t(data.title).length - 4, $t(data.title).length) }}
@@ -648,7 +648,6 @@ onUnmounted(() => {
       <v-navigation-drawer temporary v-model="data.drawer" :scrim="props.preference?.animation">
         <v-list density="compact" nav>
           <v-list-item v-if="props.backend.config.isExpress"
-            :prepend-avatar="props.backend.user?.picture_url ? '/pic' : 'assets/icon/user.png'"
             :title="props.backend.user?.name"
             :value="100" 
             @click="data.page = 100; data.title = 'toolbar.profile'"
