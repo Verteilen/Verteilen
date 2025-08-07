@@ -213,54 +213,17 @@ export class ExecuteManager extends ExecuteManager_Runner {
     }
 
     private jumpProject = (forward:boolean):number => {
-        // There is no project exists
-        if (this.current_projects.length == 0) return -2
+        if (this.current_projects.length == 0) {
+            console.error("There is no project exists")
+            return -2
+        }
         if (this.current_p == undefined) {
             // Not yet start
-            if(forward){
-                this.current_p = this.current_projects[1]
-                this.proxy?.executeProjectStart([this.current_p, 1])
-                this.SyncParameter(this.current_p)
-                this.state = ExecuteState.RUNNING
-                return 0
-            }else{
-                // You cannot previous when at first
-                return 2
-            }
+            return forward ? this.skipProjectFirst() : 2
         } else {
             // When it's in the processing stage
             // Let's find the current processing project, and increments it's index for it
-            const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
-            if(forward) this.proxy?.executeProjectFinish([this.current_p, index])
-            const atend = forward ? index == this.current_projects.length - 1 : index == 0
-            if (atend){
-                // If it's last project
-                if(forward){
-                    this.current_p = undefined
-                    this.current_t = undefined
-                    this.state = ExecuteState.FINISH
-                    this.messager_log(`[Execute] Skip project to Finish !`)
-                }else{
-                    this.current_p = this.current_projects[0]
-                    this.current_t = undefined
-                    this.state = ExecuteState.RUNNING
-                    this.messager_log(`[Execute] Previous project to Begining !`)
-                }
-                return -1
-            } else {
-                const next = forward ? this.current_projects[index + 1] : this.current_projects[index - 1]
-                this.current_p = next
-                this.current_t = undefined
-                this.state = ExecuteState.RUNNING
-                if(forward){
-                    this.messager_log(`[Execute] Skip project ${index}. ${this.current_p.uuid}`)
-                }else{
-                    this.messager_log(`[Execute] Previous project ${index}. ${this.current_p.uuid}`)
-                }
-                this.proxy?.executeProjectStart([this.current_p, index + (forward ? 1 : -1)])
-                this.SyncParameter(this.current_p)
-                return index
-            }
+            return this._jumpProject(forward)
         }
     }
 
@@ -269,67 +232,117 @@ export class ExecuteManager extends ExecuteManager_Runner {
         if (this.current_p == undefined) return -2
         if (this.current_t == undefined){
             // If we are in the start
-            if(forward){
-                if(this.current_p.task.length > 0){
-                    this.current_t = this.current_p.task[0]
-                    const taskCount = this.get_task_state_count(this.current_t)
-                    if(this.current_t.cronjob){
-                        this.Init_CronContainer(this.current_t, taskCount)
-                    }
-                    this.t_state = ExecuteState.NONE
-                    this.proxy?.executeTaskStart([this.current_t, taskCount])
-                    return 0
-                }else{
-                    console.error("Project has no task, Skip failed")
-                    return -2
-                }
-            }else{
-                const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
-                if (index == 0){
-                    // If it's first task and first project
-                    this.current_t = undefined
-                } else {
-                    this.current_p = this.current_projects[index - 1]
-                    this.messager_log(`[Execute] Previous task ${index}. Jump Project: ${this.current_p.uuid}`)
-                }
-                this.current_job = []
-                this.t_state = ExecuteState.NONE
-                return index
-            }
+            return forward ? this.skipTaskFirst() : this.previousTaskFirst()
         } else {
             // When it's in the processing stage
             // Let's find the current processing task, and increments it's index for it
-            if(forward){
-                const index = this.current_p.task.findIndex(x => x.uuid == this.current_t!.uuid)
-                if (index == this.current_p.task.length - 1){
-                    // If it's last task
-                    this.proxy?.executeTaskFinish(this.current_t)
-                    this.current_t = undefined
-                    this.messager_log(`[Execute] Skip task to Finish !`)
-                } else {
-                    this.proxy?.executeTaskFinish(this.current_t)
-                    this.current_t = this.current_p.task[index + 1]
-                    this.messager_log(`[Execute] Skip task ${index}. ${this.current_t.uuid}`)
-                    const taskCount = this.get_task_state_count(this.current_t)
-                    if(this.current_t.cronjob){
-                        this.Init_CronContainer(this.current_t, taskCount)
-                    }
-                    this.proxy?.executeTaskStart([this.current_t, taskCount])
-                }
-                this.current_job = []
-                this.t_state = ExecuteState.NONE
-                return index
-            }else{
-                const index = this.current_p.task.findIndex(x => x.uuid == this.current_t!.uuid)
-                this.current_t = this.current_p.task[index - 1]
-                const taskCount = this.get_task_state_count(this.current_t)
-                if(this.current_t.cronjob){
-                    this.Init_CronContainer(this.current_t, taskCount)
-                }
-                this.t_state = ExecuteState.NONE
-                this.proxy?.executeTaskStart([this.current_t, taskCount])
-                return 0
-            }
+            return forward ? this.skipTask() : this.previousTask()
         }
+    }
+
+    private skipProjectFirst = ():number => {
+        this.current_p = this.current_projects[1]
+        this.proxy?.executeProjectStart([this.current_p, 1])
+        this.SyncParameter(this.current_p)
+        this.state = ExecuteState.RUNNING
+        return 0
+    }
+
+    private _jumpProject = (forward:boolean):number => {
+        const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
+        if(forward) this.proxy?.executeProjectFinish([this.current_p!, index])
+        const atend = forward ? index == this.current_projects.length - 1 : index == 0
+        if (atend){
+            // If it's last project
+            if(forward){
+                this.current_p = undefined
+                this.current_t = undefined
+                this.state = ExecuteState.FINISH
+                this.messager_log(`[Execute] Skip project to Finish !`)
+            }else{
+                this.current_p = this.current_projects[0]
+                this.current_t = undefined
+                this.state = ExecuteState.RUNNING
+                this.messager_log(`[Execute] Previous project to Begining !`)
+            }
+            return -1
+        } else {
+            const next = forward ? this.current_projects[index + 1] : this.current_projects[index - 1]
+            this.current_p = next
+            this.current_t = undefined
+            this.state = ExecuteState.RUNNING
+            if(forward){
+                this.messager_log(`[Execute] Skip project ${index}. ${this.current_p.uuid}`)
+            }else{
+                this.messager_log(`[Execute] Previous project ${index}. ${this.current_p.uuid}`)
+            }
+            this.proxy?.executeProjectStart([this.current_p, index + (forward ? 1 : -1)])
+            this.SyncParameter(this.current_p)
+            return index
+        }
+    }
+
+    private skipTaskFirst = ():number => {
+        if(this.current_p!.task.length > 0){
+            this.current_t = this.current_p!.task[0]
+            const taskCount = this.get_task_state_count(this.current_t)
+            if(this.current_t.cronjob){
+                this.Init_CronContainer(this.current_t, taskCount)
+            }
+            this.t_state = ExecuteState.NONE
+            this.proxy?.executeTaskStart([this.current_t, taskCount])
+            return 0
+        }else{
+            console.error("Project has no task, Skip failed")
+            return -2
+        }
+    }
+
+    private previousTaskFirst = ():number => {
+        const index = this.current_projects.findIndex(x => x.uuid == this.current_p!.uuid)
+        if (index == 0){
+            // If it's first task and first project
+            this.current_t = undefined
+        } else {
+            this.current_p = this.current_projects[index - 1]
+            this.messager_log(`[Execute] Previous task ${index}. Jump Project: ${this.current_p.uuid}`)
+        }
+        this.current_job = []
+        this.t_state = ExecuteState.NONE
+        return index
+    }
+
+    private skipTask = ():number => {
+        const index = this.current_p!.task.findIndex(x => x.uuid == this.current_t!.uuid)
+        if (index == this.current_p!.task.length - 1){
+            // If it's last task
+            this.proxy?.executeTaskFinish(this.current_t!)
+            this.current_t = undefined
+            this.messager_log(`[Execute] Skip task to Finish !`)
+        } else {
+            this.proxy?.executeTaskFinish(this.current_t!)
+            this.current_t = this.current_p!.task[index + 1]
+            this.messager_log(`[Execute] Skip task ${index}. ${this.current_t.uuid}`)
+            const taskCount = this.get_task_state_count(this.current_t)
+            if(this.current_t.cronjob){
+                this.Init_CronContainer(this.current_t, taskCount)
+            }
+            this.proxy?.executeTaskStart([this.current_t, taskCount])
+        }
+        this.current_job = []
+        this.t_state = ExecuteState.NONE
+        return index
+    }
+
+    private previousTask = ():number => {
+        const index = this.current_p!.task.findIndex(x => x.uuid == this.current_t!.uuid)
+        this.current_t = this.current_p!.task[index - 1]
+        const taskCount = this.get_task_state_count(this.current_t)
+        if(this.current_t.cronjob){
+            this.Init_CronContainer(this.current_t, taskCount)
+        }
+        this.t_state = ExecuteState.NONE
+        this.proxy?.executeTaskStart([this.current_t, taskCount])
+        return 0
     }
 }
