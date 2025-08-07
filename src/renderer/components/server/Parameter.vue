@@ -40,6 +40,8 @@ const fields:Ref<Array<any>> = ref([
 ])
 
 const data:Ref<DATA> = ref({
+    importModal: false,
+    importData: [],
     selectTempModel: false,
     itemPrePage: -1,
     cloneModal: false,
@@ -146,13 +148,31 @@ const selectSearchF = computed(() => {
 })
 
 const importPara = () => {
-    if(!props.config.isElectron) return
-    window.electronAPI.send("import_parameter")
+    data.value.importModal = true
+}
+
+const ImportConfirm = () => {
+    data.value.importModal = false
+    if(props.config.haveBackend) {
+        Promise.all(data.value.importData.map(x => x.text())).then(texts => {
+            const a = texts.map(x => {
+                try {
+                    const buffer:Parameter = JSON.parse(x)
+                    buffer.uuid = uuidv6()
+                    return buffer
+                }catch(err){
+                    console.error("Convert text to project json format error")
+                    return undefined
+                }
+            }).filter(x => x != undefined)
+            a.forEach(aa => emits('added', aa))
+        })
+    }
 }
 
 const exportPara = async () => {
     if(props.config.isElectron) {
-        window.electronAPI.send("export_parameter", JSON.stringify(data.value.buffer))
+        props.backend.send("export_parameter", JSON.stringify(data.value.buffer))
     }else if(props.config.isExpress){
         const handle = await window.showSaveFilePicker({ suggestedName: data.value.buffer.uuid + '.json' });
         const writer = await handle.createWritable();
@@ -700,6 +720,18 @@ onUnmounted(() => {
             <template #action>
                 <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
                 <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase width="800" v-model="data.importModal" class="text-white" :preference="props.preference">
+            <template #title>
+                <v-icon>mdi-import</v-icon>
+                {{ $t('modal.import-project') }}
+            </template>
+            <template #text>
+                <v-file-upload v-model="data.importData" show-size clearable multiple density="default"></v-file-upload>
+            </template>
+            <template #action>
+                <v-btn class="mt-3" :disabled="data.importData.length == 0" color="primary" @click="ImportConfirm">{{ $t('import') }}</v-btn>
             </template>
         </DialogBase>
     </div>
