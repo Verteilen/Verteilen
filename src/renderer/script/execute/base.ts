@@ -7,7 +7,6 @@ import { v6 as uuid6 } from 'uuid';
 import { CronJobState, DataType, ExecuteProxy, ExecuteState, Header, Job, JobCategory, JobType, JobType2, Libraries, Messager, Parameter, Project, Record, Task, WebsocketPack, WorkState } from "../../interface";
 import { WebsocketManager } from "../socket_manager";
 import { Util_Parser } from './util_parser';
-import { WebSocket } from 'ws';
 
 /**
  * The base class of task scheduler, contain some basic funcationality
@@ -254,14 +253,14 @@ export class ExecuteManager_Base {
      * @returns All idle and open connection nodes
      */
     protected get_idle = ():Array<WebsocketPack> => {
-        return this.current_nodes.filter(x => this.check_socket_state(x) != ExecuteState.RUNNING && x.websocket.readyState == WebSocket.OPEN)
+        return this.current_nodes.filter(x => this.check_socket_state(x) != ExecuteState.RUNNING && x.websocket.readyState == 1)
     }
     /**
      * Filter out the connection open nodes
      * @returns All open connection nodes
      */
     protected get_idle_open = ():Array<WebsocketPack> => {
-        return this.current_nodes.filter(x => x.websocket.readyState == WebSocket.OPEN)
+        return this.current_nodes.filter(x => x.websocket.readyState == 1)
     }
 
     protected check_socket_state = (target:WebsocketPack) => {

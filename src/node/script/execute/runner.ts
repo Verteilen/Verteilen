@@ -6,7 +6,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { CronJobState, DataType, ExecuteState, Header, Job, Project, Task, WebsocketPack } from "../../interface";
 import { ExecuteManager_Feedback } from "./feedback";
-import { WebSocket } from 'ws';
 import { Util_Parser } from './util_parser';
 
 /**
@@ -172,7 +171,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
                 this.current_job = []
             }else{
                 ns = [last]
-                if(ns[0].websocket.readyState != WebSocket.OPEN){
+                if(ns[0].websocket.readyState != 1){
                     ns = this.get_idle()
                     this.current_job = []
                 }
@@ -187,7 +186,7 @@ export class ExecuteManager_Runner extends ExecuteManager_Feedback {
             }
         }
 
-        if (ns.length > 0 && ns[0].websocket.readyState == WebSocket.OPEN && this.check_socket_state(ns[0]) != ExecuteState.RUNNING)
+        if (ns.length > 0 && ns[0].websocket.readyState == 1 && this.check_socket_state(ns[0]) != ExecuteState.RUNNING)
         {
             if(this.check_single_end()){
                 allJobFinish = true
