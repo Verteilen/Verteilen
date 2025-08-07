@@ -153,21 +153,19 @@ const importPara = () => {
 
 const ImportConfirm = () => {
     data.value.importModal = false
-    if(props.config.haveBackend) {
-        Promise.all(data.value.importData.map(x => x.text())).then(texts => {
-            const a = texts.map(x => {
-                try {
-                    const buffer:Parameter = JSON.parse(x)
-                    buffer.uuid = uuidv6()
-                    return buffer
-                }catch(err){
-                    console.error("Convert text to project json format error")
-                    return undefined
-                }
-            }).filter(x => x != undefined)
-            a.forEach(aa => emits('added', aa))
-        })
-    }
+    Promise.all(data.value.importData.map(x => x.text())).then(texts => {
+        const a = texts.map(x => {
+            try {
+                const buffer:Parameter = JSON.parse(x)
+                buffer.uuid = uuidv6()
+                return buffer
+            }catch(err){
+                console.error("Convert text to project json format error")
+                return undefined
+            }
+        }).filter(x => x != undefined)
+        a.forEach(aa => emits('added', aa))
+    })
 }
 
 const exportPara = async () => {
