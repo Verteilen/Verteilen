@@ -539,6 +539,8 @@ const dataset_init = () => {
   })
   Promise.all([p0, p1, p2, p4, ...p35, p6]).then(() => {
     nextTick(() => allUpdate())
+  }).catch(err => {
+    console.error("Init Promises Call Failed: ", err)
   })
 }
 
