@@ -20,7 +20,7 @@ const emits = defineEmits<{
     (e: 'save', file:string, data:string, fresh:boolean): void
     (e: 'load', file:string): void
     (e: 'delete', file:string): void
-    (e: 'execute-js', content:string):void
+    (e: 'execute-js', content:string, parameter:Parameter | undefined):void
 }>()
 const model = defineModel<Libraries>()
 const data:Ref<DATA> = ref({
@@ -63,7 +63,7 @@ const util:Util_Lib = new Util_Lib(data, () => selection.value)
 
 const execute = () => {
     if(selection.value == undefined) return
-    emits('execute-js', selection.value.content)
+    emits('execute-js', selection.value.content, data.value.parameter)
 }
 
 const clean = () => {

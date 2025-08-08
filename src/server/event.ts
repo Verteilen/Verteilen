@@ -5,7 +5,7 @@ import * as fs from "fs";
 import * as os from "os";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { DATA_FOLDER, GlobalPermission, Header, Job, JobCategory, JobType, Libraries, LocalPermiision, PluginList, Preference, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
+import { DATA_FOLDER, GlobalPermission, Header, Job, JobCategory, JobType, Libraries, LocalPermiision, Parameter, PluginList, Preference, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
@@ -70,7 +70,7 @@ export class BackendEvent {
     }
 
     //#region Manager Side
-    private javascript = (socket:ws.WebSocket, content:string) => {
+    private javascript = (socket:ws.WebSocket, content:string, parameter:string | undefined) => {
         const javascript_messager_feedback = (msg:string, tag?:string) => {
             messager(msg, tag)
             const d:Header = {
@@ -91,7 +91,10 @@ export class BackendEvent {
         }
         const p:PluginList = { plugins: [] }
         const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
-        worker.execute()
+        worker.parameter = parameter ? JSON.parse(parameter) : undefined
+        worker.execute().then(x => {
+            javascript_messager_feedback(x, "Finish")
+        })
     }
     private message = (socket:ws.WebSocket, message:string, tag?:string) => {
         console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
