@@ -33,7 +33,7 @@
     "docker:server-p": "scripts/docker_server.sh --publish",
     "publish:node-pkg": "cd build/node-build && npm publish",
     "pkg": "ts-node scripts/program_build.ts",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
