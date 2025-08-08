@@ -11,7 +11,6 @@
     "win": {
         "target": "msi",
         "defaultArch": "x64",
-        "compression": "maximum",
         "icon": "src/renderer/assets/icon.ico"
     },
     "mac": {
@@ -23,7 +22,6 @@
     "linux":  {
         "target": "deb",
         "defaultArch": "x64",
-        "compression": "maximum",
         "maintainer": "Elly"
     },
     "extraFiles": [
