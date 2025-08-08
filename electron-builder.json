@@ -2,6 +2,9 @@
     "appId": "com.verteilen.app",
     "productName": "Verteilen",
     "compression": "maximum",
+    "removePackageScripts": true,
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false,
     "directories": {
         "output": "dist"
     },
@@ -10,6 +13,9 @@
         "defaultArch": "x64",
         "compression": "maximum",
         "icon": "src/renderer/assets/icon.ico"
+    },
+    "mac": {
+        "target": "dmg"
     },
     "msi": {
         "runAfterFinish": false
