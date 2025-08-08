@@ -356,7 +356,7 @@ export class ClientJavascript {
     private get(key:string, checker?:DatatypeChecker){
         const p = getpara?.() ?? undefined
         if(p == undefined) return undefined
-        return p.containers.find(x => x.name == key && (checker ? checker(x.type) : true )) ?? undefined
+        return p.containers.find(x => x.name == key && (checker ? checker(x.type) : true ))?.value ?? undefined
     }
     private getboolean(key:string){
         return this.get(key, (x) => x == DataType.Boolean)?.value

@@ -57,13 +57,9 @@ export class BackendEvent {
         ipcMain.handle('exist', (event, d:string) => {
             return fs.existsSync(d)
         })
-        ipcMain.on('javascript', (event, content:string) => {
+        ipcMain.on('javascript', (event, content:string, parameter:string | undefined) => {
             const javascript_messager_feedback = (msg:string, tag?:string) => {
                 messager(msg, tag)
-                event.sender.send('javascript-feedback', msg)
-            }
-            const javascript_messager_log_feedback = (msg:string, tag?:string) => {
-                messager_log(msg, tag)
                 event.sender.send('javascript-feedback', msg)
             }
             const d:Job = {
@@ -76,8 +72,11 @@ export class BackendEvent {
                 boolean_args: []
             }
             const p:PluginList = { plugins: [] }
-            const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_log_feedback, d, undefined, p)
-            worker.execute()
+            const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
+            worker.parameter = parameter ? JSON.parse(parameter) : undefined
+            worker.execute().then(x => {
+                javascript_messager_feedback(x, "Finish")
+            })
         })
         ipcMain.on('message', (event, message:string, tag?:string) => {
             console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);

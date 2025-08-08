@@ -169,7 +169,7 @@ const libDelete = (file:string) => {
   })
   allUpdate()
 }
-const libJs = (code:string) => { props.backend.send('javascript', code) }
+const libJs = (code:string, para:Parameter | undefined) => { props.backend.send('javascript', code, para ? JSON.stringify(para) : undefined) }
 //#endregion
 
 //#region Console
@@ -409,15 +409,15 @@ const hotkey = (event:KeyboardEvent) => {
     else if(event.key == 'x' && data.value.page == 5) emitter?.emit('hotkey', 'c_r') // Restore console
   }
   if (event.ctrlKey) {
-    if(event.key == 'a' && data.value.page == 0) emitter?.emit('hotkey', 'create_project')
-    if(event.key == 'a' && data.value.page == 1) emitter?.emit('hotkey', 'create_task')
-    if(event.key == 'a' && data.value.page == 2) emitter?.emit('hotkey', 'create_job')
-    if(event.key == 'a' && data.value.page == 3) emitter?.emit('hotkey', 'create_parameter')
-    if(event.key == 'a' && data.value.page == 4) emitter?.emit('hotkey', 'create_node')
-    if(event.key == 'a' && data.value.page == 5) emitter?.emit('hotkey', 'create_console')
-    if(event.key == 'a' && data.value.page == 7) emitter?.emit('hotkey', 'create_lib')
-    if(event.key == 'a' && data.value.page == 11) emitter?.emit('hotkey', 'create_plugin')
-    if(event.key == 's' && data.value.page == 11) emitter?.emit('hotkey', 'create_template')
+    if(event.key == 'q' && data.value.page == 0) emitter?.emit('hotkey', 'create_project')
+    if(event.key == 'q' && data.value.page == 1) emitter?.emit('hotkey', 'create_task')
+    if(event.key == 'q' && data.value.page == 2) emitter?.emit('hotkey', 'create_job')
+    if(event.key == 'q' && data.value.page == 3) emitter?.emit('hotkey', 'create_parameter')
+    if(event.key == 'q' && data.value.page == 4) emitter?.emit('hotkey', 'create_node')
+    if(event.key == 'q' && data.value.page == 5) emitter?.emit('hotkey', 'create_console')
+    if(event.key == 'q' && data.value.page == 7) emitter?.emit('hotkey', 'create_lib')
+    if(event.key == 'q' && data.value.page == 11) emitter?.emit('hotkey', 'create_plugin')
+    if(event.key == 'w' && data.value.page == 11) emitter?.emit('hotkey', 'create_template')
   }
 }
 
@@ -777,7 +777,7 @@ onUnmounted(() => {
             @save="(d, d1, d2) => libSave(d, d1, d2)"
             @load="d => libLoad(d)"
             @delete="d => libDelete(d)"
-            @execute-js="d => libJs(d)"
+            @execute-js="(d, d1) => libJs(d, d1)"
             v-model="data.libs"/>
         </v-tabs-window-item>
         <v-tabs-window-item v-show="config.haveBackend" :value="8">

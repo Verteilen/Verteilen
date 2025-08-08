@@ -79,34 +79,43 @@ export class ClientExecute {
         let k = "" 
 
         const workerFeedbackExec = (str:string) => {
-            const msg:Header = JSON.parse(str)
-            if(msg.name == 'messager'){
-                this.messager(msg.data, job.uuid)
-            } 
-            else if(msg.name == 'messager_log'){
-                this.messager_log(msg.data, job.uuid, job.runtime_uuid)
-            }
-            else if(msg.name == 'error'){
-                if(msg.data instanceof String) this.messager_log(msg.data.toString(), job.uuid, job.runtime_uuid)
-                else this.messager_log(JSON.stringify(msg.data), job.uuid, job.runtime_uuid)
-            }
-            else if(msg.name == 'feedbackstring'){
-                para.feedbackstring(msg.data)
-            }
-            else if(msg.name == 'feedbackboolean'){
-                para.feedbackboolean(msg.data)
-            }
-            else if(msg.name == 'feedbacknumber'){
-                para.feedbacknumber(msg.data)
-            }
-            else if(msg.name == 'feedbackobject'){
-                para.feedbackobject(msg.data)
-            }
-            else if(msg.name == 'feedbacklist'){
-                para.feedbacklist(msg.data)
-            }
-            else if(msg.name == 'feedbackselect'){
-                para.feedbackselect(msg.data)
+            try{
+                const msg:Header = JSON.parse(str)
+                if(msg.name == 'messager'){
+                    this.messager(msg.data, job.uuid)
+                } 
+                else if(msg.name == 'messager_log'){
+                    this.messager_log(msg.data, job.uuid, job.runtime_uuid)
+                }
+                else if(msg.name == 'error'){
+                    if(msg.data instanceof String) this.messager_log(msg.data.toString(), job.uuid, job.runtime_uuid)
+                    else this.messager_log(JSON.stringify(msg.data), job.uuid, job.runtime_uuid)
+                }
+                else if(msg.name == 'feedbackstring'){
+                    para.feedbackstring(msg.data)
+                }
+                else if(msg.name == 'feedbackboolean'){
+                    para.feedbackboolean(msg.data)
+                }
+                else if(msg.name == 'feedbacknumber'){
+                    para.feedbacknumber(msg.data)
+                }
+                else if(msg.name == 'feedbackobject'){
+                    para.feedbackobject(msg.data)
+                }
+                else if(msg.name == 'feedbacklist'){
+                    para.feedbacklist(msg.data)
+                }
+                else if(msg.name == 'feedbackselect'){
+                    para.feedbackselect(msg.data)
+                }
+            }catch(err:any){
+                const errorH:Header = {
+                    name: "error",
+                    meta: "Execute job failed",
+                    data: err,
+                }
+                this.messager_log(JSON.stringify(errorH), job.uuid, job.runtime_uuid)
             }
         }
         const workerFeedback = (str:string) => {

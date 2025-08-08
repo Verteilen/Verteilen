@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, ExecutePair, ExecuteRecord, ExecuteState, Libraries, Node, NodeTable, Parameter, Preference, Project, Record } from '../../interface';
 import { WebsocketManager } from '../../script/socket_manager';
 import { DATA } from '../../util/console';
@@ -45,6 +45,15 @@ const queryWait = ref(false)
 const consoleAdded = (name:string, data:Record) => {
     emits('added', name, data)
 }
+
+const firstProject = computed(() => {
+    if(model.value == undefined) return true
+    return (model.value.record?.project_index ?? 0) <= 0
+})
+const firstTask = computed(() => {
+    if(model.value == undefined) return true
+    return (model.value.record?.task_index ?? 0) <= 0
+})
 
 //#region Bus Events
 /**
@@ -160,24 +169,27 @@ const execute = (type:number) => {
  * * 2: Step
  * @param state The override state, default is FINISH
  */
-const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
+const skip = (forward:boolean, type:number, state:ExecuteState = ExecuteState.FINISH) => {
     console.log("skip", type, state)
     if(props.backend.config.haveBackend){
         if(type == 2) {
             data.value.skipModal = true
         }else{
-            props.backend.send('console_skip', model.value.record?.uuid, type, state)
+            props.backend.send('console_skip', model.value.record?.uuid, forward, type, state)
         }
     }else{
         if(type == 0){
             // Project
-            model.value.record!.project_state[model.value.record!.project_index].state = state != undefined ? state : ExecuteState.FINISH
-            model.value.record!.project_index += 1
+            model.value.record!.project_state[model.value.record!.project_index].state = forward ? (state != undefined ? state : ExecuteState.FINISH) : ExecuteState.NONE
+            model.value.record!.project_index += forward ? 1 : -1
             if(model.value.record!.project_index == model.value.record!.projects.length) {
                 model.value.record!.project_index = -1
                 clean()
             }
             else {
+                if(model.value.record!.project_index < 0){
+                    model.value.record!.project_index = 0
+                }
                 model.value.record!.task_state = model.value.record!.projects[model.value.record!.project_index].task.map(x => {
                     return {
                         uuid: x.uuid,
@@ -196,18 +208,21 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                         state: ExecuteState.NONE
                     })
                 }
-                const index = model.value.manager!.SkipProject()
-                console.log("Skip project, index: %d, next count: %d", index, count)
+                const index = forward ? model.value.manager!.SkipProject() : model.value.manager!.PreviousProject()
+                console.log("%s project, index: %d, next count: %d", forward ? "Skip" : "Previous", index, count)
             }
         }else if (type == 1){
+            // TODO: 
             const begining = model.value.record!.task_state[0].state == ExecuteState.NONE
             // Task
-            if(!begining) model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
-            model.value.record!.task_index += 1
+            if(!begining && forward) model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+            else if(!forward) model.value.record!.task_state[model.value.record!.task_index].state = ExecuteState.NONE
+            model.value.record!.task_index += forward ? 1 : -1
             if(model.value.record!.task_index == model.value.record!.task_state.length) {
-                skip(0)
+                skip(true, 0)
             }else{
-                if(!begining) model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+                if(!begining && forward) model.value.record!.task_state[model.value.record!.task_index].state = state != undefined ? state : ExecuteState.FINISH
+                else if (!forward) model.value.record!.task_state[model.value.record!.task_index].state = ExecuteState.RUNNING
                 model.value.record!.task_detail = []
                 const p = model.value.record!.projects[model.value.record!.project_index]
                 const t = p.task[model.value.record!.task_index]
@@ -220,7 +235,7 @@ const skip = (type:number, state:ExecuteState = ExecuteState.FINISH) => {
                         state: ExecuteState.NONE
                     })
                 }
-                const index = model.value.manager!.SkipTask()
+                const index = forward ? model.value.manager!.SkipTask() : model.value.manager!.PreviousTask()
                 console.log("Skip task, index: %d, next count: %d", index, count)
             }
         }else if (type == 2){
@@ -336,7 +351,23 @@ onUnmounted(() => {
                 <p v-if="model.record != undefined">{{ $t('skip') }}</p>
                 <v-tooltip location="bottom" v-if="model.record != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(0)" :disabled="model.record!.running" color="info">
+                        <v-btn icon v-bind="props" @click="skip(false, 1)" :disabled="model.record!.running || firstTask" color="info">
+                            <v-icon>mdi-skip-previous</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('task') }}
+                </v-tooltip>
+                <v-tooltip location="bottom" v-if="model.record != undefined">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="skip(false, 0)" :disabled="model.record!.running || firstProject" color="info">
+                            <v-icon>mdi-skip-backward</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('project') }}
+                </v-tooltip>
+                <v-tooltip location="bottom" v-if="model.record != undefined">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="skip(true, 0)" :disabled="model.record!.running" color="info">
                             <v-icon>mdi-skip-forward</v-icon>
                         </v-btn>
                     </template>
@@ -344,7 +375,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom" v-if="model.record != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(1)" :disabled="model.record!.running" color="info">
+                        <v-btn icon v-bind="props" @click="skip(true, 1)" :disabled="model.record!.running" color="info">
                             <v-icon>mdi-skip-next</v-icon>
                         </v-btn>
                     </template>
@@ -352,7 +383,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom" v-if="model.record != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(2)" :disabled="model.record!.running" color="info">
+                        <v-btn icon v-bind="props" @click="skip(true, 2)" :disabled="model.record!.running" color="info">
                             <v-icon>mdi-debug-step-over</v-icon>
                         </v-btn>
                     </template>

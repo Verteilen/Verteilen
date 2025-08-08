@@ -2,18 +2,26 @@
     "appId": "com.verteilen.app",
     "productName": "Verteilen",
     "compression": "maximum",
+    "removePackageScripts": true,
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false,
     "directories": {
         "output": "dist"
     },
     "win": {
         "target": "msi",
+        "defaultArch": "x64",
         "icon": "src/renderer/assets/icon.ico"
+    },
+    "mac": {
+        "target": "dmg"
     },
     "msi": {
         "runAfterFinish": false
     },
     "linux":  {
         "target": "deb",
+        "defaultArch": "x64",
         "maintainer": "Elly"
     },
     "extraFiles": [

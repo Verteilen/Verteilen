@@ -1,6 +1,10 @@
 {
   "name": "verteilen",
-  "version": "0.8.13",
+  "version": "1.0.0",
+  "license": "MIT",
+  "homepage": "https://verteilen.github.io/wiki/",
+  "author": "Elly",
+  "repository": "https://github.com/Verteilen/Verteilen",
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
@@ -98,5 +102,8 @@
     "vue-i18n": "^10.0.5",
     "vuetify": "^3.7.11",
     "ws": "^8.18.0"
+  },
+  "bugs": {
+    "url": "https://github.com/Verteilen/Verteilen/issues"
   }
 }
