@@ -7,7 +7,7 @@
     },
     "win": {
         "target": "msi",
-        "arch": ["x64"],
+        "defaultArch": "x64",
         "icon": "src/renderer/assets/icon.ico"
     },
     "msi": {
@@ -15,6 +15,7 @@
     },
     "linux":  {
         "target": "deb",
+        "defaultArch": "x64",
         "maintainer": "Elly"
     },
     "extraFiles": [
