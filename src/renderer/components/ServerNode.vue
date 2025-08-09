@@ -418,6 +418,7 @@ const hotkey = (event:KeyboardEvent) => {
     if(event.key == 'q' && data.value.page == 7) emitter?.emit('hotkey', 'create_lib')
     if(event.key == 'q' && data.value.page == 11) emitter?.emit('hotkey', 'create_plugin')
     if(event.key == 'w' && data.value.page == 11) emitter?.emit('hotkey', 'create_template')
+    if(event.key == 's' && data.value.page == 7) emitter?.emit('hotkey', 'lib_save')
   }
 }
 

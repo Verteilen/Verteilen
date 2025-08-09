@@ -140,6 +140,9 @@ const onHotkey = (value:string) => {
     if(value == 'create_lib'){
         util.createScript()
     }
+    else if(value == 'lib_save'){
+        save()
+    }
 }
 
 onMounted(() => {

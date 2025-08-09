@@ -320,7 +320,6 @@ export class ClientJavascript {
     private readfile(path:string){
         return clientos?.file_read({path:path})
     }
-
     //#region Parameters
     private async wait(time:number){
         return new Promise((resolve) => setTimeout(resolve, time * 1000))

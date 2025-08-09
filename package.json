@@ -74,6 +74,8 @@
     "@codemirror/legacy-modes": "^6.4.2",
     "@codemirror/lint": "^6.8.5",
     "@codemirror/theme-one-dark": "^6.1.2",
+    "@codemirror/tooltip": "^0.19.16",
+    "@codemirror/view": "^6.38.1",
     "@intlify/devtools-types": "^11.1.1",
     "argparse": "^2.0.1",
     "bcrypt": "^5.1.1",
