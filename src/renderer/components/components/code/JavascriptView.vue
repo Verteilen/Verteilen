@@ -170,10 +170,12 @@ const sections = [
 ]
 
 const keywordCompletions = (context:CompletionContext):CompletionResult | null => {
+    let full = context.matchBefore(/.+/g)
     let word = context.matchBefore(/\w*/)
     let bword = context.matchBefore(/[\w]+[.&]/g)
     if(word == null) return null
     if (word.from == word.to && !context.explicit) {
+        const a:Array<Completion> = []
         for(let section of sections){
             if(bword?.text != section.label) continue;
             return {
@@ -189,33 +191,13 @@ const keywordCompletions = (context:CompletionContext):CompletionResult | null =
     }
 }
 
-const myHoverTooltip = hoverTooltip((view, pos, side) => {
-    let {from, to, text} = view.state.doc.lineAt(pos)
-    let start = pos, end = pos
-    while (start > from && /\w/.test(text[start - from - 1])) start--
-    while (end < to && /\w/.test(text[end - from])) end++
-    if (start == pos && side < 0 || end == pos && side > 0)
-        return null
-    return {
-        pos: start,
-        end,
-        above: true,
-        create(view) {
-            let dom = document.createElement("div")
-            dom.textContent = text.slice(start - from, end - from)
-            return {dom}
-        }
-    }
-});
-
 const extensions = computed(() => {
-    const t = myHoverTooltip
     const k = keymap.of(defaultKeymap)
     const j = javascript()
     const a = autocompletion({override: [keywordCompletions]})
     return theme.global.name.value == "dark" ?
-    [basicSetup, t, k, j, a, oneDark] :
-    [basicSetup, t, k, j, a]
+    [basicSetup, k, j, a, oneDark] :
+    [basicSetup, k, j, a]
 })
 
 </script>

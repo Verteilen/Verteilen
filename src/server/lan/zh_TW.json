@@ -256,7 +256,7 @@
         "v_env": "Environment module",
         "v_message": "Messager module",
         "v_http": "Http module",
-        "v_setTimeout": "setTimeout(() => {}, time:number)\nExecute methoid after #time milliseconds",
+        "v_setTimeout": "setTimeout(callback,time:number)\nExecute methoid after #time milliseconds",
         "v_wait": "wait(time:number)=>Promise<void>\nWaiting for #time seconds",
         "v_sleep": "sleep(time:number)\nStop the thread for #time seconds",
         "v_console": "Console Module",

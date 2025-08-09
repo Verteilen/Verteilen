@@ -395,6 +395,9 @@ const onHotkey = (value:string) => {
     if(value == 'create_parameter'){
         createParameter()
     }
+    else if(value == 'parameter_save'){
+        saveParameter()
+    }
 }
 
 onMounted(() => {
