@@ -203,6 +203,7 @@ export interface Plugin {
     name: string
     description: string
     version?: string
+    progress?: number
     contents: Array<PluginContent>
 }
 

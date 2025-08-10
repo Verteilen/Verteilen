@@ -149,7 +149,7 @@ export class ClientAnalysis {
         const qu = await fetch(`https://api.github.com/repos/${repo}/releases`, {
             headers: {
                 Authorization: token ? `token ${token}`: '',
-                Accept: "application/vnd.github.v3.raw"
+                Accept: "application/vnd.github.v3.raw",
             }
         })
         return qu.text()
@@ -163,6 +163,33 @@ export class ClientAnalysis {
         const f = v.assets.find(x => x.name == filename)
         if(!f) return
         return f.id
+    }
+
+    private write_plugin = (t: string | undefined, plugin:PluginWithToken, source: WebSocket) => {
+        const list = this.client.plugins.plugins
+        const index = list.findIndex(x => x.name == plugin.name)
+        plugin.token = t ? [t] : []
+        plugin.progress = 0
+        if(index == -1){
+            list.push(plugin)
+        }else{
+            list[index] = plugin
+        }
+        this.client.savePlugin()
+        this.plugin_info(0, source)
+    }
+
+    private finish_plugin = (plugin:PluginWithToken, source: WebSocket) => {
+        const list = this.client.plugins.plugins
+        const index = list.findIndex(x => x.name == plugin.name)
+        plugin.progress = 1
+        if(index == -1){
+            list.push(plugin)
+        }else{
+            list[index] = plugin
+        }
+        this.client.savePlugin()
+        this.plugin_info(0, source)
     }
 
     private plugin_download = async (plugin:PluginWithToken, source: WebSocket) => {
@@ -194,10 +221,11 @@ export class ClientAnalysis {
                     }
                 }
                 const url = `https://api.github.com/repos/${REPO}/releases/assets/${id}`
-                fetch(url, req).then(res => {
+                fetch(url, req).then(async res => {
                     if(!res.ok){
                         throw new Error(`Failed to download file: ${res.status} ${res.statusText}`);
                     }
+                    this.write_plugin(t, plugin, source)
                     return res.blob()
                 }).then(blob => {
                     return blob.stream().getReader().read()
@@ -209,23 +237,12 @@ export class ClientAnalysis {
                 }).finally(() => {
                     this.messager_log(`[Plugin] Downloaded ${plugin.name} successfully`)
                     fileStream.end();
-                    const list = this.client.plugins.plugins
-                    const index = list.findIndex(x => x.name == plugin.name)
-                    plugin.token = t ? [t] : []
-                    if(index == -1){
-                        list.push(plugin)
-                    }else{
-                        list[index] = plugin
-                    }
-                    this.client.savePlugin()
-                    this.plugin_info(0, source)
-
                     if(process.platform == 'linux'){
                         exec(`chmod +x ${path.join(dir, target.filename)}`, (err) => {
                             this.messager_log(`[Plugin] Permission failed ${err?.message}`)
                         })
                     }
-
+                    this.finish_plugin(plugin, source)
                     pass = true
                 })
             }

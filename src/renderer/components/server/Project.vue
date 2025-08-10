@@ -91,6 +91,7 @@ const deleteConfirm = () => {
     emits('delete', data.value.deleteData, data.value.deleteBind)
     nextTick(() => {
         updateProject()
+        data.value.deleteBind = false
     })
 }
 
