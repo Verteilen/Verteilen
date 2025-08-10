@@ -3,7 +3,8 @@
 //      Share Codebase     
 //                           
 // ========================
-import { exec, spawn } from 'child_process';
+import { ChildProcess, exec, spawn } from 'child_process';
+import tkill from 'tree-kill'
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
@@ -26,11 +27,7 @@ export class ClientOS {
     private messager_log:Messager_log
     private tag:getstring
     private runtime:getstring
-    /**
-     * * True: Kill all the processes
-     * * False: Do nothing
-     */
-    stopState = false
+    private children:Array<ChildProcess> = []
 
     /**
      * 
@@ -118,10 +115,12 @@ export class ClientOS {
      * Kill all current running processes
      */
     stopall = () => {
-        this.stopState = true
-        setTimeout(() => {
-            this.stopState = false
-        }, 1000);
+        this.children.forEach(x => {
+            x.stdin!.write('q')
+            x.stdin!.end()
+            tkill(x.pid!, 'SIGKILL')
+        })
+        this.children = []
     }
     
     lib_command = async (command:string, args:string):Promise<string> => {
@@ -144,18 +143,15 @@ export class ClientOS {
             const child = spawn(command,  args.split(' '), 
             { 
                 cwd: cwd, 
+                detached: true,
                 shell: true, 
-                stdio: ['inherit', 'pipe', 'pipe'], 
+                stdio: ['pipe', 'pipe', 'pipe'], 
                 windowsHide: true
             })
+            child.stdin.setDefaultEncoding('utf8')
             // The kill process detecter
-            const timer = setInterval(() => {
-                if(this.stopState){
-                    child.kill()
-                    clearInterval(timer)
-                }
-            }, 100);
             child.on('spawn', () => {
+                this.children.push(child)
                 this.messager_log(`[Command] Spawn process`, this.tag())
             })
             child.on('error', (err) => {
@@ -170,7 +166,8 @@ export class ClientOS {
             })
             child.on('close', (code, signal) => {
                 this.messager_log(`[Command] Process Close: ${code}`, this.tag())
-                clearInterval(timer)
+                const index = this.children.findIndex(x => x.pid == child.pid)
+                if(index != -1) this.children.splice(index, 1)
                 resolve(`Successfully ${code}`)
             })
             child.stdout.setEncoding('utf8');

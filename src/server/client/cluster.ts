@@ -8,6 +8,19 @@ import { ClientHTTP } from './http'
 import { ClientJobExecute } from './job_execute'
 import { ClientResource } from './resource'
 
+let worker: ClientJobExecute | undefined = undefined
+
+process.stdin.resume();
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', (chunk) => {
+    if(chunk.toString().startsWith("kill")){
+        if(worker != undefined){
+            worker.stop_all()
+        }
+        setTimeout(process.exit(1), 1000);
+    }
+})
+
 /**
  * The message handle for reply
  * @param msg Message
@@ -57,7 +70,7 @@ const execute_job = () => {
     }
     const d:Job = JSON.parse(process.env.job)
     const p:PluginList = JSON.parse(process.env.plugin)
-    const worker = new ClientJobExecute(messager, messager_log, d, undefined, p)
+    worker = new ClientJobExecute(messager, messager_log, d, undefined, p)
     worker.execute().then(x => {
         messager_log(x)
         process.exit(0)
