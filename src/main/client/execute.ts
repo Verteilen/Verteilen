@@ -45,6 +45,7 @@ export class ClientExecute {
             x.stderr?.destroy()
             x.stdin?.destroy()
             x.unref()
+            x.kill('SIGINT')
             x.kill('SIGTERM')
         })
     }
