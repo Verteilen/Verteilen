@@ -29,8 +29,8 @@ const data:Ref<DATA> = ref({
     templateDeleteData: '',
     buildin_select_plugin: -1,
     buildin_select_template: -1,
-    pluginData: { name: '', url: '', token: '' },
-    templateData: { name: '', url: '', token: '' },
+    pluginData: { name: '', url: '' },
+    templateData: { name: '', url: '' },
     errorMessage: '',
     loading_plugin: false,
     loading_template: false,
@@ -52,13 +52,25 @@ watch(() => propss.plugin.templates, () => {
 const importPlugin = () => {
     data.value.pluginModal = true
     data.value.errorMessage = ''
-    data.value.pluginData = { name: '', url: '', token: '' }
+    data.value.pluginData = { name: '', url: '' }
 }
 
 const importTemplate = () => {
     data.value.templateModal = true
     data.value.errorMessage = ''
-    data.value.templateData = { name: '', url: '', token: '' }
+    data.value.templateData = { name: '', url: '' }
+}
+
+const importPluginBuildin = () => {
+    data.value.pluginBuildinModal = true
+    data.value.errorMessage = ''
+    data.value.pluginData = { name: '', url: '' }
+}
+
+const importTemplateBuildin = () => {
+    data.value.templateBuildinModal = true
+    data.value.errorMessage = ''
+    data.value.templateData = { name: '', url: '' }
 }
 
 const importPluginBuildinConfirm = () => {
@@ -67,8 +79,8 @@ const importPluginBuildinConfirm = () => {
     const target = data.value.buildIn_plugin.data[index]
     data.value.pluginData.name = target.name
     data.value.pluginData.url = target.url
-    data.value.pluginData.token = ""
     importPluginConfirm()
+    data.value.pluginBuildinModal = false
 }
 
 const importTemplateBuildinConfirm = () => {
@@ -77,8 +89,8 @@ const importTemplateBuildinConfirm = () => {
     const target = data.value.buildIn_template.data[index]
     data.value.templateData.name = target.name
     data.value.templateData.url = target.url
-    data.value.templateData.token = ""
     importTemplateConfirm()
+    data.value.templateBuildinModal = false
 }
 
 const importPluginConfirm = () => {
@@ -181,7 +193,7 @@ onUnmounted(() => {
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="importPlugin" color="primary">
+                        <v-btn icon v-bind="props" @click="importPluginBuildin" color="primary">
                             <v-icon>mdi-puzzle-plus</v-icon>
                         </v-btn>
                     </template>
@@ -189,7 +201,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="importTemplate" color="primary">
+                        <v-btn icon v-bind="props" @click="importTemplateBuildin" color="primary">
                             <v-icon>mdi-tag-plus</v-icon>
                         </v-btn>
                     </template>
@@ -303,7 +315,12 @@ onUnmounted(() => {
                 {{ $t('import-plugin') }}
             </template>
             <template #text>
-                
+                <v-list v-model="data.buildin_select_plugin">
+                    <v-list-item v-for="(item, index) in data.buildIn_plugin?.data" :key="index" :value="index" @click="data.buildin_select_plugin = index">
+                        <v-list-item-title>{{ item.name }}</v-list-item-title>
+                        <v-list-item-subtitle>{{ item.description }}</v-list-item-subtitle>
+                    </v-list-item>
+                </v-list>
             </template>
             <template #action>
                 <v-btn color="primary" @click="importPluginBuildinConfirm">{{ $t('confirm') }}</v-btn>
@@ -315,7 +332,12 @@ onUnmounted(() => {
                 {{ $t('import-template') }}
             </template>
             <template #text>
-                
+                <v-list v-model="data.buildin_select_template">
+                    <v-list-item v-for="(item, index) in data.buildIn_template?.data" :key="index" :value="index" @click="data.buildin_select_template = index">
+                        <v-list-item-title>{{ item.name }}</v-list-item-title>
+                        <v-list-item-subtitle>{{ item.description }}</v-list-item-subtitle>
+                    </v-list-item>
+                </v-list>
             </template>
             <template #action>
                 <v-btn color="primary" @click="importTemplateBuildinConfirm">{{ $t('confirm') }}</v-btn>

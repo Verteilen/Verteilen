@@ -12,8 +12,8 @@ export interface DATA {
     templateDeleteData: string
     buildin_select_plugin: number
     buildin_select_template: number
-    pluginData: { name: string, url: string, token: string }
-    templateData: { name: string, url: string, token: string }
+    pluginData: { name: string, url: string }
+    templateData: { name: string, url: string }
     errorMessage: string
     loading_plugin: boolean
     loading_template: boolean
