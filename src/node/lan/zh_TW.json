@@ -250,6 +250,75 @@
         "task-count": "流程數",
         "job-count": "工作數"
     },
+    "codehint": {
+        "v_path": "Path module",
+        "v_os": "Operation system action module",
+        "v_env": "Environment module",
+        "v_message": "Messager module",
+        "v_http": "Http module",
+        "v_setTimeout": "setTimeout(callback,time:number)\nExecute methoid after #time milliseconds",
+        "v_wait": "wait(time:number)=>Promise<void>\nWaiting for #time seconds",
+        "v_sleep": "sleep(time:number)\nStop the thread for #time seconds",
+        "v_console": "Console Module",
+        "v_json": "JSON module",
+        "json": {
+            "parse": "Convert text to json object",
+            "stringify": "Convert json object to text"
+        },
+        "console": {
+            "log": "Print message"
+        },
+        "path": {
+            "filename": "filename(path:string,extension:boolean)=>string\nGet file name\n* path: The path string\n* extension: include the extension string",
+            "extname": "extname(path:string)=>string\n",
+            "dirname": "dirname(path:string)=>string\n"
+        },
+        "os": {
+            "exec": "exec(command:string,args:string,cwd?:string)",
+            "command": "command(command:string,args:string,cwd?:string)=>Promise<void>",
+            "plugin_exec": "plugin_exec(command:string,args:string)",
+            "plugin_command": "plugin_command(command:string,args:string)=>Promise<void>",
+            "copyfile": "copyfile(from:string,to:string)",
+            "copydir": "copydir(from:string,to: string)",
+            "deletefile": "deletefile(path:string)",
+            "deletedir": "deletedir(path:string)",
+            "exist": "exist(path:string):boolean",
+            "listfile": "listfile(path:string):string[]",
+            "listdir": "listdir(path:string):string[]",
+            "createdir": "createdir(path:string)",
+            "writefile": "writefile(path:string,data:string)",
+            "readfile": "readfile(path:string):string",
+            "rename": "rename(from:string,to:string)"
+        },
+        "env": {
+            "has": "has(key:string,checker?:DatatypeChecker):boolean",
+            "get": "get(key:string,checker?:DatatypeChecker):any",
+            "set": "set(key:string,value:any)",
+            "hasboolean": "hasboolean(key:string,checker?:DatatypeChecker):boolean",
+            "getboolean": "getboolean(key:string):boolean",
+            "setboolean": "setboolean(key:string,value:boolean)",
+            "hasnumber": "hasnumber(key:string,checker?:DatatypeChecker):boolean",
+            "getnumber": "getnumber(key:string):number",
+            "setnumber": "setnumber(key:string,value:number)",
+            "hasstring": "hasstring(key:string,checker?:DatatypeChecker):boolean",
+            "getstring": "getstring(key:string):string",
+            "setstring": "setstring(key:string,value:string)",
+            "hasobject": "hasobject(key:string,checker?:DatatypeChecker):boolean",
+            "getobject": "getobject(key:string):any",
+            "setobject": "setobject(key:string,value:any)",
+            "haslist": "haslist(key:string,checker?:DatatypeChecker):boolean",
+            "getlist": "getlist(key:string):any[]",
+            "setlist": "setlist(key:string,value:any[])",
+            "hasselect": "hasselect(key:string,checker?:DatatypeChecker):boolean",
+            "getselect": "getselect(key:string):string",
+            "setselect": "setselect(key:string,value:numer)",
+            "getselectlength": "getselect(key:string):number"
+        },
+        "m": {
+            "messager": "messager(message:string)",
+            "messager_log": "messager_log(message:string)"
+        }
+    },
     "info": "資訊",
     "search": "搜尋",
     "selectall": "全選",
@@ -261,6 +330,8 @@
     "create": "新增",
     "import-template": "匯入樣板",
     "import-plugin": "匯入插件",
+    "import-template-buildin": "匯入內建樣板",
+    "import-plugin-buildin": "匯入內建插件",
     "clone": "克隆",
     "delete": "刪除",
     "save": "存檔",

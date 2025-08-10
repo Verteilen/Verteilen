@@ -275,6 +275,9 @@ const onHotkey = (value:string) => {
     if(value == 'create_job'){
         createJob()
     }
+    else if(value == 'job_save'){
+        saveJobs()
+    }
 }
 
 onMounted(() => {

@@ -320,7 +320,6 @@ export class ClientJavascript {
     private readfile(path:string){
         return clientos?.file_read({path:path})
     }
-
     //#region Parameters
     private async wait(time:number){
         return new Promise((resolve) => setTimeout(resolve, time * 1000))
@@ -359,7 +358,7 @@ export class ClientJavascript {
         return p.containers.find(x => x.name == key && (checker ? checker(x.type) : true ))?.value ?? undefined
     }
     private getboolean(key:string){
-        return this.get(key, (x) => x == DataType.Boolean)?.value
+        return this.get(key, (x) => x == DataType.Boolean)
     }
     private getnumber(key:string){
         if(key == 'ck'){
@@ -367,16 +366,16 @@ export class ClientJavascript {
             if(r != undefined) return r
             return 0
         }
-        return this.get(key, (x) => x == DataType.Number || x == DataType.Expression)?.value
+        return this.get(key, (x) => x == DataType.Number || x == DataType.Expression)
     }
     private getstring(key:string){
-        return this.get(key, (x) => x == DataType.String || x == DataType.Textarea)?.value
+        return this.get(key, (x) => x == DataType.String || x == DataType.Textarea)
     }
     private getobject(key:string){
-        return this.get(key, (x) => x == DataType.Object)?.value
+        return this.get(key, (x) => x == DataType.Object)
     }
     private getlist(key:string){
-        return this.get(key, (x) => x == DataType.List)?.value
+        return this.get(key, (x) => x == DataType.List)
     }
     private getselect(key:string){
         const s = this.get(key, (x) => x == DataType.Select)

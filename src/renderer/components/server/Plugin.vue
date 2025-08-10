@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, ref, watch } from 'vue';
+import { inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { BusType, PluginList, PluginPageData, PluginPageTemplate } from '../../interface';
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
 import { Emitter } from 'mitt';
+import { DATA } from '../../util/plugin';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -17,18 +18,28 @@ const emits = defineEmits<{
     (e: 'delete-template', name:string): void
     (e: 'delete-plugin', name:string): void
 }>()
-const data = ref({
+const data:Ref<DATA> = ref({
+    pluginBuildinModal: false,
+    templateBuildinModal: false,
     pluginModal: false,
     templateModal: false,
     pluginDeleteModal: false,
     templateDeleteModal: false,
     pluginDeleteData: '',
     templateDeleteData: '',
-    pluginData: { name: '', url: '', token: '' },
-    templateData: { name: '', url: '', token: '' },
+    buildin_select_plugin: -1,
+    buildin_select_template: -1,
+    pluginData: { name: '', url: '' },
+    templateData: { name: '', url: '' },
     errorMessage: '',
     loading_plugin: false,
     loading_template: false,
+    buildIn_plugin: undefined,
+    buildIn_template: undefined,
+    buildin_url: {
+        plugin: "https://raw.githubusercontent.com/Verteilen/Buildin-Assets/refs/heads/main/default_plugin.json",
+        template: "https://raw.githubusercontent.com/Verteilen/Buildin-Assets/refs/heads/main/default_template.json"
+    }
 })
 
 watch(() => propss.plugin.plugins, () => {
@@ -41,13 +52,45 @@ watch(() => propss.plugin.templates, () => {
 const importPlugin = () => {
     data.value.pluginModal = true
     data.value.errorMessage = ''
-    data.value.pluginData = { name: '', url: '', token: '' }
+    data.value.pluginData = { name: '', url: '' }
 }
 
 const importTemplate = () => {
     data.value.templateModal = true
     data.value.errorMessage = ''
-    data.value.templateData = { name: '', url: '', token: '' }
+    data.value.templateData = { name: '', url: '' }
+}
+
+const importPluginBuildin = () => {
+    data.value.pluginBuildinModal = true
+    data.value.errorMessage = ''
+    data.value.pluginData = { name: '', url: '' }
+}
+
+const importTemplateBuildin = () => {
+    data.value.templateBuildinModal = true
+    data.value.errorMessage = ''
+    data.value.templateData = { name: '', url: '' }
+}
+
+const importPluginBuildinConfirm = () => {
+    const index = data.value.buildin_select_plugin
+    if(index < 0 || data.value.buildIn_plugin == undefined) return
+    const target = data.value.buildIn_plugin.data[index]
+    data.value.pluginData.name = target.name
+    data.value.pluginData.url = target.url
+    importPluginConfirm()
+    data.value.pluginBuildinModal = false
+}
+
+const importTemplateBuildinConfirm = () => {
+    const index = data.value.buildin_select_template
+    if(index < 0 || data.value.buildIn_template == undefined) return
+    const target = data.value.buildIn_template.data[index]
+    data.value.templateData.name = target.name
+    data.value.templateData.url = target.url
+    importTemplateConfirm()
+    data.value.templateBuildinModal = false
 }
 
 const importPluginConfirm = () => {
@@ -115,7 +158,24 @@ const onHotkey = (value:string) => {
     }
 }
 
+const pull_buildin = () => {
+    const f1 = fetch(data.value.buildin_url.template).then(x => {
+        x.text().then(x2 => {
+            data.value.buildIn_template = JSON.parse(x2)
+            console.log("Update buildin template", data.value.buildIn_template)
+        })
+    })
+    const f2 = fetch(data.value.buildin_url.plugin).then(x => {
+        x.text().then(x2 => {
+            data.value.buildIn_plugin = JSON.parse(x2)
+            console.log("Update buildin plugin", data.value.buildIn_plugin)
+        })
+    })
+    Promise.allSettled([f1, f2])
+}
+
 onMounted(() => {
+    pull_buildin()
     console.log("Plugin Mounted")
     emitter?.on('hotkey', onHotkey)
 })
@@ -131,6 +191,22 @@ onUnmounted(() => {
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
                 <v-spacer></v-spacer>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="importPluginBuildin" color="primary">
+                            <v-icon>mdi-puzzle-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('import-plugin-buildin') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn icon v-bind="props" @click="importTemplateBuildin" color="primary">
+                            <v-icon>mdi-tag-plus</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('import-template-buildin') }}
+                </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="importPlugin">
@@ -233,6 +309,40 @@ onUnmounted(() => {
                 </v-col>
             </v-row>
         </div>
+        <DialogBase v-model="data.pluginBuildinModal">
+            <template #title>
+                <v-icon>mdi-import</v-icon>
+                {{ $t('import-plugin') }}
+            </template>
+            <template #text>
+                <v-list v-model="data.buildin_select_plugin">
+                    <v-list-item v-for="(item, index) in data.buildIn_plugin?.data" :key="index" :value="index" @click="data.buildin_select_plugin = index">
+                        <v-list-item-title>{{ item.name }}</v-list-item-title>
+                        <v-list-item-subtitle>{{ item.description }}</v-list-item-subtitle>
+                    </v-list-item>
+                </v-list>
+            </template>
+            <template #action>
+                <v-btn color="primary" @click="importPluginBuildinConfirm">{{ $t('confirm') }}</v-btn>
+            </template>
+        </DialogBase>
+        <DialogBase v-model="data.templateBuildinModal">
+            <template #title>
+                <v-icon>mdi-import</v-icon>
+                {{ $t('import-template') }}
+            </template>
+            <template #text>
+                <v-list v-model="data.buildin_select_template">
+                    <v-list-item v-for="(item, index) in data.buildIn_template?.data" :key="index" :value="index" @click="data.buildin_select_template = index">
+                        <v-list-item-title>{{ item.name }}</v-list-item-title>
+                        <v-list-item-subtitle>{{ item.description }}</v-list-item-subtitle>
+                    </v-list-item>
+                </v-list>
+            </template>
+            <template #action>
+                <v-btn color="primary" @click="importTemplateBuildinConfirm">{{ $t('confirm') }}</v-btn>
+            </template>
+        </DialogBase>
         <DialogBase v-model="data.pluginModal">
             <template #title>
                 <v-icon>mdi-import</v-icon>

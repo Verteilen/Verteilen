@@ -1,6 +1,6 @@
 {
   "name": "verteilen",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "homepage": "https://verteilen.github.io/wiki/",
   "author": "Elly",
@@ -33,7 +33,7 @@
     "docker:server-p": "scripts/docker_server.sh --publish",
     "publish:node-pkg": "cd build/node-build && npm publish",
     "pkg": "ts-node scripts/program_build.ts",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
@@ -74,6 +74,8 @@
     "@codemirror/legacy-modes": "^6.4.2",
     "@codemirror/lint": "^6.8.5",
     "@codemirror/theme-one-dark": "^6.1.2",
+    "@codemirror/tooltip": "^0.19.16",
+    "@codemirror/view": "^6.38.1",
     "@intlify/devtools-types": "^11.1.1",
     "argparse": "^2.0.1",
     "bcrypt": "^5.1.1",

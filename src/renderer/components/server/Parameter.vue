@@ -395,6 +395,11 @@ const onHotkey = (value:string) => {
     if(value == 'create_parameter'){
         createParameter()
     }
+    else if(value == 'parameter_save'){
+        if(data.value.objectModal) confirmSpecialModify_O()
+        else saveParameter()
+        
+    }
 }
 
 onMounted(() => {

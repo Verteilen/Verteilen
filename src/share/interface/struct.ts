@@ -252,3 +252,13 @@ export interface TemplateData {
     projects: Array<TemplateDataProject>
     parameters: Array<TemplateDataParameter>
 }
+
+export interface BuildinAssetsContent {
+    name: string
+    description: string
+    url: string
+}
+
+export interface BuildinAssets {
+    data: Array<BuildinAssetsContent>
+}
