@@ -330,6 +330,8 @@
     "create": "Create",
     "import-template": "Import Template",
     "import-plugin": "Import Plugin",
+    "import-template-buildin": "Import Buildin Template",
+    "import-plugin-buildin": "Import Buildin Plugin",
     "clone": "Clone",
     "delete": "Delete",
     "save": "Save",

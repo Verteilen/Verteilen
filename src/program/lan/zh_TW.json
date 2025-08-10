@@ -330,6 +330,8 @@
     "create": "新增",
     "import-template": "匯入樣板",
     "import-plugin": "匯入插件",
+    "import-template-buildin": "匯入內建樣板",
+    "import-plugin-buildin": "匯入內建插件",
     "clone": "克隆",
     "delete": "刪除",
     "save": "存檔",
