@@ -105,6 +105,6 @@ describe('Parser testing (replacePara)', () => {
         expect(e!.replacePara("D%Se1%")).toBe("D123456")
     })
     test("Ignore", () => {
-        expect(e!.replacePara("\\%05d.png")).toBe("%05d.png")
+        expect(e!.replacePara("^%05d.png")).toBe("%05d.png")
     })
 })

@@ -4,7 +4,7 @@
 //                           
 // ========================
 import { formula, init } from "expressionparser";
-import { DataType, ENV_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
+import { DataType, ENV_CHARACTER, IGNORE_CHARACTER, KeyValue, Parameter, ParameterContainer } from "../../interface";
 
 /**
  * The worker which helps parsing parameter variables into argument\
@@ -119,7 +119,7 @@ export class Util_Parser {
         let ignore:number = -1
         let useExp = false
         for(const v of text){
-            if(v == '\\' && ignore == -1) ignore = 0
+            if(v == IGNORE_CHARACTER && ignore == -1) ignore = 0
             else if(ignore == 0) ignore = 1
             else if(ignore == 1) ignore = 2
             else if(ignore == 2) ignore = -1
@@ -137,7 +137,7 @@ export class Util_Parser {
             }
             if(v == '{' && state && store.length == 0) useExp = true
             if(state && v != ENV_CHARACTER && (ignore != 0)) store += v
-            if(!state && v != ENV_CHARACTER && (ignore != 0)) buffer += (ignore > 0 ? ("%" + v) : v)
+            if(!state && v != ENV_CHARACTER && (ignore != 0)) buffer += (ignore > 0 ? (ENV_CHARACTER + v) : v)
         }
         return buffer
     }

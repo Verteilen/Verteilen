@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1754812039087" clover="3.2.0">
-  <project timestamp="1754812039087" name="All files">
-    <metrics statements="746" coveredstatements="384" conditionals="426" coveredconditionals="140" methods="240" coveredmethods="74" elements="1412" coveredelements="598" complexity="0" loc="746" ncloc="746" packages="5" files="10" classes="10"/>
+<coverage generated="1754813046764" clover="3.2.0">
+  <project timestamp="1754813046764" name="All files">
+    <metrics statements="747" coveredstatements="385" conditionals="426" coveredconditionals="140" methods="240" coveredmethods="74" elements="1413" coveredelements="599" complexity="0" loc="747" ncloc="747" packages="5" files="10" classes="10"/>
     <package name="share">
-      <metrics statements="19" coveredstatements="19" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <metrics statements="20" coveredstatements="20" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
       <file name="interface.ts" path="/media/zhuelly/Project/Developer/Funique/Verteilen/Verteilen/src/share/interface.ts">
-        <metrics statements="19" coveredstatements="19" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <metrics statements="20" coveredstatements="20" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="9" count="4" type="stmt"/>
         <line num="13" count="4" type="stmt"/>
         <line num="17" count="4" type="stmt"/>
@@ -16,7 +16,7 @@
         <line num="32" count="4" type="stmt"/>
         <line num="37" count="4" type="stmt"/>
         <line num="38" count="4" type="stmt"/>
-        <line num="40" count="4" type="stmt"/>
+        <line num="39" count="4" type="stmt"/>
         <line num="41" count="4" type="stmt"/>
         <line num="42" count="4" type="stmt"/>
         <line num="43" count="4" type="stmt"/>
@@ -25,6 +25,7 @@
         <line num="46" count="4" type="stmt"/>
         <line num="47" count="4" type="stmt"/>
         <line num="48" count="4" type="stmt"/>
+        <line num="49" count="4" type="stmt"/>
       </file>
     </package>
     <package name="share.client">
