@@ -14,9 +14,9 @@ export * from './project/Default/Default'
 export const BuildIn_ProjectTempGroup:Array<TemplateGroup> = [
     { group: "Default", value: 0, template: GetDefaultProjectTemplate },
     { group: "Default", value: 1, template: GetDefaultProjectTemplate_Short },
-    { group: "Blender", value: 300, template: GetBlenderSingleTemplate },
-    { group: "Blender", value: 301, template: GetBlenderClusterTemplate },
-    { group: "After Effect", value: 400, template: GetAfterEffectTemplate },
+    { group: "Blender", value: 100, template: GetBlenderSingleTemplate },
+    { group: "Blender", value: 101, template: GetBlenderClusterTemplate },
+    { group: "After Effect", value: 200, template: GetAfterEffectTemplate },
 ]
 
 export const BuildIn_ParameterTempGroup:Array<TemplateGroup2> = [

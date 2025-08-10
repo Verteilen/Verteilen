@@ -81,16 +81,13 @@ export enum JobType2 {
 export enum ProjectTemplate {
     DEFAULT = 0,
     DEFAULT_SHORT = 1,
-    FFmpeg_Download = 200,
-    FFmpeg_Concat = 201,
-    Blender = 300,
-    Blender_Cluster = 301,
-    AfterEffect = 400,
+    Blender = 100,
+    Blender_Cluster = 101,
+    AfterEffect = 200,
 }
 
 export enum ParameterTemplate {
-    DEFAULT = 0,
-    FFmpeg = 200,
+    DEFAULT = 0
 }
 
 export enum ExecuteState {
@@ -174,14 +171,11 @@ export const JobType2Text: { [key:number]:string } = {
 export const ProjectTemplateText: { [key:number]:string } = {
     0: 'enum.project.default',
     1: 'enum.project.default_short',
-    200: 'enum.project.ffmpeg_download',
-    201: 'enum.project.concat',
-    300: 'enum.project.blender',
-    301: 'enum.project.blender_cluster',
-    400: 'enum.project.aftereffect',
+    100: 'enum.project.blender',
+    101: 'enum.project.blender_cluster',
+    200: 'enum.project.aftereffect',
 }
 
 export const ParameterTemplateText: { [key:number]:string } = {
-    0: 'enum.parameter.default',
-    200: 'enum.parameter.ffmpeg',
+    0: 'enum.parameter.default'
 }
