@@ -6,15 +6,16 @@ const Download = ():Task => {
     const render:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
-        type: JobType.COMMAND,
+        type: JobType.LIB_COMMAND,
         script: "",
-        string_args: ["", "ffmpeg", "-hide_banner -i %src_download% %src%"],
+        string_args: ["ffmpeg", "-hide_banner -y -i %download.src% "+
+            "-c:v copy -c:a copy %root%/%download.output%"],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Download video source",
+        title: "Download video to source",
         description: "",
         setupjob: false,
         cronjob: false,
@@ -29,7 +30,7 @@ const Download = ():Task => {
     return t
 }
 
-export const GetFFmpeg_DownloadProjectTemplate = (r:Project):Project => {
+export const GetFFmpeg_ProjectTemplate_Download = (r:Project):Project => {
     const para:Parameter = {
         title: "FFmpeg Parameter",
         uuid: uuidv6(),

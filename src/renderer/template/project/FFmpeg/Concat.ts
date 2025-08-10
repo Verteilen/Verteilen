@@ -1,35 +1,46 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Job, JobCategory, JobType, Parameter, Project, Task } from "../../../interface";
 import { GetFFmpegProject_Parameter } from '../../parameter/FFmpeg';
+import { FFMPEG_CONCAT_SCRIPT } from '../../js/ffmpeg/Concat';
 
-const resize = ():Task => {
+const Convert = ():Task => {
+    const concatfile:Job = {
+        uuid: uuidv6(),
+        category: JobCategory.Execution,
+        type: JobType.JAVASCRIPT,
+        script: FFMPEG_CONCAT_SCRIPT,
+        string_args: [],
+        number_args: [],
+        boolean_args: []
+    }
     const render:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
         type: JobType.LIB_COMMAND,
         script: "",
-        string_args: ["ffmpeg", "-hide_banner -y -i %root%/%resize.src% -crf %crf% -vf scale=%resize.width%:%resize.height% -c:v %video_encode% -c:a copy %root%/%resize.output%"],
+        string_args: ["ffmpeg", "-f concat -safe 0 -i %root%/concat.txt -c copy %root%/%Concat.output%"],
         number_args: [],
         boolean_args: []
     }
     const t:Task = {
         uuid: uuidv6(),
-        title: "Resize a media",
+        title: "Concat videos to a single video",
         description: "",
         setupjob: false,
-        cronjob: true,
-        cronjobKey: "frameCount",
+        cronjob: false,
+        cronjobKey: "",
         multi: false,
         multiKey: "",
         properties: [],
         jobs: [
+            concatfile,
             render
         ]
     }
     return t
 }
 
-export const GetFFmpeg_ProjectTemplate_Resize = (r:Project):Project => {
+export const GetFFmpeg_ProjectTemplate_Image2Video = (r:Project):Project => {
     const para:Parameter = {
         title: "FFmpeg Parameter",
         uuid: uuidv6(),
@@ -38,7 +49,7 @@ export const GetFFmpeg_ProjectTemplate_Resize = (r:Project):Project => {
     }
     r.parameter = para
     r.task.push(...[
-        resize(),
+        Convert(),
     ])
     return r
 }
