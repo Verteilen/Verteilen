@@ -76,7 +76,7 @@
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/tooltip": "^0.19.16",
     "@codemirror/view": "^6.38.1",
-    "@intlify/devtools-types": "^11.1.1",
+    "@intlify/devtools-types": "^11.1.11",
     "argparse": "^2.0.1",
     "bcrypt": "^5.1.1",
     "body-parser": "^2.2.0",
@@ -101,7 +101,7 @@
     "uuid": "^11.0.5",
     "vue": "^3.3.8",
     "vue-codemirror": "^6.1.1",
-    "vue-i18n": "^10.0.5",
+    "vue-i18n": "^10.0.8",
     "vuetify": "^3.7.11",
     "ws": "^8.18.0"
   },
