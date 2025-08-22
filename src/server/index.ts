@@ -43,7 +43,7 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
             const p = await webport
             const pems = await get_pem(true)
             app = express()
-            httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, app)
+            httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3', rejectUnauthorized: false }, app)
             EventInit(app, middle)
             httpss.listen(p, () => {
                 console.log(Chalk.greenBright(`https server run at ${p}`))
@@ -53,10 +53,13 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
         {
             const p = await socketport
             const pems = await get_pem(false)
-            wss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, app)
-            wsServer = new ws.Server({path: '/server', port: p})
+            wss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3', rejectUnauthorized: false }, (req, res) => {
+                res.writeHead(200)
+                res.end('New WSS Connection')
+            })
+            wsServer = new ws.Server({server: wss})
             console.log(Chalk.greenBright(`websocket server run at ${p}`))
-            wsServer.on('connection', (ws, request) => {
+            wsServer.on('connection', (ws) => {
                 //const p = new eventInit(ws)
                 ws.on('message', (data) => {
                     const d:Header = JSON.parse(data.toString())

@@ -585,7 +585,7 @@ onMounted(() => {
     InitCaller(!props.backend.config.isElectron)
     props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
-      props.backend.consoleM = new ConsoleManager(`ws://${window.location.hostname}:${ConsolePORT}/server`, messager_log, {
+      props.backend.consoleM = new ConsoleManager(`wss://${window.location.hostname}:${ConsolePORT}`, messager_log, {
         on: emitter!.on,
         off: emitter!.off,
         emit: emitter!.emit

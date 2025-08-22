@@ -15,7 +15,7 @@ let lock = false
 
 async function startRenderer() {
     viteServer = await Vite.createServer({
-        server: { middlewareMode: true },
+        server: { middlewareMode: true, hmr: { host: "localhost", protocol: 'ws' } },
         configFile: Path.join(__dirname, '..', 'vite.config.js'),
         mode: 'development',
     });

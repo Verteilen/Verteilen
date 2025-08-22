@@ -69,7 +69,7 @@ export class Client {
             if(!canbeuse) port_result += 1
         }
         const pems = await this.get_pem()
-        this.httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, (req, res) => {
+        this.httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3', rejectUnauthorized: false }, (req, res) => {
             res.writeHead(200)
             res.end('HTTPS server is running');
         })
