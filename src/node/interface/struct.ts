@@ -15,6 +15,7 @@ type ParameterCall = () => Array<ParameterContainer>
 export interface WebsocketPack {
     s?:boolean
     uuid: string
+    parent?: string
     /**
      * The instance of websocket
      */

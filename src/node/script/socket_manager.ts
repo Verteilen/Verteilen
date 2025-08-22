@@ -6,7 +6,9 @@
 import { v6 as uuidv6 } from 'uuid';
 import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, Plugin, ShellFolder, Single, SocketState, SystemLoad, WebsocketPack } from "../interface";
 import * as jsEnv from "browser-or-node";
-import ws from 'ws'
+import * as ws from 'ws'
+import * as https from 'https'
+import * as tls from 'tls';
 
 function isRenderer () {
   // running in a web browser
@@ -152,7 +154,7 @@ export class WebsocketManager {
         if(this.targets.findIndex(x => x.uuid == uuid) != -1) return
 
         let client: ws.WebSocket | WebSocket | undefined = undefined
-        if(jsEnv.isNode) client = new ws.WebSocket(url);
+        if(jsEnv.isNode) client = new ws.WebSocket(url, { agent: new https.Agent(), rejectUnauthorized: false });
         else client = new WebSocket(url);
         const t:WebsocketPack = { uuid: (uuid == undefined ? uuidv6() : uuid), websocket: client, current_job: [] }
         this.targets.push(t)

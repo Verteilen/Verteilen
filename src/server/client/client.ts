@@ -5,7 +5,8 @@
 // ========================
 import * as path from 'path';
 import { check } from 'tcp-port-used';
-import { WebSocket, WebSocketServer } from 'ws';
+import { WebSocket } from 'ws';
+import * as ws from 'ws';
 import { CLIENT_UPDATETICK, DATA_FOLDER, Header, Messager, Messager_log, Plugin, PluginList, PORT } from '../interface';
 import { ClientAnalysis } from './analysis';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
@@ -19,7 +20,8 @@ import * as https from 'https'
 export class Client {
     plugins: PluginList = { plugins: [] }
     
-    private client:WebSocketServer | undefined = undefined
+    private httpss:https.Server<any> | undefined = undefined
+    private client:ws.Server | undefined = undefined
     private sources:Array<WebSocket> = []
     private messager:Messager
     private messager_log:Messager_log
@@ -66,10 +68,13 @@ export class Client {
             })
             if(!canbeuse) port_result += 1
         }
-        this.messager_log('[Server] Select Port: ' + port_result.toString())
-        const pems = this.get_pem()
-        const h = https.createServer({ key: pems[0], cert: pems[1] })
-        this.client = new WebSocketServer({port: port_result, server: h})
+        const pems = await this.get_pem()
+        this.httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, (req, res) => {
+            res.writeHead(200)
+            res.end('HTTPS server is running');
+        })
+        this.httpss.addListener('upgrade', (req, res, head) => console.log('UPGRADE:', req.url))
+        this.client = new ws.Server({server: this.httpss})
         this.client.on('listening', () => {
             this.messager_log('[Server] Listen PORT: ' + port_result.toString())
         })
@@ -101,6 +106,9 @@ export class Client {
                 const h:Header | undefined = JSON.parse(data.toString());
                 a.analysis(h, ws);
             })
+        })
+        this.httpss.listen(port_result, () => {
+            this.messager_log('[Server] Select Port: ' + port_result.toString())
         })
     }
 
@@ -151,13 +159,13 @@ export class Client {
             const clientKey = path.join(pemFolder, "client_clientkey.pem")
             const certificate = path.join(pemFolder, "client_certificate.pem")
             if(!existsSync(clientKey) || !existsSync(certificate)){
-                pem.createCertificate({days: 1, selfSigned: true}, (err, keys) => {
-                    writeFileSync(clientKey, keys.clientKey)
-                    writeFileSync(certificate, keys.certificate)
+                pem.createCertificate({selfSigned: true}, (err, keys) => {
+                    writeFileSync(clientKey, keys.clientKey, { encoding: 'utf8' })
+                    writeFileSync(certificate, keys.certificate, { encoding: 'utf8' })
                     resolve([keys.clientKey, keys.certificate])
                 })
             }else{
-                resolve([readFileSync(clientKey).toString(), readFileSync(certificate).toString()])
+                resolve([readFileSync(clientKey, 'utf8').toString(), readFileSync(certificate, 'utf8').toString()])
             }
         })
     }
