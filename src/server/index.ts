@@ -54,10 +54,10 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
             const p = await socketport
             const pems = await get_pem(false)
             wss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3', rejectUnauthorized: false }, (req, res) => {
-                res.writeHead(200)
+                res.writeHead(200, { 'Content-Type': 'text/plain' })
                 res.end('New WSS Connection')
             })
-            wsServer = new ws.Server({server: wss})
+            wsServer = new ws.Server({port: p})
             console.log(Chalk.greenBright(`websocket server run at ${p}`))
             wsServer.on('connection', (ws) => {
                 //const p = new eventInit(ws)
@@ -72,9 +72,7 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
                     backendEvent.DropConsoleConsole(ws)
                 })
             })
-            wss.listen(p, () => {
-                console.log(Chalk.greenBright(`ws server run at ${p}`))
-            })
+            console.log(Chalk.greenBright(`ws server run at ${p}`))
         }
 
         await Promise.allSettled([webport, socketport])
