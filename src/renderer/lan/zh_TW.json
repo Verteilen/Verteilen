@@ -135,7 +135,7 @@
         "role": "權限組 (X)",
         "service": "服務 (C)",
         "plugin": "插件 (G)",
-        "profile": "個人資料"
+        "profile": "個人資料 (B)"
     },
     "tooltip": {
         "select-server": "作為伺服器下指令的一方",
