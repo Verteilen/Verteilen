@@ -406,6 +406,7 @@ const hotkey = (event:KeyboardEvent) => {
     else if(event.key == 'z') data.value.page = 8 // Self
     else if(event.key == 'x') data.value.page = 9 // Role
     else if(event.key == 'c') data.value.page = 10 // Service
+    else if(event.key == 'b') data.value.page = 12 // Profile
     else if(event.key == 'x' && data.value.page == 5) emitter?.emit('hotkey', 'c_r') // Restore console
   }
   if (event.ctrlKey) {
