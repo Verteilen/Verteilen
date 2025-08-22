@@ -15,13 +15,39 @@ type ParameterCall = () => Array<ParameterContainer>
 export interface WebsocketPack {
     s?:boolean
     uuid: string
+    /**
+     * The instance of websocket
+     */
     websocket: WebSocket | ws.WebSocket
+    /**
+     * Current execute job uuid list
+     */
     current_job: Array<string>
+    /**
+     * Show operation system information
+     */
     information?: SystemLoad
+    /**
+     * Show workload data
+     */
     load?: NodeLoad
+    /**
+     * Ping delay time\
+     * Use this for display the ping
+     */
     ms?: number
+    /**
+     * Ping delay time last
+     */
     last?: number
+    /**
+     * Plugins installed list
+     */
     plugins?: Array<Plugin>
+    /**
+     * Cluster node possibility
+     */
+    children?: Array<WebsocketPack>
 }
 
 export interface CronWebsocketPack {

@@ -10,6 +10,8 @@ import { CLIENT_UPDATETICK, DATA_FOLDER, Header, Messager, Messager_log, Plugin,
 import { ClientAnalysis } from './analysis';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as os from 'os'
+import * as pem from 'pem'
+import * as https from 'https'
 
 /**
  * The calculation node worker
@@ -65,7 +67,9 @@ export class Client {
             if(!canbeuse) port_result += 1
         }
         this.messager_log('[Server] Select Port: ' + port_result.toString())
-        this.client = new WebSocketServer({port: port_result})
+        const pems = this.get_pem()
+        const h = https.createServer({ key: pems[0], cert: pems[1] })
+        this.client = new WebSocketServer({port: port_result, server: h})
         this.client.on('listening', () => {
             this.messager_log('[Server] Listen PORT: ' + port_result.toString())
         })
@@ -114,6 +118,13 @@ export class Client {
         this.analysis = []
     }
 
+    savePlugin = () => {
+        const f = path.join(os.homedir(), DATA_FOLDER)
+        const pluginPath = path.join(f, 'plugin.json')
+        if(!existsSync(f)) mkdirSync(f, { recursive: true })
+        writeFileSync(pluginPath, JSON.stringify(this.plugins, null, 4))
+    }
+
     /**
      * The node update function, It will do things below
      * * Send system info to cluster server
@@ -133,11 +144,22 @@ export class Client {
         }
     }
 
-    savePlugin = () => {
-        const f = path.join(os.homedir(), DATA_FOLDER)
-        const pluginPath = path.join(f, 'plugin.json')
-        if(!existsSync(f)) mkdirSync(f, { recursive: true })
-        writeFileSync(pluginPath, JSON.stringify(this.plugins, null, 4))
+    private get_pem = ():Promise<[string, string]> => {
+        return new Promise<[string, string]>((resolve) => {
+            const pemFolder = path.join(os.homedir(), DATA_FOLDER, 'pem')
+            if(!existsSync(pemFolder)) mkdirSync(pemFolder)
+            const clientKey = path.join(pemFolder, "client_clientkey.pem")
+            const certificate = path.join(pemFolder, "client_certificate.pem")
+            if(!existsSync(clientKey) || !existsSync(certificate)){
+                pem.createCertificate({days: 1, selfSigned: true}, (err, keys) => {
+                    writeFileSync(clientKey, keys.clientKey)
+                    writeFileSync(certificate, keys.certificate)
+                    resolve([keys.clientKey, keys.certificate])
+                })
+            }else{
+                resolve([readFileSync(clientKey).toString(), readFileSync(certificate).toString()])
+            }
+        })
     }
     
     public static workerPath = (filename:string = "worker", extension:string = ".exe") => {
