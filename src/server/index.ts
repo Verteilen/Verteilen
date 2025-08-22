@@ -57,7 +57,8 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
                 res.writeHead(200, { 'Content-Type': 'text/plain' })
                 res.end('New WSS Connection')
             })
-            wsServer = new ws.Server({port: p})
+            //wsServer = new ws.Server({port: p})
+            wsServer = new ws.Server({server: wss})
             console.log(Chalk.greenBright(`websocket server run at ${p}`))
             wsServer.on('connection', (ws) => {
                 //const p = new eventInit(ws)
@@ -72,7 +73,13 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
                     backendEvent.DropConsoleConsole(ws)
                 })
             })
+            /**
             console.log(Chalk.greenBright(`ws server run at ${p}`))
+            */
+            wss.listen(p, () => {
+                console.log(Chalk.greenBright(`ws server run at ${p}`))
+            })
+            
         }
 
         await Promise.allSettled([webport, socketport])

@@ -8,7 +8,6 @@ import { BusAnalysis, Header, Node, NodeLoad, NodeProxy, NodeTable, Plugin, Shel
 import * as jsEnv from "browser-or-node";
 import * as ws from 'ws'
 import * as https from 'https'
-import * as tls from 'tls';
 
 function isRenderer () {
   // running in a web browser
