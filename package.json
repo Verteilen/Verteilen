@@ -21,6 +21,7 @@
     "build:node-p": "ts-node scripts/node_builder.ts package",
     "build:node-d": "ts-node scripts/node_builder.ts docker",
     "build:server": "ts-node scripts/server_builder.ts",
+    "build:cluster": "ts-node scripts/cluster_builder.ts",
     "build:dir": "ts-node scripts/program_build.ts && ts-node scripts/build.ts && electron-builder --dir",
     "build:win": "ts-node scripts/program_build.ts win && ts-node scripts/build.ts && electron-builder --win",
     "build:mac": "ts-node scripts/program_build.ts mac && ts-node scripts/build.ts && electron-builder --mac",
