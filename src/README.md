@@ -11,6 +11,10 @@ npm run build:dir
 npm run build:win
 ```
 
+## cluster
+
+The connection cluster node, which holds the webhook connection
+
 ## node
 
 The pure computing node program without the user-interface\
