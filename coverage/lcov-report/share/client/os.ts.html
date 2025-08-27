@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">27.58% </span>
+                <span class="strong">27.5% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>32/116</span>
+                <span class='fraction'>33/120</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">29.9% </span>
+                <span class="strong">30.27% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>32/107</span>
+                <span class='fraction'>33/109</span>
             </div>
         
             
@@ -275,14 +275,12 @@
 <a name='L210'></a><a href='#L210'>210</a>
 <a name='L211'></a><a href='#L211'>211</a>
 <a name='L212'></a><a href='#L212'>212</a>
-<a name='L213'></a><a href='#L213'>213</a>
-<a name='L214'></a><a href='#L214'>214</a>
-<a name='L215'></a><a href='#L215'>215</a>
-<a name='L216'></a><a href='#L216'>216</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L213'></a><a href='#L213'>213</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
@@ -302,10 +300,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -401,7 +395,9 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
@@ -430,11 +426,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -448,6 +441,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -498,7 +492,8 @@
 //      Share Codebase     
 //                           
 // ========================
-import { exec, spawn } from 'child_process';
+import { ChildProcess, exec, spawn } from 'child_process';
+import tkill from 'tree-kill'
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
@@ -521,11 +516,7 @@ export class ClientOS {
     private messager_log:Messager_log
     private tag:getstring
     private runtime:getstring
-    /**
-     * * True: Kill all the processes
-     * * False: Do nothing
-     */
-    stopState = false
+    private children:Array&lt;ChildProcess&gt; = []
 &nbsp;
     /**
      * 
@@ -613,10 +604,12 @@ export class ClientOS {
      * Kill all current running processes
      */
     stopall = <span class="fstat-no" title="function not covered" >() =</span>&gt; {
-<span class="cstat-no" title="statement not covered" >        this.stopState = true</span>
-<span class="cstat-no" title="statement not covered" >        setTimeout(<span class="fstat-no" title="function not covered" >() =</span>&gt; {</span>
-<span class="cstat-no" title="statement not covered" >            this.stopState = false</span>
-        }, 1000);
+<span class="cstat-no" title="statement not covered" >        this.children.forEach(<span class="fstat-no" title="function not covered" >x </span>=&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            x.stdin!.write('q')</span>
+<span class="cstat-no" title="statement not covered" >            x.stdin!.end()</span>
+<span class="cstat-no" title="statement not covered" >            tkill(x.pid!, 'SIGKILL')</span>
+        })
+<span class="cstat-no" title="statement not covered" >        this.children = []</span>
     }
     
     lib_command = <span class="fstat-no" title="function not covered" >async (c</span>ommand:string, args:string):Promise&lt;string&gt; =&gt;<span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" > {</span></span>
@@ -639,18 +632,15 @@ export class ClientOS {
             const child = <span class="cstat-no" title="statement not covered" >spawn(command,  args.split(' '), </span>
             { 
                 cwd: cwd, 
+                detached: true,
                 shell: true, 
-                stdio: ['inherit', 'pipe', 'pipe'], 
+                stdio: ['pipe', 'pipe', 'pipe'], 
                 windowsHide: true
             })
+<span class="cstat-no" title="statement not covered" >            child.stdin.setDefaultEncoding('utf8')</span>
             // The kill process detecter
-            const timer = <span class="cstat-no" title="statement not covered" >setInterval(<span class="fstat-no" title="function not covered" >() =</span>&gt; {</span>
-<span class="cstat-no" title="statement not covered" >                <span class="missing-if-branch" title="if path not taken" >I</span>if(this.stopState){</span>
-<span class="cstat-no" title="statement not covered" >                    child.kill()</span>
-<span class="cstat-no" title="statement not covered" >                    clearInterval(timer)</span>
-                }
-            }, 100);
 <span class="cstat-no" title="statement not covered" >            child.on('spawn', <span class="fstat-no" title="function not covered" >() =</span>&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                this.children.push(child)</span>
 <span class="cstat-no" title="statement not covered" >                this.messager_log(`[Command] Spawn process`, this.tag())</span>
             })
 <span class="cstat-no" title="statement not covered" >            child.on('error', <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {</span>
@@ -665,7 +655,8 @@ export class ClientOS {
             })
 <span class="cstat-no" title="statement not covered" >            child.on('close', <span class="fstat-no" title="function not covered" >(c</span>ode, signal) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >                this.messager_log(`[Command] Process Close: ${code}`, this.tag())</span>
-<span class="cstat-no" title="statement not covered" >                clearInterval(timer)</span>
+                const index = <span class="cstat-no" title="statement not covered" >this.children.findIndex(<span class="fstat-no" title="function not covered" >x </span>=&gt; <span class="cstat-no" title="statement not covered" >x.pid == child.pid)</span></span>
+<span class="cstat-no" title="statement not covered" >                <span class="missing-if-branch" title="if path not taken" >I</span>if(index != -1) <span class="cstat-no" title="statement not covered" >this.children.splice(index, 1)</span></span>
 <span class="cstat-no" title="statement not covered" >                resolve(`Successfully ${code}`)</span>
             })
 <span class="cstat-no" title="statement not covered" >            child.stdout.setEncoding('utf8');</span>
@@ -715,7 +706,7 @@ export class ClientOS {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-10T08:04:06.743Z
+                at 2025-08-27T19:43:50.503Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

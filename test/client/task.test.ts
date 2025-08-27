@@ -2,7 +2,6 @@ import { ClientJobParameter } from '../../src/share/client/job_parameter';
 import { ClientOS } from '../../src/share/client/os';
 import { DataType, Job, JobCategory, Libraries, JobType, Parameter, Property, Task } from '../../src/share/interface';
 import { ExecuteManager_Base } from '../../src/share/script/execute/base';
-import { Util_Parser } from '../../src/share/script/execute/util_parser';
 
 describe("Express Test", () => {
     let os:ClientOS | undefined = undefined
