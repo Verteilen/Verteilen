@@ -143,9 +143,9 @@ const selectall = () => {
 const confirmConnection = () => {
     connectionModal.value = false
     if(props.backend.config.haveBackend){
-        props.backend.send("node_add", `ws://${connectionData.value.url}`, uuid6())
+        props.backend.send("node_add", `wss://${connectionData.value.url}`, uuid6())
     }else{
-        props.manager?.server_start(`ws://${connectionData.value.url}`, uuid6())
+        props.manager?.server_start(`wss://${connectionData.value.url}`, uuid6())
     }
     connectionData.value = { url: '' }
 }

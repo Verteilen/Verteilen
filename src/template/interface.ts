@@ -35,6 +35,7 @@ export const SCROLL_LIMIT = 100
  * The environment character for replacing text
  */
 export const ENV_CHARACTER = '%'
+export const IGNORE_CHARACTER = '^'
 export const DATA_FOLDER = '.verteilen'
 
 

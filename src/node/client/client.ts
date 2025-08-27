@@ -5,11 +5,14 @@
 // ========================
 import * as path from 'path';
 import { check } from 'tcp-port-used';
-import { WebSocket, WebSocketServer } from 'ws';
+import { WebSocket } from 'ws';
+import * as ws from 'ws';
 import { CLIENT_UPDATETICK, DATA_FOLDER, Header, Messager, Messager_log, Plugin, PluginList, PORT } from '../interface';
 import { ClientAnalysis } from './analysis';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import * as os from 'os'
+import * as pem from 'pem'
+import * as https from 'https'
 
 /**
  * The calculation node worker
@@ -17,7 +20,8 @@ import * as os from 'os'
 export class Client {
     plugins: PluginList = { plugins: [] }
     
-    private client:WebSocketServer | undefined = undefined
+    private httpss:https.Server<any> | undefined = undefined
+    private client:ws.Server | undefined = undefined
     private sources:Array<WebSocket> = []
     private messager:Messager
     private messager_log:Messager_log
@@ -64,8 +68,13 @@ export class Client {
             })
             if(!canbeuse) port_result += 1
         }
-        this.messager_log('[Server] Select Port: ' + port_result.toString())
-        this.client = new WebSocketServer({port: port_result})
+        const pems = await this.get_pem()
+        this.httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, (req, res) => {
+            res.writeHead(200)
+            res.end('HTTPS server is running');
+        })
+        this.httpss.addListener('upgrade', (req, res, head) => console.log('UPGRADE:', req.url))
+        this.client = new ws.Server({server: this.httpss})
         this.client.on('listening', () => {
             this.messager_log('[Server] Listen PORT: ' + port_result.toString())
         })
@@ -98,6 +107,9 @@ export class Client {
                 a.analysis(h, ws);
             })
         })
+        this.httpss.listen(port_result, () => {
+            this.messager_log('[Server] Select Port: ' + port_result.toString())
+        })
     }
 
     Destroy = () => {
@@ -112,6 +124,13 @@ export class Client {
         this.analysis.forEach(x => x.stop_all())
         this.analysis.forEach(x => x.destroy())
         this.analysis = []
+    }
+
+    savePlugin = () => {
+        const f = path.join(os.homedir(), DATA_FOLDER)
+        const pluginPath = path.join(f, 'plugin.json')
+        if(!existsSync(f)) mkdirSync(f, { recursive: true })
+        writeFileSync(pluginPath, JSON.stringify(this.plugins, null, 4))
     }
 
     /**
@@ -133,11 +152,22 @@ export class Client {
         }
     }
 
-    savePlugin = () => {
-        const f = path.join(os.homedir(), DATA_FOLDER)
-        const pluginPath = path.join(f, 'plugin.json')
-        if(!existsSync(f)) mkdirSync(f, { recursive: true })
-        writeFileSync(pluginPath, JSON.stringify(this.plugins, null, 4))
+    private get_pem = ():Promise<[string, string]> => {
+        return new Promise<[string, string]>((resolve) => {
+            const pemFolder = path.join(os.homedir(), DATA_FOLDER, 'pem')
+            if(!existsSync(pemFolder)) mkdirSync(pemFolder)
+            const clientKey = path.join(pemFolder, "client_clientkey.pem")
+            const certificate = path.join(pemFolder, "client_certificate.pem")
+            if(!existsSync(clientKey) || !existsSync(certificate)){
+                pem.createCertificate({selfSigned: true}, (err, keys) => {
+                    writeFileSync(clientKey, keys.clientKey, { encoding: 'utf8' })
+                    writeFileSync(certificate, keys.certificate, { encoding: 'utf8' })
+                    resolve([keys.clientKey, keys.certificate])
+                })
+            }else{
+                resolve([readFileSync(clientKey, 'utf8').toString(), readFileSync(certificate, 'utf8').toString()])
+            }
+        })
     }
     
     public static workerPath = (filename:string = "worker", extension:string = ".exe") => {

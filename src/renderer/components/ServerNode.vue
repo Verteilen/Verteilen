@@ -406,6 +406,10 @@ const hotkey = (event:KeyboardEvent) => {
     else if(event.key == 'z') data.value.page = 8 // Self
     else if(event.key == 'x') data.value.page = 9 // Role
     else if(event.key == 'c') data.value.page = 10 // Service
+    else if(event.key == 'b') {
+      data.value.page = 12 // Profile
+      data.value.title = "toolbar.profile"
+    }
     else if(event.key == 'x' && data.value.page == 5) emitter?.emit('hotkey', 'c_r') // Restore console
   }
   if (event.ctrlKey) {
@@ -585,7 +589,7 @@ onMounted(() => {
     InitCaller(!props.backend.config.isElectron)
     props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
-      props.backend.consoleM = new ConsoleManager(`ws://${window.location.hostname}:${ConsolePORT}/server`, messager_log, {
+      props.backend.consoleM = new ConsoleManager(`wss://${window.location.hostname}:${ConsolePORT}`, messager_log, {
         on: emitter!.on,
         off: emitter!.off,
         emit: emitter!.emit

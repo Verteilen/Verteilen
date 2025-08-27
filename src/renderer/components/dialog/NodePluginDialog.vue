@@ -37,7 +37,8 @@ const nodeType = computed(() => {
 const InstalledState = (name:string, version?:string) => {
     if(props.item == undefined) return { code: -1 } // Cannot download
     const k = props.item.plugins?.find(x => x.name == name)
-    if(k == undefined) return { code: 0 } // Cannot find download source match
+    if(k == undefined) return { code: 0 } // Download ava
+    else if(k.progress != 1) return { code: 3 } // Downloading
     else if(k.version !== version) return { code: 1, version: k.version } // Can update
     else return { code: 2 } // Remove
 }
@@ -99,6 +100,17 @@ const remove = (k:Plugin) => {
                                         size="md" rounded variant="text"
                                         @click="remove(k)">
                                         {{ k.version }}
+                                    </v-btn>
+                                    <v-btn v-else-if="InstalledState(k.name, k.version).code == 3" 
+                                        disabled
+                                        color="success" append-icon="mdi-download" 
+                                        size="md" rounded variant="text"
+                                        @click="remove(k)">
+                                        {{ k.version }}
+                                        <v-progress-circular
+                                            color="primary"
+                                            indeterminate
+                                        ></v-progress-circular>
                                     </v-btn>
                                 </template>
                             </v-list-item>

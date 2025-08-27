@@ -68,6 +68,10 @@ export class ClientJobExecute {
         const child = this.job.category == JobCategory.Execution ? this.execute_job_exe() : this.execute_job_con()
         return child
     }
+
+    stop_all = () => {
+        this.os.stopall()
+    }
     
     /**
      * Execute the job that classify as run 

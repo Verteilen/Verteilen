@@ -135,7 +135,7 @@
         "role": "Role (X)",
         "service": "Service (C)",
         "plugin": "Plugin (G)",
-        "profile": "Profile"
+        "profile": "Profile (B)"
     },
     "tooltip": {
         "select-server": "The one who send the command to client",

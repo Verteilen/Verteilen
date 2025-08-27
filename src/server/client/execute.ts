@@ -41,11 +41,10 @@ export class ClientExecute {
     stop_job = () => {
         this.messager_log(`[Execute] Stop All: ${this.workers.length}`)
         this.workers.forEach(x => {
-            x.stdout?.destroy()
-            x.stderr?.destroy()
-            x.stdin?.destroy()
-            x.unref()
-            x.kill('SIGTERM')
+            x.stdin!.cork()
+            x.stdin!.write("kill\n")
+            x.stdin!.uncork()
+            x.stdin!.end()
         })
     }
     
@@ -62,7 +61,7 @@ export class ClientExecute {
     private execute_job_worker(job:Job, source:WebSocket){
         const child = spawn(Client.workerPath(), [], 
             { 
-                stdio: ['inherit', 'pipe', 'pipe'],
+                stdio: ['pipe', 'pipe', 'pipe'],
                 windowsHide: true,
                 shell: true,
                 env: {
@@ -74,6 +73,7 @@ export class ClientExecute {
                     libraries: JSON.stringify(this.libraries),
                 }
         })
+        child.stdin.setDefaultEncoding('utf-8')
         this.workers.push(child)
         const para = new ClientParameter(source)
         let k = "" 
