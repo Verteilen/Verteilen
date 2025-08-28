@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
+import { computed, ComputedRef, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, DataType, Parameter, Preference, Project, Task, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, Util_Task } from '../../util/Task';
@@ -40,7 +40,6 @@ const data:Ref<DATA> = ref({
     deleteModal: false,
     deleteData: [],
     items: [],
-    para_keys: [],
     errorMessage: '',
     titleError: false,
     search: '',
@@ -61,6 +60,17 @@ const items_final = computed(() => {
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_task_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
 const para_title = computed(() => props.parameters.find(x => x.uuid == props.select?.parameter_uuid)?.title)
+const para_keys:ComputedRef<Array<{ title:string, subtitle: string, value: string }>> = computed(() => {
+    if(props.select == undefined) return []
+    const p = props.parameters.find(x => x.uuid == props.select!.parameter_uuid)
+    return p?.containers.filter(x => {
+        return x.type == DataType.Expression || x.type == DataType.Number
+    }).map(x => ({
+        title: x.name,
+        subtitle: x.type == DataType.Expression ? i18n.global.t('types.expression') : i18n.global.t('types.number'),
+        value: x.name
+    })) ?? []
+})
 
 const updateParameter = () => util.updateParameter()
 const updateTask = () => {
@@ -281,7 +291,7 @@ onUnmounted(() => {
             </v-data-table>
         </div>
         <TaskDialog v-model="data.dialogModal" 
-            :para_keys="data.para_keys"
+            :para_keys="para_keys"
             :is-edit="data.isEdit" 
             :error-message="data.errorMessage"
             :title-error="data.titleError"
