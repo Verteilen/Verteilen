@@ -115,6 +115,9 @@ const load = async (o:any) => {
                         <v-icon v-if="data.record!.stop" color="success" icon="mdi-checkbox-marked-circle" end ></v-icon>
                         <v-icon v-else color="danger" icon="mdi-cancel" end ></v-icon>
                     </p>
+                    <p :style="{ 'fontSize': props.preference.font + 'px' }">
+                        Step: {{ data.record?.task_state.findIndex(x => x.state == ExecuteState.FINISH) }}
+                    </p>
                 </v-card-text>
             </v-card>
             <v-stepper style="background-color: transparent" class="my-1"
