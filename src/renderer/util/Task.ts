@@ -26,7 +26,6 @@ export interface DATA {
     deleteModal: boolean
     deleteData:Array<string>
     items:Array<TaskTable>
-    para_keys:Array<string>
     errorMessage: string
     titleError: boolean
     search: string | undefined
@@ -39,7 +38,7 @@ export interface DialogDATA {
     editData: CreateField
     errorMessage: string
     titleError: boolean
-    para_keys:Array<string>
+    para_keys:Array<{ title:string, subtitle: string, value: string }>
     preference?: Preference
 }
 
@@ -76,11 +75,10 @@ export class Util_Task {
 
     updateParameter = () => {
         const p = this.select_props
-        this.data.value.para_keys = p?.parameter?.containers.filter(x => x.type == DataType.Number || x.type == DataType.Expression).map(x => x.name) ?? []
     }
 
     createProject = () => {
-        this.data.value.editData = {cronjob: false, cronjobKey: this.data.value.para_keys[0], title: "", description: "", setupjob: false, multi: false, multiKey: this.data.value.para_keys[0]}
+        this.data.value.editData = {cronjob: false, cronjobKey: '', title: "", description: "", setupjob: false, multi: false, multiKey: ''}
         this.data.value.dialogModal = true
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
