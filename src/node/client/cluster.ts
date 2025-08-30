@@ -52,11 +52,11 @@ const messager_log = (msg:string, tag?:string, meta?:string) => {
  * Return the error message to main thread
  * @param err Error instance
  */
-const ERROR = (err) => {
+const ERROR = (err:any) => {
     const d:Header = {
         name: "error",
         meta: "Execute job failed",
-        data: err,
+        data: `(${err.code ?? 'unknown'}) ${err.message}`,
     }
     console.log(JSON.stringify(d))
     process.exit(1)

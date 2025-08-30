@@ -112,8 +112,8 @@ export class ClientExecute {
             }catch(err:any){
                 const errorH:Header = {
                     name: "error",
-                    meta: "Execute job failed",
-                    data: err,
+                    meta: "Casting job info failed",
+                    data: `(${err.code ?? 'unknown'}) ${err.message}`,
                 }
                 this.messager_log(JSON.stringify(errorH), job.uuid, job.runtime_uuid)
             }

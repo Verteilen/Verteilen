@@ -303,7 +303,7 @@ export class ClientJavascript {
         return clientos?.rename({from:from, to:to})
     }
     private exist(path:string){
-        return clientos?.fs_exist({path:path})
+        return clientos?.fs_exist({path:path}) ?? false
     }
     private listfile(path:string){
         return clientos?.dir_files({path:path})
