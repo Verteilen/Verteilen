@@ -3,7 +3,7 @@ import { cpSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { readdir } from 'fs/promises'
 import Path from 'path'
 
-const dirs = ["main", "node", "renderer", "server", "program"]
+const dirs = ["main", "node", "renderer", "server", "program", "cluster"]
 const clients = ["client", "interface", "lan", "plugins", "script", "interface.ts", "util"]
 
 const copyToWhere = (index) => {
@@ -11,17 +11,17 @@ const copyToWhere = (index) => {
         default:
             return []
         case 0: // client
-            return [0, 1, 3, 4]
+            return [0, 1, 3, 4, 5]
         case 1: // interface
-            return [0, 1, 2, 3, 4]
+            return [0, 1, 2, 3, 4, 5]
         case 5: // interface.ts
-            return [0, 1, 2, 3, 4]
+            return [0, 1, 2, 3, 4, 5]
         case 2: // lan
             return [0, 1, 2, 3, 4]
         case 3: // plugins
             return [0, 1, 2, 3, 4]
         case 4: // script
-            return [0, 1, 2, 3, 4]
+            return [0, 1, 2, 3, 4, 5]
         case 6: // util
             return [0, 2, 3]
     }

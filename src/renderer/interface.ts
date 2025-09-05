@@ -15,6 +15,10 @@ export const ConsolePORT = 11777
  * Default website port
  */
 export const WebPORT = 11080
+/**
+ * Default webhook port
+ */
+export const WebHookPORT = 15080
 
 /**
  * The upper limit for each message box can hold
