@@ -274,6 +274,7 @@ export class ExecuteManager_Base {
         for(let i = 0; i < job.string_args.length; i++){
             const b = job.string_args[i]
             if(b == null || b == undefined || b.length == 0) continue
+            if(job.category == JobCategory.Execution && job.type == JobType.COPY_FILE && i == 1) continue
             job.string_args[i] = e.replacePara(job.string_args[i])
             //messager_log(`String replace: "${b}" -> "${job.string_args[i]}"`)
         }

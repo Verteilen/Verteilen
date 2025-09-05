@@ -135,7 +135,7 @@ export class ClientJobExecute {
                         await this.javascript.JavascriptExecuteWithLib(this.job.script, this.job.string_args).then(() => {
                             resolve(`Execute Javascript successfully`)
                         }).catch(k => {
-                            reject(k.message)
+                            reject(k)
                         })
                         break
                     }
@@ -158,7 +158,10 @@ export class ClientJobExecute {
 
                         const archTarget = target.contents.find(x => x.arch == process.arch && x.platform == process.platform)
                         if(archTarget == undefined){
-                            reject("Cannot find plugin match arch " + this.job.string_args[0] + "  " + process.arch)
+                            reject({
+                                code: 1,
+                                message: "Cannot find plugin match arch " + this.job.string_args[0] + "  " + process.arch
+                            })
                             return
                         }
 
@@ -187,7 +190,10 @@ export class ClientJobExecute {
                         if(this.os.fs_exist(data)){
                             resolve(`Path exist ${data.path}`)
                         }else{
-                            reject(`Path not exist ${data.path}`)
+                            reject({
+                                code: 2,
+                                message: `Path not exist ${data.path}`
+                            })
                         }
                         break
                     }
@@ -197,7 +203,10 @@ export class ClientJobExecute {
                         if(r != undefined && r == 0){
                             resolve(`Execute Javascript successfully`)
                         }else{
-                            reject(`Execute Javascript failed`)
+                            reject({
+                                code: 3,
+                                message: `Execute Javascript failed`
+                            })
                         }
                         break
                     }
