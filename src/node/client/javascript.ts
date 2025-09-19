@@ -4,7 +4,7 @@
 //                           
 // ========================
 import * as vm from 'vm';
-import { DATA_FOLDER, DataType, JavascriptLib, Job, Libraries, Messager, Messager_log, Parameter } from '../interface';
+import { DATA_FOLDER, DataType, JavascriptLib, Job, Libraries, Messager, Messager_log, Parameter, ParameterContainer } from '../interface';
 import { ClientJobParameter } from './job_parameter';
 import { ClientOS } from './os';
 import * as path from 'path';
@@ -112,7 +112,7 @@ function getselectlendth(key:string){
     if(s?.meta == undefined) return undefined
     return s.meta.length
 }
-function _set(key:string, checker?:DatatypeChecker){
+function _set(key:string, checker?:DatatypeChecker, created:boolean = true):ParameterContainer | undefined{
     const p = getpara?.() ?? undefined
     if(p == undefined) return undefined
     if(!p.canWrite) return undefined
@@ -144,10 +144,12 @@ function set(key:string, value:any){
     }
 }
 function setboolean(key:string, value:boolean){
-    const target = _set(key, (x) => x == DataType.Boolean)
-    if(target == undefined) return
-
-    target.value = value
+    let target = _set(key, (x) => x == DataType.Boolean)
+    if(target == undefined) {
+        target = { name: key, type: DataType.Boolean, hidden: false, runtimeOnly: true, value: value }
+    }else{
+        target.value = value
+    }
     para?.feedbackboolean({key:key,value:value})
 }
 function setnumber(key:string, value:number){
@@ -155,31 +157,39 @@ function setnumber(key:string, value:number){
         messager_log("Trying to set a constant ck...", tag(), runtime())
         return
     }
-    const target = _set(key, (x) => x == DataType.Number)
-    if(target == undefined) return
-
-    target.value = value
+    let target = _set(key, (x) => x == DataType.Number)
+    if(target == undefined) {
+        target = { name: key, type: DataType.Number, hidden: false, runtimeOnly: true, value: value }
+    }else{
+        target.value = value
+    }
     para?.feedbacknumber({key:key,value:value})
 }
 function setstring(key:string, value:string){
-    const target = _set(key, (x) => (x == DataType.String || x == DataType.Textarea))
-    if(target == undefined) return
-    
-    target.value = value
+    let target = _set(key, (x) => x == DataType.String)
+    if(target == undefined) {
+        target = { name: key, type: DataType.String, hidden: false, runtimeOnly: true, value: value }
+    }else{
+        target.value = value
+    }
     para?.feedbackstring({key:key,value:value})
 }
 function setobject(key:string, value:any){
-    const target = _set(key, (x) => x == DataType.Object)
-    if(target == undefined) return
-    
-    target.value = value
+    let target = _set(key, (x) => x == DataType.Object)
+    if(target == undefined) {
+        target = { name: key, type: DataType.Object, hidden: false, runtimeOnly: true, value: value }
+    }else{
+        target.value = value
+    }
     para?.feedbackobject({key:key,value:value})
 }
 function setlist(key:string, value:Array<string>){
-    const target = _set(key, (x) => x == DataType.List)
-    if(target == undefined) return
-    
-    target.value = value
+    let target = _set(key, (x) => x == DataType.List)
+    if(target == undefined) {
+        target = { name: key, type: DataType.List, hidden: false, runtimeOnly: true, value: value }
+    }else{
+        target.value = value
+    }
     para?.feedbackobject({key:key,value:value})
 }
 function setselect(key:string, value:number){

@@ -51,10 +51,7 @@ export class ClientParameter {
         if(this.source == undefined) return
         const p:Header = {
             name: title,
-            data: {
-                key: data.key,
-                value: data.value
-            }
+            data: data
         }
         this.source.send(JSON.stringify(p, null, 2))
     }
