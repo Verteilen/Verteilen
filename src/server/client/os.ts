@@ -143,10 +143,8 @@ export class ClientOS {
             const child = spawn(command,  args.split(' '), 
             { 
                 cwd: cwd, 
-                detached: true,
                 shell: true, 
-                stdio: ['pipe', 'pipe', 'pipe'], 
-                windowsHide: true
+                stdio: ['pipe', 'pipe', 'pipe']
             })
             child.stdin.setDefaultEncoding('utf8')
             // The kill process detecter
@@ -190,8 +188,7 @@ export class ClientOS {
         this.messager_log(`[OS Action] Command command: ${command}`, this.tag())
         this.messager_log(`[OS Action] Command args: ${args}`, this.tag())
         const child = exec(`${command} ${args}`, { 
-                cwd: cwd, 
-                windowsHide: true
+                cwd: cwd
         })
 
         child.on('spawn', () => {

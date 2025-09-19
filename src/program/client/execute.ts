@@ -110,12 +110,7 @@ export class ClientExecute {
                     para.feedbackselect(msg.data)
                 }
             }catch(err:any){
-                const errorH:Header = {
-                    name: "error",
-                    meta: "Casting job info failed",
-                    data: `(${err.code ?? 'unknown'}) ${err.message}`,
-                }
-                this.messager_log(JSON.stringify(errorH), job.uuid, job.runtime_uuid)
+                this.messager_log(`(${err.code ?? 'unknown'}) ${err.message}`, job.uuid, job.runtime_uuid)
             }
         }
         const workerFeedback = (str:string) => {
