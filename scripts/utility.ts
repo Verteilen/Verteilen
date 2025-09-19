@@ -24,6 +24,11 @@ export async function Build_Node() {
     return compileTs(nodePath);
 }
 
+export async function Build_Cluster() {
+    const nodePath = Path.join(__dirname, '..', 'src', 'cluster');
+    return compileTs(nodePath);
+}
+
 export async function Build_Server(){
     const nodePath = Path.join(__dirname, '..', 'src', 'server');
     return compileTs(nodePath);
@@ -99,6 +104,12 @@ export async function Copy_Worker2NodeBuild(){
 export function Clean_Node(){
     if(existsSync(Path.join(__dirname, '..', 'build', 'node'))){
         rmdirSync(Path.join(__dirname, '..', 'build', 'node'), {recursive: true})
+    }
+}
+
+export function Clean_Cluster(){
+    if(existsSync(Path.join(__dirname, '..', 'build', 'cluster'))){
+        rmdirSync(Path.join(__dirname, '..', 'build', 'cluster'), {recursive: true})
     }
 }
 

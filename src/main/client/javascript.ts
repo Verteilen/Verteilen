@@ -52,6 +52,145 @@ let waiting : number = 0
 const tag = () => getjob!?.()?.uuid ?? 'unknown'
 const runtime = () => getjob!?.()?.runtime_uuid ?? 'unknown'
 
+//#region Global
+function has(key:string, checker?:DatatypeChecker){
+    const p = getpara?.() ?? undefined
+    if(p == undefined) return false
+    return p.containers.findIndex(x => x.name == key && (checker ? checker(x.type) : true )) != -1
+}
+function hasboolean(key:string){
+    return has(key, (x) => x == DataType.Boolean)
+}
+function hasnumber(key:string){
+    return has(key, (x) => x == DataType.Number || x == DataType.Expression)
+}
+function hasstring(key:string){
+    return has(key, (x) => x == DataType.String || x == DataType.Textarea)
+}
+function hasobject(key:string){
+    return has(key, (x) => x == DataType.Object)
+}
+function haslist(key:string){
+    return has(key, (x) => x == DataType.List)
+}
+function hasselect(key:string){
+    return has(key, (x) => x == DataType.Select)
+}
+
+function get(key:string, checker?:DatatypeChecker){
+    const p = getpara?.() ?? undefined
+    if(p == undefined) return undefined
+    return p.containers.find(x => x.name == key && (checker ? checker(x.type) : true ))?.value ?? undefined
+}
+function getboolean(key:string){
+    return get(key, (x) => x == DataType.Boolean)
+}
+function getnumber(key:string){
+    if(key == 'ck'){
+        const r = getjob?.()?.index
+        if(r != undefined) return r
+        return 0
+    }
+    return get(key, (x) => x == DataType.Number || x == DataType.Expression)
+}
+function getstring(key:string){
+    return get(key, (x) => x == DataType.String || x == DataType.Textarea)
+}
+function getobject(key:string){
+    return get(key, (x) => x == DataType.Object)
+}
+function getlist(key:string){
+    return get(key, (x) => x == DataType.List)
+}
+function getselect(key:string){
+    const s = get(key, (x) => x == DataType.Select)
+    if(s?.meta == undefined) return undefined
+    return s.meta[s.value]
+}
+function getselectlendth(key:string){
+    const s = get(key, (x) => x == DataType.Select)
+    if(s?.meta == undefined) return undefined
+    return s.meta.length
+}
+function _set(key:string, checker?:DatatypeChecker){
+    const p = getpara?.() ?? undefined
+    if(p == undefined) return undefined
+    if(!p.canWrite) return undefined
+    return p.containers.find(x => x.name == key && (checker ? checker(x.type) : true ))
+}
+function set(key:string, value:any){
+    const target = _set(key)
+    if(target == undefined) return
+    switch(target.type){
+        case DataType.Boolean:
+            setboolean(key, value)
+            break
+        case DataType.Number:
+            setnumber(key, value)
+            break
+        case DataType.Textarea:
+        case DataType.String:
+            setstring(key, value)
+            break
+        case DataType.Object:
+            setobject(key, value)
+            break
+        case DataType.List:
+            setlist(key, value)
+            break
+        case DataType.Select:
+            setselect(key, value)
+            break
+    }
+}
+function setboolean(key:string, value:boolean){
+    const target = _set(key, (x) => x == DataType.Boolean)
+    if(target == undefined) return
+
+    target.value = value
+    para?.feedbackboolean({key:key,value:value})
+}
+function setnumber(key:string, value:number){
+    if(key == 'ck') {
+        messager_log("Trying to set a constant ck...", tag(), runtime())
+        return
+    }
+    const target = _set(key, (x) => x == DataType.Number)
+    if(target == undefined) return
+
+    target.value = value
+    para?.feedbacknumber({key:key,value:value})
+}
+function setstring(key:string, value:string){
+    const target = _set(key, (x) => (x == DataType.String || x == DataType.Textarea))
+    if(target == undefined) return
+    
+    target.value = value
+    para?.feedbackstring({key:key,value:value})
+}
+function setobject(key:string, value:any){
+    const target = _set(key, (x) => x == DataType.Object)
+    if(target == undefined) return
+    
+    target.value = value
+    para?.feedbackobject({key:key,value:value})
+}
+function setlist(key:string, value:Array<string>){
+    const target = _set(key, (x) => x == DataType.List)
+    if(target == undefined) return
+    
+    target.value = value
+    para?.feedbackobject({key:key,value:value})
+}
+function setselect(key:string, value:number){
+    const target = _set(key, (x) => x == DataType.Select)
+    if(target == undefined) return
+    
+    target.value = value
+    para?.feedbackobject({key:key,value:value})
+}
+//#endregion
+
 export class ClientJavascript {
     path: any
     os:any
@@ -86,34 +225,34 @@ export class ClientJavascript {
         }
         
         this.env = {
-            has: this.has,
-            get: this.get,
-            set: this.set,
+            has: has,
+            get: get,
+            set: set,
 
-            hasboolean: this.hasboolean, 
-            getboolean: this.getboolean, 
-            setboolean: this.setboolean,
+            hasboolean: hasboolean, 
+            getboolean: getboolean, 
+            setboolean: setboolean,
 
-            hasnumber: this.hasnumber, 
-            getnumber: this.getnumber, 
-            setnumber: this.setnumber,
+            hasnumber: hasnumber, 
+            getnumber: getnumber, 
+            setnumber: setnumber,
 
-            hasstring: this.hasstring, 
-            getstring: this.getstring, 
-            setstring: this.setstring,
+            hasstring: hasstring, 
+            getstring: getstring, 
+            setstring: setstring,
 
-            hasobject: this.hasobject, 
-            getobject: this.getobject, 
-            setobject: this.setobject,
+            hasobject: hasobject, 
+            getobject: getobject, 
+            setobject: setobject,
 
-            haslist: this.haslist, 
-            getlist: this.getlist, 
-            setlist: this.setlist,
+            haslist: haslist, 
+            getlist: getlist, 
+            setlist: setlist,
 
-            hasselect: this.hasselect, 
-            getselect: this.getselect, 
-            getsleectlength: this.getselectlendth,
-            setselect: this.setselect,
+            hasselect: hasselect, 
+            getselect: getselect, 
+            getsleectlength: getselectlendth,
+            setselect: setselect,
         }
         
         this.message = {
@@ -326,143 +465,6 @@ export class ClientJavascript {
     }
     private async sleep(n:number){
         Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, n*1000);
-    }
-    
-    private has(key:string, checker?:DatatypeChecker){
-        const p = getpara?.() ?? undefined
-        if(p == undefined) return false
-        return p.containers.findIndex(x => x.name == key && (checker ? checker(x.type) : true )) != -1
-    }
-    private hasboolean(key:string){
-        return this.has(key, (x) => x == DataType.Boolean)
-    }
-    private hasnumber(key:string){
-        return this.has(key, (x) => x == DataType.Number || x == DataType.Expression)
-    }
-    private hasstring(key:string){
-        return this.has(key, (x) => x == DataType.String || x == DataType.Textarea)
-    }
-    private hasobject(key:string){
-        return this.has(key, (x) => x == DataType.Object)
-    }
-    private haslist(key:string){
-        return this.has(key, (x) => x == DataType.List)
-    }
-    private hasselect(key:string){
-        return this.has(key, (x) => x == DataType.Select)
-    }
-
-    private get(key:string, checker?:DatatypeChecker){
-        const p = getpara?.() ?? undefined
-        if(p == undefined) return undefined
-        return p.containers.find(x => x.name == key && (checker ? checker(x.type) : true ))?.value ?? undefined
-    }
-    private getboolean(key:string){
-        return this.get(key, (x) => x == DataType.Boolean)
-    }
-    private getnumber(key:string){
-        if(key == 'ck'){
-            const r = getjob?.()?.index
-            if(r != undefined) return r
-            return 0
-        }
-        return this.get(key, (x) => x == DataType.Number || x == DataType.Expression)
-    }
-    private getstring(key:string){
-        return this.get(key, (x) => x == DataType.String || x == DataType.Textarea)
-    }
-    private getobject(key:string){
-        return this.get(key, (x) => x == DataType.Object)
-    }
-    private getlist(key:string){
-        return this.get(key, (x) => x == DataType.List)
-    }
-    private getselect(key:string){
-        const s = this.get(key, (x) => x == DataType.Select)
-        if(s?.meta == undefined) return undefined
-        return s.meta[s.value]
-    }
-    private getselectlendth(key:string){
-        const s = this.get(key, (x) => x == DataType.Select)
-        if(s?.meta == undefined) return undefined
-        return s.meta.length
-    }
-    private _set(key:string, checker?:DatatypeChecker){
-        const p = getpara?.() ?? undefined
-        if(p == undefined) return undefined
-        if(!p.canWrite) return undefined
-        return p.containers.find(x => x.name == key && (checker ? checker(x.type) : true ))
-    }
-    private set(key:string, value:any){
-        const target = this._set(key)
-        if(target == undefined) return
-        switch(target.type){
-            case DataType.Boolean:
-                this.setboolean(key, value)
-                break
-            case DataType.Number:
-                this.setnumber(key, value)
-                break
-            case DataType.Textarea:
-            case DataType.String:
-                this.setstring(key, value)
-                break
-            case DataType.Object:
-                this.setobject(key, value)
-                break
-            case DataType.List:
-                this.setlist(key, value)
-                break
-            case DataType.Select:
-                this.setselect(key, value)
-                break
-        }
-    }
-    private setboolean(key:string, value:boolean){
-        const target = this._set(key, (x) => x == DataType.Boolean)
-        if(target == undefined) return
-
-        target.value = value
-        para?.feedbackboolean({key:key,value:value})
-    }
-    private setnumber(key:string, value:number){
-        if(key == 'ck') {
-            messager_log("Trying to set a constant ck...", tag(), runtime())
-            return
-        }
-        const target = this._set(key, (x) => x == DataType.Number)
-        if(target == undefined) return
-
-        target.value = value
-        para?.feedbacknumber({key:key,value:value})
-    }
-    private setstring(key:string, value:string){
-        const target = this._set(key, (x) => (x == DataType.String || x == DataType.Textarea))
-        if(target == undefined) return
-        
-        target.value = value
-        para?.feedbackstring({key:key,value:value})
-    }
-    private setobject(key:string, value:any){
-        const target = this._set(key, (x) => x == DataType.Object)
-        if(target == undefined) return
-        
-        target.value = value
-        para?.feedbackobject({key:key,value:value})
-    }
-    private setlist(key:string, value:Array<string>){
-        const target = this._set(key, (x) => x == DataType.List)
-        if(target == undefined) return
-        
-        target.value = value
-        para?.feedbackobject({key:key,value:value})
-    }
-    private setselect(key:string, value:number){
-        const target = this._set(key, (x) => x == DataType.Select)
-        if(target == undefined) return
-        
-        target.value = value
-        para?.feedbackobject({key:key,value:value})
     }
     //#endregion
     //#endregion

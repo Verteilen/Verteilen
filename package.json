@@ -1,6 +1,6 @@
 {
   "name": "verteilen",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "license": "MIT",
   "homepage": "https://verteilen.github.io/wiki/",
   "author": "Elly",
@@ -22,6 +22,8 @@
     "build:node-d": "ts-node scripts/node_builder.ts docker",
     "build:server": "ts-node scripts/server_builder.ts",
     "build:cluster": "ts-node scripts/cluster_builder.ts",
+    "build:cluster-p": "ts-node scripts/cluster_builder.ts package",
+    "build:cluster-d": "ts-node scripts/cluster_builder.ts docker",
     "build:dir": "ts-node scripts/program_build.ts && ts-node scripts/build.ts && electron-builder --dir",
     "build:win": "ts-node scripts/program_build.ts win && ts-node scripts/build.ts && electron-builder --win",
     "build:mac": "ts-node scripts/program_build.ts mac && ts-node scripts/build.ts && electron-builder --mac",
