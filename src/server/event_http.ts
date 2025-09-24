@@ -19,10 +19,8 @@ export const EventInit = (app: express.Express, middle?:any) => {
     app.get('/login/:token', (req, res, next) => {
         if(req.params.token != undefined) {
             res.cookie('token', req.params.token)
-            res.redirect('/')
-        }else{
-            res.sendStatus(403)
         }
+        res.redirect('/')
     })
     // The simple web response to let frontend know that backend exists
     app.post('/user', (req, res) => {
@@ -36,10 +34,6 @@ export const EventInit = (app: express.Express, middle?:any) => {
     })
     app.get('/user', (req, res) => {
         const token = req.cookies.token
-        if(token == undefined){
-            res.sendStatus(403)
-            return
-        }
         res.send(backendEvent.GetUserType(token))
     })
     app.get('/pic', (req, res) => {
@@ -74,6 +68,8 @@ export const EventInit = (app: express.Express, middle?:any) => {
         }
     })
     app.use((req, res, next) => {
+        next()
+        return
         if(req.cookies.token == undefined) {
             res.sendStatus(403)
         }else{

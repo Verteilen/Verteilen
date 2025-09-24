@@ -1,4 +1,10 @@
 {
+    "login": {
+        "title": "帳號登入",
+        "submit": "登入",
+        "account": "帳號",
+        "password": "密碼"
+    },
     "guides": {
         "workflow": "工作流程",
         "core": "核心運作",
@@ -382,5 +388,6 @@
     "guide": "指南",
     "plugin": "插件",
     "template": "樣板",
-    "loading": "讀取中"
+    "loading": "讀取中",
+    "relogin": "重新登入"
 }

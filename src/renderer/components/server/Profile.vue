@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, Ref, ref } from 'vue';
+import { computed, onMounted, Ref, ref } from 'vue';
 import { BackendProxy } from '../../proxy';
 import { DATA } from '../../util/profile';
 import { UserType } from '../../interface';
@@ -19,9 +19,14 @@ const data:Ref<DATA> = ref({
     name: "",
     description: "",
 })
+const canModify = computed(() => propss.backend.user.type != UserType.GUEST)
 
 const selectPicture = () => {
     data.value.importModal = true
+}
+
+const relogin = () => {
+
 }
 
 const toggleButton = () => {
@@ -72,7 +77,7 @@ onMounted(() => {
                         <v-card v-bind="props">
                             <v-img alt="Picture" cover :src="propss.backend.user.picture_url ? '/pic' : 'assets/icon/user.png'"></v-img>
                             <v-overlay :model-value="!!isHovering" contained class="align-center justify-center">
-                                <v-btn @click="selectPicture" color="primary" variant="flat">{{ $t('modify') }}</v-btn>
+                                <v-btn :disabled="!canModify" @click="selectPicture" color="primary" variant="flat">{{ $t('modify') }}</v-btn>
                             </v-overlay>
                         </v-card>
                     </v-hover>
@@ -83,7 +88,14 @@ onMounted(() => {
                     <v-text-field v-if="data.editMode" v-model="data.name" :label="$t('profile.username')" variant="outlined"></v-text-field>
                     <v-text-field v-if="data.editMode" v-model="data.description" :label="$t('profile.description')" variant="outlined"></v-text-field>
                     <v-checkbox disabled v-model="propss.backend.config.isAdmin" :label="$t('profile.admin')"></v-checkbox>
-                    <v-btn v-if="propss.backend.user != undefined" style="float: left" color="primary" @click="toggleButton"> {{ $t(data.editMode ? 'confirm' : 'modify') }} </v-btn>
+                    <v-row>
+                        <v-col>
+                            <v-btn :disabled="!canModify" class="w-100" color="primary" @click="toggleButton"> {{ $t(data.editMode ? 'confirm' : 'modify') }} </v-btn>
+                        </v-col>
+                        <v-col>
+                            <v-btn class="w-100" color="primary" @click="relogin"> {{ $t('relogin') }} </v-btn>
+                        </v-col>
+                    </v-row>
                 </v-col>
             </v-row>
             <v-dialog width="800" v-model="data.importModal" class="text-white">
