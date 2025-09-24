@@ -8,6 +8,7 @@ export interface AppConfig {
     isElectron: boolean
     isAdmin: boolean
     haveBackend: boolean
+    login:boolean
 }
 
 export interface IMessage {

@@ -48,7 +48,7 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
             httpss.listen(p, () => {
                 console.log(Chalk.greenBright(`https server run at ${p}`))
             })
-            backendEvent.Root()
+            backendEvent.Root(p)
         }
         {
             const p = await socketport

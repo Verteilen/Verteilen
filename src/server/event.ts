@@ -160,7 +160,7 @@ export class BackendEvent {
     //#endregion
 
     //#region Server
-    Root = () => {
+    Root = (port:number) => {
         const pa_root = path.join(os.homedir(), DATA_FOLDER)
         const pa = path.join(pa_root, 'user')
         if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true});
@@ -202,12 +202,14 @@ export class BackendEvent {
             }
             fs.writeFileSync(path.join(pa, root.token + '.json'), JSON.stringify(root, null, 2))
             console.log(`Login with root using: ${root.token} `)
+            console.log(`Login with root using: https://127.0.0.1:${port}/login/${root.token} `)
         }else{
             const files = fs.readdirSync(pa).filter(x => x.endsWith('.json'))
             for(let file of files){
                 const user:UserProfile = JSON.parse(fs.readFileSync(path.join(pa, file)).toString())
                 if(user.type == UserType.ROOT){
                     console.log(`Login with root using: ${user.token} `)
+                    console.log(`Login with root using: https://127.0.0.1:${port}/login/${user.token} `)
                 }
             }
         }

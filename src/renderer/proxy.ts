@@ -23,6 +23,7 @@ export class BackendProxy {
             isExpress: false,
             isAdmin: false,
             haveBackend: false,
+            login: false,
         }
         this.is_init = false
         this.consoleM = undefined
