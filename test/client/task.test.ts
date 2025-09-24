@@ -44,6 +44,10 @@ describe("Express Test", () => {
             containers: [
                 { name: "n1", type: DataType.Number, value: 7, hidden: false, runtimeOnly: false },
                 { name: "n2", type: DataType.Number, value: 5, hidden: false, runtimeOnly: false },
+                { name: "DATA_0", type: DataType.Number, value: 10, hidden: false, runtimeOnly: false },
+                { name: "DATA_1", type: DataType.Number, value: 1000, hidden: false, runtimeOnly: false },
+                { name: "HELLO_0", type: DataType.Number, value: 99, hidden: false, runtimeOnly: false },
+                { name: "HELLO_1", type: DataType.Number, value: 9999, hidden: false, runtimeOnly: false },
                 { name: "s1", type: DataType.String, value: "Hello World", hidden: false, runtimeOnly: false },
                 { name: "b1", type: DataType.Boolean, value: true, hidden: false, runtimeOnly: false },
                 { name: "e1", type: DataType.Expression, value: 0, meta: "n1+n2", hidden: false, runtimeOnly: false },
@@ -91,6 +95,38 @@ describe("Express Test", () => {
         expect(job.string_args[0]).toBe("b1.data.1.p")
         expect(job.string_args[1]).toBe("Hello 122")
         expect(job.string_args[2]).toBe("123")
+    })
+    test("_ck_ getter 0", () => {
+        const job:Job = generateJob(["%p1%", "%p2%"])
+        const task:Task = generateTask(job, [
+            {
+                name: "p1",
+                expression: `DATA__ck_`
+            },
+            {
+                name: "p2",
+                expression: "HELLO__ck_",
+            },
+        ])
+        ExecuteManager_Base.string_args_transform(task, job, (str) => console.log(str), parameter!, 0)
+        expect(job.string_args[0]).toBe("10")
+        expect(job.string_args[1]).toBe("99")
+    })
+    test("_ck_ getter 1", () => {
+        const job:Job = generateJob(["%p1%", "%p2%"])
+        const task:Task = generateTask(job, [
+            {
+                name: "p1",
+                expression: `DATA__ck_`
+            },
+            {
+                name: "p2",
+                expression: "HELLO__ck_",
+            },
+        ])
+        ExecuteManager_Base.string_args_transform(task, job, (str) => console.log(str), parameter!, 1)
+        expect(job.string_args[0]).toBe("1000")
+        expect(job.string_args[1]).toBe("9999")
     })
     test("Cronjob Key Testing", () => {
         expect(ExecuteManager_Base.get_number_global("e1", parameter)).toBe(12)

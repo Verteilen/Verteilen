@@ -388,6 +388,37 @@ export class ClientJavascript {
             JSON: {
                 parse: JSON.parse,
                 stringify: JSON.stringify
+            },
+            math: {
+                floor: Math.floor,
+                abs: Math.abs,
+                round: Math.round,
+                ceil: Math.ceil,
+                PI: Math.PI,
+                E: Math.E,
+                pow: Math.pow,
+                random: Math.random,
+                max: Math.max,
+                min: Math.min,
+                trunc: Math.trunc,
+                log: Math.log,
+                log10: Math.log10,
+                log2: Math.log2,
+                exp: Math.exp,
+                expm1: Math.expm1,
+                sin: Math.sin,
+                sinh: Math.sinh,
+                cos: Math.cos,
+                cosh: Math.cosh,
+                tan: Math.tan,
+                tanh: Math.tanh,
+                asin: Math.asin,
+                asinh: Math.asinh,
+                acos: Math.acos,
+                acosh: Math.acosh,
+                atan: Math.atan,
+                atanh: Math.atanh,
+                atan2: Math.atan2,
             }
         })
     
