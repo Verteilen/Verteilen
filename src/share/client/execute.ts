@@ -110,6 +110,7 @@ export class ClientExecute {
                     para.feedbackselect(msg.data)
                 }
             }catch(err:any){
+                this.messager_log(`Error: ${str}`, job.uuid, job.runtime_uuid)
                 this.messager_log(`(${err.code ?? 'unknown'}) ${err.message}`, job.uuid, job.runtime_uuid)
             }
         }

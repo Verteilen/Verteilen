@@ -4,6 +4,7 @@ import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { useTheme } from 'vuetify';
 import ClientNode from './components/ClientNode.vue';
 import Messager from './components/Messager.vue';
+import Login from './components/Login.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
 import SettingDialog from './components/dialog/SettingDialog.vue';
@@ -106,7 +107,8 @@ onUnmounted(() => {
 
 <template>
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference.font + 'px' }">
-    <ServerClientSelection v-model.number="mode" v-if="mode == -1" :preference="preference" :config="config"/>
+    <ServerClientSelection v-model.number="mode" v-if="mode == -1 && config.isElectron" :preference="preference" :config="config"/>
+    <Login v-else-if="config.isExpress && !config.login" :preference="preference" :config="config"/>
     <ClientNode v-else-if="mode == 0" :preference="preference" :backend="backend"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>
     <Messager :preference="preference" :backend="backend" />
