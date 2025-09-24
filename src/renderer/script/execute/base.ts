@@ -295,7 +295,7 @@ export class ExecuteManager_Base {
 
     static parameter_update = (localPara:Parameter, n?:number) => {
         const e = new Util_Parser([...Util_Parser.to_keyvalue(localPara)])
-        if(n){
+        if(n != undefined){
             e.paras.push({ key: 'ck', value: n.toString() })
         }
         localPara.containers.forEach((c, index) => {
