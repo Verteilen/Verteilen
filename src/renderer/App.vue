@@ -8,7 +8,7 @@ import Login from './components/Login.vue';
 import ServerClientSelection from './components/ServerClientSelection.vue';
 import ServerNode from './components/ServerNode.vue';
 import SettingDialog from './components/dialog/SettingDialog.vue';
-import { BusType, Preference, WebPORT } from './interface';
+import { BusType, Preference, Setter, WebPORT } from './interface';
 import { i18n } from './plugins/i18n';
 import { BackendProxy } from './proxy';
 import { vuetify } from './plugins/vuetify';
@@ -27,6 +27,7 @@ const preference:Ref<Preference> = ref({
 const backend:Ref<BackendProxy> = ref(new BackendProxy())
 const config = computed(() => backend.value.config)
 
+const login = ref(false)
 const mode = ref(config.value.isElectron ? -1 : 1)
 const settingModal = ref(false)
 const defaultTransition = ref()
@@ -80,8 +81,27 @@ const load_preference = (x:string) => {
   backend.value.send('locate', preference.value.lan)  
 }
 
+const relogin = () => {
+  config.value.login = false
+  mode.value = -1
+  backend.value.removeCookie('token')
+  login.value = true
+}
+
+const loginGuest = () => {
+  mode.value = 1
+  login.value = false
+}
+
+const trylogin = (v:Setter) => {
+
+}
+
 onMounted(() => {
   defaultTransition.value = vuetify.defaults.value?.global
+  emitter?.on('relogin', relogin)
+  emitter?.on('loginGuest', loginGuest)
+  emitter?.on('login', trylogin)
   emitter?.on('savePreference', savePreference)
   emitter?.on('modeSelect', modeSelect)
   emitter?.on('setting', setting)
@@ -108,8 +128,8 @@ onUnmounted(() => {
 <template>
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference.font + 'px' }">
     <ServerClientSelection v-model.number="mode" v-if="mode == -1 && config.isElectron" :preference="preference" :config="config"/>
-    <Login v-else-if="config.isExpress && !config.login" :preference="preference" :config="config"/>
-    <ClientNode v-else-if="mode == 0" :preference="preference" :backend="backend"/>
+    <Login v-else-if="config.isExpress && !config.login && login" :preference="preference" :config="config"/>
+    <ClientNode v-else-if="config.isElectron && mode == 0" :preference="preference" :backend="backend"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>
     <Messager :preference="preference" :backend="backend" />
     <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />

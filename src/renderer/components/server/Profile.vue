@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, Ref, ref } from 'vue';
+import { computed, inject, onMounted, Ref, ref } from 'vue';
 import { BackendProxy } from '../../proxy';
 import { DATA } from '../../util/profile';
-import { UserType } from '../../interface';
+import { BusType, UserType } from '../../interface';
+import { Emitter } from 'mitt';
+
+const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     backend: BackendProxy
@@ -26,7 +29,7 @@ const selectPicture = () => {
 }
 
 const relogin = () => {
-
+    emitter?.emit('relogin')
 }
 
 const toggleButton = () => {

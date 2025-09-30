@@ -7,7 +7,7 @@ import * as os from 'os'
 import * as path from 'path'
 import * as https from 'https'
 import { backendEvent } from './event'
-import { ConsolePORT, DATA_FOLDER, Header, WebPORT } from './interface'
+import { DATA_FOLDER, Header, WebPORT } from './interface'
 import { EventInit } from './event_http'
 
 
@@ -17,7 +17,6 @@ let httpss:https.Server<any> | undefined = undefined
 let wss:https.Server<any> | undefined = undefined
 
 const webport = backendEvent.PortAvailable(WebPORT)
-const socketport = backendEvent.PortAvailable(ConsolePORT)
 
 const get_pem = (express:boolean):Promise<[string, string]> => {
     return new Promise<[string, string]>((resolve) => {
@@ -39,8 +38,9 @@ const get_pem = (express:boolean):Promise<[string, string]> => {
 
 export const main = async (middle?:any):Promise<[express.Express | undefined, ws.Server | undefined]> => {
     return new Promise<[express.Express | undefined, ws.Server | undefined]>(async (resolve) => {
+        const p = await webport
         {
-            const p = await webport
+            
             const pems = await get_pem(true)
             app = express()
             httpss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, app)
@@ -51,14 +51,8 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
             backendEvent.Root(p)
         }
         {
-            const p = await socketport
-            const pems = await get_pem(false)
-            wss = https.createServer({ key: pems[0], cert: pems[1], minVersion: 'TLSv1.2', maxVersion: 'TLSv1.3' }, (req, res) => {
-                res.writeHead(200, { 'Content-Type': 'text/plain' })
-                res.end('New WSS Connection')
-            })
             //wsServer = new ws.Server({port: p})
-            wsServer = new ws.Server({server: wss})
+            wsServer = new ws.Server({server: httpss})
             console.log(Chalk.greenBright(`websocket server run at ${p}`))
             wsServer.on('connection', (ws) => {
                 //const p = new eventInit(ws)
@@ -73,16 +67,7 @@ export const main = async (middle?:any):Promise<[express.Express | undefined, ws
                     backendEvent.DropConsoleConsole(ws)
                 })
             })
-            /**
-            console.log(Chalk.greenBright(`ws server run at ${p}`))
-            */
-            wss.listen(p, () => {
-                console.log(Chalk.greenBright(`ws server run at ${p}`))
-            })
-            
         }
-
-        await Promise.allSettled([webport, socketport])
         resolve([app, wsServer])
     })
 }

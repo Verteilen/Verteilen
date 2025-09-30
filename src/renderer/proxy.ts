@@ -2,6 +2,7 @@ import { reactive } from "vue";
 import { AppConfig, RawSend, UserProfileClient, UserType } from "./interface";
 import { checkifElectron, checkIfExpress } from "./platform";
 import { ConsoleManager, Listener } from "./script/console_manager";
+import Cookies from 'js-cookie'
 
 /**
  * The proxy middleware that connect the function call to express backend or electron backend 
@@ -14,6 +15,7 @@ export class BackendProxy {
         picture_url: false,
         name: "",
         type: UserType.GUEST,
+        permission: undefined
     })
 
     constructor(){
@@ -35,8 +37,8 @@ export class BackendProxy {
     init = () => {
         const k = new Promise<void>((resolve) => {
             checkIfExpress((e:UserProfileClient | undefined) => {
-                console.log("auth", e)
                 Object.assign(this.user, e)
+                console.log("auth", this.user)
                 this.config.isExpress = e != undefined
                 this.config.isAdmin = e ? (e.type == UserType.ADMIN || e.type == UserType.ROOT) : false
                 this.is_init = true
@@ -74,9 +76,11 @@ export class BackendProxy {
     }
 
     getCookie = (name:string) => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop()?.split(';').shift();
+        return Cookies.get(name)
+    }
+
+    removeCookie = (name:string) => {
+        Cookies.remove(name)
     }
 
     /**

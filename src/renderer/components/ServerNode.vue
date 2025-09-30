@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
-import { AppConfig, computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, Rename, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ConsolePORT, ExecutePair, FrontendUpdate } from '../interface';
+import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ExecutePair, FrontendUpdate } from '../interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -265,7 +265,7 @@ const msgClean = () => util.self.clearMessage()
 //#region Plugin
 const pluginAdded = (name:string, url:string) => {
   props.backend.invoke("import_plugin", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
-    console.log("plugin result", JSON.parse(x))
+    if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
     nextTick(() => {
       data.value.plugin = { plugins: [], templates: [] }
       nextTick(() => {
@@ -276,7 +276,7 @@ const pluginAdded = (name:string, url:string) => {
 }
 const templateAdded = (name:string, url:string) => {
   props.backend.invoke("import_template", name, url, props.preference.plugin_token.map(x => x.token).join(' ')).then(x => {
-    console.log("plugin result", JSON.parse(x))
+    if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
     nextTick(() => {
       data.value.plugin = { plugins: [], templates: [] }
       nextTick(() => {
@@ -287,13 +287,13 @@ const templateAdded = (name:string, url:string) => {
 }
 const pluginDelete = (name:string) => {
   props.backend.invoke("import_plugin_delete", name).then(x => {
-    console.log("plugin result", JSON.parse(x))
+    if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
 const templateDelete = (name:string) => {
   props.backend.invoke("import_template_delete", name).then(x => {
-    console.log("plugin result", JSON.parse(x))
+    if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
@@ -309,19 +309,44 @@ const updateHandleCall = () => {
 }
 
 const updateTab = () => {
-  tabs.value = [
-    ["", "toolbar.editor", -1],
-    ["mdi-cube", "toolbar.project", 0],
-    ["mdi-calendar", "toolbar.task", 1],
-    ["mdi-hammer", "toolbar.job", 2],
-    ["mdi-database", "toolbar.parameter", 3],
-    ["", "toolbar.compute", -1],
-    ["mdi-network", "toolbar.node", 4],
-    ["mdi-console-line", "toolbar.console", 5],
-  ]
+  if(config.value.isExpress){
+    tabs.value = [
+      ["", "toolbar.editor", -1],
+      ["mdi-cube", "toolbar.project", 0],
+    ]
+    if(props.backend.user.permission?.task.view){
+      tabs.value.push(["mdi-calendar", "toolbar.task", 1])
+    }
+    if(props.backend.user.permission?.job.view){
+      tabs.value.push(["mdi-hammer", "toolbar.job", 2])
+    }
+    if(props.backend.user.permission?.parameter.view){
+      tabs.value.push(["mdi-database", "toolbar.parameter", 3])
+    }
+    tabs.value.push(["", "toolbar.compute", -1])
+    if(props.backend.user.permission?.node.view){
+      tabs.value.push(["mdi-network", "toolbar.node", 4])
+    }
+    if(props.backend.user.permission?.execute_job){
+      tabs.value.push(["mdi-console-line", "toolbar.console", 5])
+    }
+  }else{
+    tabs.value = [
+      ["", "toolbar.editor", -1],
+      ["mdi-cube", "toolbar.project", 0],
+      ["mdi-calendar", "toolbar.task", 1],
+      ["mdi-hammer", "toolbar.job", 2],
+      ["mdi-database", "toolbar.parameter", 3],
+      ["", "toolbar.compute", -1],
+      ["mdi-network", "toolbar.node", 4],
+      ["mdi-console-line", "toolbar.console", 5],
+    ]
+  }
   
   if(config.value.haveBackend){
-    tabs.value.push(["mdi-puzzle", "toolbar.plugin", 11])
+    if((config.value.isExpress && props.backend.user.permission?.plugin.view) || !config.value.isExpress){
+      tabs.value.push(["mdi-puzzle", "toolbar.plugin", 11])
+    }
     tabs.value.push(["", "toolbar.backend", -1])
     tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
     tabs.value.push(["mdi-xml", "toolbar.library", 7])
@@ -434,7 +459,7 @@ const repull = (u:FrontendUpdate) => {
     const p3 = props.backend.invoke('load_all_record').then(x => {
       const texts:Array<string> = JSON.parse(x)
       data.value.projects.push(...texts.map(y => JSON.parse(y)))
-      console.log(data.value.projects)
+      if (process.env.NODE_ENV == 'development') console.log(data.value.projects)
     })
     c.push(p3)
   }
@@ -442,7 +467,7 @@ const repull = (u:FrontendUpdate) => {
     const p5 = props.backend.invoke('load_all_parameter').then(x => {
       const texts:Array<string> = JSON.parse(x)
       data.value.parameters = texts.map(y => JSON.parse(y))
-      console.log("Parameters", data.value.libs)
+      if (process.env.NODE_ENV == 'development') console.log("Parameters", data.value.libs)
     })
     c.push(p5)
   }
@@ -450,7 +475,7 @@ const repull = (u:FrontendUpdate) => {
 }
 
 const makeToastFromBackend = (e:any) => {
-    console.log("makeToastFromBackend", e)
+    if (process.env.NODE_ENV == 'development') console.log("makeToastFromBackend", e)
     emitter?.emit('makeToast', e)
 }
 
@@ -516,11 +541,11 @@ const dataset_init = () => {
         data.value.websocket_manager?.server_start(y.url, y.ID)
       }
     })
-    console.log("nodes", data.value.nodes)
+    if (process.env.NODE_ENV == 'development') console.log("nodes", data.value.nodes)
   })
   const p2 = props.backend.invoke('list_all_lib').then(x => {
     const texts:Array<any> = JSON.parse(x)
-    console.log("list_all_lib", texts) 
+    if (process.env.NODE_ENV == 'development') console.log("list_all_lib", texts) 
     data.value.libs = { libs: texts.map(y => {
       const ext = y.split('.').pop()
       const r = {
@@ -534,14 +559,14 @@ const dataset_init = () => {
   })
   const p4 = props.backend.invoke('get_plugin').then(x => {
     data.value.plugin = JSON.parse(x)
-    console.log("Plugins", data.value.plugin)
+    if (process.env.NODE_ENV == 'development') console.log("Plugins", data.value.plugin)
   })
   const p35 = repull(FrontendUpdate.ALL)
   const p6 = props.backend.invoke('load_all_log').then(x => {
       const stringlist:Array<string> = JSON.parse(x)
       const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
       ll.forEach(x => x.output = true)
-      console.log("Logs", ll)
+      if (process.env.NODE_ENV == 'development') console.log("Logs", ll)
       data.value.logs.logs = ll
   })
   Promise.all([p0, p1, p2, p4, ...p35, p6]).then(() => {
@@ -589,7 +614,7 @@ onMounted(() => {
     InitCaller(!props.backend.config.isElectron)
     props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
-      props.backend.consoleM = new ConsoleManager(`wss://${window.location.hostname}:${ConsolePORT}`, messager_log, {
+      props.backend.consoleM = new ConsoleManager(`wss://${window.location.hostname}:${WebPORT}`, messager_log, {
         on: emitter!.on,
         off: emitter!.off,
         emit: emitter!.emit

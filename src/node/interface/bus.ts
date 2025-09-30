@@ -101,6 +101,9 @@ export type BusType = {
     updateProject: void
     recoverProject: Project
     recoverParameter: Parameter
+    relogin: void
+    loginGuest: void
+    login: Setter
     updateTask: void
     updateJob: void
     updateParameter: void

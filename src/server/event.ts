@@ -166,21 +166,6 @@ export class BackendEvent {
         if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true});
         const c = fs.readdirSync(pa).length
         if(c == 0){
-            const perl:LocalPermiision = {
-                view: true,
-                create: true,
-                edit: true,
-                delete: true,
-            }
-            const per:GlobalPermission = {
-                project: perl,
-                task: perl,
-                node: perl,
-                parameter: perl,
-                lib: perl,
-                log: perl,
-                execute_job: true
-            }
             const root:UserProfile = {
                 token: uuidv6(),
                 type: UserType.ROOT,
@@ -195,7 +180,7 @@ export class BackendEvent {
                 },
                 name: "root",
                 description: "Root User",
-                permission: per,
+                permission: this.RootPermission(),
                 permission_projects: [],
                 permission_tasks: [],
                 permission_nodes: [],
@@ -224,6 +209,27 @@ export class BackendEvent {
         }
     }
 
+    RootPermission = () => {
+        const perl:LocalPermiision = {
+            view: true,
+            create: true,
+            edit: true,
+            delete: true,
+        }
+        const per:GlobalPermission = {
+            project: perl,
+            task: perl,
+            job: perl,
+            plugin: perl,
+            node: perl,
+            parameter: perl,
+            lib: perl,
+            log: perl,
+            execute_job: true
+        }
+        return per
+    }
+
     GetUserType = (token?:string):UserProfileClient => {
         const pa_root = path.join(os.homedir(), DATA_FOLDER)
         const pa = path.join(pa_root, 'user')
@@ -236,7 +242,8 @@ export class BackendEvent {
                     name: p.name,
                     type: p.type,
                     picture_url: false,
-                    description: p.description
+                    description: p.description,
+                    permission: p.type == UserType.ROOT ? this.RootPermission() : p.permission
                 }
             }
         }

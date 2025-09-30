@@ -15,8 +15,11 @@ export enum UserType {
 export interface GlobalPermission {
     project: LocalPermiision
     task: LocalPermiision
-    node: LocalPermiision
+    job: LocalPermiision
     parameter: LocalPermiision
+
+    plugin: LocalPermiision
+    node: LocalPermiision
     lib: LocalPermiision
     log: LocalPermiision
 
@@ -59,6 +62,7 @@ export interface UserProfileClient {
     name: string
     type: UserType
     description?: string
+    permission?: GlobalPermission
 }
 
 export interface ServerSetting {
