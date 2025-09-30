@@ -12,6 +12,18 @@ export enum UserType {
     USER
 }
 
+export enum PermissionType {
+    ROOT,
+    PROJECT,
+    Task,
+    JOB,
+    PARAMETER,
+    PLUGIN,
+    NODE,
+    LIB,
+    LOG,
+}
+
 export interface GlobalPermission {
     project: LocalPermiision
     task: LocalPermiision
@@ -44,6 +56,9 @@ export interface LocalPermissionContainer2 {
     permission: LocalPermiision
 }
 
+/**
+ * The data structure store in the DATA_Folder
+ */
 export interface UserProfile {
     token: string
     name: string
@@ -52,11 +67,11 @@ export interface UserProfile {
     description?: string
     password?: string
     permission: GlobalPermission
-    permission_projects: Array<LocalPermissionContainer>
-    permission_tasks: Array<LocalPermissionContainer2>
-    permission_nodes: Array<LocalPermissionContainer>
 }
 
+/**
+ * Client use profile data sended by server
+ */
 export interface UserProfileClient {
     picture_url: boolean
     name: string

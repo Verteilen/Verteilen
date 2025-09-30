@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { AppConfig, BusType, Parameter, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { AppConfig, BusType, LocalPermiision, Parameter, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, IndexToValue, Temp, Util_Project, ValueToGroupName } from '../../util/project';
 import ProjectDialog from '../dialog/ProjectDialog.vue';
@@ -28,6 +28,13 @@ const emits = defineEmits<{
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
+const permission:Ref<LocalPermiision | undefined> = ref({
+    view: true,
+    create: true,
+    edit: true,
+    delete: true,
+})
+const canViewDetail = ref(true)
 const data:Ref<DATA> = ref({
     items: [],
     itemPrePage: -1,
@@ -256,6 +263,12 @@ onMounted(() => {
     if(props.config.isElectron) {
         window.electronAPI.eventOn('createProject', createProject)
     }
+    props.backend.wait_init().then(() => {
+        if(props.backend.config.isExpress){
+            permission.value = props.backend.user.permission?.project
+            canViewDetail.value = props.backend.user.permission?.task.view ?? false
+        }
+    })
 })
 
 onUnmounted(() => {
@@ -278,7 +291,7 @@ onUnmounted(() => {
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="createProject">
+                        <v-btn icon v-bind="props" @click="createProject" :disabled="!permission?.create">
                             <v-icon>mdi-plus</v-icon>
                         </v-btn>
                     </template>
@@ -286,7 +299,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="dataimport">
+                        <v-btn icon v-bind="props" @click="dataimport" :disabled="!permission?.create">
                             <v-icon>mdi-import</v-icon>
                         </v-btn>
                     </template>
@@ -302,7 +315,7 @@ onUnmounted(() => {
                 </v-tooltip>    
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="cloneSelect" :disabled="!hasSelect">
+                        <v-btn icon v-bind="props" @click="cloneSelect" :disabled="!hasSelect || !permission?.create">
                             <v-icon>mdi-content-paste</v-icon>
                         </v-btn>
                     </template>
@@ -310,7 +323,7 @@ onUnmounted(() => {
                 </v-tooltip>         
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect">
+                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || !permission?.delete">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>
@@ -321,12 +334,14 @@ onUnmounted(() => {
         <div class="pt-3">
             <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
-                    <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
+
+                    <a v-if="canViewDetail" href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
+                    <span v-else>{{ item.ID }}</span>
                 </template>
                 <template v-slot:item.detail="{ item }">
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="dataedit(item.ID)" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon @click="dataedit(item.ID)" :disabled="!permission?.edit" size="small">
                                 <v-icon>mdi-pencil</v-icon>
                             </v-btn>
                         </template>
@@ -334,7 +349,7 @@ onUnmounted(() => {
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="dataexport(item.ID)" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon @click="dataexport(item.ID)" :disabled="!permission?.view" size="small">
                                 <v-icon>mdi-export</v-icon>
                             </v-btn>
                         </template>
@@ -342,7 +357,7 @@ onUnmounted(() => {
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="isFirst(item.ID) || !permission?.edit" @click="moveup(item.ID)" size="small">
                                 <v-icon>mdi-arrow-up</v-icon>
                             </v-btn>
                         </template>
@@ -350,7 +365,7 @@ onUnmounted(() => {
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="isLast(item.ID) || !permission?.edit" @click="movedown(item.ID)" size="small">
                                 <v-icon>mdi-arrow-down</v-icon>
                             </v-btn>
                         </template>

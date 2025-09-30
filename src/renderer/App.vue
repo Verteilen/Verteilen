@@ -89,12 +89,16 @@ const relogin = () => {
 }
 
 const loginGuest = () => {
-  mode.value = 1
   login.value = false
+  backend.value.removeCookie('token')
+  backend.value.init().then(() => {
+    backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
+    mode.value = 1
+  })
 }
 
 const trylogin = (v:Setter) => {
-
+  backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
 }
 
 onMounted(() => {

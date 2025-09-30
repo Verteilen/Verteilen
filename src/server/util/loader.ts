@@ -2,12 +2,26 @@ import * as fs from "fs";
 import * as ws from 'ws';
 import * as path from "path";
 import * as os from "os";
-import { DATA_FOLDER, Header } from "../interface";
+import { DATA_FOLDER, GlobalPermission, Header, PermissionType, UserProfile } from "../interface";
 
 export type TypeMap = { [key:string]:Function }
 
-export const Loader = (typeMap:TypeMap, key:string, folder:string, ext:string = ".json") => {
-    typeMap[`load_all_${key}`] = (socket:ws.WebSocket) => {
+export const Loader = (typeMap:TypeMap, key:string, folder:string, per:PermissionType, ext:string = ".json") => {
+    const GetUserType = (token?:string):GlobalPermission | undefined => {
+        const pa_root = path.join(os.homedir(), DATA_FOLDER)
+        const pa = path.join(pa_root, 'user')
+        if(!fs.existsSync(pa)) fs.mkdirSync(pa, {recursive: true});
+        if(token != undefined){
+            const target_path = path.join(pa, token + '.json')
+            const p:UserProfile = JSON.parse(fs.readFileSync(target_path).toString())
+            return p.permission
+        }
+        return undefined
+    }
+
+
+    typeMap[`load_all_${key}`] = (socket:ws.WebSocket, token?:string) => {
+        const per = GetUserType(token)
         const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const r:Array<string> = []
@@ -23,12 +37,14 @@ export const Loader = (typeMap:TypeMap, key:string, folder:string, ext:string = 
         }
         socket.send(JSON.stringify(d))
     }
-    typeMap[`delete_all_${key}`] = (socket:ws.WebSocket) => {
+    typeMap[`delete_all_${key}`] = (socket:ws.WebSocket, token?:string) => {
+        const per = GetUserType(token)
         const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.rmSync(root, {recursive: true})
         fs.mkdirSync(root, {recursive: true})
     }
-    typeMap[`list_all_${key}`] = (socket:ws.WebSocket) => {
+    typeMap[`list_all_${key}`] = (socket:ws.WebSocket, token?:string) => {
+        const per = GetUserType(token)
         const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const ps = fs.readdirSync(root, { withFileTypes: false })
@@ -38,33 +54,38 @@ export const Loader = (typeMap:TypeMap, key:string, folder:string, ext:string = 
         }
         socket.send(JSON.stringify(d))
     }
-    typeMap[`save_${key}`] = (socket:ws.WebSocket, name:string, data:string) => {
+    typeMap[`save_${key}`] = (socket:ws.WebSocket, name:string, data:string, token?:string) => {
+        const per = GetUserType(token)
         const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         let filename = name + ext
         let p = path.join(root, filename)
         fs.writeFileSync(p, data)
     }
-    typeMap[`rename_${key}`] = (socket:ws.WebSocket, name:string, newname:string) => {
+    typeMap[`rename_${key}`] = (socket:ws.WebSocket, name:string, newname:string, token?:string) => {
+        const per = GetUserType(token)
         const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         fs.cpSync(path.join(root, `${name}.json`), path.join(root, `${newname}.json`), { recursive: true })
         fs.rmdirSync(path.join(root, `${name}.json`))
     }
-    typeMap[`delete_${key}`] = (socket:ws.WebSocket, name:string) => {
+    typeMap[`delete_${key}`] = (socket:ws.WebSocket, name:string, token?:string) => {
+        const per = GetUserType(token)
         const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const filename = name + ext
         const p = path.join(root, filename)
         if (fs.existsSync(p)) fs.rmSync(p)
     }
-    typeMap[`delete_all_${key}`] = (socket:ws.WebSocket, name:string) => {
+    typeMap[`delete_all_${key}`] = (socket:ws.WebSocket, name:string, token?:string) => {
+        const per = GetUserType(token)
         const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const ps = fs.readdirSync(root, { withFileTypes: false })
         ps.forEach(x => fs.rmSync(path.join(root, x)))
     }
-    typeMap[`load_${key}`] = (socket:ws.WebSocket, name:string) => {
+    typeMap[`load_${key}`] = (socket:ws.WebSocket, name:string, token?:string) => {
+        const per = GetUserType(token)
         const root = path.join(os.homedir(), DATA_FOLDER, folder)
         if (!fs.existsSync(root)) fs.mkdirSync(root, {recursive: true})
         const filename = name + ext

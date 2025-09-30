@@ -48,6 +48,11 @@ export interface Record {
     nodes: Array<Node>
 }
 
+export interface RecordHeader {
+    projects: Array<string>
+    nodes: Array<string>
+}
+
 export interface ExecuteRecord extends Record {
     uuid: string
     name: string

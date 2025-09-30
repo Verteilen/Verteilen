@@ -5,7 +5,7 @@ import * as fs from "fs";
 import * as os from "os";
 import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { DATA_FOLDER, GlobalPermission, Header, Job, JobCategory, JobType, Libraries, LocalPermiision, Parameter, PluginList, Preference, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
+import { DATA_FOLDER, GlobalPermission, Header, Job, JobCategory, JobType, Libraries, LocalPermiision, Parameter, PermissionType, PluginList, Preference, Record, ServerSetting, UserProfile, UserProfileClient, UserType } from "./interface";
 import { ConsoleServerManager } from "./script/console_server_manager";
 import { Loader, TypeMap } from "./util/loader";
 import { Util_Server } from "./util/server/server";
@@ -36,12 +36,12 @@ export class BackendEvent {
             'load_preference': this.load_preference,
         }
         typeMap = this.util.EventInit(typeMap)
-        Loader(typeMap, 'record', 'record')
-        Loader(typeMap, 'parameter', 'parameter')
-        Loader(typeMap, 'node', 'node')
-        Loader(typeMap, 'log', 'log')
-        Loader(typeMap, 'lib', 'lib', '')
-        Loader(typeMap, 'user', 'user')
+        Loader(typeMap, 'record', 'record', PermissionType.PROJECT)
+        Loader(typeMap, 'parameter', 'parameter', PermissionType.PARAMETER)
+        Loader(typeMap, 'node', 'node', PermissionType.NODE)
+        Loader(typeMap, 'log', 'log', PermissionType.LOG)
+        Loader(typeMap, 'lib', 'lib', PermissionType.LIB, '')
+        Loader(typeMap, 'user', 'user', PermissionType.ROOT)
         PluginInit(typeMap, this)
         const n = new ConsoleServerManager(socket, messager_log, typeMap)
         this.manager.push(n)
@@ -180,10 +180,7 @@ export class BackendEvent {
                 },
                 name: "root",
                 description: "Root User",
-                permission: this.RootPermission(),
-                permission_projects: [],
-                permission_tasks: [],
-                permission_nodes: [],
+                permission: this.RootPermission()
             }
             fs.writeFileSync(path.join(pa, root.token + '.json'), JSON.stringify(root, null, 2))
             console.log(`Login with root using: ${root.token} `)

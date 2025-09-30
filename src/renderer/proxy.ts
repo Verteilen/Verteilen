@@ -35,9 +35,11 @@ export class BackendProxy {
      * Start init process, this will detect the mode and save it in the {@link config}
      */
     init = () => {
+        this.is_init = false
         const k = new Promise<void>((resolve) => {
             checkIfExpress((e:UserProfileClient | undefined) => {
                 Object.assign(this.user, e)
+                this.user.permission = e?.permission
                 console.log("auth", this.user)
                 this.config.isExpress = e != undefined
                 this.config.isAdmin = e ? (e.type == UserType.ADMIN || e.type == UserType.ROOT) : false

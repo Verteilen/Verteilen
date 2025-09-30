@@ -348,8 +348,12 @@ const updateTab = () => {
       tabs.value.push(["mdi-puzzle", "toolbar.plugin", 11])
     }
     tabs.value.push(["", "toolbar.backend", -1])
-    tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
-    tabs.value.push(["mdi-xml", "toolbar.library", 7])
+    if((config.value.isExpress && props.backend.user.permission?.log.view) || !config.value.isExpress){
+      tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
+    }
+    if((config.value.isExpress && props.backend.user.permission?.lib.view) || !config.value.isExpress){
+      tabs.value.push(["mdi-xml", "toolbar.library", 7])
+    }
   }
   if((config.value.isExpress && config.value.isAdmin) || config.value.isElectron){
     tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
