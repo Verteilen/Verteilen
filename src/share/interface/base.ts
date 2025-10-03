@@ -4,7 +4,7 @@
 //                           
 // ========================
 import { DataType, DataTypeBase } from "./enum"
-import { LocalPermiision } from "./server"
+import { ACLType, LocalPermiision } from "./server"
 
 export interface ParameterConfigTrigger {
     types: Array<DataTypeBase>
@@ -64,6 +64,8 @@ export interface Task {
 
 export interface Project {
     permission?: LocalPermiision
+    acl?: ACLType
+    owner?: string
     uuid: string
     title: string
     description: string
@@ -74,6 +76,7 @@ export interface Project {
 
 export interface Node {
     permission?: LocalPermiision
+    acl?: ACLType
     ID: string
     url: string
 }

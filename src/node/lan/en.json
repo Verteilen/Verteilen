@@ -146,6 +146,7 @@
     "tooltip": {
         "select-server": "The one who send the command to client",
         "select-node": "The one who received job request from server",
+        "select-cluster": "The cluster node for nodes collection",
         "project-id": "Project UUID",
         "project-taskCount": "Total task count for this project",
         "task-id": "Task UUID",
@@ -343,6 +344,7 @@
     "save": "Save",
     "server": "Server",
     "node": "Node",
+    "cluster": "Cluster",
     "action": "Action",
     "skip": "Skip",
     "property": "Property",

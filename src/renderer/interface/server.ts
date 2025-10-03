@@ -5,6 +5,12 @@
 // ========================
 import { Preference } from "./record"
 
+export enum ACLType {
+    PUBLIC,
+    PROTECTED,
+    PRIVATE
+}
+
 export enum UserType {
     ROOT,
     ADMIN,

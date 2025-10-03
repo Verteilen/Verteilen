@@ -60,6 +60,8 @@ export interface Task {
 }
 
 export interface Project {
+    acl?: ACLType
+    owner?: string
     uuid: string
     title: string
     description: string
@@ -69,6 +71,7 @@ export interface Project {
 }
 
 export interface Node {
+    acl?: ACLType
     ID: string
     url: string
 }

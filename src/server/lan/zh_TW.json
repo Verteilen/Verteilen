@@ -146,6 +146,7 @@
     "tooltip": {
         "select-server": "作為伺服器下指令的一方",
         "select-node": "作為節點負責運作的一方",
+        "select-cluster": "作為中繼節點集和多項子節點",
         "project-id": "專案的 UUID",
         "project-taskCount": "專案下的流程總數",
         "task-id": "流程的 UUID",
@@ -343,6 +344,7 @@
     "save": "存檔",
     "server": "伺服器",
     "node": "節點",
+    "cluster": "中繼節點",
     "action": "動作",
     "skip": "跳過",
     "property": "屬性",

@@ -39,6 +39,10 @@ const clientClick = () => {
     data.value = 0
 }
 
+const clusterClick = () => {
+    
+}
+
 </script>
 
 <template>
@@ -85,6 +89,18 @@ const clientClick = () => {
                         </v-btn>    
                     </template>
                     <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-node') }}</p>
+                </v-tooltip>
+            </v-col>
+            <v-col>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn variant="outlined" color="primary" v-bind="props" prepend-icon="mdi-server" stacked class="buttonHeight w-100 mx-1" @click="clusterClick()">
+                            <span :style="{ 'fontSize': propss.preference.font + 'px' }">
+                                {{ $t('cluster') }}
+                            </span>
+                        </v-btn>
+                    </template>
+                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-cluster') }}</p>
                 </v-tooltip>
             </v-col>
         </v-row>
