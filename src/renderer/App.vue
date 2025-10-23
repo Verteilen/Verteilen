@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { Emitter } from 'mitt';
-import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { useTheme } from 'vuetify';
-import ClientNode from './components/ClientNode.vue';
-import Messager from './components/Messager.vue';
-import Login from './components/Login.vue';
-import ServerClientSelection from './components/ServerClientSelection.vue';
-import ServerNode from './components/ServerNode.vue';
-import SettingDialog from './components/dialog/SettingDialog.vue';
-import { BusType, Preference, Setter, WebPORT } from './interface';
-import { i18n } from './plugins/i18n';
-import { BackendProxy } from './proxy';
-import { vuetify } from './plugins/vuetify';
+import { Emitter } from 'mitt'
+import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue'
+import { useTheme } from 'vuetify'
+import ClientNode from './components/ClientNode.vue'
+import Messager from './components/Messager.vue'
+import Login from './components/Login.vue'
+import ServerClientSelection from './components/ServerClientSelection.vue'
+import ServerNode from './components/ServerNode.vue'
+import SettingDialog from './components/dialog/SettingDialog.vue'
+import { BusType, Preference, Setter, WebPORT } from 'verteilen-core'
+import { I18N } from 'verteilen-core'
+import { BackendProxy } from './proxy'
+import { vuetify } from './plugins/vuetify'
 
 const theme = useTheme()
+const i18n = I18N.i18n
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const preference:Ref<Preference> = ref({
   lan: 'en',

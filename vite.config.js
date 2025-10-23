@@ -5,6 +5,7 @@ const { defineConfig } = require('vite');
 import IconsResolve from 'unplugin-icons/resolver';
 import Icons from 'unplugin-icons/vite';
 import Components from 'unplugin-vue-components/vite';
+import { I18N } from "verteilen-core";
 
 /**
  * https://vitejs.dev/config
@@ -37,7 +38,7 @@ const config = defineConfig({
         Icons({
             compiler: 'vue3',
             autoInstall: true,
-        }),
+        })
     ],
     define: {
         __INTLIFY_JIT_COMPILATION__: true

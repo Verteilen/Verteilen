@@ -1,13 +1,16 @@
-import mitt, { Emitter } from 'mitt';
-import { createApp } from 'vue';
-import App from './App.vue';
-import JavascriptView from "./components/components/code/JavascriptView.vue";
-import JsonView from "./components/components/code/JsonView.vue";
-import { BusType } from './interface';
-import { I18N } from "verteilen-core";
-import { vuetify } from "./plugins/vuetify";
+/**
+ * Renderer entry point
+ */
+import mitt, { Emitter } from 'mitt'
+import { createApp } from 'vue'
+import { BusType } from 'verteilen-core'
+import { I18N } from "verteilen-core"
+import { vuetify } from "./plugins/vuetify"
+import App from './App.vue'
+import JavascriptView from "./components/components/code/JavascriptView.vue"
+import JsonView from "./components/components/code/JsonView.vue"
 // @ts-ignore
-import './style.scss';
+import './style.scss'
 
 export const emitter:Emitter<BusType> = mitt<BusType>()
 
