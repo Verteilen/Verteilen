@@ -4,7 +4,7 @@ import App from './App.vue';
 import JavascriptView from "./components/components/code/JavascriptView.vue";
 import JsonView from "./components/components/code/JsonView.vue";
 import { BusType } from './interface';
-import { i18n } from "./plugins/i18n";
+import { i18n } from "verteilen-core/src/plugins/i18n";
 import { vuetify } from "./plugins/vuetify";
 // @ts-ignore
 import './style.scss';
