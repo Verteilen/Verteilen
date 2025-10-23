@@ -6,7 +6,7 @@ import JsonView from "./components/components/code/JsonView.vue";
 import { BusType } from './interface';
 import { i18n } from "./plugins/i18n";
 import { vuetify } from "./plugins/vuetify";
-
+// @ts-ignore
 import './style.scss';
 
 export const emitter:Emitter<BusType> = mitt<BusType>()
