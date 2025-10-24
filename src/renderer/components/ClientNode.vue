@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Emitter } from 'mitt';
-import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ClientLog, MESSAGE_LIMIT, Preference, RENDER_UPDATETICK } from '../interface';
+import { Emitter } from 'mitt'
+import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue'
+import { BusType, ClientLog, MESSAGE_LIMIT, Preference, RENDER_UPDATETICK } from './../interface'
 import { BackendProxy } from '../proxy';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');

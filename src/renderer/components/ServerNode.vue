@@ -1,9 +1,33 @@
 <script setup lang="ts">
+//#region Modules
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { messager_log, set_feedback } from '../debugger';
-import { BusAnalysis, BusType, ExecuteRecord, ExecutionLog, Job, JobCategory, JobType, JobType2, NodeProxy, NodeTable, Parameter, Preference, Project, Property, Record, RENDER_FILE_UPDATETICK, RENDER_UPDATETICK, Task, WebsocketPack, WebPORT, ExecutePair, FrontendUpdate } from '../interface';
+import { 
+  BusAnalysis, 
+  BusType, 
+  ExecuteRecord, 
+  ExecutionLog, 
+  Job, 
+  JobCategory, 
+  JobType, 
+  JobType2, 
+  NodeProxy, 
+  NodeTable, 
+  Parameter, 
+  Preference, 
+  Project, 
+  Property, 
+  Record, 
+  RENDER_FILE_UPDATETICK, 
+  RENDER_UPDATETICK, 
+  Task, 
+  WebsocketPack, 
+  WebPORT, 
+  ExecutePair, 
+  FrontendUpdate 
+} from 'verteilen-core/src/interface';
 import { BackendProxy } from '../proxy';
 import { ExecuteManager } from '../script/execute_manager';
 import { WebsocketManager } from '../script/socket_manager';
@@ -11,6 +35,10 @@ import { Util_Server_Console_Proxy } from '../util/server/console_handle';
 import { Util_Server_Log_Proxy } from '../util/server/log_handle';
 import { DATA, Util_Server } from '../util/server/server';
 import { i18n } from './../plugins/i18n';
+import { ConsoleManager } from '../script/console_manager';
+//#endregion
+
+//#region Views
 import ConsolePage from './server/Console.vue';
 import JobPage from './server/Job.vue';
 import LibraryPage from './server/Library.vue';
@@ -24,7 +52,7 @@ import RolePage from './server/Role.vue';
 import ServicePage from './server/Service.vue';
 import ProfilePage from './server/Profile.vue';
 import PluginPage from './server/Plugin.vue';
-import { ConsoleManager } from '../script/console_manager';
+//#endregion
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 let updateHandle:any = undefined

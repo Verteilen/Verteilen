@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import { Emitter } from 'mitt';
-import { inject } from 'vue';
-import { AppConfig, BusType, Preference, ToastData } from '../interface';
-import { i18n } from './../plugins/i18n';
+import { Emitter } from 'mitt'
+import { inject } from 'vue'
+import { 
+    AppConfig, 
+    BusType, 
+    Preference, 
+    ToastData 
+} from 'verteilen-core/src/interface'
+import { i18n } from 'verteilen-core/src/plugins/i18n'
 
 interface PROPS {
     config: AppConfig
     preference: Preference
 }
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
+const emitter:Emitter<BusType> | undefined = inject('emitter')
 const propss = defineProps<PROPS>()
 const data = defineModel<number>()
 
