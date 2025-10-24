@@ -20,26 +20,18 @@ import SettingDialog from './components/dialog/SettingDialog.vue'
 
 //#region Data
 const theme = useTheme()
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-const preference:Ref<Preference> = ref({
-  lan: 'en',
-  log: false,
-  font: 16,
-  notification: false,
-  theme: "dark",
-  plugin_token: [],
-  animation: true,
-})
-const backend:Ref<BackendProxy> = ref(new BackendProxy())
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
 const login = ref(false)
-const mode = ref(backend.value.config ? -1 : 1)
+const mode = ref(backend!.config ? -1 : 1)
 const settingModal = ref(false)
 const defaultTransition = ref()
 //#endregion
 
 //#region Computed
-const config = computed(() => backend.value.config)
-const token = computed(() => backend.value.getCookie('token'))
+const config = computed(() => backend.config)
+const token = computed(() => backend.getCookie('token'))
 //#endregion
 
 //#region Methods
@@ -47,90 +39,89 @@ const modeSelect = (isclient:boolean) => {
   mode.value = isclient ? 0 : 1
 }
 const savePreference = (v:Preference) => {
-  backend.value.send('save_preference', JSON.stringify(preference.value, null, 4), token.value)
+  backend.send('save_preference', JSON.stringify(v, null, 4), token.value)
 }
 const locate = (v:string) => {
   const t = i18n.global
   // @ts-ignore
   t.locale = v
-  preference.value.lan = v
-  emitter?.emit('updateLocate')
-  backend.value.send('save_preference', JSON.stringify(preference.value, null, 4), token.value)
+  preference!.lan = v
+  emitter.emit('updateLocate')
+  backend.send('save_preference', JSON.stringify(preference, null, 4), token.value)
 }
 const setting = () => { settingModal.value = true }
 const message = (e:string) => console.log(e)
 const preferenceUpdate = (data:Preference) => {
-  Object.assign(preference.value, data)
-  locate(preference.value.lan)
-  theme.global.name.value = data.theme
+  Object.assign(preference, data)
+  locate(preference.lan)
+  theme.change(data.theme)
   const t = i18n.global
   // @ts-ignore
-  t.locale = preference.value.lan
+  t.locale = preference.lan
   vuetify.defaults.value!.global = data.animation ? {} : defaultTransition.value
 }
 const load_preference = (x:string) => {
-  preference.value = JSON.parse(x)
-  console.log("load_preference", preference.value)
-  preferenceUpdate(preference.value)
-  backend.value.send('locate', preference.value.lan)  
+  Object.assign(preference, JSON.parse(x))
+  preferenceUpdate(preference)
+  backend.send('locate', preference.lan)  
 }
 const relogin = () => {
   config.value.login = false
   mode.value = -1
-  backend.value.removeCookie('token')
+  backend.removeCookie('token')
   login.value = true
 }
 const loginGuest = () => {
   login.value = false
-  backend.value.removeCookie('token')
-  backend.value.init().then(() => {
-    backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
+  backend.removeCookie('token')
+  backend.init().then(() => {
+    backend.invoke('load_preference', token.value).then(x => load_preference(x))
     mode.value = 1
   })
 }
 const trylogin = (v:Setter) => {
-  backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
+  backend.invoke('load_preference', token.value).then(x => load_preference(x))
 }
 //#endregion
 
 onMounted(() => {
-  backend.value.init().then(() => {
+  backend.init().then(() => {
     console.log("isElectron", config.value.isElectron)
     console.log("isExpress", config.value.isExpress)
     console.log("isAdmin", config.value.isAdmin)
     console.log("env", process.env.NODE_ENV)
-    backend.value.send('message', 'Welcome Compute Tool')
+    backend.send('message', 'Welcome Compute Tool')
   })
   defaultTransition.value = vuetify.defaults.value?.global
-  emitter?.on('relogin', relogin)
-  emitter?.on('loginGuest', loginGuest)
-  emitter?.on('login', trylogin)
-  emitter?.on('savePreference', savePreference)
-  emitter?.on('modeSelect', modeSelect)
-  emitter?.on('setting', setting)
-  backend.value.wait_init().then(() => {
-    if(backend.value.config.haveBackend){
-      backend.value.eventOn('locate', locate)
-      backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
-      backend.value.eventOn('message', message)
+  emitter.on('relogin', relogin)
+  emitter.on('loginGuest', loginGuest)
+  emitter.on('login', trylogin)
+  emitter.on('savePreference', savePreference)
+  emitter.on('modeSelect', modeSelect)
+  emitter.on('setting', setting)
+  backend.wait_init().then(() => {
+    if(backend.config.haveBackend){
+      backend.eventOn('locate', locate)
+      backend.invoke('load_preference', token.value).then(x => load_preference(x))
+      backend.eventOn('message', message)
     }
   })
 })
 
 onUnmounted(() => {
-  emitter?.off('savePreference', savePreference)
-  emitter?.off('modeSelect', modeSelect)
-  emitter?.off('setting', setting)
-  backend.value.eventOff('locate', locate)
-  backend.value.eventOff('message', message)
+  emitter.off('savePreference', savePreference)
+  emitter.off('modeSelect', modeSelect)
+  emitter.off('setting', setting)
+  backend.eventOff('locate', locate)
+  backend.eventOff('message', message)
 })
 </script>
 
 <template>
   <!-- The top level component -->>
-  <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference.font + 'px' }">
+  <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference?.font + 'px' }">
     <!-- This is like router -->>
-    <ServerClientSelection v-model.number="mode" v-if="mode == -1 && config.isElectron" :preference="preference" :config="config"/>
+    <ServerClientSelection v-model.number="mode" v-if="mode == -1 && config?.isElectron" :preference="preference!" :config="config!"/>
     <Login v-else-if="config.isExpress && !config.login && login" :preference="preference" :config="config"/>
     <ClientNode v-else-if="config.isElectron && mode == 0" :preference="preference" :backend="backend"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>

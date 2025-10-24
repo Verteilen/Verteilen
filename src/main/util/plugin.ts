@@ -1,11 +1,26 @@
 import { ipcMain } from "electron"
+import { mainWindow } from "../electron";
+import { BackendEvent } from "../event";
 import * as path from "path";
 import * as fs from 'fs';
 import * as fsp from 'fs/promises';
 import * as os from 'os';
-import { TemplateData, TemplateDataProject, Project, PluginList, PluginPageData, TemplateDataParameter, ParameterContainer, TemplateGroup, TemplateGroup2, ToastData, DATA_FOLDER, Plugin, Header, PluginWithToken } from "../interface"
-import { mainWindow } from "../electron";
-import { BackendEvent } from "../event";
+import { 
+    TemplateData, 
+    TemplateDataProject, 
+    Project, 
+    PluginList, 
+    PluginPageData, 
+    TemplateDataParameter, 
+    ParameterContainer, 
+    TemplateGroup, 
+    TemplateGroup2, 
+    ToastData, 
+    DATA_FOLDER, 
+    Plugin, 
+    Header, 
+    PluginWithToken 
+} from "../interface"
 
 const GetCurrentPlugin = async ():Promise<PluginPageData> => {
     return new Promise<PluginPageData>(async (resolve) => {

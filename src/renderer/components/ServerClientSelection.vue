@@ -16,7 +16,8 @@ interface PROPS {
     config: AppConfig
     preference: Preference
 }
-const emitter:Emitter<BusType> | undefined = inject('emitter')
+const emitter:Emitter<BusType> = inject('emitter')!
+const preference:Preference = inject("preference")!
 const propss = defineProps<PROPS>()
 const model = defineModel<number>()
 const data = ref({

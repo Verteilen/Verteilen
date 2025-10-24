@@ -695,6 +695,7 @@ onUnmounted(() => {
   <v-container fluid class="pa-0 ma-0">
     <div v-if="data.loading" class="loading">
       <p>{{ $t('loading') }}</p>
+      <v-progress-circular color="blue-lighten-3" indeterminate></v-progress-circular>
     </div>
     <v-layout>
       <v-app-bar :elevation="2" class="text-left">

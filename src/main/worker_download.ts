@@ -17,7 +17,7 @@ const location:string = "https://raw.githubusercontent.com/Verteilen/worker/refs
 export const checker = async () => {
     let exe = ""
     let link = ""
-    const folder = path.join(__dirname, "..", "bin")
+    const folder = path.join(__dirname, "..", "..", "bin")
     console.log("Detect platform: ", process.platform)
     if(process.platform == 'win32') exe = path.join(folder, "worker.exe");
     else exe = path.join(folder, "worker");

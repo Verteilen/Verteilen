@@ -4,7 +4,7 @@ import * as directives from 'vuetify/directives'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import { VFileUpload } from 'vuetify/labs/VFileUpload'
 // @ts-ignore
-import '@mdi/font/css/materialdesignicons.css'
+import '@mdi/font/css/materialdesignicons.min.css'
 // @ts-ignore
 import 'vuetify/styles'
 

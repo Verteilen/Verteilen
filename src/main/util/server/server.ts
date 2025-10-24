@@ -1,12 +1,12 @@
 import { v6 as uuidv6 } from 'uuid';
-import { Util_Server_Console, Util_Server_Console_Proxy } from "./console_handle"
 import { BackendEvent } from "../../event"
 import { ipcMain } from "electron"
 import { messager, messager_log } from "../../debugger"
-import { Util_Server_Log_Proxy } from "./log_handle"
 //import { i18n } from "../../plugins/i18n"
 import { mainWindow } from "../../electron"
 import { 
+    UtilServer_Console,
+    UtilServer_Log,
     Execute_ExecuteManager,
     Execute_SocketManager,
     Record, 
@@ -42,7 +42,7 @@ export class Util_Server {
     logs: Log = {logs: []}
 
     backend: BackendEvent
-    console:Util_Server_Console
+    console:UtilServer_Console.Util_Server_Console
     preference:Preference | undefined
     config:AppConfig | undefined
     updatehandle: any
@@ -59,7 +59,7 @@ export class Util_Server {
             folderReply: this.folderReply
         }
         this.websocket_manager = new Execute_SocketManager.WebsocketManager(this.NewConnection, this.DisConnection, this.Analysis, messager_log, n)
-        this.console = new Util_Server_Console()
+        this.console = new UtilServer_Console.Util_Server_Console()
         this.updatehandle = setInterval(() => {
             this.re.push(...this.console_update())
         }, RENDER_UPDATETICK);
@@ -357,8 +357,8 @@ export class Util_Server {
             }
             em.libs = this.libs
             const p:ExecutePair = { manager: em, record: er }
-            const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
-            const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, this.logs, this.preference!)
+            const uscp:UtilServer_Console.Util_Server_Console_Proxy = new UtilServer_Console.Util_Server_Console_Proxy(p)
+            const uslp:UtilServer_Log.Util_Server_Log_Proxy = new UtilServer_Log.Util_Server_Log_Proxy(p, this.logs, this.preference!)
             em.proxy = this.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
             const r = this.console.receivedPack(p, record)
             if(r) this.execute_manager.push(p)
