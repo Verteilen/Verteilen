@@ -1,8 +1,25 @@
-import { Emitter } from "mitt";
-import { nextTick, Ref } from "vue";
-import { BusType, ClientLog, ExecutePair, ExecuteProxy, ExecuteRecord, ExecuteState, FeedBack, Job, Libraries, Log, NodeTable, Parameter, PluginPageData, Project, RenderUpdateType, Task } from "../../interface";
+//#region Methods
+import { Emitter } from "mitt"
+import { nextTick, Ref } from "vue"
 import { BackendProxy } from "../../proxy";
-import { WebsocketManager } from "../../script/socket_manager";
+import { 
+    Execute_SocketManager,
+    BusType, 
+    ClientLog, 
+    ExecutePair, 
+    ExecuteProxy, 
+    ExecuteState, 
+    FeedBack, 
+    Job, 
+    Libraries, 
+    Log, 
+    NodeTable, 
+    Parameter, 
+    PluginPageData, 
+    Project, 
+    RenderUpdateType, 
+    Task 
+} from 'verteilen-core/src/interface'
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Lib } from "./lib_handle";
@@ -11,12 +28,13 @@ import { Util_Server_Parameter } from "./parameter_handle";
 import { Util_Server_Project } from "./project_handle";
 import { Util_Server_Self } from "./self_handle";
 import { Util_Server_Task } from "./task_handle";
+//#endregion
 
 export type save_and_update = () => void
 export type config_getter = () => BackendProxy
 
 export interface DATA {
-    websocket_manager: WebsocketManager | undefined
+    websocket_manager: Execute_SocketManager.WebsocketManager | undefined
     execute_manager: Array<ExecutePair>
 
     loading: boolean

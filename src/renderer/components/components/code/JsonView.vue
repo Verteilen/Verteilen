@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { autocompletion } from '@codemirror/autocomplete';
-import { json } from '@codemirror/lang-json';
-import { oneDark } from '@codemirror/theme-one-dark';
-import { basicSetup } from 'codemirror';
-import { computed } from 'vue';
-import { Codemirror } from 'vue-codemirror';
-import { useTheme } from 'vuetify/lib/framework.mjs';
+import { autocompletion } from '@codemirror/autocomplete'
+import { json } from '@codemirror/lang-json'
+import { oneDark } from '@codemirror/theme-one-dark'
+import { basicSetup } from 'codemirror'
+import { computed } from 'vue'
+import { Codemirror } from 'vue-codemirror'
+import { useTheme } from 'vuetify/lib/framework.mjs'
 
 const data = defineModel<string>({required: true})
 const theme = useTheme()

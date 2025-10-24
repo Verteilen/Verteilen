@@ -1,4 +1,18 @@
-import { ConditionResult, ExecutePair, ExecuteProxy, ExecuteRecordTask, ExecuteState, FeedBack, Job, JobCategory, MESSAGE_LIMIT, Parameter, Project, Record, Task } from "../../interface"
+import { 
+    ConditionResult, 
+    ExecutePair, 
+    ExecuteProxy, 
+    ExecuteRecordTask, 
+    ExecuteState, 
+    FeedBack, 
+    Job, 
+    JobCategory, 
+    MESSAGE_LIMIT, 
+    Parameter, 
+    Project, 
+    Record, 
+    Task 
+} from 'verteilen-core/src/interface'
 
 export class Util_Server_Console { 
 

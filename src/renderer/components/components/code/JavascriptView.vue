@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { hoverTooltip, keymap, tooltips } from '@codemirror/view';
-import { autocompletion, Completion, CompletionContext, CompletionResult } from '@codemirror/autocomplete';
+import { hoverTooltip, keymap, tooltips } from '@codemirror/view'
+import { autocompletion, Completion, CompletionContext, CompletionResult } from '@codemirror/autocomplete'
 import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap } from "@codemirror/commands"
-import { oneDark } from '@codemirror/theme-one-dark';
-import { basicSetup } from 'codemirror';
-import { computed } from 'vue';
-import { Codemirror } from 'vue-codemirror';
-import { useTheme } from 'vuetify/lib/framework.mjs';
-import { i18n } from '../../../plugins/i18n';
+import { oneDark } from '@codemirror/theme-one-dark'
+import { basicSetup } from 'codemirror'
+import { computed } from 'vue'
+import { Codemirror } from 'vue-codemirror'
+import { useTheme } from 'vuetify/lib/framework.mjs'
+import { i18n } from '../../../plugins/i18n'
 
 const data = defineModel<string>({required: true})
 const theme = useTheme()

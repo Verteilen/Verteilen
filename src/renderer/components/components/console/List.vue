@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, Ref, ref } from 'vue';
-import { ConnectionText, ExecutePair, ExecuteState, ExecuteStateText, NodeTable, Preference } from '../../../interface';
+import { ConnectionText, ExecutePair, ExecuteState, ExecuteStateText, NodeTable, Preference } from 'verteilen-core/src/interface'
 import { i18n } from '../../../plugins/i18n';
 
 interface PROPS {

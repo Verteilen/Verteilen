@@ -1,5 +1,5 @@
 /**
- * Renderer entry point
+ * Renderer thread entry point
  */
 import mitt, { Emitter } from 'mitt'
 import { createApp } from 'vue'
@@ -12,6 +12,14 @@ import JsonView from "./components/components/code/JsonView.vue"
 // @ts-ignore
 import './style.scss'
 
+/**
+ * The global vue BroadcastChannel channel
+ * @example //Reference it in other pages
+ * import { Emitter } from 'mitt'
+ * import { inject } from 'vue'
+ * import { BusType } from 'verteilen-core/src/interface'
+ * const emitter:Emitter<BusType> | undefined = inject('emitter');
+ */
 export const emitter:Emitter<BusType> = mitt<BusType>()
 
 const app = createApp(App)

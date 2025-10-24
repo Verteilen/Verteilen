@@ -1,19 +1,27 @@
 <script setup lang="ts">
-import { Emitter } from 'mitt';
-import { computed, inject, onMounted, onUnmounted, ref, Ref } from 'vue';
-import { BusType, IMessage, Preference, RENDER_UPDATETICK, ToastData } from '../interface';
-import { GetColor } from '../plugins/vuetify';
-import { BackendProxy } from '../proxy';
+//#region Modules
+import { Emitter } from 'mitt'
+import { computed, inject, onMounted, onUnmounted, ref, Ref } from 'vue'
+import { BusType, IMessage, Preference, RENDER_UPDATETICK, ToastData } from 'verteilen-core/src/interface'
+import { GetColor } from '../plugins/vuetify'
+import { BackendProxy } from '../proxy'
+//#endregion
 
+//#region Data
 interface PROPS {
     preference: Preference
     backend: BackendProxy
 }
-
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 const props = defineProps<PROPS>()
 const messages:Ref<Array<IMessage>> = ref([])
+//#endregion
 
+//#region Computed
+const real_message = computed(() => messages.value.filter(x => x.ison))
+//#endregion
+
+//#region Methods
 const makeToast = (e:ToastData) => {
     messages.value.push(
         {
@@ -26,9 +34,7 @@ const makeToast = (e:ToastData) => {
         }
     )
 }
-
 const shadeColor = (color:string, percent:number) => {
-
     let R = parseInt(color.substring(1,3),16);
     let G = parseInt(color.substring(3,5),16);
     let B = parseInt(color.substring(5,7),16);
@@ -51,7 +57,6 @@ const shadeColor = (color:string, percent:number) => {
 
     return "#"+RR+GG+BB+"50";
 }
-
 const update = () => {
     messages.value.forEach(x => {
         x.timer -= RENDER_UPDATETICK
@@ -59,13 +64,11 @@ const update = () => {
     })
     //messages.value = messages.value.filter(x => x.ison)
 }
-
-const real_message = computed(() => messages.value.filter(x => x.ison))
-
 const darken = (color: string) => {
     const e = GetColor(color)
     return e == undefined ? color : (props.preference.theme == "dark" ? shadeColor(GetColor(color), -50) : shadeColor(GetColor(color), 50))
 }
+//#endregion
 
 onMounted(() => {
     emitter?.on('updateHandle', update)
@@ -76,7 +79,6 @@ onUnmounted(() => {
     emitter?.on('updateHandle', update)
 	emitter?.off('makeToast', makeToast)
 })
-
 </script>
 
 <template>

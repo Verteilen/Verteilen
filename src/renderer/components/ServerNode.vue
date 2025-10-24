@@ -1,10 +1,14 @@
 <script setup lang="ts">
 //#region Modules
-import { Emitter } from 'mitt';
-import { v6 as uuidv6 } from 'uuid';
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { messager_log, set_feedback } from '../debugger';
+import { Emitter } from 'mitt'
+import { v6 as uuidv6 } from 'uuid'
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
+import { messager_log, set_feedback } from '../debugger'
 import { 
+  Execute_ExecuteManager,
+  Execute_SocketManager,
+  UtilServer_Console,
+  UtilServer_Log,
   BusAnalysis, 
   BusType, 
   ExecuteRecord, 
@@ -26,16 +30,12 @@ import {
   WebsocketPack, 
   WebPORT, 
   ExecutePair, 
-  FrontendUpdate 
-} from 'verteilen-core/src/interface';
-import { BackendProxy } from '../proxy';
-import { ExecuteManager } from '../script/execute_manager';
-import { WebsocketManager } from '../script/socket_manager';
-import { Util_Server_Console_Proxy } from '../util/server/console_handle';
-import { Util_Server_Log_Proxy } from '../util/server/log_handle';
-import { DATA, Util_Server } from '../util/server/server';
-import { i18n } from './../plugins/i18n';
-import { ConsoleManager } from '../script/console_manager';
+  FrontendUpdate
+} from 'verteilen-core/src/interface'
+import { BackendProxy } from '../proxy'
+import { DATA, Util_Server } from '../util/server/server'
+import { i18n } from './../plugins/i18n'
+import { ConsoleManager } from '../script/console_manager'
 //#endregion
 
 //#region Views
@@ -54,15 +54,15 @@ import ProfilePage from './server/Profile.vue';
 import PluginPage from './server/Plugin.vue';
 //#endregion
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-let updateHandle:any = undefined
-let slowUpdateHandle:any = undefined
-
+//#region Data
 interface PROPS {
     preference: Preference
     backend: BackendProxy
 }
-
+let delayy = 0
+let updateHandle:any = undefined
+let slowUpdateHandle:any = undefined
+const emitter:Emitter<BusType> | undefined = inject('emitter');
 const config = computed(() => props.backend.config)
 const props = defineProps<PROPS>()
 const tabs:Ref<Array<[string, string, number]>> = ref([])
@@ -87,11 +87,10 @@ const data:Ref<DATA> = ref({
     messages: [],
     plugin: { plugins: [], templates: [] }
 })
-
 const util:Util_Server = new Util_Server(data, () => props.backend, emitter!)
+//#endregion
 
-const selectExecute = computed(() => data.value.execute_manager[data.value.select_manager])
-
+//#region Watch
 watch(() => data.value.page, () => {
   const tab = tabs.value.find(x => x[2] == data.value.page)!
   data.value.drawer = false
@@ -99,11 +98,17 @@ watch(() => data.value.page, () => {
   data.value.page = tab[2]; 
   data.value.title = tab[1]; 
 })
+//#endregion
 
+//#region Computed
+const selectExecute = computed(() => data.value.execute_manager[data.value.select_manager])
 const projectbind = computed(() => {
   if(data.value.selectProject == undefined) return undefined
   return data.value.parameters.find(x => x.uuid == data.value.selectProject?.parameter_uuid) 
 })
+//#endregion
+
+//#region Methods
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
 
@@ -218,7 +223,7 @@ const consoleAdded = (name:string, record:Record) => {
     })
   }else{
     let r:boolean = false
-    const em:ExecuteManager = new ExecuteManager(
+    const em:Execute_ExecuteManager.ExecuteManager = new Execute_ExecuteManager.ExecuteManager(
       name,
       data.value.websocket_manager!, 
       messager_log, 
@@ -244,8 +249,8 @@ const consoleAdded = (name:string, record:Record) => {
     }
     em.libs = data.value.libs
     const p:ExecutePair = {manager: em, record: er}
-    const uscp:Util_Server_Console_Proxy = new Util_Server_Console_Proxy(p)
-    const uslp:Util_Server_Log_Proxy = new Util_Server_Log_Proxy(p, data.value.logs, props.preference)
+    const uscp:UtilServer_Console.Util_Server_Console_Proxy = new UtilServer_Console.Util_Server_Console_Proxy(p)
+    const uslp:UtilServer_Log.Util_Server_Log_Proxy = new UtilServer_Log.Util_Server_Log_Proxy(p, data.value.logs, props.preference)
     em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
     r = util.console.receivedPack(p, record)
     if(r){
@@ -530,7 +535,7 @@ const dataset_init = () => {
       shellReply: data => { emitter?.emit('shellReply', data) },
       folderReply: data => { emitter?.emit('folderReply', data) },
     }
-    data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
+    data.value.websocket_manager = new Execute_SocketManager.WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
   }
   else
   {
@@ -608,7 +613,6 @@ const dataset_init = () => {
   })
 }
 
-let delayy = 0
 const InitCaller = (delay:boolean) => {
   if(data.value.page > 20){
     data.value.page = 0
@@ -626,6 +630,7 @@ const InitCaller = (delay:boolean) => {
     InitCaller(delay)
   })
 }
+//#endregion
 
 onMounted(() => {
   document.addEventListener('keydown', hotkey)

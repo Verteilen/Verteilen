@@ -1,25 +1,29 @@
 <script setup lang="ts">
+//#region Modules
 import { Emitter } from 'mitt'
-import { inject } from 'vue'
+import { inject, ref } from 'vue'
 import { 
     AppConfig, 
     BusType, 
     Preference, 
     ToastData 
 } from 'verteilen-core/src/interface'
-import { i18n } from 'verteilen-core/src/plugins/i18n'
+import { i18n } from './../plugins/i18n'
+//#endregion
 
+//#region Data
 interface PROPS {
     config: AppConfig
     preference: Preference
 }
-
 const emitter:Emitter<BusType> | undefined = inject('emitter')
 const propss = defineProps<PROPS>()
 const data = defineModel<number>()
+const page = ref(0)
+//#endregion
 
+//#region Methods
 const popSetting = () => { emitter?.emit('setting') }
-
 const serverClick = () => {
     const d:ToastData = {
         title: i18n.global.t("toast.server"),
@@ -32,7 +36,6 @@ const serverClick = () => {
         window.electronAPI.send('modeSelect', false)
     } 
 }
-
 const clientClick = () => {
     const d:ToastData = {
         title: i18n.global.t("toast.node"),
@@ -43,16 +46,16 @@ const clientClick = () => {
     emitter?.emit('modeSelect', true);
     data.value = 0
 }
-
 const clusterClick = () => {
     
 }
-
+//#endregion
 </script>
 
 <template>
-    <div style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;"
+    <div style="margin: 0; padding-top: 16px; width: 100vw; height: calc(100vh - 56px); place-items: center;"
         :class="{ 'bg-dark': propss.preference.theme == 'dark', 'bg-light': propss.preference.theme == 'light' }">
+        <!-- Top Appbar -->
         <v-layout>
             <v-app-bar :elevation="2">
                 <v-app-bar-title>{{ $t('modeselect.titlebar') }}</v-app-bar-title>
@@ -69,46 +72,61 @@ const clusterClick = () => {
             </v-app-bar>
         </v-layout>
 
-        <p class="text-info" :style="{ 'fontSize': (propss.preference.font + 6) + 'px' }">{{ $t('modeselect.title') }}</p>
-        <br />
-        <v-row>
-            <v-col>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn variant="outlined" color="primary" v-bind="props" prepend-icon="mdi-server" stacked class="buttonHeight w-100 mx-1" @click="serverClick()">
-                            <span :style="{ 'fontSize': propss.preference.font + 'px' }">
-                                {{ $t('server') }}
-                            </span>
-                        </v-btn>
-                    </template>
-                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-server') }}</p>
-                </v-tooltip>
-            </v-col>
-            <v-col>
-                <v-tooltip location="bottom" text="Tooltip" :no-click-animation="!propss.preference.animation">
-                    <template v-slot:activator="{ props }">
-                        <v-btn variant="outlined" color="secondary" v-bind="props" prepend-icon="mdi-network" stacked class="buttonHeight w-100 mx-1" @click="clientClick()">
-                            <span :style="{ 'fontSize': propss.preference.font + 'px' }">
-                                {{ $t('node') }}
-                            </span>
-                        </v-btn>    
-                    </template>
-                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-node') }}</p>
-                </v-tooltip>
-            </v-col>
-            <v-col>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn variant="outlined" color="primary" v-bind="props" prepend-icon="mdi-server" stacked class="buttonHeight w-100 mx-1" @click="clusterClick()">
-                            <span :style="{ 'fontSize': propss.preference.font + 'px' }">
-                                {{ $t('cluster') }}
-                            </span>
-                        </v-btn>
-                    </template>
-                    <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-cluster') }}</p>
-                </v-tooltip>
-            </v-col>
-        </v-row>
+        <v-carousel
+            v-model.number="page"
+            progress="primary"
+            height="100%"
+            disabled
+            hide-delimiter-background
+            :show-arrows="false"
+        >
+            <v-carousel-item cover :key="0" class="my-auto py-auto h-100">
+                <p>s</p>
+                <p>Welcome</p>
+            </v-carousel-item>
+            <v-carousel-item cover :key="1">
+                <p class="text-info" :style="{ 'fontSize': (propss.preference.font + 6) + 'px' }">{{ $t('modeselect.title') }}</p>
+                <br />
+                <v-row>
+                    <v-col>
+                        <v-tooltip location="bottom">
+                            <template v-slot:activator="{ props }">
+                                <v-btn variant="outlined" color="primary" v-bind="props" prepend-icon="mdi-server" stacked class="buttonHeight w-100 mx-1" @click="serverClick()">
+                                    <span :style="{ 'fontSize': propss.preference.font + 'px' }">
+                                        {{ $t('server') }}
+                                    </span>
+                                </v-btn>
+                            </template>
+                            <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-server') }}</p>
+                        </v-tooltip>
+                    </v-col>
+                    <v-col>
+                        <v-tooltip location="bottom" text="Tooltip" :no-click-animation="!propss.preference.animation">
+                            <template v-slot:activator="{ props }">
+                                <v-btn variant="outlined" color="secondary" v-bind="props" prepend-icon="mdi-network" stacked class="buttonHeight w-100 mx-1" @click="clientClick()">
+                                    <span :style="{ 'fontSize': propss.preference.font + 'px' }">
+                                        {{ $t('node') }}
+                                    </span>
+                                </v-btn>    
+                            </template>
+                            <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-node') }}</p>
+                        </v-tooltip>
+                    </v-col>
+                    <v-col>
+                        <v-tooltip location="bottom">
+                            <template v-slot:activator="{ props }">
+                                <v-btn variant="outlined" color="primary" v-bind="props" prepend-icon="mdi-server" stacked class="buttonHeight w-100 mx-1" @click="clusterClick()">
+                                    <span :style="{ 'fontSize': propss.preference.font + 'px' }">
+                                        {{ $t('cluster') }}
+                                    </span>
+                                </v-btn>
+                            </template>
+                            <p class="text-body-1 text-indigo-darken-4">{{ $t('tooltip.select-cluster') }}</p>
+                        </v-tooltip>
+                    </v-col>
+                </v-row>
+            </v-carousel-item>
+        </v-carousel>
     </div>
 </template>
 

@@ -4,7 +4,7 @@ import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue'
 import { useTheme } from 'vuetify'
 import { BusType, Preference, Setter } from 'verteilen-core/src/interface'
-import { i18n } from 'verteilen-core/src/plugins/i18n'
+import { i18n } from './plugins/i18n'
 import { BackendProxy } from './proxy'
 import { vuetify } from './plugins/vuetify'
 //#endregion
@@ -124,15 +124,17 @@ onUnmounted(() => {
   backend.value.eventOff('locate', locate)
   backend.value.eventOff('message', message)
 })
-
 </script>
 
 <template>
+  <!-- The top level component -->>
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference.font + 'px' }">
+    <!-- This is like router -->>
     <ServerClientSelection v-model.number="mode" v-if="mode == -1 && config.isElectron" :preference="preference" :config="config"/>
     <Login v-else-if="config.isExpress && !config.login && login" :preference="preference" :config="config"/>
     <ClientNode v-else-if="config.isElectron && mode == 0" :preference="preference" :backend="backend"/>
     <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>
+    <!-- Extra components -->
     <Messager :preference="preference" :backend="backend" />
     <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
   </v-container>

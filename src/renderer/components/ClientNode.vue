@@ -1,17 +1,24 @@
 <script setup lang="ts">
+//#region Methods
 import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue'
-import { BusType, ClientLog, MESSAGE_LIMIT, Preference, RENDER_UPDATETICK } from './../interface'
-import { BackendProxy } from '../proxy';
+import { 
+  BusType, 
+  ClientLog, 
+  MESSAGE_LIMIT, 
+  Preference, 
+  RENDER_UPDATETICK 
+} from 'verteilen-core/src/interface'
+import { BackendProxy } from '../proxy'
+//#endregion
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-let updateHandle:any = undefined
-
+//#region Data
 interface PROPS {
     backend: BackendProxy
     preference: Preference
 }
-
+const emitter:Emitter<BusType> | undefined = inject('emitter');
+let updateHandle:any = undefined
 const messages:Ref<Array<ClientLog>> = ref([
   {
     s: true,
@@ -22,12 +29,18 @@ const messages:Ref<Array<ClientLog>> = ref([
     ]
   }
 ])
-const config = computed(() => props.backend.config)
 const props = defineProps<PROPS>()
 const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const panel:Ref<Array<number>> = ref([0])
 const autoScroll = ref(true)
+//#endregion
 
+//#region Computed
+const config = computed(() => props.backend.config)
+//#endregion
+
+//#region Methods
+const popSetting = () => { emitter?.emit('setting') }
 const msgAppend = (d:Array<string | undefined>) => {
   if(d[1] == undefined){
     messages.value[0].text.push(d[0]!)
@@ -55,7 +68,6 @@ const msgAppend = (d:Array<string | undefined>) => {
   }
   if(autoScroll.value) myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
 }
-
 const clearMessage = () => {
   messages.value = [
     {
@@ -69,8 +81,7 @@ const clearMessage = () => {
   ]
   panel.value = [0]
 }
-
-const popSetting = () => { emitter?.emit('setting') }
+//#endregion
 
 onMounted(() => {
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);

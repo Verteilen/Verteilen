@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { Emitter } from 'mitt';
-import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, MESSAGE_LIMIT, Preference } from '../../../interface';
+//#region Modules
+import { Emitter } from 'mitt'
+import { inject, onMounted, onUnmounted, Ref, ref } from 'vue'
+import { BusType, MESSAGE_LIMIT, Preference } from 'verteilen-core/src/interface'
+//#endregion
 
+//#region Data
 interface PROPS {
     preference: Preference
 }
-
 const emitter:Emitter<BusType> | undefined = inject('emitter');    
-
 const props = defineProps<PROPS>()
 const alllog:Ref<Array<string>> = ref([])
+//#endregion
 
+//#region Methods
 const debuglog = (message:string) => {
     if(message == undefined) return
     alllog.value.push(message)
@@ -19,19 +22,17 @@ const debuglog = (message:string) => {
         alllog.value.shift()
     }
 }
-
 const clearMessage = () => {
     alllog.value = []
 }
+//#endregion
 
 onMounted(() => {
     emitter?.on('debuglog', debuglog)
 })
-
 onUnmounted(() => {
     emitter?.off('debuglog', debuglog)
 })
-
 </script>
 
 <template>
