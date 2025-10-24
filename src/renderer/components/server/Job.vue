@@ -2,11 +2,9 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ConditionResult, DataType, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Parameter, Preference, Project, Property, Rename, Task } from '../../interface';
+import { Execute_PART, BusType, ConditionResult, DataType, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Parameter, Preference, Project, Property, Rename, Task } from '../../interface';
 import { i18n } from './../../plugins/i18n';
 import DialogBase from '../dialog/DialogBase.vue';
-import { Util_Parser } from '../../script/execute/util_parser';
-import { ExecuteManager_Base } from '../../script/execute/base';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
@@ -53,7 +51,7 @@ const replaceString = (job:Job, index:number):string => {
     const copyJob:Job = JSON.parse(JSON.stringify(job))
     if(index >= copyJob.string_args.length || index < 0) return ""
     if(props.parameter == undefined) return copyJob.string_args[index]
-    ExecuteManager_Base.string_args_transform(props.select, copyJob, (str) => console.log(str), props.parameter, ck.value)
+    Execute_PART.ExecuteManager_Base.string_args_transform(props.select, copyJob, (str) => console.log(str), props.parameter, ck.value)
     return copyJob.string_args[index]
 }
 const rules = {
