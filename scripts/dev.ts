@@ -1,13 +1,12 @@
 process.env.NODE_ENV = 'development';
 
 import Chalk from 'chalk';
-import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import Chokidar from 'chokidar';
-import { EOL } from 'os';
-import Path from 'path';
-import * as Vite from 'vite';
 import compileTs from './private/tsc';
-import * as util from './utility';
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
+import { EOL } from 'os';
+import * as Path from 'path';
+import * as Vite from 'vite';
 
 let viteServer:Vite.ViteDevServer | null = null;
 let electronProcess:ChildProcessWithoutNullStreams | null = null;
@@ -79,8 +78,6 @@ function stop() {
 }
 
 async function main() {
-    await util.Share_Call()
-    
     console.log(`${Chalk.greenBright('=======================================')}`);
     console.log(`${Chalk.greenBright('Starting Electron + Vite Dev Server...')}`);
     console.log(`${Chalk.greenBright('=======================================')}`);
