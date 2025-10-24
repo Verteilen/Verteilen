@@ -3,7 +3,7 @@
 import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue'
 import { useTheme } from 'vuetify'
-import { BusType, Preference, Setter } from 'verteilen-core/src/interface'
+import { BusType, Preference, Setter } from './interface'
 import { i18n } from './plugins/i18n'
 import { BackendProxy } from './proxy'
 import { vuetify } from './plugins/vuetify'

@@ -8,7 +8,7 @@ import {
   MESSAGE_LIMIT, 
   Preference, 
   RENDER_UPDATETICK 
-} from 'verteilen-core/src/interface'
+} from './../interface'
 import { BackendProxy } from '../proxy'
 //#endregion
 

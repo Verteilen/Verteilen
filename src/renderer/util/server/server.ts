@@ -19,7 +19,7 @@ import {
     Project, 
     RenderUpdateType, 
     Task 
-} from 'verteilen-core/src/interface'
+} from './../../interface'
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Lib } from "./lib_handle";

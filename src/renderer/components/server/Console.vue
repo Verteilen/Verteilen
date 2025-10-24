@@ -1,8 +1,18 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, ExecutePair, ExecuteRecord, ExecuteState, Libraries, Node, NodeTable, Parameter, Preference, Project, Record } from '../../interface';
-import { WebsocketManager } from '../../script/socket_manager';
+import { 
+    Execute_WebhookManager,
+    BusType, 
+    ExecutePair, 
+    ExecuteState, 
+    Libraries, 
+    NodeTable, 
+    Parameter, 
+    Preference, 
+    Project, 
+    Record 
+} from '../../interface';
 import { DATA } from '../../util/console';
 import ConsoleDialog from '../dialog/ConsoleDialog.vue';
 import NumberDialog from '../dialog/NumberDialog.vue';
@@ -17,7 +27,7 @@ const emitter:Emitter<BusType> | undefined = inject('emitter');
 interface PROPS {
     backend: BackendProxy
     preference: Preference
-    socket: WebsocketManager | undefined
+    socket: Execute_WebhookManager.WebhookManager | undefined
     execute: Array<ExecutePair>
     libs: Libraries
     projects: Array<Project>

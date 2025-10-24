@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, ref } from 'vue';
-import { AppConfig, BusType, Preference, ToastData } from '../interface';
+import { AppConfig, BusType, Preference } from '../interface';
 
 interface PROPS {
     config: AppConfig

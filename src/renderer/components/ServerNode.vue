@@ -31,7 +31,7 @@ import {
   WebPORT, 
   ExecutePair, 
   FrontendUpdate
-} from 'verteilen-core/src/interface'
+} from './../interface'
 import { BackendProxy } from '../proxy'
 import { DATA, Util_Server } from '../util/server/server'
 import { i18n } from './../plugins/i18n'

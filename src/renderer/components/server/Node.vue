@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { v6 as uuid6 } from 'uuid';
-import { computed, inject, onBeforeUpdate, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ConnectionText, Header, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from '../../interface';
+import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { BusType, ConnectionText, Execute_SocketManager, Header, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { WebsocketManager } from '../../script/socket_manager';
 import NodeInfoDialog from '../dialog/NodeInfoDialog.vue';
 import NodeShellDialog from '../dialog/NodeShellDialog.vue';
 import NodePluginDialog from '../dialog/NodePluginDialog.vue';
@@ -15,7 +14,7 @@ const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     nodes: Array<NodeTable>
-    manager: WebsocketManager | undefined
+    manager: Execute_SocketManager.WebsocketManager | undefined
     backend: BackendProxy
     preference: Preference
     plugin: PluginPageData
