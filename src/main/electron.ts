@@ -1,7 +1,7 @@
 import { app, BrowserWindow, globalShortcut, powerSaveBlocker, session } from 'electron';
 import { join } from 'path';
-import './client/client';
 import { backendEvent } from './event';
+import './client/client';
 import './plugins/i18n';
 
 export let mainWindow:BrowserWindow | undefined = undefined
@@ -70,7 +70,7 @@ function createWindow () {
 }
 
 export function RUN(){
-    app.whenReady().then(() => {
+    const call = app.whenReady().then(() => {
         globalShortcut.register('Shift+CommandOrControl+I', () => {
             mainWindow?.webContents.openDevTools();
         })
@@ -104,5 +104,7 @@ export function RUN(){
         mainWindow = undefined
         backendEvent.Destroy()
     })
+
+    return call
 }
 

@@ -1,6 +1,7 @@
 import { Client } from './client/client';
 import * as electron from './electron';
 import { Header, Single } from './interface';
+import { checker } from './worker_download';
 
 let client:Client | undefined = undefined
 
@@ -24,11 +25,13 @@ const messager_log = (msg:string, tag?:string) => {
 const a_client = process.argv.includes("--client")
 const a_nogui = process.argv.includes("--nogui")
 
-if (a_client && a_nogui){
-  client = new Client(messager, messager_log)
-  client.Init()
-}else{
-  electron.RUN()
-}
+checker().then(() => {
+  if (a_client && a_nogui){
+    client = new Client(messager, messager_log)
+    return client.Init()
+  }else{
+    return electron.RUN()
+  }
+})
 
 
