@@ -118,9 +118,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- The top level component -->>
+  <!-- The top level component -->
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference?.font + 'px' }">
-    <!-- This is like router -->>
+    <!-- This is like router -->
     <ServerClientSelection v-model.number="mode" v-if="mode == -1 && config?.isElectron" :preference="preference!" :config="config!"/>
     <Login v-else-if="config.isExpress && !config.login && login" :preference="preference" :config="config"/>
     <ClientNode v-else-if="config.isElectron && mode == 0" :preference="preference" :backend="backend"/>

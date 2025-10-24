@@ -2,7 +2,26 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { Execute_PART, BusType, ConditionResult, DataType, Job, JobCategory, JobCategoryText, JobResultText, JobType, JobType2, JobType2Text, JobTypeText, Libraries, Parameter, Preference, Project, Property, Rename, Task } from '../../interface';
+import { 
+    Execute_PART, 
+    BusType, 
+    ConditionResult, 
+    DataType, 
+    Job, 
+    JobCategory, 
+    JobCategoryText, 
+    JobResultText, 
+    JobType, 
+    JobType2, 
+    JobType2Text, 
+    JobTypeText, 
+    Libraries, 
+    Parameter, 
+    Preference, 
+    Project, 
+    Property, 
+    Rename, 
+    Task } from '../../interface';
 import { i18n } from './../../plugins/i18n';
 import DialogBase from '../dialog/DialogBase.vue';
 
