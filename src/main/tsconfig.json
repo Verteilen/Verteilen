@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2015",
-    "module": "commonjs",
+    "target": "esnext",
+    "useDefineForClassFields": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
     "esModuleInterop": true,
     "skipLibCheck": false,
     "forceConsistentCasingInFileNames": true,
@@ -11,5 +15,7 @@
     "removeComments": true,
     "resolveJsonModule": true,
     "noImplicitAny": false,
+    "types": ["@types/wicg-file-system-access"],
+    "lib": ["esnext", "dom"]
   }
 }

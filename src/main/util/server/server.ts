@@ -1,19 +1,41 @@
 import { v6 as uuidv6 } from 'uuid';
-import { Record, Task, ExecuteProxy, Project, ExecuteState, Job, FeedBack, Parameter, ExecuteRecord, Log, Libraries, AppConfig, Preference, NodeProxy, ShellFolder, Single, ExecutePair, RENDER_UPDATETICK, BusAnalysis, WebsocketPack, Header } from "../../interface"
-import { ExecuteManager } from "../../script/execute_manager"
-import { WebsocketManager } from "../../script/socket_manager"
 import { Util_Server_Console, Util_Server_Console_Proxy } from "./console_handle"
 import { BackendEvent } from "../../event"
 import { ipcMain } from "electron"
 import { messager, messager_log } from "../../debugger"
 import { Util_Server_Log_Proxy } from "./log_handle"
-import { i18n } from "../../plugins/i18n"
+//import { i18n } from "../../plugins/i18n"
 import { mainWindow } from "../../electron"
+import { 
+    Execute_ExecuteManager,
+    Execute_SocketManager,
+    Record, 
+    Task, 
+    ExecuteProxy, 
+    Project, 
+    ExecuteState, 
+    Job, 
+    FeedBack, 
+    Parameter, 
+    ExecuteRecord, 
+    Log, 
+    Libraries, 
+    AppConfig, 
+    Preference, 
+    NodeProxy, 
+    ShellFolder, 
+    Single, 
+    ExecutePair, 
+    RENDER_UPDATETICK, 
+    BusAnalysis, 
+    WebsocketPack, 
+    Header 
+} from "../../interface"
 
 export type save_and_update = () => void
 
 export class Util_Server {
-    websocket_manager: WebsocketManager | undefined
+    websocket_manager: Execute_SocketManager.WebsocketManager | undefined
     execute_manager: Array<ExecutePair> = []
 
     libs:Libraries = {libs: []}
@@ -36,7 +58,7 @@ export class Util_Server {
             shellReply: this.shellReply,
             folderReply: this.folderReply
         }
-        this.websocket_manager = new WebsocketManager(this.NewConnection, this.DisConnection, this.Analysis, messager_log, n)
+        this.websocket_manager = new Execute_SocketManager.WebsocketManager(this.NewConnection, this.DisConnection, this.Analysis, messager_log, n)
         this.console = new Util_Server_Console()
         this.updatehandle = setInterval(() => {
             this.re.push(...this.console_update())
@@ -45,9 +67,9 @@ export class Util_Server {
 
     private NewConnection = (x:WebsocketPack) => {
         const p = {
-            title: i18n.global.t('toast.connection-create-title'),
+            title: "", //i18n.global.t('toast.connection-create-title'),
             type: 'success',
-            message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
+            message: "", //`${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
         }
         mainWindow?.webContents.send('makeToast', p)
         this.execute_manager.forEach(y => {
@@ -57,9 +79,9 @@ export class Util_Server {
 
     private DisConnection = (x:WebsocketPack) => {
         const p = {
-            title: i18n.global.t('toast.connection-remove-title'),
+            title: "", //i18n.global.t('toast.connection-remove-title'),
             type: 'error',
-            message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
+            message: "", //`${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
         }
         mainWindow?.webContents.send('makeToast', p)
         this.execute_manager.forEach(y => {
@@ -309,7 +331,7 @@ export class Util_Server {
         })
         ipcMain.handle('console_add', (event, name:string, record:Record) => {
             record.projects.forEach(x => x.uuid = uuidv6())
-            const em:ExecuteManager = new ExecuteManager(
+            const em:Execute_ExecuteManager.ExecuteManager = new Execute_ExecuteManager.ExecuteManager(
                 name,
                 this.websocket_manager!, 
                 messager,

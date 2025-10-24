@@ -1,8 +1,6 @@
 import { app, BrowserWindow, globalShortcut, powerSaveBlocker, session } from 'electron';
 import { join } from 'path';
 import { backendEvent } from './event';
-import './client/client';
-import './plugins/i18n';
 
 export let mainWindow:BrowserWindow | undefined = undefined
 

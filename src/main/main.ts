@@ -1,9 +1,8 @@
-import { Client } from './client/client';
 import * as electron from './electron';
-import { Header, Single } from './interface';
+import { Client, Header, Single } from './interface';
 import { checker } from './worker_download';
 
-let client:Client | undefined = undefined
+let client:Client.Client | undefined = undefined
 
 const messager = (msg:string, tag?:string) => {
   const str = tag != undefined ? `[${tag}] ${msg}` : `[Node Info] ${msg}`
@@ -27,7 +26,7 @@ const a_nogui = process.argv.includes("--nogui")
 
 checker().then(() => {
   if (a_client && a_nogui){
-    client = new Client(messager, messager_log)
+    client = new Client.Client(messager, messager_log)
     return client.Init()
   }else{
     return electron.RUN()

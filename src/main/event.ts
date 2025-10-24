@@ -3,26 +3,34 @@ import * as path from "path";
 import * as fs from "fs";
 import * as os from "os";
 import { Loader } from './util/loader'
-import { Client } from "./client/client";
-import { ClientJavascript } from "./client/javascript";
 import { messager, messager_log } from "./debugger";
-import { DATA_FOLDER, Job, JobCategory, JobType, Parameter, PluginList, Preference, Project } from "./interface";
-import { i18n } from "./plugins/i18n";
+//import { i18n } from "./plugins/i18n";
 import { Util_Server } from "./util/server/server";
 import { ExportProjects, ImportProject, ExportProject, ImportParameter, ExportParameter } from "./util/io";
 import { PluginInit } from "./util/plugin";
 import { mainWindow } from "./electron";
-import { ClientJobExecute } from "./client/job_execute";
+import { 
+    Client,
+    ClientJobExecute,
+    DATA_FOLDER, 
+    Job, 
+    JobCategory, 
+    JobType, 
+    Parameter, 
+    PluginList, 
+    Preference, 
+    Project 
+} from "./interface";
 
 export class BackendEvent {
     menu_state = false
-    client:Client | undefined = undefined
+    client:Client.Client | undefined = undefined
     job: Job | undefined
     util: Util_Server = new Util_Server(this)
 
     Init = () => {
         if(this.client != undefined) return
-        this.client = new Client((...args:Array<string | undefined>) => {
+        this.client = new Client.Client((...args:Array<string | undefined>) => {
             messager(...args)
             mainWindow?.webContents.send('debuglog', args.join(' '));
         }, (msg:string, tag?:string, meta?:string) => {
@@ -72,7 +80,7 @@ export class BackendEvent {
                 boolean_args: []
             }
             const p:PluginList = { plugins: [] }
-            const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
+            const worker = new ClientJobExecute.ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
             worker.parameter = parameter ? JSON.parse(parameter) : undefined
             worker.execute().then(x => {
                 javascript_messager_feedback(x, "Finish")
@@ -114,7 +122,7 @@ export class BackendEvent {
                     animation: true,
                 }
                 fs.writeFileSync(p, JSON.stringify(record, null, 4))
-                i18n.global.locale = 'en'
+                //i18n.global.locale = 'en'
                 return JSON.stringify(record)
             } else {
                 const file = fs.readFileSync(p, { encoding: 'utf8', flag: 'r' })
@@ -143,7 +151,7 @@ export class BackendEvent {
         })
         ipcMain.on('locate', (event, data:string) => {
             // @ts-ignore
-            i18n.global.locale = data
+            //i18n.global.locale = data
         })
     }
 }

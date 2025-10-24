@@ -7,6 +7,7 @@ import { messager_log, set_feedback } from '../debugger'
 import { 
   Execute_ExecuteManager,
   Execute_SocketManager,
+  Execute_ConsoleManager,
   UtilServer_Console,
   UtilServer_Log,
   BusAnalysis, 
@@ -35,7 +36,6 @@ import {
 import { BackendProxy } from '../proxy'
 import { DATA, Util_Server } from '../util/server/server'
 import { i18n } from './../plugins/i18n'
-import { ConsoleManager } from '../script/console_manager'
 //#endregion
 
 //#region Views
@@ -539,8 +539,8 @@ const dataset_init = () => {
   }
   else
   {
-    props.backend.eventOn('shellReply', (data) => emitter?.emit('shellReply', data) )
-    props.backend.eventOn('folderReply', (data) => emitter?.emit('folderReply', data) )
+    props.backend.eventOn('shellReply', (data:any) => emitter?.emit('shellReply', data) )
+    props.backend.eventOn('folderReply', (data:any) => emitter?.emit('folderReply', data) )
     props.backend.eventOn('frontend_update', repull)
   }
   props.backend.eventOn('makeToast', makeToastFromBackend)
@@ -651,7 +651,7 @@ onMounted(() => {
     InitCaller(!props.backend.config.isElectron)
     props.backend.eventOn('debuglog', debug_feedback)
     if(props.backend.config.isExpress){
-      props.backend.consoleM = new ConsoleManager(`wss://${window.location.hostname}:${WebPORT}`, messager_log, {
+      props.backend.consoleM = new Execute_ConsoleManager.ConsoleManager(`wss://${window.location.hostname}:${WebPORT}`, messager_log, {
         on: emitter!.on,
         off: emitter!.off,
         emit: emitter!.emit
