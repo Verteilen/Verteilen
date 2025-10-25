@@ -23,7 +23,6 @@ const theme = useTheme()
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:BackendProxy = inject("backend")!
 const preference:Preference = inject("preference")!
-const login = ref(false)
 const mode = ref(backend!.config ? -1 : 1)
 const settingModal = ref(false)
 const defaultTransition = ref()
@@ -32,6 +31,18 @@ const defaultTransition = ref()
 //#region Computed
 const config = computed(() => backend.config)
 const token = computed(() => backend.getCookie('token'))
+const route = computed(() => {
+  if(config.value.isElectron){
+    if(mode.value == -1) return 0
+    else if(mode.value == 0) return 2
+    else if(mode.value == 1) return 3
+  }
+  if(config.value.isExpress){
+    if(!config.value.login) return 1
+    else return 3
+  }
+  return -1
+})
 //#endregion
 
 //#region Methods
@@ -69,10 +80,8 @@ const relogin = () => {
   config.value.login = false
   mode.value = -1
   backend.removeCookie('token')
-  login.value = true
 }
 const loginGuest = () => {
-  login.value = false
   backend.removeCookie('token')
   backend.init().then(() => {
     backend.invoke('load_preference', token.value).then(x => load_preference(x))
@@ -121,12 +130,13 @@ onUnmounted(() => {
   <!-- The top level component -->
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference?.font + 'px' }">
     <!-- This is like router -->
-    <ServerClientSelection v-model.number="mode" v-if="mode == -1 && config?.isElectron" :preference="preference!" :config="config!"/>
-    <Login v-else-if="config.isExpress && !config.login && login" :preference="preference" :config="config"/>
-    <ClientNode v-else-if="config.isElectron && mode == 0" :preference="preference" :backend="backend"/>
-    <ServerNode v-else-if="mode == 1" :preference="preference" :backend="backend"/>
+    <ServerClientSelection v-model.number="mode" v-if="route == 0" :preference="preference!" :config="config!"/>
+    <Login v-else-if="route == 1" :preference="preference" :config="config"/>
+    <ClientNode v-else-if="route == 2"/>
+    <ServerNode v-else-if="route == 3"/>
+    <span v-else>route: {{ route }} {{ JSON.stringify(config, null, 4) }}</span>
     <!-- Extra components -->
-    <Messager :preference="preference" :backend="backend" />
-    <SettingDialog v-model="settingModal" :item="preference" @update="preferenceUpdate" />
+    <Messager />
+    <SettingDialog v-model="settingModal" @update="preferenceUpdate" />
   </v-container>
 </template>

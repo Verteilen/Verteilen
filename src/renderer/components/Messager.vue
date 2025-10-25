@@ -8,12 +8,9 @@ import { BackendProxy } from '../proxy'
 //#endregion
 
 //#region Data
-interface PROPS {
-    preference: Preference
-    backend: BackendProxy
-}
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-const props = defineProps<PROPS>()
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
 const messages:Ref<Array<IMessage>> = ref([])
 //#endregion
 
@@ -35,27 +32,27 @@ const makeToast = (e:ToastData) => {
     )
 }
 const shadeColor = (color:string, percent:number) => {
-    let R = parseInt(color.substring(1,3),16);
-    let G = parseInt(color.substring(3,5),16);
-    let B = parseInt(color.substring(5,7),16);
+    let R = parseInt(color.substring(1,3),16)
+    let G = parseInt(color.substring(3,5),16)
+    let B = parseInt(color.substring(5,7),16)
 
-    R = parseInt((R * (100 + percent) / 100).toString());
-    G = parseInt((G * (100 + percent) / 100).toString());
-    B = parseInt((B * (100 + percent) / 100).toString());
+    R = parseInt((R * (100 + percent) / 100).toString())
+    G = parseInt((G * (100 + percent) / 100).toString())
+    B = parseInt((B * (100 + percent) / 100).toString())
 
-    R = (R<255)?R:255;  
-    G = (G<255)?G:255;  
-    B = (B<255)?B:255;  
+    R = (R<255)?R:255  
+    G = (G<255)?G:255
+    B = (B<255)?B:255
 
     R = Math.round(R)
     G = Math.round(G)
     B = Math.round(B)
 
-    let RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-    let GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-    let BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
+    let RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16))
+    let GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16))
+    let BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16))
 
-    return "#"+RR+GG+BB+"50";
+    return "#"+RR+GG+BB+"50"
 }
 const update = () => {
     messages.value.forEach(x => {
@@ -66,18 +63,18 @@ const update = () => {
 }
 const darken = (color: string) => {
     const e = GetColor(color)
-    return e == undefined ? color : (props.preference.theme == "dark" ? shadeColor(GetColor(color), -50) : shadeColor(GetColor(color), 50))
+    return e == undefined ? color : (preference.theme == "dark" ? shadeColor(GetColor(color), -50) : shadeColor(GetColor(color), 50))
 }
 //#endregion
 
 onMounted(() => {
-    emitter?.on('updateHandle', update)
-	emitter?.on('makeToast', makeToast)
+    emitter.on('updateHandle', update)
+	emitter.on('makeToast', makeToast)
 })
 
 onUnmounted(() => {
-    emitter?.on('updateHandle', update)
-	emitter?.off('makeToast', makeToast)
+    emitter.on('updateHandle', update)
+	emitter.off('makeToast', makeToast)
 })
 </script>
 
@@ -92,14 +89,14 @@ onUnmounted(() => {
             :timeout="m.timer" 
             color="transparent">
             <v-card class="pa-2 ma-0" variant="elevated" elevation="16" :color="darken(m.variant)" style="border-width: 2px;">
-                <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }">
+                <v-card-title :style="{ 'fontSize': (preference.font + 6) + 'px' }">
                     {{ m.title }}
                 </v-card-title>
                 <v-card-text>
-                    <div :style="{ 'fontSize': props.preference.font + 'px' }">
+                    <div :style="{ 'fontSize': preference.font + 'px' }">
                         {{ m.content }}
                     </div>
-                    <div v-if="m.stack" :style="{ 'fontSize': (props.preference.font - 4) + 'px' }">
+                    <div v-if="m.stack" :style="{ 'fontSize': (preference.font - 4) + 'px' }">
                         <p v-for="(s, i) in m.stack" :key="i">{{ s }}</p>
                     </div>
                 </v-card-text>

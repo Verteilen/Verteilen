@@ -13,11 +13,9 @@ import { BackendProxy } from '../proxy'
 //#endregion
 
 //#region Data
-interface PROPS {
-    backend: BackendProxy
-    preference: Preference
-}
-const emitter:Emitter<BusType> | undefined = inject('emitter');
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
 let updateHandle:any = undefined
 const messages:Ref<Array<ClientLog>> = ref([
   {
@@ -29,14 +27,13 @@ const messages:Ref<Array<ClientLog>> = ref([
     ]
   }
 ])
-const props = defineProps<PROPS>()
 const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const panel:Ref<Array<number>> = ref([0])
 const autoScroll = ref(true)
 //#endregion
 
 //#region Computed
-const config = computed(() => props.backend.config)
+const config = computed(() => backend.config)
 //#endregion
 
 //#region Methods
@@ -85,18 +82,18 @@ const clearMessage = () => {
 
 onMounted(() => {
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
-  props.backend.wait_init().then(() => {
+  backend.wait_init().then(() => {
     if(config.value.isElectron){
-      props.backend.eventOn('msgAppend', msgAppend);
-      props.backend.send('menu', false)
-      props.backend.send('client_start');
+      backend.eventOn('msgAppend', msgAppend);
+      backend.send('menu', false)
+      backend.send('client_start');
     }
   })
 })
 
 onUnmounted(() => {
-  props.backend.eventOff('msgAppend', msgAppend);
-  props.backend.send('client_stop');
+  backend.eventOff('msgAppend', msgAppend);
+  backend.send('client_stop');
 })
 
 </script>
@@ -152,7 +149,7 @@ onUnmounted(() => {
           </v-expansion-panel-title>
           <v-expansion-panel-text>
             <p class="messages" v-for="(msg, j) in block.text" :key="j" 
-              :style="{ 'fontSize': props.preference.font + 'px', 'line-height': (props.preference.font) + 'px' }">
+              :style="{ 'fontSize': preference.font + 'px', 'line-height': (preference.font) + 'px' }">
               {{ msg }}
             </p>
           </v-expansion-panel-text>
