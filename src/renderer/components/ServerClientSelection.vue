@@ -11,13 +11,16 @@ import {
 import { i18n } from './../plugins/i18n'
 //#endregion
 
+//#region Views
+import AppBar from './components/layout/AppBar.vue'
+//#endregion
+
 //#region Data
 interface PROPS {
     config: AppConfig
     preference: Preference
 }
 const emitter:Emitter<BusType> = inject('emitter')!
-const preference:Preference = inject("preference")!
 const propss = defineProps<PROPS>()
 const model = defineModel<number>()
 const data = ref({
@@ -38,7 +41,6 @@ const mode = computed(() => {
 //#endregion
 
 //#region Methods
-const popSetting = () => { emitter?.emit('setting') }
 const serverChoice = (e:boolean) => {
     data.value.is_server = e ? 1 : 0
     if (!e){
@@ -61,9 +63,6 @@ const serverClick = () => {
     }
     emitter?.emit('makeToast', d)
     model.value = 1
-    if (propss.config.isElectron){
-        window.electronAPI.send('modeSelect', false)
-    } 
 }
 const clientClick = () => {
     const d:ToastData = {
@@ -97,21 +96,7 @@ const confirm = () => {
     <div style="margin: 0; padding-top: 16px; width: 100vw; height: calc(100vh - 56px); place-items: center;"
         :class="{ 'bg-dark': propss.preference.theme == 'dark', 'bg-light': propss.preference.theme == 'light' }">
         <!-- Top Appbar -->
-        <v-layout>
-            <v-app-bar :elevation="2">
-                <v-app-bar-title>{{ $t('modeselect.titlebar') }}</v-app-bar-title>
-                <template v-slot:append>
-                <v-menu location="left">
-                    <template v-slot:activator="{ props }">
-                    <v-btn v-bind="props" icon="mdi-dots-vertical"></v-btn>
-                    </template>
-                    <v-list width="120px">
-                    <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
-                    </v-list>
-                </v-menu>
-                </template>
-            </v-app-bar>
-        </v-layout>
+        <AppBar />
 
         <v-carousel
             v-model.number="data.page"

@@ -634,10 +634,10 @@ onMounted(() => {
   set_feedback(debug_feedback)
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
   slowUpdateHandle = setInterval(() => emitter?.emit('slowUpdateHandle'), RENDER_FILE_UPDATETICK);
-  emitter?.on('updateNode', server_clients_update)
-  emitter?.on('deleteScript', libDelete)
-  emitter?.on('updateLocate', updateLocate)
-  emitter?.on('updateHandle', updateHandleCall)
+  emitter.on('updateNode', server_clients_update)
+  emitter.on('deleteScript', libDelete)
+  emitter.on('updateLocate', updateLocate)
+  emitter.on('updateHandle', updateHandleCall)
 
   if(backend.config.haveBackend){
     data.value.loading = true
@@ -669,10 +669,10 @@ onUnmounted(() => {
   data.value.loading = true
   document.removeEventListener('keydown', hotkey)
   data.value.execute_manager = []
-  emitter?.off('updateNode', server_clients_update)
-  emitter?.off('deleteScript', libDelete)
-  emitter?.off('updateLocate', updateLocate)
-  emitter?.off('updateHandle', updateHandleCall)
+  emitter.off('updateNode', server_clients_update)
+  emitter.off('deleteScript', libDelete)
+  emitter.off('updateLocate', updateLocate)
+  emitter.off('updateHandle', updateHandleCall)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   backend.send('client_stop');

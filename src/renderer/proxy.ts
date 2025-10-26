@@ -4,6 +4,7 @@ import { checkifElectron, checkIfExpress } from "./platform";
 import Cookies from 'js-cookie'
 
 /**
+ * **Data Backend Controller**\
  * The proxy middleware that connect the function call to express backend or electron backend 
  */
 export class BackendProxy {
@@ -31,7 +32,8 @@ export class BackendProxy {
     }
 
     /**
-     * Start init process, this will detect the mode and save it in the {@link config}
+     * Called when App is mount\
+     * Start init process, this will detect the mode and save it in the {@link config}\
      */
     init = () => {
         this.is_init = false

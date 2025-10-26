@@ -1,9 +1,9 @@
 import { v6 as uuidv6 } from 'uuid';
-import { BackendEvent } from "../../event"
+import { BackendEvent } from "../event"
 import { ipcMain } from "electron"
-import { messager, messager_log } from "../../debugger"
+import { messager, messager_log } from "../debugger"
 //import { i18n } from "../../plugins/i18n"
-import { mainWindow } from "../../electron"
+import { mainWindow } from "../electron"
 import { 
     UtilServer_Console,
     UtilServer_Log,
@@ -18,9 +18,6 @@ import {
     FeedBack, 
     Parameter, 
     ExecuteRecord, 
-    Log, 
-    Libraries, 
-    AppConfig, 
     Preference, 
     NodeProxy, 
     ShellFolder, 
@@ -30,7 +27,7 @@ import {
     BusAnalysis, 
     WebsocketPack, 
     Header 
-} from "../../interface"
+} from "../interface"
 
 export type save_and_update = () => void
 
@@ -38,13 +35,9 @@ export class Util_Server {
     websocket_manager: Execute_SocketManager.WebsocketManager | undefined
     execute_manager: Array<ExecutePair> = []
 
-    libs:Libraries = {libs: []}
-    logs: Log = {logs: []}
-
     backend: BackendEvent
     console:UtilServer_Console.Util_Server_Console
     preference:Preference | undefined
-    config:AppConfig | undefined
     updatehandle: any
     /**
      * message, trace message, error message return data, for update
@@ -165,7 +158,7 @@ export class Util_Server {
                 else if (p[0] == 'execute') this.console_execute(x.record!.uuid, p[1])
             }
         })
-        const logss = this.logs.logs.filter(x => x.dirty && x.output)
+        const logss = this.backend.memory.logs.filter(x => x.dirty && x.output)
         logss.forEach(x => x.dirty = false)
         mainWindow?.webContents.send("logUpdate", JSON.stringify(logss))
         return re
@@ -355,10 +348,10 @@ export class Util_Server {
                 task_state: [],
                 task_detail: [],
             }
-            em.libs = this.libs
+            em.libs = { libs: this.backend.memory.libs }
             const p:ExecutePair = { manager: em, record: er }
             const uscp:UtilServer_Console.Util_Server_Console_Proxy = new UtilServer_Console.Util_Server_Console_Proxy(p)
-            const uslp:UtilServer_Log.Util_Server_Log_Proxy = new UtilServer_Log.Util_Server_Log_Proxy(p, this.logs, this.preference!)
+            const uslp:UtilServer_Log.Util_Server_Log_Proxy = new UtilServer_Log.Util_Server_Log_Proxy(p, { logs: this.backend.memory.logs }, this.preference!)
             em.proxy = this.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
             const r = this.console.receivedPack(p, record)
             if(r) this.execute_manager.push(p)

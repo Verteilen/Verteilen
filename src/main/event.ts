@@ -1,17 +1,23 @@
 import { ipcMain } from "electron";
 import * as path from "path";
 import * as fs from "fs";
+import * as fsp from "fs/promises";
 import * as os from "os";
-import { Loader } from './util/loader'
 import { messager, messager_log } from "./debugger";
-//import { i18n } from "./plugins/i18n";
-import { Util_Server } from "./util/server/server";
-import { ExportProjects, ImportProject, ExportProject, ImportParameter, ExportParameter } from "./util/io";
-import { PluginInit } from "./util/plugin";
+import { Util_Server } from "./util/server";
+import { 
+    ExportProjects, 
+    ImportProject, 
+    ExportProject, 
+    ImportParameter, 
+    ExportParameter 
+} from "./util/io";
 import { mainWindow } from "./electron";
 import { 
     Client,
     ClientJobExecute,
+    CreatePreference,
+    CreateRecordIOLoader,
     DATA_FOLDER, 
     Job, 
     JobCategory, 
@@ -19,16 +25,42 @@ import {
     Parameter, 
     PluginList, 
     Preference, 
-    Project 
+    Project, 
+    RecordIOLoader, 
+    Server
 } from "./interface";
+import { CreatePluginLoader, PluginLoader } from "verteilen-core/src/server/plugin";
 
-export class BackendEvent {
-    menu_state = false
+const Loader = (loader:RecordIOLoader, key:string) => {
+    ipcMain.handle(`load_all_${key}`, (e) => loader.load_all())
+    ipcMain.on(`delete_all_${key}`, (e) => loader.delete_all())
+    ipcMain.handle(`list_all_${key}`, (e) => loader.list_all())
+    ipcMain.on(`save_${key}`, (e, name:string, data:string) => loader.save(name, data))
+    ipcMain.on(`rename_${key}`, (e, name:string, newname:string) => loader.rename(name, newname))
+    ipcMain.on(`delete_${key}`, (e, name:string) => loader.delete(name))
+    ipcMain.on(`delete_all_${key}`, (e) => loader.delete_all())
+    ipcMain.handle(`load_${key}`, (e, name:string) => loader.load(name, true))
+}
+const PluginInit = (loader:PluginLoader) => {
+    ipcMain.handle('get_plugin', async (e) => loader.get_plugin())
+    ipcMain.handle('import_template', async (event, name:string, url:string, token:string) => loader.import_template(name, url, token))
+    ipcMain.handle('import_plugin', async (event, name:string, url:string, token:string) => loader.import_plugin(name, url, token))
+    ipcMain.handle('delete_template', async (event, name:string) => loader.delete_template(name))
+    ipcMain.handle('delete_plugin', async (event, name:string) => loader.delete_plugin(name))
+    ipcMain.handle('get_project', async (event, group:string, filename:string) => loader.get_project(group, filename))
+    ipcMain.handle('get_parameter', async (event, group:string, filename:string) => loader.get_parameter(group, filename))
+    ipcMain.on('plugin_download', (event, uuid:string, plugin:string, tokens:string) => loader.plugin_download(uuid, plugin, tokens))
+    ipcMain.on('plugin_remove', (event, uuid:string, plugin:string) => loader.plugin_remove(uuid, plugin))
+}
+
+export class BackendEvent extends Server {
     client:Client.Client | undefined = undefined
-    job: Job | undefined
     util: Util_Server = new Util_Server(this)
 
     Init = () => {
+        /**
+         * * Local Client Setup
+         */
         if(this.client != undefined) return
         this.client = new Client.Client((...args:Array<string | undefined>) => {
             messager(...args)
@@ -38,6 +70,33 @@ export class BackendEvent {
             mainWindow?.webContents.send('debuglog', tag == undefined ? msg : `[${tag}] ${msg}`);
         })
         this.client.Init()
+
+        /**
+         * * IO And Plugin Setup
+         */
+        this.io = {
+            root: path.join(os.homedir(), DATA_FOLDER),
+            join: path.join,
+            read_dir: (path:string) => fsp.readdir(path, { withFileTypes: false }),
+            read_dir_dir: (path:string) => fsp.readdir(path, { withFileTypes: true }).then(x => x.filter(y => !y.isFile()).map(y => y.name)),
+            read_dir_file: (path:string) => fsp.readdir(path, { withFileTypes: true }).then(x => x.filter(y => y.isFile()).map(y => y.name)),
+            read_string: (path:string, options?:any) => fsp.readFile(path, options).then(x => x.toString('utf-8')),
+            write_string: (path:string, content:string) => fsp.writeFile(path, content),
+            exists: (path:string) => fs.existsSync(path),
+            mkdir: async (path:string) => { await fsp.mkdir(path, {recursive: true}) },
+            rm: (path:string) => fsp.rm(path, {recursive: true}),
+            cp: (path:string, newpath:string) => fsp.cp(path, newpath)
+        }
+        this.loader = CreateRecordIOLoader(this.io, this.memory)
+        this.LoadFromDisk()
+        this.plugin_loader = CreatePluginLoader(this.io, this.plugin, (uuid:string) => {
+            return this.util.websocket_manager?.targets.find(x => x.uuid == uuid)
+        }, {
+            electron: mainWindow?.webContents.send,
+            socket: undefined
+        })
+        this.plugin_loader.load_all()
+        PluginInit(this.plugin_loader)
     }
 
     Destroy = () => {
@@ -52,19 +111,9 @@ export class BackendEvent {
     }
 
     AppInit = () => {
-        ipcMain.on('client_start', (event, content:string) => {
-            this.Init()
-        })
-        ipcMain.on('client_stop', (event, content:string) => {
-            this.Destroy()
-        })
-        ipcMain.on('modeSelect', (event, isclient:boolean) => {
-            console.log("[Backend] Mode select: " + (isclient ? "Node" : "Server"))
-            if(isclient) messager("Client mode activate")
-        })
-        ipcMain.handle('exist', (event, d:string) => {
-            return fs.existsSync(d)
-        })
+        ipcMain.on('client_start', (event) => this.Init())
+        ipcMain.on('client_stop', (event) => this.Destroy())
+        ipcMain.handle('exist', (event, path:string) => fs.existsSync(path))
         ipcMain.on('javascript', (event, content:string, parameter:string | undefined) => {
             const javascript_messager_feedback = (msg:string, tag?:string) => {
                 messager(msg, tag)
@@ -77,7 +126,8 @@ export class BackendEvent {
                 script: content,
                 string_args: [],
                 number_args: [],
-                boolean_args: []
+                boolean_args: [],
+                id_args: [],
             }
             const p:PluginList = { plugins: [] }
             const worker = new ClientJobExecute.ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
@@ -89,20 +139,6 @@ export class BackendEvent {
         ipcMain.on('message', (event, message:string, tag?:string) => {
             console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
         })
-        Loader('record', 'record')
-        Loader('parameter', 'parameter')
-        Loader('node', 'node')
-        Loader('log', 'log')
-        Loader('lib', 'lib', '')
-        PluginInit(this)
-
-        ipcMain.handle('load_record_obsolete', (e) => {
-            if(!fs.existsSync('record.json')) return undefined
-            const data = fs.readFileSync('record.json').toString()
-            fs.rmSync('record.json')
-            return data
-        })
-        
         ipcMain.on('save_preference', (e, preference:string) => {
             const p = path.join(os.homedir(), DATA_FOLDER, 'preference.json')
             fs.writeFileSync(p, preference)
@@ -112,15 +148,7 @@ export class BackendEvent {
             const exist = fs.existsSync(p);
             messager_log(`[Event] Read preference.js, file exist: ${exist}`)
             if(!exist){
-                const record:Preference = {
-                    lan: 'en',
-                    log: true,
-                    font: 18,
-                    theme: "dark",
-                    notification: false,
-                    plugin_token: [],
-                    animation: true,
-                }
+                const record:Preference = CreatePreference()
                 fs.writeFileSync(p, JSON.stringify(record, null, 4))
                 //i18n.global.locale = 'en'
                 return JSON.stringify(record)
@@ -153,6 +181,12 @@ export class BackendEvent {
             // @ts-ignore
             //i18n.global.locale = data
         })
+
+        Loader(this.current_loader.project, 'record')
+        Loader(this.current_loader.parameter, 'parameter')
+        Loader(this.current_loader.node, 'node')
+        Loader(this.current_loader.log, 'log')
+        Loader(this.current_loader.lib, 'lib')
     }
 }
 
