@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
-import { ConditionResult, Job, JobCategory, JobType, JobType2, Parameter, Project, Task } from "../../../interface";
-import { GetDefaultProject_Parameter } from '../../parameter/Default';
+import { ConditionResult, Job, JobCategory, JobType, JobType2, Database, Project, Task } from "../../../interface";
+import { GetDefaultProject_Database } from '../../database/Default';
 import { DEFAULT_JsCronMultiExample } from '../../js/Default/CronMultiExample';
 import { DEFAULT_JsExample } from '../../js/Default/Example';
 import { DEFAULT_JsPrintExample } from '../../js/Default/PrintExample';
@@ -16,7 +16,8 @@ const path_checker = ():Task => {
         script: "",
         string_args: ["%path%"],
         number_args: [ConditionResult.ThrowProject],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -35,7 +36,7 @@ const path_checker = ():Task => {
     return t
 }
 
-const parameter_expression = ():Task => {
+const database_expression = ():Task => {
     const checker:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -43,7 +44,8 @@ const parameter_expression = ():Task => {
         script: "",
         string_args: ["", "echo", "%e1%"],
         number_args: [ConditionResult.ThrowProject],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -70,7 +72,8 @@ const os_action = ():Task => {
         script: "",
         string_args: ["%path%/test"],
         number_args: [ConditionResult.ThrowProject],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const writef:Job = {
         uuid: uuidv6(),
@@ -79,7 +82,8 @@ const os_action = ():Task => {
         script: "",
         string_args: ["%path%/test/hello.txt", "Hello World"],
         number_args: [ConditionResult.ThrowProject],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -107,7 +111,8 @@ const ck_print = ():Task => {
         script: "",
         string_args: ["", "echo", "%ck%"],
         number_args: [ConditionResult.ThrowProject],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -134,7 +139,8 @@ const ck_calc_print = ():Task => {
         script: "",
         string_args: ["", "echo", "%prop%"],
         number_args: [ConditionResult.ThrowProject],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -166,7 +172,8 @@ const js_print = ():Task => {
         script: DEFAULT_JsExample,
         string_args: [],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -193,7 +200,8 @@ const js_print_expression = ():Task => {
         script: DEFAULT_JsExpressionExample,
         string_args: [],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -220,7 +228,8 @@ const js_cron_print = ():Task => {
         script: DEFAULT_JsCronMultiExample,
         string_args: [],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -239,7 +248,7 @@ const js_cron_print = ():Task => {
     return t
 }
 
-const save_parameter = ():Task => {
+const save_database = ():Task => {
     const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -247,7 +256,8 @@ const save_parameter = ():Task => {
         script: DEFAULT_JsSaveExample,
         string_args: [],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -266,7 +276,7 @@ const save_parameter = ():Task => {
     return t
 }
 
-const load_parameter_multicore = ():Task => {
+const load_database_multicore = ():Task => {
     const script:Job = {
         uuid: uuidv6(),
         category: JobCategory.Execution,
@@ -274,7 +284,8 @@ const load_parameter_multicore = ():Task => {
         script: DEFAULT_JsPrintExample,
         string_args: [],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -301,7 +312,8 @@ const calllib = ():Task => {
         script: "",
         string_args: ["Default", ""],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -328,7 +340,8 @@ const calllibjs = ():Task => {
         script: DEFAULT_JsLibPrintExample,
         string_args: [],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -348,24 +361,24 @@ const calllibjs = ():Task => {
 }
 
 export const GetDefaultProjectTemplate = (r:Project):Project => {
-    const para:Parameter = {
-        title: "Default Parameter",
+    const para:Database = {
+        title: "Default Database",
         uuid: uuidv6(),
         canWrite: true,
-        containers: GetDefaultProject_Parameter()
+        containers: GetDefaultProject_Database()
     }
-    r.parameter = para
+    r.database = para
     r.task = [
         path_checker(),
-        parameter_expression(),
+        database_expression(),
         os_action(),
         ck_print(),
         ck_calc_print(),
         js_print(),
         js_print_expression(),
         js_cron_print(),
-        save_parameter(),
-        load_parameter_multicore(),
+        save_database(),
+        load_database_multicore(),
         calllib(),
         calllibjs(),
     ]

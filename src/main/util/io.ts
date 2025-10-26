@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { dialog } from "electron";
 import { mainWindow } from "./../electron";
-import { Parameter, Project } from "../interface";
+import { Database, Project } from "../interface";
 
 
 export const ImportProject = () => {
@@ -53,7 +53,7 @@ export const ExportProjects = (value:Array<Project>) => {
     })
 }
 
-export const ImportParameter = () => {
+export const ImportDatabase = () => {
     if(mainWindow == undefined) return;
     dialog.showOpenDialog(mainWindow, {
         properties: ['openFile', 'multiSelections'],
@@ -65,11 +65,11 @@ export const ImportParameter = () => {
         if(mainWindow == undefined) return;
         if(v.filePaths.length < 1) return;
         const p = JSON.parse(fs.readFileSync(v.filePaths[0]).toString())
-        mainWindow.webContents.send('import_parameter_feedback', JSON.stringify(p))
+        mainWindow.webContents.send('import_database_feedback', JSON.stringify(p))
     })
 }
 
-export const ExportParameter = (value:Parameter) => {
+export const ExportDatabase = (value:Database) => {
     if(mainWindow == undefined) return;
     dialog.showSaveDialog(mainWindow, {
         filters: [

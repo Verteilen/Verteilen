@@ -14,7 +14,7 @@ import {
     Libraries, 
     Log, 
     NodeTable, 
-    Parameter, 
+    Database, 
     PluginPageData, 
     Project, 
     RenderUpdateType, 
@@ -24,7 +24,7 @@ import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Lib } from "./lib_handle";
 import { Util_Server_Node } from "./node_handle";
-import { Util_Server_Parameter } from "./parameter_handle";
+import { Util_Server_Database } from "./database_handle";
 import { Util_Server_Project } from "./project_handle";
 import { Util_Server_Self } from "./self_handle";
 import { Util_Server_Task } from "./task_handle";
@@ -43,13 +43,13 @@ export interface DATA {
     page:number
     select_manager: number
     lanSelect: string
-    parameters: Array<Parameter>
+    databases: Array<Database>
     projects: Array<Project>
     libs: Libraries
     logs: Log
     selectProject: Project | undefined
     selectTask: Task | undefined
-    selectParameter: Parameter | undefined
+    selectDatabase: Database | undefined
     nodes: Array<NodeTable>
     messages: Array<ClientLog>
     plugin: PluginPageData
@@ -64,7 +64,7 @@ export class Util_Server {
     task:Util_Server_Task
     job:Util_Server_Job
     node:Util_Server_Node
-    parameter:Util_Server_Parameter
+    database:Util_Server_Database
     console:Util_Server_Console
     lib:Util_Server_Lib
     self:Util_Server_Self
@@ -77,7 +77,7 @@ export class Util_Server {
         this.task = new Util_Server_Task(this.data, this.allUpdate, this.update)
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
-        this.parameter = new Util_Server_Parameter(this.data, this.config, this.update)
+        this.database = new Util_Server_Database(this.data, this.config, this.update)
         this.console = new Util_Server_Console()
         this.lib = new Util_Server_Lib(this.data, this.update)
         this.self = new Util_Server_Self(this.data)
@@ -93,7 +93,7 @@ export class Util_Server {
             this.emitter.emit('updateProject')
             this.emitter.emit('updateTask')
             this.emitter.emit('updateJob')
-            this.emitter.emit('updateParameter')
+            this.emitter.emit('updateDatabase')
         })
     }
     
@@ -107,13 +107,13 @@ export class Util_Server {
         if((type & RenderUpdateType.Node) == RenderUpdateType.Node){
             for(const x of this.data.value.nodes){
                 const text = JSON.stringify(x)
-                this.config().send('save_node', x.ID, text)
+                this.config().send('save_node', x.uuid, text)
             }
         }
-        if((type & RenderUpdateType.Parameter) == RenderUpdateType.Parameter){
-            for(const x of this.data.value.parameters){
+        if((type & RenderUpdateType.Database) == RenderUpdateType.Database){
+            for(const x of this.data.value.databases){
                 const text = JSON.stringify(x)
-                this.config().send('save_parameter', x.uuid, text)
+                this.config().send('save_database', x.uuid, text)
             }
         }
     }
@@ -130,7 +130,7 @@ export class Util_Server {
             executeJobStart: (data:[Job, number, string]):void => { eps.forEach(x => x.executeJobStart(JSON.parse(JSON.stringify(data)))) },
             executeJobFinish: (data:[Job, number, string, number]):void => { eps.forEach(x => x.executeJobFinish(JSON.parse(JSON.stringify(data)))) },
             feedbackMessage: (data:FeedBack):void => { eps.forEach(x => x.feedbackMessage(JSON.parse(JSON.stringify(data)))) },
-            updateParameter: (data:Parameter):void => { eps.forEach(x => x.updateParameter(JSON.parse(JSON.stringify(data)))) },
+            updateDatabase: (data:Database):void => { eps.forEach(x => x.updateDatabase(JSON.parse(JSON.stringify(data)))) },
         }
         return p
     }

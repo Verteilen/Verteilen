@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
-import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../../interface";
-import { GetBlenderProject_Parameter } from '../../parameter/Blender';
+import { DataType, Job, JobCategory, JobType, Database, Project, Task } from "../../../interface";
+import { GetBlenderProject_Database } from '../../database/Blender';
 
 const Render = ():Task => {
     const render:Job = {
@@ -10,7 +10,8 @@ const Render = ():Task => {
         script: "",
         string_args: ["", "blender", "-b %project% %_a% %_s% %_e% -E %engine% -F %format% -t %thread% --log-level %log% -o %output%"],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -43,13 +44,13 @@ const Render = ():Task => {
 }
 
 export const GetBlenderSingleTemplate = (r:Project):Project => {
-    const para:Parameter = {
-        title: "Blender Parameter",
+    const para:Database = {
+        title: "Blender Database",
         uuid: uuidv6(),
         canWrite: true,
-        containers: GetBlenderProject_Parameter()
+        containers: GetBlenderProject_Database()
     }
-    r.parameter = para
+    r.database = para
     r.task = [
         Render()
     ]

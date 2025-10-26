@@ -1,6 +1,6 @@
-import { ParameterContainer, DataType } from "../../interface"
+import { DatabaseContainer, DataType } from "../../interface"
 
-export const GetDefaultProject_Parameter = ():ParameterContainer[] => {
+export const GetDefaultProject_Database = ():DatabaseContainer[] => {
     return [
         { name: "path", value: "C:\\Tool", type: DataType.String, runtimeOnly: false, hidden: false },
         { name: "cluster", value: 15, type: DataType.Number, runtimeOnly: false, hidden: false },

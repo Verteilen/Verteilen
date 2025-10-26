@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { DialogDATACreate } from '../../util/parameter';
+import { DialogDATACreate } from '../../util/database';
 import DialogBase from './DialogBase.vue';
 
 const data = defineModel<boolean>()

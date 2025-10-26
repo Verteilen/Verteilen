@@ -2,12 +2,12 @@
 import { IpcRendererEvent } from 'electron';
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, DataType, DataTypeBase, DataTypeText, Parameter, ParameterContainer, ParameterTemplate, ParameterTemplateText, PluginPageData, Preference, ToastData } from '../../interface';
+import { AppConfig, BusType, DataType, DataTypeBase, DataTypeText, Database, DatabaseContainer, DatabaseTemplate, DatabaseTemplateText, PluginPageData, Preference, ToastData } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, DATA, IndexToValue, Temp, Util_Parameter, ValueToGroupName } from '../../util/parameter';
+import { CreateField, DATA, IndexToValue, Temp, Util_Database, ValueToGroupName } from '../../util/database';
 import DialogBase from '../dialog/DialogBase.vue'
-import ParameterDialog from '../dialog/ParameterDialog.vue'
-import ParameterSetDialog from '../dialog/ParameterSetDialog.vue'
+import DatabaseDialog from '../dialog/DatabaseDialog.vue'
+import DatabaseSetDialog from '../dialog/DatabaseSetDialog.vue'
 import { v6 as uuidv6 } from 'uuid'
 import { BackendProxy } from '../../proxy';
 
@@ -15,8 +15,8 @@ interface PROPS {
     config: AppConfig
     preference: Preference
     backend: BackendProxy
-    select: Parameter | undefined
-    parameters: Array<Parameter>
+    select: Database | undefined
+    databases: Array<Database>
     plugin: PluginPageData
 }
 
@@ -24,8 +24,8 @@ const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
-    (e: 'added', data:Parameter): void
-    (e: 'edit', data:Parameter): void
+    (e: 'added', data:Database): void
+    (e: 'edit', data:Database): void
     (e: 'select', uuid:string): void
     (e: 'delete', uuid:string): void
     (e: 'return'): void
@@ -58,7 +58,7 @@ const data:Ref<DATA> = ref({
     selectModal: false,
     selectSearch: '',
     createModal: false,
-    createParameterModal: false,
+    createDatabaseModal: false,
     editMode: false,
     filterModal: false,
     deleteModal: false,
@@ -78,7 +78,7 @@ const data:Ref<DATA> = ref({
     object_temp: ''
 })
 
-const util:Util_Parameter = new Util_Parameter(props.backend, () => props.plugin, data, () => props.parameters, () => props.select)
+const util:Util_Database = new Util_Database(props.backend, () => props.plugin, data, () => props.databases, () => props.select)
 
 const items_final = computed(() => data.value.buffer.containers
     .filter(x => {
@@ -125,12 +125,12 @@ const select_option = computed(() => {
     })
 })
 
-const updateParameter = () => util.updateParameter()
-const selectParameter = (uuid:string) => { emits('select', uuid) }
-const recoverParameter = (p:Parameter) => { emits('added', p) }
-const createParameter = () => util.createParameter()
-const editParameter = (oldname:string) => util.editParameter(oldname)
-const saveParameter = () => { emits('edit', data.value.buffer) }
+const updateDatabase = () => util.updateDatabase()
+const selectDatabase = (uuid:string) => { emits('select', uuid) }
+const recoverDatabase = (p:Database) => { emits('added', p) }
+const createDatabase = () => util.createDatabase()
+const editDatabase = (oldname:string) => util.editDatabase(oldname)
+const saveDatabase = () => { emits('edit', data.value.buffer) }
 
 const confirmFilter = () => util.confirmFilter()
 const confirmCreate = () => util.confirmCreate()
@@ -143,8 +143,8 @@ const openSelectTemp = () => {
 }
 
 const selectSearchF = computed(() => {
-    if(data.value.selectSearch == undefined || data.value.selectSearch.length == 0) return props.parameters
-    return props.parameters.filter(x => x.title.includes(data.value.selectSearch!) || x.uuid.includes(data.value.selectSearch!))
+    if(data.value.selectSearch == undefined || data.value.selectSearch.length == 0) return props.databases
+    return props.databases.filter(x => x.title.includes(data.value.selectSearch!) || x.uuid.includes(data.value.selectSearch!))
 })
 
 const importPara = () => {
@@ -156,7 +156,7 @@ const ImportConfirm = () => {
     Promise.all(data.value.importData.map(x => x.text())).then(texts => {
         const a = texts.map(x => {
             try {
-                const buffer:Parameter = JSON.parse(x)
+                const buffer:Database = JSON.parse(x)
                 buffer.uuid = uuidv6()
                 return buffer
             }catch(err){
@@ -166,14 +166,14 @@ const ImportConfirm = () => {
         }).filter(x => x != undefined)
         a.forEach(aa => emits('added', aa))
         nextTick(() => {
-            updateParameter();
+            updateDatabase();
         })
     })
 }
 
 const exportPara = async () => {
     if(props.config.isElectron) {
-        props.backend.send("export_parameter", JSON.stringify(data.value.buffer))
+        props.backend.send("export_database", JSON.stringify(data.value.buffer))
     }else if(props.config.isExpress){
         const handle = await window.showSaveFilePicker({ suggestedName: data.value.buffer.uuid + '.json' });
         const writer = await handle.createWritable();
@@ -186,14 +186,14 @@ const confirmCreateSet = async (v:CreateField) => {
     const d = await util.confirmCreateSet()
     if(d == undefined) return
     emits('added', d)
-    data.value.createParameterModal = false
+    data.value.createDatabaseModal = false
 }
 
 const confirmEditSet = async (v:CreateField) => {
     const d = await util.confirmEditSet()
     if(d == undefined) return
     emits('edit', d)
-    data.value.createParameterModal = false
+    data.value.createDatabaseModal = false
 }
 
 const confirmSubmitSet = (v:CreateField) => {
@@ -221,7 +221,7 @@ const cloneSelect = () => {
 }
 
 const cloneSelectConfirm = () => {
-    const p:Parameter = JSON.parse(JSON.stringify(props.select))
+    const p:Database = JSON.parse(JSON.stringify(props.select))
     p.title = data.value.cloneName
     p.uuid = uuidv6()
     data.value.cloneModal = false
@@ -237,13 +237,13 @@ const DataTypeTranslate = (t:number):string => {
     return i18n.global.t(DataTypeText[t])
 }
 
-const parameterTemplateTranslate = (t:number):string => {
-    return ParameterTemplateText.hasOwnProperty(t) ? i18n.global.t(ParameterTemplateText[t]) : ""
+const databaseTemplateTranslate = (t:number):string => {
+    return DatabaseTemplateText.hasOwnProperty(t) ? i18n.global.t(DatabaseTemplateText[t]) : ""
 }
 
 const updateTemps = () => {
-    data.value.temps = Object.keys(ParameterTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
-        const text = parameterTemplateTranslate(IndexToValue(index))
+    data.value.temps = Object.keys(DatabaseTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
+        const text = databaseTemplateTranslate(IndexToValue(index))
         return {
             text: text.length > 0 ? text : x,
             group: ValueToGroupName(IndexToValue(index)) ?? '',
@@ -252,7 +252,7 @@ const updateTemps = () => {
     })
     let adder = 0
     props.plugin.templates.forEach(x => {
-        x.parameter.forEach(y => {
+        x.database.forEach(y => {
             const buffer:Temp = {
                 text: y.title ? y.title : "Null",
                 group: y.group,
@@ -280,7 +280,7 @@ const updateLocate = () => {
     })
 }
 
-const import_parameter_feedback = (e:IpcRendererEvent, v:string) => {
+const import_database_feedback = (e:IpcRendererEvent, v:string) => {
     const d = JSON.parse(v)
     data.value.buffer = d
     setdirty()
@@ -289,14 +289,14 @@ const import_parameter_feedback = (e:IpcRendererEvent, v:string) => {
 const paraSelect = () => { data.value.selectModal = true }
 
 const paraCreate = () => {
-    data.value.createParameterModal = true
+    data.value.createDatabaseModal = true
     data.value.editMode = false
     data.value.editData.name = ''
 }
 
 const paraEdit = () => {
     if(props.select == undefined) return
-    data.value.createParameterModal = true
+    data.value.createDatabaseModal = true
     data.value.editMode = true
     data.value.editData.name = props.select.title
 }
@@ -311,7 +311,7 @@ const specialPopupClose = () => {
 
 const confirmSpecialModify = () => {
     specialPopupClose()
-    saveParameter()
+    saveDatabase()
 }
 
 const confirmSpecialModify_O = () => {
@@ -329,7 +329,7 @@ const confirmSpecialModify_O = () => {
         return
     }
     specialPopupClose()
-    saveParameter()
+    saveDatabase()
 }
 
 const selectAdd = () => {
@@ -351,32 +351,32 @@ const selectAdd = () => {
     }
 }
 
-const modifyContent = (d:ParameterContainer) => {
+const modifyContent = (d:DatabaseContainer) => {
     specialPopupClose()
     data.value.objectModal = true
     data.value.objectTarget = d
     data.value.object_temp = JSON.stringify(d.value, null, 4)
 }
 
-const modifyContent_T = (d:ParameterContainer) => {
+const modifyContent_T = (d:DatabaseContainer) => {
     specialPopupClose()
     data.value.textareaModal = true
     data.value.textareaTarget = d
 }
 
-const modifyContent_S = (d:ParameterContainer) => {
+const modifyContent_S = (d:DatabaseContainer) => {
     specialPopupClose()
     data.value.selecterModal = true
     data.value.selecterTarget = d
 }
 
-const modifyContent_S1 = (d:ParameterContainer) => {
+const modifyContent_S1 = (d:DatabaseContainer) => {
     specialPopupClose()
     data.value.selecterModal1 = true
     data.value.selecterTarget = d
 }
 
-const modifyContent_L = (d:ParameterContainer) => {
+const modifyContent_L = (d:DatabaseContainer) => {
     specialPopupClose()
     data.value.listModal = true
     data.value.listTarget = d
@@ -392,37 +392,37 @@ const goreturn = () => {
 }
 
 const onHotkey = (value:string) => {
-    if(value == 'create_parameter'){
-        createParameter()
+    if(value == 'create_database'){
+        createDatabase()
     }
-    else if(value == 'parameter_save'){
+    else if(value == 'database_save'){
         if(data.value.objectModal) confirmSpecialModify_O()
-        else saveParameter()
+        else saveDatabase()
         
     }
 }
 
 onMounted(() => {
-    console.log("Parameter Mounted")
+    console.log("Database Mounted")
     updateLocate()
     emitter?.on('hotkey', onHotkey)
     emitter?.on('updateLocate', updateLocate)
-    emitter?.on('updateParameter', updateParameter)
-    emitter?.on('recoverParameter', recoverParameter)
-    emitter?.on('selectParameter', selectParameter)
+    emitter?.on('updateDatabase', updateDatabase)
+    emitter?.on('recoverDatabase', recoverDatabase)
+    emitter?.on('selectDatabase', selectDatabase)
     if(props.config.isElectron){
-        window.electronAPI.eventOn("import_parameter_feedback", import_parameter_feedback)
+        window.electronAPI.eventOn("import_database_feedback", import_database_feedback)
     }
 })
 
 onUnmounted(() => {
     emitter?.off('hotkey', onHotkey)
     emitter?.off('updateLocate', updateLocate)
-    emitter?.off('updateParameter', updateParameter)
-    emitter?.off('recoverParameter', recoverParameter)
-    emitter?.off('selectParameter', selectParameter)
+    emitter?.off('updateDatabase', updateDatabase)
+    emitter?.off('recoverDatabase', recoverDatabase)
+    emitter?.off('selectDatabase', selectDatabase)
     if(props.config.isElectron){
-        window.electronAPI.eventOff("import_parameter_feedback", import_parameter_feedback)
+        window.electronAPI.eventOff("import_database_feedback", import_database_feedback)
     }
 })
 
@@ -435,7 +435,7 @@ onUnmounted(() => {
                 <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <v-btn size="sm" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
                 <v-chip class="mx-3" v-if="select == undefined" prepend-icon="mdi-paperclip" @click="paraSelect" color="warning">
-                    {{ $t('parameter-select') }}
+                    {{ $t('database-select') }}
                 </v-chip>
                 <v-chip class="ml-3" v-else prepend-icon="mdi-paperclip" @click="paraSelect" color="success">
                     {{ select.title }}
@@ -445,7 +445,7 @@ onUnmounted(() => {
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="createParameter" :disabled="select == undefined">
+                        <v-btn icon v-bind="props" @click="createDatabase" :disabled="select == undefined">
                             <v-icon>mdi-tag-plus</v-icon>
                         </v-btn>
                     </template>
@@ -453,7 +453,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" color="success" @click="saveParameter" :disabled="select == undefined || !data.dirty">
+                        <v-btn icon v-bind="props" color="success" @click="saveDatabase" :disabled="select == undefined || !data.dirty">
                             <v-icon>mdi-content-save</v-icon>
                         </v-btn>
                     </template>
@@ -505,7 +505,7 @@ onUnmounted(() => {
             <v-checkbox class="pr-5 text-info" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
             <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': props.preference.font + 'px' }">
                 <template v-slot:item.detail="{ item }">
-                    <v-btn variant="text" icon @click="editParameter(item.name)" size="small">
+                    <v-btn variant="text" icon @click="editDatabase(item.name)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
                     <v-btn variant="text" icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
@@ -546,7 +546,7 @@ onUnmounted(() => {
                 </template>
             </v-data-table>
         </div>
-        <ParameterDialog width="500" v-model="data.createModal"
+        <DatabaseDialog width="500" v-model="data.createModal"
             :is-edit="data.editMode"
             :error-message="data.errorMessage"
             :title-error="data.titleError"
@@ -556,8 +556,8 @@ onUnmounted(() => {
             :preference="props.preference"
             @confirm-create="confirmCreate"
             @confirm-edit="confirmEdit">
-        </ParameterDialog>
-        <ParameterSetDialog width="500" v-model="data.createParameterModal"
+        </DatabaseDialog>
+        <DatabaseSetDialog width="500" v-model="data.createDatabaseModal"
             :is-edit="data.editMode"
             :error-message="data.errorMessage"
             :title-error="data.titleError"
@@ -565,14 +565,14 @@ onUnmounted(() => {
             :temps="data.temps"
             :preference="props.preference"
             @submit="confirmSubmitSet">
-        </ParameterSetDialog>
+        </DatabaseSetDialog>
         <DialogBase width="500" v-model="data.cloneModal" :preference="props.preference">
             <template #title>
                 <v-icon>mdi-content-paste</v-icon>
-                {{ $t('modal.clone-parameter-set') }}
+                {{ $t('modal.clone-database-set') }}
             </template>
             <template #text>
-                <v-text-field :error="data.titleError" v-model="data.cloneName" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
+                <v-text-field :error="data.titleError" v-model="data.cloneName" required :label="$t('modal.enter-database-set-name')" hide-details></v-text-field>
                 <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
             </template>
             <template #action>
@@ -582,7 +582,7 @@ onUnmounted(() => {
         <DialogBase width="500" v-model="data.selectModal" class="text-white" :preference="props.preference">
             <template #title>
                 <v-icon>mdi-pen</v-icon>
-                {{ $t('parameter-select') }}
+                {{ $t('database-select') }}
             </template>
             <template #text>
                 <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
@@ -596,7 +596,7 @@ onUnmounted(() => {
                             {{ p.uuid }}
                         </v-list-item-subtitle>
                         <template v-slot:append>
-                            <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid); data.selectModal = false"
+                            <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectDatabase(p.uuid); data.selectModal = false"
                             ></v-btn>
                         </template>
                     </v-list-item>
@@ -718,10 +718,10 @@ onUnmounted(() => {
         <DialogBase width="500" v-model="data.deleteModal" class="text-white">
             <template #title>
                 <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.delete-parameter') }}
+                {{ $t('modal.delete-database') }}
             </template>
             <template #text>
-                <p>{{ $t('modal.delete-parameter-confirm') }}</p>
+                <p>{{ $t('modal.delete-database-confirm') }}</p>
             </template>
             <template #action>
                 <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>

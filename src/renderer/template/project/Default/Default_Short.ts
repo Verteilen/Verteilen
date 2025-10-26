@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { Task, Job, JobCategory, JobType, ConditionResult, Project, Parameter } from '../../../interface';
+import { Task, Job, JobCategory, JobType, ConditionResult, Project, Database } from '../../../interface';
 
 const ck_print = ():Task => {
     const checker:Job = {
@@ -9,7 +9,8 @@ const ck_print = ():Task => {
         script: "",
         string_args: ["", "echo", "%ck%"],
         number_args: [ConditionResult.ThrowProject],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -29,7 +30,7 @@ const ck_print = ():Task => {
 }
 
 export const GetDefaultProjectTemplate_Short = (r:Project):Project => {
-    r.parameter = undefined
+    r.database = undefined
     r.task = [
         ck_print(),
     ]

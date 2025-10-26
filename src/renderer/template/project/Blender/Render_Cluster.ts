@@ -1,7 +1,7 @@
 import { v6 as uuidv6 } from 'uuid';
-import { DataType, Job, JobCategory, JobType, Parameter, Project, Task } from "../../../interface";
+import { DataType, Job, JobCategory, JobType, Database, Project, Task } from "../../../interface";
 import { Blender_GetClusterCount } from '../../js/blender/Cluster.Count';
-import { GetBlenderProject_Parameter } from '../../parameter/Blender';
+import { GetBlenderProject_Database } from '../../database/Blender';
 
 
 const Cluster = ():Task => {
@@ -12,7 +12,8 @@ const Cluster = ():Task => {
         script: Blender_GetClusterCount,
         string_args: [""],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -39,7 +40,8 @@ const Render = ():Task => {
         script: "",
         string_args: ["", "blender", "-b %project% -E %engine% -f %_f% -F %format% -t %thread% --log-level %log% -o %output%"],
         number_args: [],
-        boolean_args: []
+        boolean_args: [],
+        id_args: [],
     }
     const t:Task = {
         uuid: uuidv6(),
@@ -64,13 +66,13 @@ const Render = ():Task => {
 }
 
 export const GetBlenderClusterTemplate = (r:Project):Project => {
-    const para:Parameter = {
-        title: "Blender Parameter",
+    const para:Database = {
+        title: "Blender Database",
         uuid: uuidv6(),
         canWrite: true,
-        containers: GetBlenderProject_Parameter()
+        containers: GetBlenderProject_Database()
     }
-    r.parameter = para
+    r.database = para
     r.task = [
         Cluster(),
         Render(),

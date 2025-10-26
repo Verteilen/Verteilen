@@ -1,5 +1,5 @@
 import { TemplateGroup, TemplateGroup2 } from '../interface'
-import { GetDefaultProject_Parameter } from './parameter/Default'
+import { GetDefaultProject_Database } from './database/Default'
 import { GetAfterEffectTemplate } from './project/AfterEffect/Render'
 import { GetBlenderClusterTemplate } from './project/Blender/Render_Cluster'
 import { GetBlenderSingleTemplate } from './project/Blender/Render_Single'
@@ -19,6 +19,6 @@ export const BuildIn_ProjectTempGroup:Array<TemplateGroup> = [
     { group: "After Effect", value: 200, template: GetAfterEffectTemplate },
 ]
 
-export const BuildIn_ParameterTempGroup:Array<TemplateGroup2> = [
-    { group: "Default", title: 'Default Parameter', value: 0, template: GetDefaultProject_Parameter },
+export const BuildIn_DatabaseTempGroup:Array<TemplateGroup2> = [
+    { group: "Default", title: 'Default Database', value: 0, template: GetDefaultProject_Database },
 ]

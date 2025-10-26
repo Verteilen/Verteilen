@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, Ref, ref, watch } from 'vue'
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import { CreateField, DialogDATACreateSet, Temp } from '../../util/parameter';
+import { CreateField, DialogDATACreateSet, Temp } from '../../util/database';
 import DialogBase from '../dialog/DialogBase.vue'
 
 const theme = useTheme()

@@ -1,6 +1,6 @@
-import { ParameterContainer, DataType } from "../../interface"
+import { DatabaseContainer, DataType } from "../../interface"
 
-export const GetBlenderProject_Parameter = ():ParameterContainer[] => {
+export const GetBlenderProject_Database = ():DatabaseContainer[] => {
     return [
         { name: "project", value: "C:\\project\\file.blender", type: DataType.String, runtimeOnly: false, hidden: false },
         { name: "output", value: "C:\\project\\output\\frame_#####", type: DataType.String, runtimeOnly: false, hidden: false },

@@ -20,7 +20,7 @@ import {
   JobType2, 
   NodeProxy, 
   NodeTable, 
-  Parameter, 
+  Database, 
   Preference, 
   Project, 
   Property, 
@@ -44,7 +44,7 @@ import JobPage from './server/Job.vue';
 import LibraryPage from './server/Library.vue';
 import LogPage from './server/Log.vue';
 import NodePage from './server/Node.vue';
-import ParameterPage from './server/Parameter.vue';
+import DatabasePage from './server/Database.vue';
 import ProjectPage from './server/Project.vue';
 import SelfPage from './server/Self.vue';
 import TaskPage from './server/Task.vue';
@@ -72,13 +72,13 @@ const data:Ref<DATA> = ref({
     page: 0,
     select_manager: 0,
     lanSelect: i18n.global.locale as string,
-    parameters: [],
+    databases: [],
     projects: [],
     libs: {libs: []},
     logs: {logs: []},
     selectProject: undefined,
     selectTask: undefined,
-    selectParameter: undefined,
+    selectDatabase: undefined,
     nodes: [],
     messages: [],
     plugin: { plugins: [], templates: [] }
@@ -101,7 +101,7 @@ const config = computed(() => backend.config)
 const selectExecute = computed(() => data.value.execute_manager[data.value.select_manager])
 const projectbind = computed(() => {
   if(data.value.selectProject == undefined) return undefined
-  return data.value.parameters.find(x => x.uuid == data.value.selectProject?.parameter_uuid) 
+  return data.value.databases.find(x => x.uuid == data.value.selectProject?.database_uuid) 
 })
 //#endregion
 
@@ -138,14 +138,14 @@ const deleteJob = (uuids:Array<string>) => util.job.deleteJob(uuids)
 const server_clients_update = (v:Array<NodeTable>) => util.node.server_clients_update(v)
 //#endregion
 
-//#region Parameter
-const addParameter = (e:Parameter) => util.parameter.addParameter(e)
-const selectParameter = (e:string) => util.parameter.selectParameter(e)
-const editParameter = (e:Parameter) => util.parameter.editParameter(e)
-const deleteParameter = (e:string) => util.parameter.deleteParameter(e)
-const goParameter = (e:string) => {
+//#region Database
+const addDatabase = (e:Database) => util.database.addDatabase(e)
+const selectDatabase = (e:string) => util.database.selectDatabase(e)
+const editDatabase = (e:Database) => util.database.editDatabase(e)
+const deleteDatabase = (e:string) => util.database.deleteDatabase(e)
+const goDatabase = (e:string) => {
   data.value.page = 3
-  nextTick(() => emitter?.emit('selectParameter', e))
+  nextTick(() => emitter?.emit('selectDatabase', e))
 }
 //#endregion
 
@@ -199,7 +199,7 @@ const libDelete = (file:string) => {
   })
   allUpdate()
 }
-const libJs = (code:string, para:Parameter | undefined) => { backend.send('javascript', code, para ? JSON.stringify(para) : undefined) }
+const libJs = (code:string, para:Database | undefined) => { backend.send('javascript', code, para ? JSON.stringify(para) : undefined) }
 //#endregion
 
 //#region Console
@@ -350,8 +350,8 @@ const updateTab = () => {
     if(backend.user.permission?.job.view){
       tabs.value.push(["mdi-hammer", "toolbar.job", 2])
     }
-    if(backend.user.permission?.parameter.view){
-      tabs.value.push(["mdi-database", "toolbar.parameter", 3])
+    if(backend.user.permission?.database.view){
+      tabs.value.push(["mdi-database", "toolbar.database", 3])
     }
     tabs.value.push(["", "toolbar.compute", -1])
     if(backend.user.permission?.node.view){
@@ -366,7 +366,7 @@ const updateTab = () => {
       ["mdi-cube", "toolbar.project", 0],
       ["mdi-calendar", "toolbar.task", 1],
       ["mdi-hammer", "toolbar.job", 2],
-      ["mdi-database", "toolbar.parameter", 3],
+      ["mdi-database", "toolbar.database", 3],
       ["", "toolbar.compute", -1],
       ["mdi-network", "toolbar.node", 4],
       ["mdi-console-line", "toolbar.console", 5],
@@ -456,7 +456,7 @@ const hotkey = (event:KeyboardEvent) => {
     if(event.key == 'q') data.value.page = 0 // Project
     else if(event.key == 'w') data.value.page = 1 // Task
     else if(event.key == 'e') data.value.page = 2 // Job
-    else if(event.key == 'r') data.value.page = 3 // Parameter
+    else if(event.key == 'r') data.value.page = 3 // Database
     else if(event.key == 'a') data.value.page = 4 // Node
     else if(event.key == 's') data.value.page = 5 // Console
     else if(event.key == 'd') data.value.page = 6 // Log
@@ -475,14 +475,14 @@ const hotkey = (event:KeyboardEvent) => {
     if(event.key == 'q' && data.value.page == 0) emitter?.emit('hotkey', 'create_project')
     if(event.key == 'q' && data.value.page == 1) emitter?.emit('hotkey', 'create_task')
     if(event.key == 'q' && data.value.page == 2) emitter?.emit('hotkey', 'create_job')
-    if(event.key == 'q' && data.value.page == 3) emitter?.emit('hotkey', 'create_parameter')
+    if(event.key == 'q' && data.value.page == 3) emitter?.emit('hotkey', 'create_database')
     if(event.key == 'q' && data.value.page == 4) emitter?.emit('hotkey', 'create_node')
     if(event.key == 'q' && data.value.page == 5) emitter?.emit('hotkey', 'create_console')
     if(event.key == 'q' && data.value.page == 7) emitter?.emit('hotkey', 'create_lib')
     if(event.key == 'q' && data.value.page == 11) emitter?.emit('hotkey', 'create_plugin')
     if(event.key == 'w' && data.value.page == 11) emitter?.emit('hotkey', 'create_template')
     if(event.key == 's' && data.value.page == 2) emitter?.emit('hotkey', 'job_save')
-    if(event.key == 's' && data.value.page == 3) emitter?.emit('hotkey', 'parameter_save')
+    if(event.key == 's' && data.value.page == 3) emitter?.emit('hotkey', 'database_save')
     if(event.key == 's' && data.value.page == 7) emitter?.emit('hotkey', 'lib_save')
   }
 }
@@ -498,10 +498,10 @@ const repull = (u:FrontendUpdate) => {
     c.push(p3)
   }
   if((u & FrontendUpdate.PARAMETER) == FrontendUpdate.PARAMETER){
-    const p5 = backend.invoke('load_all_parameter').then(x => {
+    const p5 = backend.invoke('load_all_database').then(x => {
       const texts:Array<string> = JSON.parse(x)
-      data.value.parameters = texts.map(y => JSON.parse(y))
-      if (process.env.NODE_ENV == 'development') console.log("Parameters", data.value.libs)
+      data.value.databases = texts.map(y => JSON.parse(y))
+      if (process.env.NODE_ENV == 'development') console.log("Databases", data.value.libs)
     })
     c.push(p5)
   }
@@ -750,7 +750,7 @@ onUnmounted(() => {
             :backend="backend"
             :projects="data.projects" 
             :plugin="data.plugin"
-            :parameters="data.parameters"
+            :databases="data.databases"
             :config="config"
             :preference="preference"
             @added="e => addProject(e)" 
@@ -765,7 +765,7 @@ onUnmounted(() => {
             :projects="data.projects" 
             :select="data.selectProject" 
             :preference="preference"
-            :parameters="data.parameters"
+            :databases="data.databases"
             @added="e => addTask(e)" 
             @edit="(id, e) => editTask(id, e)" 
             @select="e => chooseTask(e)"
@@ -773,7 +773,7 @@ onUnmounted(() => {
             @delete="e => deleteTask(e)"
             @moveup="e => moveupTask(e)"
             @movedown="e => movedownTask(e)"
-            @parameter="e => goParameter(e)"
+            @database="e => goDatabase(e)"
             @return="data.page = 0"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="2">
@@ -782,7 +782,7 @@ onUnmounted(() => {
             :select="data.selectTask"
             :owner="data.selectProject"
             :libs="data.libs"
-            :parameter="projectbind"
+            :database="projectbind"
             :preference="preference"
             @added="e => addJob(e)" 
             @edit="(e, e2) => editJob(e, e2)" 
@@ -790,17 +790,17 @@ onUnmounted(() => {
             @return="data.page = 1"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="3">
-          <ParameterPage
+          <DatabasePage
             :config="config"
-            :parameters="data.parameters"
-            :select="data.selectParameter"
+            :databases="data.databases"
+            :select="data.selectDatabase"
             :backend="backend"
             :preference="preference"
             :plugin="data.plugin"
-            @added="e => addParameter(e)"
-            @select="e => selectParameter(e)"
-            @edit="e => editParameter(e)" 
-            @delete="e => deleteParameter(e)"
+            @added="e => addDatabase(e)"
+            @select="e => selectDatabase(e)"
+            @edit="e => editDatabase(e)" 
+            @delete="e => deleteDatabase(e)"
             @return="data.page = 1"/>
         </v-tabs-window-item>
         <v-tabs-window-item :value="4">
@@ -820,7 +820,7 @@ onUnmounted(() => {
             :libs="data.libs"
             :projects="data.projects"
             :nodes="data.nodes"
-            :parameters="data.parameters"
+            :databases="data.databases"
             v-model="selectExecute"
             @added="(e, e1) => consoleAdded(e, e1)"
             @stop="consoleStop()"
@@ -839,7 +839,7 @@ onUnmounted(() => {
           <LibraryPage
             :backend="backend"
             :preference="preference"
-            :parameters="data.parameters"
+            :databases="data.databases"
             @edit="(d, d1) => libEdit(d, d1)"
             @save="(d, d1, d2) => libSave(d, d1, d2)"
             @load="d => libLoad(d)"

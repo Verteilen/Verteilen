@@ -1,12 +1,12 @@
 import { v6 as uuid6 } from 'uuid';
 import { Ref } from "vue";
-import { DataType, DataTypeBase, Parameter, ParameterContainer, PluginPageData, Preference } from "../interface";
+import { DataType, DataTypeBase, Database, DatabaseContainer, PluginPageData, Preference } from "../interface";
 import { i18n } from "../plugins/i18n";
-import { BuildIn_ParameterTempGroup } from '../template/projectTemplate';
+import { BuildIn_DatabaseTempGroup } from '../template/projectTemplate';
 import { BackendProxy } from '../proxy';
 
-type getparameters = () => Array<Parameter>
-type getparameter = () => Parameter | undefined
+type getdatabases = () => Array<Database>
+type getdatabase = () => Database | undefined
 type getplugin = () => PluginPageData
 
 export interface Temp {
@@ -45,7 +45,7 @@ export interface DialogDATA {
 }
 
 export interface DialogDATACreate extends DialogDATA{
-    targetData: ParameterContainer
+    targetData: DatabaseContainer
     options: Array<OPTION>
     preference?: Preference
 }
@@ -68,25 +68,25 @@ export interface DATA {
     selecterModal1: boolean
     textareaModal: boolean
     listModal: boolean
-    objectTarget: ParameterContainer | undefined
-    selecterTarget: ParameterContainer | undefined
-    textareaTarget: ParameterContainer | undefined
-    listTarget: ParameterContainer | undefined
+    objectTarget: DatabaseContainer | undefined
+    selecterTarget: DatabaseContainer | undefined
+    textareaTarget: DatabaseContainer | undefined
+    listTarget: DatabaseContainer | undefined
     selectModal: boolean
     selectSearch: string | undefined
     createModal: boolean
-    createParameterModal:boolean
+    createDatabaseModal:boolean
     editMode: boolean
     filterModal: boolean
     deleteModal: boolean
-    createData: ParameterContainer
+    createData: DatabaseContainer
     editData: EDIT
     filter: FILTER
     buffer_filter: FILTER
     options: Array<OPTION>
     options1: Array<OPTION>
     dirty: boolean
-    buffer: Parameter
+    buffer: Database
     errorMessage: string
     titleError: boolean
     temps: Array<Temp>
@@ -95,32 +95,32 @@ export interface DATA {
     object_temp: string
 }
 
-export const ValueToGroupName = (v:number) => BuildIn_ParameterTempGroup.find(x => x.value == v)?.group
-export const IndexToValue = (v:number) => BuildIn_ParameterTempGroup[v].value
+export const ValueToGroupName = (v:number) => BuildIn_DatabaseTempGroup.find(x => x.value == v)?.group
+export const IndexToValue = (v:number) => BuildIn_DatabaseTempGroup[v].value
 
-export class Util_Parameter {
+export class Util_Database {
     backend: BackendProxy
     plugin: getplugin
-    parameters:getparameters
-    parameter:getparameter
+    databases:getdatabases
+    database:getdatabase
     data:Ref<DATA>
 
-    constructor(_backend: BackendProxy, _plugin: getplugin, _data:Ref<DATA>, _getparameters:getparameters, _getparameter:getparameter){
+    constructor(_backend: BackendProxy, _plugin: getplugin, _data:Ref<DATA>, _getdatabases:getdatabases, _getdatabase:getdatabase){
         this.backend =_backend
         this.plugin = _plugin
         this.data = _data
-        this.parameters = _getparameters
-        this.parameter = _getparameter
+        this.databases = _getdatabases
+        this.database = _getdatabase
     }
 
-    updateParameter = () => {
+    updateDatabase = () => {
         this.data.value.dirty = false
-        this.data.value.buffer = this.parameter() ? 
-            JSON.parse(JSON.stringify(this.parameter())) : 
+        this.data.value.buffer = this.database() ? 
+            JSON.parse(JSON.stringify(this.database())) : 
             { uuid: '', title: '', canWrite: true, containers: [] }
     }
 
-    createParameter = () => {
+    createDatabase = () => {
         this.data.value.createData = { name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number }
         this.data.value.createModal = true
         this.data.value.editMode = false
@@ -128,7 +128,7 @@ export class Util_Parameter {
         this.data.value.titleError = false
     }
 
-    editParameter = (oldname:string) => {
+    editDatabase = (oldname:string) => {
         const p = this.data.value.buffer.containers.find(x => x.name == oldname)
         if(p == undefined) return
         this.data.value.createData = JSON.parse(JSON.stringify(p))
@@ -156,7 +156,7 @@ export class Util_Parameter {
             this.data.value.titleError = true
             return
         }
-        const p:ParameterContainer = JSON.parse(JSON.stringify(this.data.value.createData))
+        const p:DatabaseContainer = JSON.parse(JSON.stringify(this.data.value.createData))
         if(p.type == DataType.String) p.value = ""
         else if(p.type == DataType.Object) p.value = {}
         else if(p.type == DataType.Boolean) p.value = true
@@ -198,7 +198,7 @@ export class Util_Parameter {
         this.data.value.dirty = true
     }
 
-    confirmCreateSet = async ():Promise<Parameter | undefined> => {
+    confirmCreateSet = async ():Promise<Database | undefined> => {
         if(this.data.value.editData.name.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
@@ -211,7 +211,7 @@ export class Util_Parameter {
                 return
             }
         }
-        const d:Parameter = {
+        const d:Database = {
             title: this.data.value.editData.name,
             uuid: uuid6(),
             canWrite: true,
@@ -219,7 +219,7 @@ export class Util_Parameter {
         }
         if(this.data.value.editData.temp != null){
             const index = this.data.value.editData.temp
-            const p = BuildIn_ParameterTempGroup.find(x => x.value === index)
+            const p = BuildIn_DatabaseTempGroup.find(x => x.value === index)
             if(p != undefined){
                 d.containers = p.template!()
             }else{
@@ -227,18 +227,18 @@ export class Util_Parameter {
                 let mfilename: string = ""
                 let mGruop: string = ""
                 this.plugin().templates.forEach(x => {
-                    x.parameter.forEach(y => {
+                    x.database.forEach(y => {
                         if(y.title == select){
                             mfilename = y.filename!
                             mGruop = y.group
                         }
                     })
                 })
-                let p = await this.backend.invoke('get_parameter', mGruop, mfilename)
+                let p = await this.backend.invoke('get_database', mGruop, mfilename)
                 try{
                     d.containers = JSON.parse(p)
                 }catch(e){
-                    console.error("Failed to parse parameter template", p, mGruop, mfilename, e)
+                    console.error("Failed to parse database template", p, mGruop, mfilename, e)
                 }
             }
         }
@@ -246,17 +246,17 @@ export class Util_Parameter {
     }
 
     confirmEditSet = async () => {
-        if(this.parameter() == undefined) return
+        if(this.database() == undefined) return
         if(this.data.value.editData.name.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
             return
         }
-        const d:Parameter = {
+        const d:Database = {
             title: this.data.value.editData.name,
-            uuid: this.parameter()!.uuid,
-            canWrite: this.parameter()!.canWrite,
-            containers: this.parameter()!.containers
+            uuid: this.database()!.uuid,
+            canWrite: this.database()!.canWrite,
+            containers: this.database()!.containers
         }
         return d
     }
