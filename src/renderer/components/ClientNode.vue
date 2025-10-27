@@ -10,9 +10,11 @@ import {
   RENDER_UPDATETICK 
 } from './../interface'
 import { BackendProxy } from '../proxy'
+import { i18n } from '../plugins/i18n'
 //#endregion
 
 //#region Data
+const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:BackendProxy = inject("backend")!
 const preference:Preference = inject("preference")!

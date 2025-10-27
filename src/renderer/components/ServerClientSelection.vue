@@ -13,6 +13,7 @@ import { i18n } from './../plugins/i18n'
 //#region Views
 import AppBar from './components/layout/AppBar.vue'
 import { BackendProxy } from '../proxy'
+import Layout from './components/layout/Layout.vue'
 //#endregion
 
 //#region Data
@@ -93,10 +94,9 @@ const confirm = () => {
 </script>
 
 <template>
-    <div style="margin: 0; padding-top: 16px; width: 100vw; height: calc(100vh - 56px); place-items: center;"
-        :class="{ 'bg-dark': preference.theme == 'dark', 'bg-light': preference.theme == 'light' }">
+    <Layout>
         <!-- Top Appbar -->
-        <AppBar />
+        <AppBar :title="$t('modeselect.titlebar')" />
 
         <v-carousel
             v-model.number="data.page"
@@ -184,7 +184,7 @@ const confirm = () => {
                 <v-btn class="mx-2" color="success" append-icon="mdi-play" @click="confirm()">{{ $t("confirm") }}</v-btn>
             </v-carousel-item>
         </v-carousel>
-    </div>
+    </Layout>
 </template>
 
 <style scoped>

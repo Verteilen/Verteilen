@@ -1,7 +1,7 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Ref } from "vue";
-import { DataType, Preference, Project, Task, TaskTable } from "../interface";
-import { i18n } from '../plugins/i18n';
+import { DataType, Preference, Project, Task, TaskTable } from "../../interface";
+import { i18n } from '../../plugins/i18n';
 
 type getselect = () => Project | undefined
 
@@ -58,22 +58,16 @@ export class Util_Task {
     updateTask = () => {
         const p = this.select_props
         this.data.value.items = p?.task.map(x => {
-            return {
-                s: false,
-                ID: x.uuid,
-                setupjob: x.setupjob,
-                cronjob: x.cronjob,
-                multi: x.multi,
-                title: x.title,
-                description: x.description,
-                jobCount: x.jobs.length
-            }
+            const y:TaskTable = JSON.parse(JSON.stringify(x))
+            y.s = false
+            y.jobCount = y.jobs.length
+            return y
         }) ?? []
-        const allid = this.data.value.items.map(x => x.ID)
+        const allid = this.data.value.items.map(x => x.uuid)
         this.data.value.selection = this.data.value.selection.filter(x => allid.includes(x)) 
     }
 
-    updateParameter = () => {
+    updateDatabase = () => {
         const p = this.select_props
     }
 
@@ -87,7 +81,7 @@ export class Util_Task {
     cloneSelect = () => {
         const p = this.select_props
         if(p == undefined) return undefined
-        const selected_task_ids = this.data.value.items.filter(x => this.data.value.selection.includes(x.ID)).map(x => x.ID)
+        const selected_task_ids = this.data.value.items.filter(x => this.data.value.selection.includes(x.uuid)).map(x => x.uuid)
         const ts:Array<Task> = p.task.filter(x => selected_task_ids.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
         ts.forEach(x => {
             x.uuid = uuidv6()

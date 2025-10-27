@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2024",
     "useDefineForClassFields": true,
     "module": "nodenext",
     "moduleResolution": "nodenext",

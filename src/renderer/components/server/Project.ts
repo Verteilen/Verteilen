@@ -1,20 +1,20 @@
 import { v6 as uuidv6 } from 'uuid';
 import { AppConfig, Plugin, Ref } from "vue";
-import { Parameter, PluginPageData, Preference, Project, ProjectTable } from "../interface";
-import { i18n } from '../plugins/i18n';
-import { BuildIn_ProjectTempGroup } from '../template/projectTemplate';
-import { BackendProxy } from '../proxy';
+import { Database, PluginPageData, Preference, Project, ProjectTable } from "../../interface";
+import { i18n } from '../../plugins/i18n';
+import { BuildIn_ProjectTempGroup } from '../../template/projectTemplate';
+import { BackendProxy } from '../../proxy';
 
 type getproject = () => Array<Project>
-type getparameters = () => Array<Parameter>
+type getdatabases = () => Array<Database>
 type getplugin = () => PluginPageData
 
 export interface CreateField {
     title: string
-    description: string
+    description?: string
     useTemp: boolean
     usePara: boolean
-    parameter: string | null
+    database: string | null
     temp: number | string | null
 }
 
@@ -51,7 +51,7 @@ export interface DATA {
 
 export interface DialogDATA {
     isEdit: boolean
-    parameters: Array<Parameter>
+    databases: Array<Database>
     editData: CreateField
     errorMessage: string
     titleError: boolean
@@ -66,19 +66,19 @@ export class Util_Project {
     backend: BackendProxy
     plugin: getplugin
     getproject:getproject
-    getparameters: getparameters
+    getdatabases: getdatabases
     data:Ref<DATA>
     
     public get projects() : Array<Project> {
         return this.getproject()
     }
 
-    constructor(_backend: BackendProxy, _plugin: getplugin, _data:Ref<DATA>, _getproject:getproject, _getparameters:getparameters){
+    constructor(_backend: BackendProxy, _plugin: getplugin, _data:Ref<DATA>, _getproject:getproject, _getdatabases:getdatabases){
         this.backend =_backend
         this.plugin = _plugin
         this.data = _data
         this.getproject = _getproject
-        this.getparameters = _getparameters
+        this.getdatabases = _getdatabases
     }
 
     isFirst = (uuid:string) => {
@@ -95,7 +95,7 @@ export class Util_Project {
         this.data.value.isEdit = true
         const selectp = this.projects.find(x => x.uuid == uuid)
         if(selectp == undefined) return;
-        this.data.value.editData = {title: selectp.title, usePara: false, description: selectp.description, useTemp: false, temp: 0, parameter: null};
+        this.data.value.editData = {title: selectp.title, usePara: false, description: selectp.description, useTemp: false, temp: 0, database: null};
         this.data.value.dialogModal = true;
         this.data.value.editUUID = uuid;
         this.data.value.errorMessage = ''
@@ -106,19 +106,22 @@ export class Util_Project {
         this.data.value.items = this.projects.map(x => {
             return {
                 s: false,
-                ID: x.uuid,
+                uuid: x.uuid,
                 title: x.title,
                 description: x.description,
+                database: x.database,
+                database_uuid: x.database_uuid,
+                task: x.task,
                 taskCount: x.task.length
             }
         })
-        const allid = this.data.value.items.map(x => x.ID)
+        const allid = this.data.value.items.map(x => x.uuid)
         this.data.value.selection = this.data.value.selection.filter(x => allid.includes(x))
     }
 
     createProject = () => {
         this.data.value.isEdit = false
-        this.data.value.editData = {title: "", description: "", usePara: false, useTemp: false, temp: 0, parameter: null};
+        this.data.value.editData = {title: "", description: "", usePara: false, useTemp: false, temp: 0, database: null};
         this.data.value.dialogModal = true
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
@@ -135,8 +138,8 @@ export class Util_Project {
             uuid: uuidv6(),
             title: this.data.value.editData.title, 
             description: this.data.value.editData.description,
-            parameter_uuid: this.data.value.editData.parameter ?? '',
-            parameter: undefined,
+            database_uuid: this.data.value.editData.database ?? '',
+            database: undefined,
             task: []
         }
         if (this.data.value.editData.useTemp){
@@ -164,11 +167,11 @@ export class Util_Project {
             }
         }
         if(this.data.value.editData.usePara){
-            const target = this.getparameters().find(x => x.uuid == this.data.value.editData.parameter)
+            const target = this.getdatabases().find(x => x.uuid == this.data.value.editData.database)
             if(target != undefined){
-                buffer.parameter_uuid = target.uuid
-                buffer.parameter = undefined
-            } else console.error("Cannot find parameter template by id", this.data.value.editData.parameter)
+                buffer.database_uuid = target.uuid
+                buffer.database = undefined
+            } else console.error("Cannot find database template by id", this.data.value.editData.database)
         }
         return buffer
     }

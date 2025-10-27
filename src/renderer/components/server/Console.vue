@@ -13,20 +13,19 @@ import {
     Project, 
     Record 
 } from '../../interface';
-import { DATA } from '../../util/console';
+import { DATA } from './Console';
+import { BackendProxy } from '../../proxy';
+import { i18n } from 'verteilen-core/src/plugins/i18n';
 import ConsoleDialog from '../dialog/ConsoleDialog.vue';
 import NumberDialog from '../dialog/NumberDialog.vue';
 import DebugLog from './../components/console/DebugLog.vue';
 import List from './../components/console/List.vue';
 import DatabasePage from './../components/console/Database.vue';
 import Process from './../components/console/Process.vue';
-import { BackendProxy } from '../../proxy';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
-    backend: BackendProxy
-    preference: Preference
     socket: Execute_WebhookManager.WebhookManager | undefined
     execute: Array<ExecutePair>
     libs: Libraries
@@ -34,6 +33,9 @@ interface PROPS {
     nodes: Array<NodeTable>
     databases: Array<Database>
 }
+const $t = i18n.global.t
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
 const p_model = defineModel<ExecutePair>()
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
@@ -83,10 +85,10 @@ const updateHandle = () => {
         model.value = { meta: Number.MIN_VALUE }
     }
 
-    if(props.backend.config.haveBackend){
+    if(backend.config.haveBackend){
         if(!updateWait.value){
             updateWait.value = true
-            props.backend.invoke("console_update").then((xs:Array<any>) => {
+            backend.invoke("console_update").then((xs:Array<any>) => {
                 if(xs){
                     for(let i = 0; i < xs.length; i++){
                         const x = xs[i]
@@ -106,7 +108,7 @@ const updateHandle = () => {
         }
         if(!queryWait.value && p_model.value?.record != undefined){
             queryWait.value = true
-            props.backend.invoke("console_record", p_model.value.record.uuid).then(x => {
+            backend.invoke("console_record", p_model.value.record.uuid).then(x => {
                 try{
                     const t = JSON.parse(x)
                     if(p_model.value?.record != undefined && t != undefined) p_model.value!.record = t
@@ -162,8 +164,8 @@ const createConsole = () => {
  * * 2: SIngle task through
  */
 const execute = (type:number) => {
-    if(props.backend.config.haveBackend){
-        props.backend.send('console_execute', model.value.record!.uuid, type)
+    if(backend.config.haveBackend){
+        backend.send('console_execute', model.value.record!.uuid, type)
     }else{
         model.value.record!.process_type = type
         model.value.record!.running = true
@@ -181,11 +183,11 @@ const execute = (type:number) => {
  */
 const skip = (forward:boolean, type:number, state:ExecuteState = ExecuteState.FINISH) => {
     console.log("skip", type, state)
-    if(props.backend.config.haveBackend){
+    if(backend.config.haveBackend){
         if(type == 2) {
             data.value.skipModal = true
         }else{
-            props.backend.send('console_skip', model.value.record?.uuid, forward, type, state)
+            backend.send('console_skip', model.value.record?.uuid, forward, type, state)
         }
     }else{
         if(type == 0){
@@ -257,8 +259,8 @@ const skip = (forward:boolean, type:number, state:ExecuteState = ExecuteState.FI
  * When user click confirm on the skip step modal
  */
 const confirmSkip = (v:number) => {
-    if(props.backend.config.haveBackend){
-        props.backend.send('console_skip2', model.value.record?.uuid, v)
+    if(backend.config.haveBackend){
+        backend.send('console_skip2', model.value.record?.uuid, v)
     }else{
         const index = model.value.manager!.SkipSubTask(v)
         if(index < 0) {
@@ -277,8 +279,8 @@ const confirmSkip = (v:number) => {
  */
 const clean = () => {
     stop()
-    if(props.backend.config.haveBackend){
-        props.backend.send('console_clean', model.value.record!.uuid)
+    if(backend.config.haveBackend){
+        backend.send('console_clean', model.value.record!.uuid)
     }else{
         model.value.manager!.Clean()
         model.value.record!.projects = []
@@ -301,8 +303,8 @@ const clean = () => {
  * If you want to destroy and reset all state, you should call {@link clean()} function instead
  */
 const stop = () => {
-    if(props.backend.config.haveBackend){
-        props.backend.send('console_stop', model.value.record!.uuid)
+    if(backend.config.haveBackend){
+        backend.send('console_stop', model.value.record!.uuid)
     }else{
         model.value.record!.stop = true
         model.value.manager!.Stop()
@@ -332,7 +334,7 @@ onUnmounted(() => {
 <template>
     <div fluid class="ma-0 pa-0">
         <div class="py-3">
-            <v-toolbar density="compact" class="px-3" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-toolbar density="compact" class="px-3" :style="{ 'fontSize': preference.font + 'px' }">
                 <p v-if="model.record != undefined">{{ $t('execute') }}</p>
                 <v-tooltip location="bottom" v-if="model.record != undefined">
                     <template v-slot:activator="{ props }">
@@ -429,7 +431,7 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="data.leftSize" class="border border-e-lg">
-                <v-list v-model.number="data.tag" mandatory color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
+                <v-list v-model.number="data.tag" mandatory color="success" :style="{ 'fontSize': preference.font + 'px' }">
                     <v-list-item v-if="model.record != undefined" @click="data.tag = 0" :value="0" :active="data.tag == 0">
                         {{ $t('console.list') }}
                     </v-list-item>
@@ -443,7 +445,7 @@ onUnmounted(() => {
                         Debug Log
                     </v-list-item>
                 </v-list>
-                <v-list mandatory v-if="props.execute.length > 0" color="success" :style="{ 'fontSize': props.preference.font + 'px' }">
+                <v-list mandatory v-if="props.execute.length > 0" color="success" :style="{ 'fontSize': preference.font + 'px' }">
                     <v-list-item v-for="(exe, i) in props.execute" :key="i" 
                         :active="exe.record?.uuid == model.record?.uuid"
                         @click="emits('select', i)">
@@ -457,33 +459,30 @@ onUnmounted(() => {
                 </v-list>
             </v-col>
             <v-col v-if="model.record != undefined" :cols="data.rightSize" v-show="data.tag == 0">
-                <List v-model="model" :nodes="props.nodes" :preference="props.preference" />
+                <List v-model="model" :nodes="props.nodes" />
             </v-col>
             <v-col v-if="model.record != undefined" :cols="data.rightSize" v-show="data.tag == 1">
-                <Process v-model="model" :socket="props.socket" :preference="props.preference" />
+                <Process v-model="model" :socket="props.socket" :preference="preference" />
             </v-col>
             <v-col :cols="data.rightSize" v-show="data.tag == 2">
-                <DebugLog :preference="props.preference" />
+                <DebugLog :preference="preference" />
             </v-col>
             <v-col v-if="model.record != undefined" :cols="data.rightSize" v-show="data.tag == 3">
-                <DatabasePage v-model="model.record!.para" :preference="props.preference" />
+                <DatabasePage v-model="model.record!.para" :preference="preference" />
             </v-col>
         </v-row>
         <ConsoleDialog v-model="data.createModal"
-            :backend="props.backend"
             :projects="props.projects"
             :nodes="props.nodes"
             :databases="props.databases"
-            :preference="props.preference"
             :execute="props.execute"
             @confirm="(e, e1) => consoleAdded(e, e1)"
         />
         <NumberDialog v-model="data.skipModal" 
-            :default-value="0" 
-            :preference="props.preference"
-            @submit="confirmSkip" 
+            icon="mdi-debug-step-over"
+            :default-value="0"
             :title="$t('modal.skip-step')" 
-            icon="mdi-debug-step-over" 
-            :label="$t('step')"/>
+            :label="$t('step')"
+            @submit="confirmSkip" />
     </div>
 </template>

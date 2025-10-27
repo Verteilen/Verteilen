@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, Ref, ref } from 'vue';
 import { BackendProxy } from '../../proxy';
-import { DATA } from '../../util/profile';
+import { DATA } from './Profile';
 import { BusType, UserType } from '../../interface';
 import { Emitter } from 'mitt';
+import { i18n } from 'verteilen-core/src/plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     backend: BackendProxy
 }
-
+const $t = i18n.global.t
 const propss = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'modify', name:string, des:string): void

@@ -17,6 +17,7 @@ interface PROPS {
     logs: Log
 }
 
+const $t = i18n.global.t
 const emits = defineEmits<{
     (e: 'clean'):void
 }>()
@@ -186,7 +187,6 @@ onUnmounted(() => {
             v-model="recoverDialog" 
             icon="mdi-recycle"
             :label="$t('recover')"
-            :preference="props.preference"
             :recover="true"
             :holder="holder"
             @project="e => recoverConfirm(0, e)"

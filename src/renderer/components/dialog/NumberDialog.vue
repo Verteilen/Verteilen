@@ -1,34 +1,43 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+//#region Modules
+import { inject, ref, watch } from 'vue';
 import { Preference } from '../../interface';
 import DialogBase from './DialogBase.vue';
+import { i18n } from 'verteilen-core/src/plugins/i18n';
+//#endregion
 
+//#region Data
 interface PROPS {
     defaultValue?: number
     title?: string
     label?: string
     icon?: string
-    preference?: Preference
 }
-
+const $t = i18n.global.t
+const preference:Preference = inject("preference")!
 const props = defineProps<PROPS>()
 const data = defineModel<boolean>()
 const emit = defineEmits<{
     (e: 'submit', data:number): void
 }>()
 const buffer = ref(0)
+//#endregion
 
+//#region Watch
+watch(() => data.value, () => {
+    buffer.value = props.defaultValue ? props.defaultValue : 0
+})
+//#endregion
+
+//#region Methods
 const confirm = () => {
     data.value = false
     emit('submit', buffer.value)
 }
-watch(() => data.value, () => {
-    buffer.value = props.defaultValue ? props.defaultValue : 0
-})
-
+//#endregion
 </script>
 <template>
-    <DialogBase v-model="data!" width="500" :preference="props.preference">
+    <DialogBase v-model="data!" width="500" :preference="preference">
         <template #title>
             <v-icon>{{ props.icon }}</v-icon>
             {{ props.title }}

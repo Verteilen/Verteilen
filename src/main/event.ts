@@ -18,6 +18,8 @@ import {
     ClientJobExecute,
     CreatePreference,
     CreateRecordIOLoader,
+    CreatePluginLoader, 
+    PluginLoader,
     DATA_FOLDER, 
     Job, 
     JobCategory, 
@@ -31,11 +33,11 @@ import {
     RecordIOBase,
     ServerDetail,
     PluginFeedback,
-    BackendAction
+    BackendAction,
 } from "./interface";
-import { CreatePluginLoader, PluginLoader } from "verteilen-core/src/server/plugin";
-import { i18n } from "verteilen-core/src/plugins/i18n";
+import { raw_i18n } from "verteilen-core/dist/plugins/i18n"
 
+const $t = raw_i18n.t
 const Loader = (loader:RecordIOLoader, key:string) => {
     ipcMain.handle(`load_all_${key}`, (e) => loader.load_all())
     ipcMain.on(`delete_all_${key}`, (e) => loader.delete_all())
@@ -111,7 +113,7 @@ export class BackendEvent extends Server implements BackendAction {
         this.plugin_loader = CreatePluginLoader(this.io, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
         this.plugin_loader.load_all()
         PluginInit(this.plugin_loader)
-        this.detail = new ServerDetail(this.io, this, feedback, messager, console.log, i18n.global.t)
+        this.detail = new ServerDetail(this.io, this, feedback, messager, console.log, $t)
     }
 
     Destroy = () => {

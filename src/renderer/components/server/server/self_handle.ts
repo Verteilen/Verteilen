@@ -1,6 +1,6 @@
 import { Ref } from "vue"
-import { MESSAGE_LIMIT } from "../../interface"
-import { DATA } from "./server"
+import { MESSAGE_LIMIT } from "../../../interface"
+import { DATA } from "."
 
 
 

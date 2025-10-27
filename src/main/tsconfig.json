@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "useDefineForClassFields": true,
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "useDefineForClassFields": true,
     "strict": true,
-    "jsx": "preserve",
     "sourceMap": true,
     "esModuleInterop": true,
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "../../build/main",
     "allowJs": true,

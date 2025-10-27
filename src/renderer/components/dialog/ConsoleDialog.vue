@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ExecutePair, Node, Parameter, Preference, Project, Record } from '../../interface';
+import { BusType, ExecutePair, Node, Database, Preference, Project, Record } from '../../interface';
 import { i18n } from '../../plugins/i18n'
 import DialogBase from './DialogBase.vue';
 import { BackendProxy } from '../../proxy';
 
 interface PROP {
-    backend: BackendProxy
     projects: Array<Project>
     nodes: Array<Node>
-    parameters: Array<Parameter>
-    preference: Preference
+    databases: Array<Database>
     execute: Array<ExecutePair>
 }
 
+const $t = i18n.global.t
 const emitter:Emitter<BusType> | undefined = inject('emitter');
-    
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!    
 const modal = defineModel<boolean>({ required: true })
 const props = defineProps<PROP>()
 const emits = defineEmits<{
@@ -42,7 +42,7 @@ const ps = computed(() => {
 })
 
 const as = computed(() => {
-    return props.parameters.map(x => {
+    return props.databases.map(x => {
         return {
             title: x.title,
             uuid: x.uuid,
@@ -55,8 +55,8 @@ const ns = computed(() => {
     return props.nodes.map(x => {
         return {
             title: x.url,
-            uuid: x.ID,
-            value: x.ID
+            uuid: x.uuid,
+            value: x.uuid
         }
     })
 })
@@ -91,16 +91,16 @@ const generateResult = ():Record => {
     const r:Record = { projects: [], nodes: [] }
     projects.value.forEach(x => {
         const _project_target = props.projects.find(y => y.uuid == x[0])
-        const _para_target = props.parameters.find(y => y.uuid == x[1])
+        const _para_target = props.databases.find(y => y.uuid == x[1])
         if(_project_target == undefined || _para_target == undefined) return
         const project_target:Project = JSON.parse(JSON.stringify(_project_target))
-        const para_target:Parameter = JSON.parse(JSON.stringify(_para_target))
-        project_target.parameter_uuid = para_target.uuid
-        project_target.parameter = para_target
+        const para_target:Database = JSON.parse(JSON.stringify(_para_target))
+        project_target.database_uuid = para_target.uuid
+        project_target.database = para_target
         r.projects.push(project_target)
     })
     nodes.value.forEach(x => {
-        const _node_target = props.nodes.find(y => y.ID == x)
+        const _node_target = props.nodes.find(y => y.uuid == x)
         if(_node_target == undefined) return
         const node_target:Node = JSON.parse(JSON.stringify(_node_target))
         r.nodes.push(node_target)
@@ -109,9 +109,9 @@ const generateResult = ():Record => {
 }
 
 const last = () => {
-    if(props.preference.recover == undefined) return
-    projects.value = props.preference.recover.projects
-    nodes.value = props.preference.recover.nodes
+    if(preference.recover == undefined) return
+    projects.value = preference.recover.projects
+    nodes.value = preference.recover.nodes
 }
 
 const confirm = () => {
@@ -125,16 +125,16 @@ const confirm = () => {
         pass = false
     }
     else if(projects.value.filter(x => x[1] == null).length > 0){
-        error_message.value = i18n.global.t('error.parameter-empty')
+        error_message.value = i18n.global.t('error.database-empty')
         pass = false
     }
 
     if(pass){
-        props.preference.recover = {
+        preference.recover = {
             projects: projects.value,
             nodes: nodes.value
         }
-        emitter?.emit('savePreference', props.preference)
+        emitter?.emit('savePreference', preference)
         emits('confirm', name.value, generateResult())
         modal.value = false
     }
@@ -158,7 +158,7 @@ const updateProject = (index:number) => {
         const uuid = projects.value[index][0]
         const target = props.projects.find(x => x.uuid == uuid)
         if(target == undefined) return
-        const p_target = props.parameters.find(x => x.uuid == target.parameter_uuid)
+        const p_target = props.databases.find(x => x.uuid == target.database_uuid)
         if(p_target == undefined) return
         projects.value[index][1] = p_target.uuid
     })
@@ -183,7 +183,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <DialogBase v-model="modal" width="800" :style="{ 'fontSize': props.preference.font + 'px' }" :preference="props.preference">
+    <DialogBase v-model="modal" width="800" :style="{ 'fontSize': preference.font + 'px' }" :preference="preference">
         <template #title>
             <v-icon>mdi-console</v-icon>
             {{ $t('modal.console-create') }}
@@ -191,7 +191,7 @@ onUnmounted(() => {
         <template #text>
             <v-text-field v-model="name" :autofocus="true" :label="$t('modal.console-name')" hide-detail></v-text-field>
             <v-tabs v-model="page" tabs show-arrows class="bg-grey-darken-4">
-                <v-tab v-for="(tab, index) in tabs" :style="{ 'fontSize': (props.preference.font - 2) + 'px' }" :value="tab[2]" :key="index">
+                <v-tab v-for="(tab, index) in tabs" :style="{ 'fontSize': (preference.font - 2) + 'px' }" :value="tab[2]" :key="index">
                     <v-icon>{{ tab[0] }}</v-icon>
                     <span>{{ $t(tab[1]) }}</span>
                 </v-tab>
@@ -213,7 +213,7 @@ onUnmounted(() => {
                             <p>{{ $t('project') }}</p>
                         </v-col>
                         <v-col cols="6">
-                            <p>{{ $t('parameter') }}</p>
+                            <p>{{ $t('database') }}</p>
                         </v-col>
                     </v-row>
                     <v-row>
@@ -230,7 +230,7 @@ onUnmounted(() => {
                         <v-col cols="5">
                             <v-autocomplete clearable hide-details v-for="(v, i) in projects" :key="i"
                                 :item-props="itemProps" 
-                                v-model="v[1]" :items="as" item-title="text" :label="$t('parameter')" ></v-autocomplete>
+                                v-model="v[1]" :items="as" item-title="text" :label="$t('database')" ></v-autocomplete>
                         </v-col>
                     </v-row>
                 </v-tabs-window-item>
@@ -262,7 +262,7 @@ onUnmounted(() => {
             <span style="color: red">{{ error_message }}</span>
         </template>
         <template #action>
-            <v-btn class="mt-3" color="warning" :disabled="props.preference.recover == undefined" @click="last">{{ $t('recover') }}</v-btn>
+            <v-btn class="mt-3" color="warning" :disabled="preference.recover == undefined" @click="last">{{ $t('recover') }}</v-btn>
             <v-spacer></v-spacer>
             <v-btn class="mt-3" color="primary" @click="confirm">{{ $t('create') }}</v-btn>
             <v-btn class="mt-3" color="error" @click="cancel">{{ $t('cancel') }}</v-btn>

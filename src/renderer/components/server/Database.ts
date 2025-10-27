@@ -1,9 +1,9 @@
 import { v6 as uuid6 } from 'uuid';
 import { Ref } from "vue";
-import { DataType, DataTypeBase, Database, DatabaseContainer, PluginPageData, Preference } from "../interface";
-import { i18n } from "../plugins/i18n";
-import { BuildIn_DatabaseTempGroup } from '../template/projectTemplate';
-import { BackendProxy } from '../proxy';
+import { DataType, DataTypeBase, Database, DatabaseContainer, PluginPageData, Preference } from "../../interface";
+import { i18n } from "../../plugins/i18n";
+import { BuildIn_DatabaseTempGroup } from '../../template/projectTemplate';
+import { BackendProxy } from '../../proxy';
 
 type getdatabases = () => Array<Database>
 type getdatabase = () => Database | undefined

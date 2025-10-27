@@ -1,4 +1,4 @@
-import { BuildinAssets } from "../interface"
+import { BuildinAssets } from "../../interface"
 
 
 export interface DATA {

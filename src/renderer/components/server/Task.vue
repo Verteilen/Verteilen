@@ -1,29 +1,31 @@
 <script setup lang="ts">
+//#region Modules
 import { Emitter } from 'mitt';
 import { computed, ComputedRef, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, Parameter, Preference, Project, Task, TaskTable } from '../../interface';
+import { BusType, DataType, Database, Preference, Project, Task, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, DATA, Util_Task } from '../../util/Task';
+import { CreateField, DATA, Util_Task } from './Task';
 import TaskDialog from '../dialog/TaskDialog.vue';
-import ParameterSelectionDialog from '../dialog/ParameterSelectionDialog.vue';
+import DatabaseSelectionDialog from '../dialog/DatabaseSelectionDialog.vue';
 import DialogBase from '../dialog/DialogBase.vue';
+//#endregion
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-
+//#region Data
 interface PROPS {
-    preference: Preference
     projects: Array<Project>
     select: Project | undefined
-    parameters: Array<Parameter>
+    databases: Array<Database>
 }
-
+const $t = i18n.global.t
+const emitter:Emitter<BusType> = inject('emitter')!
+const preference:Preference = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', task:Task[]): void
     (e: 'edit', uuid:string, task:Task): void
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
-    (e: 'parameter', uuid:string):void
+    (e: 'database', uuid:string):void
     (e: 'bind', uuid:string):void
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
@@ -46,23 +48,24 @@ const data:Ref<DATA> = ref({
     selectSearch: '',
     selection: []
 })
-
 const util:Util_Task = new Util_Task(data, () => props.select)
+//#endregion
 
+//#region Computed
 const hasPara = computed(() => {
-    if(props.select == undefined || props.select.parameter_uuid.length == 0) return false
-    return props.parameters.find(x => x.uuid == props.select!.parameter_uuid) != undefined
+    if(props.select == undefined || props.select.database_uuid.length == 0) return false
+    return props.databases.find(x => x.uuid == props.select!.database_uuid) != undefined
 })
 const realSearch = computed(() => data.value.search?.trimStart().trimEnd() ?? '')
 const items_final = computed(() => {
-    return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value))
+    return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.uuid.includes(realSearch.value))
 })
 const hasSelect = computed(() => data.value.selection.length > 0)
-const selected_task_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
-const para_title = computed(() => props.parameters.find(x => x.uuid == props.select?.parameter_uuid)?.title)
+const selected_task_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
+const para_title = computed(() => props.databases.find(x => x.uuid == props.select?.database_uuid)?.title)
 const para_keys:ComputedRef<Array<{ title:string, subtitle: string, value: string }>> = computed(() => {
     if(props.select == undefined) return []
-    const p = props.parameters.find(x => x.uuid == props.select!.parameter_uuid)
+    const p = props.databases.find(x => x.uuid == props.select!.database_uuid)
     return p?.containers.filter(x => {
         return x.type == DataType.Expression || x.type == DataType.Number
     }).map(x => ({
@@ -71,14 +74,16 @@ const para_keys:ComputedRef<Array<{ title:string, subtitle: string, value: strin
         value: x.name
     })) ?? []
 })
+//#endregion
 
-const updateParameter = () => util.updateParameter()
+//#region Methods
+const updateDatabase = () => util.updateDatabase()
 const updateTask = () => {
     util.updateTask()
-    updateParameter()
+    updateDatabase()
 }
 const createProject = () => util.createProject()
-const detailOpen = () => emits('parameter', props.select!.parameter_uuid)
+const detailOpen = () => emits('database', props.select!.database_uuid)
 
 const datachoose = (uuid:string) => emits('select', uuid)
 const dataedit = (uuid:string) => util.dataedit(uuid)
@@ -86,7 +91,6 @@ const dataedit = (uuid:string) => util.dataedit(uuid)
 const detailSelect = () => {
     data.value.paraModal = true
 }
-
 const cloneSelect = () => {
     const ts = util.cloneSelect()
     if(ts == undefined) return
@@ -96,7 +100,7 @@ const cloneSelect = () => {
     })
 }
 
-const selectall = () => data.value.selection = data.value.items.map(x => x.ID)
+const selectall = () => data.value.selection = data.value.items.map(x => x.uuid)
 
 const deleteSelect = () => {
     data.value.deleteData = selected_task_ids.value
@@ -111,7 +115,7 @@ const deleteConfirm = () => {
     })
 }
 
-const selectParameter = (uuid:string) => {
+const selectDatabase = (uuid:string) => {
     emits('bind', uuid)
 }
 
@@ -131,7 +135,7 @@ const confirmCreate = () => {
 }
 
 const getIndex = (ID:string) => {
-    return data.value.items.findIndex(x => x.ID == ID)
+    return data.value.items.findIndex(x => x.uuid == ID)
 }
 
 const confirmEdit = () => {
@@ -198,38 +202,38 @@ const onHotkey = (value:string) => {
         createProject()
     }
 }
+//#endregion
 
 onMounted(() => {
     console.log("Task Mounted")
     updateFields()
-    emitter?.on('hotkey', onHotkey)
-    emitter?.on('updateTask', updateTask)
-    emitter?.on('updateLocate', updateLocate)
+    emitter.on('hotkey', onHotkey)
+    emitter.on('updateTask', updateTask)
+    emitter.on('updateLocate', updateLocate)
 })
 
 onUnmounted(() => {
-    emitter?.off('hotkey', onHotkey)
-    emitter?.off('updateTask', updateTask)
-    emitter?.off('updateLocate', updateLocate)
+    emitter.off('hotkey', onHotkey)
+    emitter.off('updateTask', updateTask)
+    emitter.off('updateLocate', updateLocate)
 })
-
 </script>
 
 <template>
     <div>
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
-                <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
+                <v-text-field :style="{ 'fontSize': preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <v-btn size="sm" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
                 <p v-if="props.select != undefined" class="mx-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
                 <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-paperclip" @click="detailOpen" color="success">
-                    {{ $t('parameter-setting') }}: {{ para_title }}
+                    {{ $t('database-setting') }}: {{ para_title }}
                 </v-chip>
                 <v-btn v-if="hasPara && props.select != undefined" variant="text" icon="mdi-select" @click="detailSelect"></v-btn>
                 <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-paperclip" @click="detailSelect" color="warning">
-                    {{ $t('parameter-select') }}
+                    {{ $t('database-select') }}
                 </v-chip>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
@@ -267,7 +271,7 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
-            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
                     <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                 </template>
@@ -296,9 +300,9 @@ onUnmounted(() => {
             :error-message="data.errorMessage"
             :title-error="data.titleError"
             :edit-data="data.editData" 
-            :preference="props.preference"
+            :preference="preference"
             @submit="DialogSubmit" />
-        <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="props.preference">
+        <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
             <template #title>
                 <v-icon>mdi-pencil</v-icon>
                 {{ $t('modal.delete-task') }}
@@ -315,11 +319,11 @@ onUnmounted(() => {
                 <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
             </template>
         </DialogBase>
-        <ParameterSelectionDialog v-model="data.paraModal" 
-            :items="props.parameters"
-            :preference="props.preference"
-            @select_uuid="selectParameter">
-        </ParameterSelectionDialog>
+        <DatabaseSelectionDialog v-model="data.paraModal" 
+            :items="props.databases"
+            :preference="preference"
+            @select_uuid="selectDatabase">
+        </DatabaseSelectionDialog>
     </div>
 </template>
 

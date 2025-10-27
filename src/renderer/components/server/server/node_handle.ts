@@ -1,7 +1,7 @@
 import { Ref } from "vue"
-import { ExecuteRecord, NodeTable } from "../../interface"
+import { ExecuteRecord, NodeTable } from "../../../interface"
 import { ExecuteManager } from "../../script/execute_manager"
-import { DATA, save_and_update } from "./server"
+import { DATA, save_and_update } from "."
 
 export class Util_Server_Node {
     data:Ref<DATA>

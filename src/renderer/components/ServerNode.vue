@@ -33,7 +33,7 @@ import {
   FrontendUpdate
 } from './../interface'
 import { BackendProxy } from '../proxy'
-import { DATA, Util_Server } from '../util/server/server'
+import { DATA, Util_Server } from './server/server'
 import { i18n } from './../plugins/i18n'
 //#endregion
 
@@ -51,12 +51,12 @@ import RolePage from './server/Role.vue';
 import ServicePage from './server/Service.vue';
 import ProfilePage from './server/Profile.vue';
 import PluginPage from './server/Plugin.vue';
+import Layout from './components/layout/Layout.vue'
+import AppBar from './components/layout/AppBar.vue'
 //#endregion
 
 //#region Data
-let delayy = 0
-let updateHandle:any = undefined
-let slowUpdateHandle:any = undefined
+const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:BackendProxy = inject("backend")!
 const preference:Preference = inject("preference")!
@@ -83,6 +83,9 @@ const data:Ref<DATA> = ref({
     plugin: { plugins: [], templates: [] }
 })
 const util:Util_Server = new Util_Server(data, () => backend, emitter!)
+let delayy = 0
+let updateHandle:any = undefined
+let slowUpdateHandle:any = undefined
 //#endregion
 
 //#region Watch
@@ -688,33 +691,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <v-container fluid class="pa-0 ma-0">
-    <div v-if="data.loading" class="loading">
-      <p>{{ $t('loading') }}</p>
-      <v-progress-circular color="blue-lighten-3" indeterminate></v-progress-circular>
-    </div>
-    <v-layout>
-      <v-app-bar :elevation="2" class="text-left">
-        <template v-slot:prepend>
-          <v-app-bar-nav-icon @click="data.drawer = true"></v-app-bar-nav-icon>
-        </template>
-        <v-app-bar-title v-if="data.title">
-          {{ $t(data.title).slice(0, $t(data.title).length - 4) }} 
-          <span :style="{ 'fontSize': (preference.font - 5) + 'px' }">
-            {{ $t(data.title).slice($t(data.title).length - 4, $t(data.title).length) }}
-          </span> 
-        </v-app-bar-title>
-        <template v-slot:append>
-          <v-menu location="left">
-            <template v-slot:activator="{ props }">
-              <v-btn v-bind="props" icon="mdi-dots-vertical"></v-btn>
-            </template>
-            <v-list width="120px">
-              <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
-            </v-list>
-          </v-menu>
-        </template>
-      </v-app-bar>
+  <Layout>
+    <AppBar show_icon @click="data.drawer = true">
+      <template #title>
+        {{ $t(data.title).slice(0, $t(data.title).length - 4) }} 
+        <span :style="{ 'fontSize': (preference.font - 5) + 'px' }">
+          {{ $t(data.title).slice($t(data.title).length - 4, $t(data.title).length) }}
+        </span> 
+      </template>
+
       <v-navigation-drawer temporary v-model="data.drawer" :scrim="preference?.animation">
         <v-list density="compact" nav>
           <v-list-item v-if="backend.config.isExpress"
@@ -740,139 +725,142 @@ onUnmounted(() => {
           
         </v-list>
       </v-navigation-drawer>
-    </v-layout>
-    <div style="width: 100vw; height:100vh; padding-top: 50px;" class="text-white" 
-      :class="{ 'bg-dark': preference.theme == 'dark', 'bg-light': preference.theme == 'light' }">
-      <v-tabs-window v-model="data.page">
-        <v-tabs-window-item :value="0">
-          <ProjectPage
-            :backend="backend"
-            :projects="data.projects" 
-            :plugin="data.plugin"
-            :databases="data.databases"
-            :config="config"
-            :preference="preference"
-            @added="e => addProject(e)" 
-            @edit="(id, e) => editProject(id, e)" 
-            @select="e => chooseProject(e)" 
-            @delete="(e, e2) => deleteProject(e, e2)"
-            @moveup="e => moveupProject(e)"
-            @movedown="e => movedownProject(e)" />
-        </v-tabs-window-item>
-        <v-tabs-window-item :value="1">
-          <TaskPage
-            :projects="data.projects" 
-            :select="data.selectProject" 
-            :preference="preference"
-            :databases="data.databases"
-            @added="e => addTask(e)" 
-            @edit="(id, e) => editTask(id, e)" 
-            @select="e => chooseTask(e)"
-            @bind="e => bindingTask(e)"
-            @delete="e => deleteTask(e)"
-            @moveup="e => moveupTask(e)"
-            @movedown="e => movedownTask(e)"
-            @database="e => goDatabase(e)"
-            @return="data.page = 0"/>
-        </v-tabs-window-item>
-        <v-tabs-window-item :value="2">
-          <JobPage
-            :projects="data.projects" 
-            :select="data.selectTask"
-            :owner="data.selectProject"
-            :libs="data.libs"
-            :database="projectbind"
-            :preference="preference"
-            @added="e => addJob(e)" 
-            @edit="(e, e2) => editJob(e, e2)" 
-            @delete="e => deleteJob(e)"
-            @return="data.page = 1"/>
-        </v-tabs-window-item>
-        <v-tabs-window-item :value="3">
-          <DatabasePage
-            :config="config"
-            :databases="data.databases"
-            :select="data.selectDatabase"
-            :backend="backend"
-            :preference="preference"
-            :plugin="data.plugin"
-            @added="e => addDatabase(e)"
-            @select="e => selectDatabase(e)"
-            @edit="e => editDatabase(e)" 
-            @delete="e => deleteDatabase(e)"
-            @return="data.page = 1"/>
-        </v-tabs-window-item>
-        <v-tabs-window-item :value="4">
-          <NodePage
-            :manager="data.websocket_manager"
-            :plugin="data.plugin"
-            :nodes="data.nodes" />
-        </v-tabs-window-item>
-        <v-tabs-window-item :value="5">
-          <ConsolePage
-            :backend="backend"
-            :preference="preference"
-            :socket="data.websocket_manager"
-            :execute="data.execute_manager"
-            :libs="data.libs"
-            :projects="data.projects"
-            :nodes="data.nodes"
-            :databases="data.databases"
-            v-model="selectExecute"
-            @added="(e, e1) => consoleAdded(e, e1)"
-            @stop="consoleStop()"
-            @select="e => consoleSelect(e)"/>
-        </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.haveBackend" :value="6">
-          <LogPage 
-            :config="config"
-            :execute="data.execute_manager"
-            :preference="preference"
-            :logs="data.logs"
-            @clean="LogClean"
-            v-model="selectExecute"/>
-        </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.haveBackend" :value="7">
-          <LibraryPage
-            :backend="backend"
-            :preference="preference"
-            :databases="data.databases"
-            @edit="(d, d1) => libEdit(d, d1)"
-            @save="(d, d1, d2) => libSave(d, d1, d2)"
-            @load="d => libLoad(d)"
-            @delete="d => libDelete(d)"
-            @execute-js="(d, d1) => libJs(d, d1)"
-            v-model="data.libs"/>
-        </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.haveBackend" :value="8">
-          <SelfPage
-            :backend="backend"
-            :messages="data.messages"
-            :preference="preference"
-            @clean="msgClean"/>
-        </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.isExpress" :value="9">
-          <RolePage 
-            :preference="preference"
-            :items="[]"
-          />
-        </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.isExpress" :value="10">
-          <ServicePage />
-        </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.haveBackend" :value="11">
-          <PluginPage :plugin="data.plugin"
-            @added-plugin="pluginAdded"
-            @added-template="templateAdded"
-            @delete-plugin="pluginDelete"
-            @delete-template="templateDelete" />
-        </v-tabs-window-item>
-        <v-tabs-window-item v-show="config.isExpress" :value="100">
-          <ProfilePage :backend="backend" />
-        </v-tabs-window-item>
-      </v-tabs-window>
+    </AppBar>
+
+    <div v-if="data.loading" class="loading">
+      <p>{{ $t('loading') }}</p>
+      <v-progress-circular color="blue-lighten-3" indeterminate></v-progress-circular>
     </div>
-  </v-container>
+
+    <v-tabs-window v-model="data.page">
+      <v-tabs-window-item :value="0">
+        <ProjectPage
+          :backend="backend"
+          :projects="data.projects" 
+          :plugin="data.plugin"
+          :databases="data.databases"
+          :config="config"
+          :preference="preference"
+          @added="e => addProject(e)" 
+          @edit="(id, e) => editProject(id, e)" 
+          @select="e => chooseProject(e)" 
+          @delete="(e, e2) => deleteProject(e, e2)"
+          @moveup="e => moveupProject(e)"
+          @movedown="e => movedownProject(e)" />
+      </v-tabs-window-item>
+      <v-tabs-window-item :value="1">
+        <TaskPage
+          :projects="data.projects" 
+          :select="data.selectProject" 
+          :preference="preference"
+          :databases="data.databases"
+          @added="e => addTask(e)" 
+          @edit="(id, e) => editTask(id, e)" 
+          @select="e => chooseTask(e)"
+          @bind="e => bindingTask(e)"
+          @delete="e => deleteTask(e)"
+          @moveup="e => moveupTask(e)"
+          @movedown="e => movedownTask(e)"
+          @database="e => goDatabase(e)"
+          @return="data.page = 0"/>
+      </v-tabs-window-item>
+      <v-tabs-window-item :value="2">
+        <JobPage
+          :projects="data.projects" 
+          :select="data.selectTask"
+          :owner="data.selectProject"
+          :libs="data.libs"
+          :database="projectbind"
+          :preference="preference"
+          @added="e => addJob(e)" 
+          @edit="(e, e2) => editJob(e, e2)" 
+          @delete="e => deleteJob(e)"
+          @return="data.page = 1"/>
+      </v-tabs-window-item>
+      <v-tabs-window-item :value="3">
+        <DatabasePage
+          :config="config"
+          :databases="data.databases"
+          :select="data.selectDatabase"
+          :backend="backend"
+          :preference="preference"
+          :plugin="data.plugin"
+          @added="e => addDatabase(e)"
+          @select="e => selectDatabase(e)"
+          @edit="e => editDatabase(e)" 
+          @delete="e => deleteDatabase(e)"
+          @return="data.page = 1"/>
+      </v-tabs-window-item>
+      <v-tabs-window-item :value="4">
+        <NodePage
+          :manager="data.websocket_manager"
+          :plugin="data.plugin"
+          :nodes="data.nodes" />
+      </v-tabs-window-item>
+      <v-tabs-window-item :value="5">
+        <ConsolePage
+          :backend="backend"
+          :preference="preference"
+          :socket="data.websocket_manager"
+          :execute="data.execute_manager"
+          :libs="data.libs"
+          :projects="data.projects"
+          :nodes="data.nodes"
+          :databases="data.databases"
+          v-model="selectExecute"
+          @added="(e, e1) => consoleAdded(e, e1)"
+          @stop="consoleStop()"
+          @select="e => consoleSelect(e)"/>
+      </v-tabs-window-item>
+      <v-tabs-window-item v-show="config.haveBackend" :value="6">
+        <LogPage 
+          :config="config"
+          :execute="data.execute_manager"
+          :preference="preference"
+          :logs="data.logs"
+          @clean="LogClean"
+          v-model="selectExecute"/>
+      </v-tabs-window-item>
+      <v-tabs-window-item v-show="config.haveBackend" :value="7">
+        <LibraryPage
+          :backend="backend"
+          :preference="preference"
+          :databases="data.databases"
+          @edit="(d, d1) => libEdit(d, d1)"
+          @save="(d, d1, d2) => libSave(d, d1, d2)"
+          @load="d => libLoad(d)"
+          @delete="d => libDelete(d)"
+          @execute-js="(d, d1) => libJs(d, d1)"
+          v-model="data.libs"/>
+      </v-tabs-window-item>
+      <v-tabs-window-item v-show="config.haveBackend" :value="8">
+        <SelfPage
+          :backend="backend"
+          :messages="data.messages"
+          :preference="preference"
+          @clean="msgClean"/>
+      </v-tabs-window-item>
+      <v-tabs-window-item v-show="config.isExpress" :value="9">
+        <RolePage 
+          :preference="preference"
+          :items="[]"
+        />
+      </v-tabs-window-item>
+      <v-tabs-window-item v-show="config.isExpress" :value="10">
+        <ServicePage />
+      </v-tabs-window-item>
+      <v-tabs-window-item v-show="config.haveBackend" :value="11">
+        <PluginPage :plugin="data.plugin"
+          @added-plugin="pluginAdded"
+          @added-template="templateAdded"
+          @delete-plugin="pluginDelete"
+          @delete-template="templateDelete" />
+      </v-tabs-window-item>
+      <v-tabs-window-item v-show="config.isExpress" :value="100">
+        <ProfilePage :backend="backend" />
+      </v-tabs-window-item>
+    </v-tabs-window>
+  </Layout>
 </template>
 
 <style scoped>

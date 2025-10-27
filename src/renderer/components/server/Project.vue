@@ -4,21 +4,21 @@ import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { AppConfig, BusType, LocalPermission, Database, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, DATA, IndexToValue, Temp, Util_Project, ValueToGroupName } from '../../util/project';
+import { CreateField, DATA, IndexToValue, Temp, Util_Project, ValueToGroupName } from './Project';
 import ProjectDialog from '../dialog/ProjectDialog.vue';
 import { BackendProxy } from '../../proxy';
 import DialogBase from '../dialog/DialogBase.vue';
 
 interface PROPS {
-    preference: Preference
-    backend: BackendProxy
     projects: Array<Project>
     databases: Array<Database>
     config: AppConfig
     plugin: PluginPageData
 }
-
-const emitter:Emitter<BusType> | undefined = inject('emitter');
+const $t = i18n.global.t
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', project:Project[]): void
@@ -55,12 +55,12 @@ const data:Ref<DATA> = ref({
     selection: []
 })
 
-const util:Util_Project = new Util_Project(props.backend, () => props.plugin, data, () => props.projects, () => props.databases)
+const util:Util_Project = new Util_Project(backend, () => props.plugin, data, () => props.projects, () => props.databases)
 
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
-const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value)) })
+const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.uuid.includes(realSearch.value)) })
 const hasSelect = computed(() => data.value.selection.length > 0)
-const selected_project_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.ID)).map(x => x.ID))
+const selected_project_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
 
 watch(() => props.plugin, () => {
     updateTemps()
@@ -121,7 +121,7 @@ const cloneSelect = () => {
 }
 
 const selectall = () => {
-    data.value.selection = data.value.items.map(x => x.ID)
+    data.value.selection = data.value.items.map(x => x.uuid)
 }
 
 const DialogSubmit = (p:CreateField) => {
@@ -255,28 +255,28 @@ onMounted(() => {
     console.log("Project Mounted")
     updateLocate()
     updateFields()
-    emitter?.on('hotkey', onHotkey)
-    emitter?.on('updateProject', updateProject)
-    emitter?.on('recoverProject', recoverProject)
-    emitter?.on('createProject', createProject)
-    emitter?.on('updateLocate', updateLocate)
+    emitter.on('hotkey', onHotkey)
+    emitter.on('updateProject', updateProject)
+    emitter.on('recoverProject', recoverProject)
+    emitter.on('createProject', createProject)
+    emitter.on('updateLocate', updateLocate)
     if(props.config.isElectron) {
         window.electronAPI.eventOn('createProject', createProject)
     }
-    props.backend.wait_init().then(() => {
-        if(props.backend.config.isExpress){
-            permission.value = props.backend.user.permission?.project
-            canViewDetail.value = props.backend.user.permission?.task.view ?? false
+    backend.wait_init().then(() => {
+        if(backend.config.isExpress){
+            permission.value = backend.user.permission?.project
+            canViewDetail.value = backend.user.permission?.task.view ?? false
         }
     })
 })
 
 onUnmounted(() => {
-    emitter?.off('hotkey', onHotkey)
-    emitter?.off('updateProject', updateProject)
-    emitter?.off('recoverProject', recoverProject)
-    emitter?.off('createProject', createProject)
-    emitter?.off('updateLocate', updateLocate)
+    emitter.off('hotkey', onHotkey)
+    emitter.off('updateProject', updateProject)
+    emitter.off('recoverProject', recoverProject)
+    emitter.off('createProject', createProject)
+    emitter.off('updateLocate', updateLocate)
     if(props.config.isElectron) {
         window.electronAPI.eventOff('createProject', createProject)
     }
@@ -287,7 +287,7 @@ onUnmounted(() => {
     <div>
         <div class="py-3">
             <v-toolbar density="compact" class="pr-3">
-                <v-text-field :style="{ 'fontSize': props.preference.font + 'px' }" max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
+                <v-text-field :style="{ 'fontSize': preference.font + 'px' }" max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -332,9 +332,8 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="pt-3">
-            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': props.preference.font + 'px' }">
+            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
-
                     <a v-if="canViewDetail" href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
                     <span v-else>{{ item.ID }}</span>
                 </template>
@@ -376,7 +375,7 @@ onUnmounted(() => {
         </div>
         <ProjectDialog v-model="data.dialogModal" 
             :temps="data.temps"
-            :preference="props.preference"
+            :preference="preference"
             :plugin="props.plugin"
             :databases="props.databases"
             :is-edit="data.isEdit" 
@@ -384,7 +383,7 @@ onUnmounted(() => {
             :title-error="data.titleError"
             :edit-data="data.editData" 
             @submit="DialogSubmit" />
-        <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="props.preference">
+        <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
             <template #title>
                 <v-icon>mdi-pencil</v-icon>
                 {{ $t('modal.delete-project') }}
@@ -402,7 +401,7 @@ onUnmounted(() => {
                 <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
             </template>
         </DialogBase>
-        <DialogBase width="800" v-model="data.importModal" class="text-white" :preference="props.preference">
+        <DialogBase width="800" v-model="data.importModal" class="text-white" :preference="preference">
             <template #title>
                 <v-icon>mdi-import</v-icon>
                 {{ $t('modal.import-project') }}

@@ -1,26 +1,27 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch, watchEffect } from 'vue';
-import { BusType, Libraries, Parameter, Preference } from '../../interface';
+import { BusType, Libraries, Database, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { DATA, Util_Lib } from '../../util/lib';
+import { DATA, Util_Lib } from './Library';
 import { BackendProxy } from '../../proxy';
-import ParameterSelectionDialog from '../dialog/ParameterSelectionDialog.vue';
+import DatabaseSelectionDialog from '../dialog/DatabaseSelectionDialog.vue';
 
 interface PROPS {
-    backend: BackendProxy
-    preference: Preference
-    parameters: Array<Parameter>
+    databases: Array<Database>
 }
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
+const $t = i18n.global.t
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'edit', oldname:string, newname:string): void
     (e: 'save', file:string, data:string, fresh:boolean): void
     (e: 'load', file:string): void
     (e: 'delete', file:string): void
-    (e: 'execute-js', content:string, parameter:Parameter | undefined):void
+    (e: 'execute-js', content:string, database:Database | undefined):void
 }>()
 const model = defineModel<Libraries>()
 const data:Ref<DATA> = ref({
@@ -33,7 +34,7 @@ const data:Ref<DATA> = ref({
     isEdit: false,
     editData: { name: "" },
     paraModal: false,
-    parameter: undefined,
+    database: undefined,
     dirty: false,
     types: [],
     titleError: false,
@@ -45,7 +46,7 @@ const data:Ref<DATA> = ref({
 
 const openBottom = computed(() => data.value.messages.length > 0)
 const selection = computed(() => data.value.select < 0 ? undefined : model.value?.libs[data.value.select])
-const hasPara = computed(() => data.value.parameter != undefined)
+const hasPara = computed(() => data.value.database != undefined)
 
 watch(() => data.value.select, (newv:any, oldv:any) => {
     if(model.value == undefined || oldv == newv) return
@@ -63,7 +64,7 @@ const util:Util_Lib = new Util_Lib(data, () => selection.value)
 
 const execute = () => {
     if(selection.value == undefined) return
-    emits('execute-js', selection.value.content, data.value.parameter)
+    emits('execute-js', selection.value.content, data.value.database)
 }
 
 const clean = () => {
@@ -147,12 +148,12 @@ const onHotkey = (value:string) => {
 
 onMounted(() => {
     console.log("Library Mounted")
-    props.backend.eventOn('javascript-feedback', javascriptFeedback)
+    backend.eventOn('javascript-feedback', javascriptFeedback)
     emitter?.on('hotkey', onHotkey)
 })
 
 onUnmounted(() => {
-    props.backend.eventOff('javascript-feedback', javascriptFeedback)
+    backend.eventOff('javascript-feedback', javascriptFeedback)
     emitter?.off('hotkey', onHotkey)
 })
 
@@ -164,10 +165,10 @@ onUnmounted(() => {
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field max-width="400px" class="px-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <v-chip v-if="hasPara" prepend-icon="mdi-paperclip" @click="detailOpen" color="success">
-                    {{ $t('parameter-setting') }}: {{ data.parameter?.title }}
+                    {{ $t('database-setting') }}: {{ data.database?.title }}
                 </v-chip>
                 <v-chip v-if="!hasPara" prepend-icon="mdi-paperclip" @click="detailOpen" color="warning">
-                    {{ $t('parameter-select') }}
+                    {{ $t('database-select') }}
                 </v-chip>
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
@@ -180,7 +181,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="pro">
-                        <v-btn icon v-bind="pro.props" color="success" v-if="props.backend.config.haveBackend" :disabled="selection == undefined" @click="execute">
+                        <v-btn icon v-bind="pro.props" color="success" v-if="backend.config.haveBackend" :disabled="selection == undefined" @click="execute">
                             <v-icon>mdi-play</v-icon>
                         </v-btn>
                     </template>
@@ -214,7 +215,7 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="data.leftSize" class="border border-e-lg">
-                <v-list class="my-1" style="height: 100%" :style="{ 'fontSize': props.preference.font + 'px' }" :items="model.libs" v-model:selected="data.select">
+                <v-list class="my-1" style="height: 100%" :style="{ 'fontSize': preference.font + 'px' }" :items="model.libs" v-model:selected="data.select">
                     <v-list-item v-for="(lib, i) in model.libs" :key="i" :value="i">  
                         {{ lib.name }}.js
                     </v-list-item>
@@ -270,10 +271,10 @@ onUnmounted(() => {
                 </template>
             </v-card>
         </v-dialog>
-        <ParameterSelectionDialog v-model="data.paraModal" 
-            :items="props.parameters"
-            @select="x => data.parameter = x">
-        </ParameterSelectionDialog>
+        <DatabaseSelectionDialog v-model="data.paraModal" 
+            :items="props.databases"
+            @select="(x:any) => data.database = x">
+        </DatabaseSelectionDialog>
     </v-container>
 </template>
 

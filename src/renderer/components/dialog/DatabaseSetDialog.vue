@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, Ref, ref, watch } from 'vue'
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import { CreateField, DialogDATACreateSet, Temp } from '../../util/database';
+import { CreateField, DialogDATACreateSet, Temp } from '../server/Database';
 import DialogBase from '../dialog/DialogBase.vue'
 
 const theme = useTheme()
@@ -72,14 +72,14 @@ const confirm = () => {
     <DialogBase width="500" v-model="data!" :preference="propss.preference">
         <template #title v-if="!propss.isEdit">
             <v-icon>mdi-hammer</v-icon>
-            {{ $t('modal.new-parameter-set') }}
+            {{ $t('modal.new-database-set') }}
         </template>
         <template #title v-else>
             <v-icon>mdi-pencil</v-icon>
-            {{ $t('modal.edit-parameter-set') }}
+            {{ $t('modal.edit-database-set') }}
         </template>
         <template #text>
-            <v-text-field :error="propss.titleError" v-model="buffer.name" required :label="$t('modal.enter-parameter-set-name')" hide-details></v-text-field>
+            <v-text-field :error="propss.titleError" v-model="buffer.name" required :label="$t('modal.enter-database-set-name')" hide-details></v-text-field>
             <v-btn v-if="!propss.isEdit" class="mt-3 w-100" color="primary" variant="outlined" @click="openSelectTemp">
                 <span v-if="temp_name">
                     {{ temp_name }}
@@ -95,7 +95,7 @@ const confirm = () => {
                 :preference="propss.preference">
                 <template #title>
                     <v-icon>mdi-select</v-icon>
-                    {{ $t('modal.parameter-template-select') }}
+                    {{ $t('modal.database-template-select') }}
                 </template>
                 <template #text>
                     <v-text-field :label="$t('search')" v-model.trim="search" hide-details clearable></v-text-field>

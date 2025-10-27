@@ -16,7 +16,7 @@ import {
     ExecuteState, 
     Job, 
     FeedBack, 
-    Parameter, 
+    Database, 
     ExecuteRecord, 
     Preference, 
     NodeProxy, 
@@ -376,7 +376,7 @@ export class Util_Server {
             executeJobStart: (data:[Job, number, string]):void => { eps.forEach(x => x.executeJobStart(JSON.parse(JSON.stringify(data)))) },
             executeJobFinish: (data:[Job, number, string, number]):void => { eps.forEach(x => x.executeJobFinish(JSON.parse(JSON.stringify(data)))) },
             feedbackMessage: (data:FeedBack):void => { eps.forEach(x => x.feedbackMessage(JSON.parse(JSON.stringify(data)))) },
-            updateParameter: (data:Parameter):void => { eps.forEach(x => x.updateParameter(JSON.parse(JSON.stringify(data)))) },
+            updateDatabase: (data:Database):void => { eps.forEach(x => x.updateDatabase(JSON.parse(JSON.stringify(data)))) },
         }
         return p
     }

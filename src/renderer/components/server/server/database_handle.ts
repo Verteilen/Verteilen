@@ -1,6 +1,6 @@
 import { Ref } from "vue"
-import { Database } from "../../interface"
-import { config_getter, DATA, save_and_update } from "./server"
+import { Database } from "../../../interface"
+import { config_getter, DATA, save_and_update } from "."
 
 export class Util_Server_Database {
     data:Ref<DATA>

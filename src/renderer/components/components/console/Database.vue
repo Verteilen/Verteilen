@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, DataTypeText, Parameter, Preference } from '../../../interface';
+import { BusType, DataType, DataTypeText, Database, Preference } from '../../../interface';
 import { i18n } from '../../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -10,7 +10,7 @@ interface PROPS {
     preference: Preference
 }
 
-const data = defineModel<Parameter>()
+const data = defineModel<Database>()
 const props = defineProps<PROPS>()
 const fields:Ref<Array<any>> = ref([
     { title: 'Name', align: 'center', key: 'name' },
@@ -19,9 +19,9 @@ const fields:Ref<Array<any>> = ref([
 ])
 const options:Ref<Array<{ title: string, value:number }>> = ref([])
 
-const d:Ref<Parameter | undefined> = ref(undefined)
+const d:Ref<Database | undefined> = ref(undefined)
 
-const update_runtime_parameter = () => {
+const update_runtime_database = () => {
     if(data.value != undefined) d.value = JSON.parse(JSON.stringify(data.value))
 }
 
@@ -42,12 +42,12 @@ const updateLocate = () => {
 onMounted(() => {
     updateLocate()
     emitter?.on('updateLocate', updateLocate)
-    emitter?.on('updateHandle', update_runtime_parameter)
+    emitter?.on('updateHandle', update_runtime_database)
 })
 
 onUnmounted(() => {
     emitter?.off('updateLocate', updateLocate)
-    emitter?.off('updateHandle', update_runtime_parameter)
+    emitter?.off('updateHandle', update_runtime_database)
 })
 
 </script>

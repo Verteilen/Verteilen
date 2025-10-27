@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { Library, Parameter } from "../interface"
+import { Library, Database } from "../../interface"
 
 type Selection = () => Library | undefined
 
@@ -22,7 +22,7 @@ export interface DATA {
     isEdit: boolean
     editData: CreateField
     paraModal: boolean
-    parameter: Parameter | undefined
+    database: Database | undefined
     dirty: boolean
     types: Array<TypeOption>
     titleError: boolean

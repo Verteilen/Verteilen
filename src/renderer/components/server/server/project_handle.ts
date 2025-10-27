@@ -1,7 +1,7 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { BusType, Project } from "../../interface";
-import { config_getter, DATA, save_and_update } from "./server";
+import { BusType, Project } from "../../../interface";
+import { config_getter, DATA, save_and_update } from ".";
 
 export class Util_Server_Project {
     data:Ref<DATA>

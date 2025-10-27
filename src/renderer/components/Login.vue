@@ -5,6 +5,8 @@ import { computed, inject, ref } from 'vue';
 import { AppConfig, BusType, Preference } from '../interface';
 import { BackendProxy } from '../proxy';
 import { i18n } from '../plugins/i18n';
+import Layout from './components/layout/Layout.vue';
+import AppBar from './components/layout/AppBar.vue';
 //#endregion
 
 //#region Data
@@ -33,9 +35,11 @@ const guestClick = () => {
 </script>
 
 <template>
-    <div style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;"
-        :class="{ 'bg-dark': preference.theme == 'dark', 'bg-light': preference.theme == 'light' }">
-        <h3 class="text-info mb-4" :style="{ 'fontSize': (preference.font + 6) + 'px' }">{{ $t('login.title') }}</h3>
+    <Layout>
+        <!-- Top Appbar -->
+        <AppBar :title="$t('login.title')" />
+
+        <div style="height: 25vh;"></div>
         <v-text-field v-model="account" width="40vw" :label="$t('login.account')"></v-text-field>
         <v-text-field v-model="password" width="40vw" :label="$t('login.password')"></v-text-field>
         <v-row>
@@ -46,7 +50,7 @@ const guestClick = () => {
                 <v-btn @click="guestClick" width="150" color="success">{{ $t('login.guest') }}</v-btn>
             </v-col>
         </v-row>
-    </div>
+    </Layout>
 </template>
 
 <style scoped>

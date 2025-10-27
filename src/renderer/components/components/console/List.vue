@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, Ref, ref } from 'vue';
+import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { ConnectionText, ExecutePair, ExecuteState, ExecuteStateText, NodeTable, Preference } from 'verteilen-core/src/interface'
 import { i18n } from '../../../plugins/i18n';
 
 interface PROPS {
-    preference: Preference
     nodes: Array<NodeTable>
 }
-
+const $t = i18n.global.t
+const preference: Preference = inject("preference")!
 const data = defineModel<ExecutePair>()
 const props = defineProps<PROPS>()
 const fields:Ref<Array<any>> = ref([
@@ -22,12 +22,12 @@ const fields2:Ref<Array<any>> = ref([
 ])
 
 const translate_state = (ID:string):string => {
-    const state = props.nodes.find(x => x.ID == ID)?.state ?? 0
+    const state = props.nodes.find(x => x.uuid == ID)?.state ?? 0
     return i18n.global.t(ConnectionText[state])
 }
 
 const translate_state_color = (ID:string):string => {
-    const state = props.nodes.find(x => x.ID == ID)?.state ?? 0
+    const state = props.nodes.find(x => x.uuid == ID)?.state ?? 0
     switch(state){
         case 0: return 'white'
         case 1: return 'success'
@@ -63,7 +63,7 @@ onUnmounted(() => {
 <template>
     <v-container v-if="data != undefined" class="pt-4" style="max-height: 90vh; overflow-y: auto;">
         <h2>{{ $t('project') }}</h2>
-        <v-data-table hide-default-footer style="background: transparent" :items="data.record!.projects" :headers="fields" :style="{ 'fontSize': props.preference.font + 'px' }">
+        <v-data-table hide-default-footer style="background: transparent" :items="data.record!.projects" :headers="fields" :style="{ 'fontSize': preference.font + 'px' }">
             <template v-slot:item.title="{ index, item }">
                 <span v-if="data.record!.project_index == index" class="mr-2"><v-icon icon="mdi-arrow-right"></v-icon></span>
                 <span>{{ item.title }}</span>
@@ -76,7 +76,7 @@ onUnmounted(() => {
         </v-data-table>
         <br /> <br /> <br />
         <h2>{{ $t('node') }}</h2>
-        <v-data-table hide-default-footer style="background: transparent" :items="data.record!.nodes" :headers="fields2" :style="{ 'fontSize': props.preference.font + 'px' }">
+        <v-data-table hide-default-footer style="background: transparent" :items="data.record!.nodes" :headers="fields2" :style="{ 'fontSize': preference.font + 'px' }">
             <template v-slot:item.title="{ index, item }">
                 <span v-if="data.record!.project_index == index" class="mr-2"><v-icon icon="mdi-arrow-right"></v-icon></span>
                 <span>{{ item.url }}</span>

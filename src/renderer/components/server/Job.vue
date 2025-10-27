@@ -6,7 +6,6 @@ import {
     Execute_PART, 
     BusType, 
     ConditionResult, 
-    DataType, 
     Job, 
     JobCategory, 
     JobCategoryText, 
@@ -16,7 +15,7 @@ import {
     JobType2Text, 
     JobTypeText, 
     Libraries, 
-    Parameter, 
+    Database, 
     Preference, 
     Project, 
     Property, 
@@ -24,22 +23,21 @@ import {
     Task } from '../../interface';
 import { i18n } from './../../plugins/i18n';
 import DialogBase from '../dialog/DialogBase.vue';
+import { BackendProxy } from '../../proxy';
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROPS {
     projects: Array<Project>
     select: Task | undefined
     owner: Project | undefined
-    parameter: Parameter | undefined
+    database: Database | undefined
     libs: Libraries
-    preference: Preference
 }
 
-interface JobTable extends Job {
-    s?: boolean
-}
-
+const $t = i18n.global.t
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', job:Job[]): void
@@ -69,8 +67,8 @@ const replaceString = (job:Job, index:number):string => {
     if(props.select == undefined) return ""
     const copyJob:Job = JSON.parse(JSON.stringify(job))
     if(index >= copyJob.string_args.length || index < 0) return ""
-    if(props.parameter == undefined) return copyJob.string_args[index]
-    Execute_PART.ExecuteManager_Base.string_args_transform(props.select, copyJob, (str) => console.log(str), props.parameter, ck.value)
+    if(props.database == undefined) return copyJob.string_args[index]
+    Execute_PART.ExecuteManager_Base.string_args_transform(props.select, copyJob, (str) => console.log(str), props.database, ck.value)
     return copyJob.string_args[index]
 }
 const rules = {
@@ -487,13 +485,13 @@ onUnmounted(() => {
                                         <p class="hint">{{ replaceString(c, 1) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
                                         <p class="hint">{{ replaceString(c, 2) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
+                                        <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.databases')" hide-details></v-text-field>
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'Lib_Command')">
                                         <p class="hint">{{ replaceString(c, 0) }}</p>
                                         <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
                                         <p class="hint">{{ replaceString(c, 1) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.parameters')" hide-details></v-text-field>
+                                        <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.databases')" hide-details></v-text-field>
                                     </div>
                                     <div v-else-if="checkPatterm(c.category, c.type, 'Javascript')">
                                         <codemirror-js v-model="c.script"

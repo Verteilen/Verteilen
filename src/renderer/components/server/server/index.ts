@@ -1,7 +1,7 @@
 //#region Methods
 import { Emitter } from "mitt"
 import { nextTick, Ref } from "vue"
-import { BackendProxy } from "../../proxy";
+import { BackendProxy } from "../../../proxy";
 import { 
     Execute_SocketManager,
     BusType, 
@@ -19,7 +19,7 @@ import {
     Project, 
     RenderUpdateType, 
     Task 
-} from './../../interface'
+} from '../../../interface'
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Lib } from "./lib_handle";
@@ -55,6 +55,11 @@ export interface DATA {
     plugin: PluginPageData
 }
 
+/**
+ * **Frontend Page Logic Controller**\
+ * This worker have deep binding with data\
+ * And also have deep connection with the views display logic
+ */
 export class Util_Server {
     data:Ref<DATA>
     config:config_getter

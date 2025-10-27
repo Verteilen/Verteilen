@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { DATA, save_and_update } from "./server"
+import { DATA, save_and_update } from "."
 
 export class Util_Server_Lib {
     data:Ref<DATA>

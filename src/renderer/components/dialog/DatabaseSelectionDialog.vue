@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { Parameter, Preference } from '../../interface';
+import { Database, Preference } from '../../interface';
 import DialogBase from './DialogBase.vue';
 
 const model = defineModel<boolean>()
 const props = defineProps<{
-    items: Array<Parameter>,
+    items: Array<Database>,
     preference?: Preference
 }>()
 const search = ref('')
 const emits = defineEmits<{
-    (e: 'select', v:Parameter | undefined): void
+    (e: 'select', v:Database | undefined): void
     (e: 'select_uuid', v:string): void
 }>()
 
@@ -22,7 +22,7 @@ const item_result = computed(() => {
     return props.items.filter(x => x.title.includes(search.value) || x.uuid.includes(search.value))
 })
 
-const selectParameter = (uuid: string) => {
+const selectDatabase = (uuid: string) => {
     emits('select', props.items.find(x => x.uuid == uuid))
     emits('select_uuid', uuid)
     model.value = false
@@ -34,7 +34,7 @@ const selectParameter = (uuid: string) => {
     <DialogBase width="500" v-model="model!" class="text-white" :preference="props.preference">
         <template #title>
             <v-icon>mdi-pen</v-icon>
-            {{ $t('parameter-select') }}
+            {{ $t('database-select') }}
         </template>
         <template #text>
             <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="search">
@@ -48,7 +48,7 @@ const selectParameter = (uuid: string) => {
                         {{ p.uuid }}
                     </v-list-item-subtitle>
                     <template v-slot:append>
-                        <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectParameter(p.uuid);"
+                        <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectDatabase(p.uuid);"
                         ></v-btn>
                     </template>
                 </v-list-item>

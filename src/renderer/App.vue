@@ -1,16 +1,15 @@
 <script setup lang="ts">
 //#region Modules
 import { Emitter } from 'mitt'
-import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref } from 'vue'
 import { useTheme } from 'vuetify'
-import { BackendType, BusType, Login, Preference, Setter } from './interface'
+import { BackendType, BusType, Login, Preference } from './interface'
 import { i18n } from './plugins/i18n'
 import { BackendProxy } from './proxy'
 import { vuetify } from './plugins/vuetify'
 //#endregion
 
 //#region Views
-
 import ClientNodePage from './components/ClientNode.vue'
 import LoginPage from './components/Login.vue'
 import ServerClientSelectionPage from './components/ServerClientSelection.vue'
@@ -21,6 +20,7 @@ import Messager from './components/Messager.vue'
 //#endregion
 
 //#region Data
+const $t = i18n.global.t
 const theme = useTheme()
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:BackendProxy = inject("backend")!
@@ -38,7 +38,7 @@ const route = computed(() => {
     if(mode.value == -1) return 0
     else if(mode.value == 0) return 2
     else if(mode.value == 1) return 3
-    else return
+    else return 0
   }
   if(config.value.isExpress){
     if(config.value.backendType == BackendType.SERVER || config.value.backendType == BackendType.NONE){

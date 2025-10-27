@@ -1,4 +1,4 @@
-import { Log } from "../interface"
+import { Log } from "../../interface"
 
 
 export interface DATA {

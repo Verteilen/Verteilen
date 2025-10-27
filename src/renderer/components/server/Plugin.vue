@@ -4,13 +4,14 @@ import { BusType, PluginList, PluginPageData, PluginPageTemplate } from '../../i
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
 import { Emitter } from 'mitt';
-import { DATA } from '../../util/plugin';
+import { DATA } from './Plugin';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 
 interface PROP {
     plugin: PluginPageData
 }
+const $t = i18n.global.t
 const propss = defineProps<PROP>()
 const emits = defineEmits<{
     (e: 'added-template', name:string, url:string): void
@@ -295,12 +296,12 @@ onUnmounted(() => {
                                 <v-list-group>
                                     <template v-slot:activator="{ props }">
                                         <v-list-item v-bind="props" :key="index">
-                                            <v-list-item-title>{{ $t('parameter') }}</v-list-item-title>
+                                            <v-list-item-title>{{ $t('database') }}</v-list-item-title>
                                         </v-list-item>
                                     </template>
-                                    <v-list-item v-for="(parameter, index3) in group.parameter" :key="index3">
-                                        <v-list-item-title>{{ parameter.title }}</v-list-item-title>
-                                        <v-list-item-subtitle>Group: {{ parameter.group }}</v-list-item-subtitle>
+                                    <v-list-item v-for="(database, index3) in group.database" :key="index3">
+                                        <v-list-item-title>{{ database.title }}</v-list-item-title>
+                                        <v-list-item-subtitle>Group: {{ database.group }}</v-list-item-subtitle>
                                     </v-list-item>
                                 </v-list-group>
                             </v-list-group>

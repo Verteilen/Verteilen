@@ -19,11 +19,6 @@ app.use(i18n)
 app.use(bus)
 app.use(preference)
 app.use(backend)
-app.use({
-    install(app, ...options){
-        app.provide("$t", i18n.global.t)
-    }
-})
 app.component('codemirror-js', JavascriptView)
 app.component('codemirror-json', JsonView)
-app.mount('#app');
+app.mount('#app')

@@ -1,6 +1,6 @@
 import { nextTick, Ref } from "vue"
-import { Task } from "../../interface"
-import { DATA, save_and_update } from "./server"
+import { Task } from "../../../interface"
+import { DATA, save_and_update } from "."
 
 
 export class Util_Server_Task {

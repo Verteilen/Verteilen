@@ -8,6 +8,8 @@ import { inject } from 'vue';
 
 //#region Data
 interface PROP {
+    show_icon?: boolean
+    title?: string
     logout?: boolean
     goback?: boolean
 }
@@ -15,6 +17,9 @@ const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const preference:Preference = inject("preference")!
 const props = defineProps<PROP>()
+const emit = defineEmits<{
+    (e: 'click'):void
+}>()
 //#endregion
 
 //#region Methods
@@ -26,6 +31,9 @@ const popGoBack = () => {
     preference.url = undefined
     emitter.emit('savePreference', preference)
 }
+const click = () => {
+    emit('click')
+}
 //#endregion
 </script>
 
@@ -33,7 +41,13 @@ const popGoBack = () => {
     <!-- Top Appbar -->
     <v-layout>
         <v-app-bar :elevation="2">
-            <v-app-bar-title>{{ $t('modeselect.titlebar') }}</v-app-bar-title>
+            <template v-slot:prepend>
+                <v-app-bar-nav-icon v-if="show_icon" nav-icon @click="click"></v-app-bar-nav-icon>
+            </template>
+            <v-app-bar-title>
+                {{ title }}
+                <slot name="title"></slot>
+            </v-app-bar-title>
             <template v-slot:append>
                 <v-menu location="left">
                     <template v-slot:activator="{ props }">
@@ -48,5 +62,6 @@ const popGoBack = () => {
                 </v-menu>
             </template>
         </v-app-bar>
+        <slot></slot>
     </v-layout>
 </template>

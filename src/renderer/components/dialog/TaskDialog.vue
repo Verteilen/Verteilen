@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, Ref, watch } from 'vue';
-import { CreateField, DialogDATA } from '../../util/Task';
+import { CreateField, DialogDATA } from '../server/Task';
 import DialogBase from './DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
 
