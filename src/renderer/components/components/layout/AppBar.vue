@@ -1,15 +1,19 @@
 <script lang="ts" setup>
 //#region Modules
 import { Emitter } from 'mitt';
-import { BusType } from 'verteilen-core/src/interface';
+import { BusType, Preference } from 'verteilen-core/src/interface';
+import { i18n } from 'verteilen-core/src/plugins/i18n';
 import { inject } from 'vue';
 //#endregion
 
 //#region Data
 interface PROP {
     logout?: boolean
+    goback?: boolean
 }
+const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
+const preference:Preference = inject("preference")!
 const props = defineProps<PROP>()
 //#endregion
 
@@ -17,6 +21,11 @@ const props = defineProps<PROP>()
 const popSetting = () => { emitter?.emit('setting') }
 const popGuide = () => { emitter?.emit('guide') }
 const popLogout = () => { emitter?.emit('logout') }
+const popGoBack = () => {
+    preference.mode = undefined
+    preference.url = undefined
+    emitter.emit('savePreference', preference)
+}
 //#endregion
 </script>
 
@@ -34,6 +43,7 @@ const popLogout = () => { emitter?.emit('logout') }
                         <v-list-item @click="popGuide">{{ $t('guide') }}</v-list-item>
                         <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
                         <v-list-item v-if="props.logout" @click="popLogout">{{ $t('logout') }}</v-list-item>
+                        <v-list-item v-if="props.goback" @click="popGoBack">{{ $t('goback') }}</v-list-item>
                     </v-list>
                 </v-menu>
             </template>

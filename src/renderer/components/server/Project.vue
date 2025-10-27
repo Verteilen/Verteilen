@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { AppConfig, BusType, LocalPermiision, Parameter, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { AppConfig, BusType, LocalPermission, Database, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, IndexToValue, Temp, Util_Project, ValueToGroupName } from '../../util/project';
 import ProjectDialog from '../dialog/ProjectDialog.vue';
@@ -13,7 +13,7 @@ interface PROPS {
     preference: Preference
     backend: BackendProxy
     projects: Array<Project>
-    parameters: Array<Parameter>
+    databases: Array<Database>
     config: AppConfig
     plugin: PluginPageData
 }
@@ -28,7 +28,7 @@ const emits = defineEmits<{
     (e: 'moveup', uuids:string): void
     (e: 'movedown', uuids:string): void
 }>()
-const permission:Ref<LocalPermiision | undefined> = ref({
+const permission:Ref<LocalPermission | undefined> = ref({
     view: true,
     create: true,
     edit: true,
@@ -43,7 +43,7 @@ const data:Ref<DATA> = ref({
     importData: [],
     dialogModal: false,
     isEdit: false,
-    editData: {title: "", description: "", useTemp: false, temp: 0, parameter: null, usePara: false},
+    editData: {title: "", description: "", useTemp: false, temp: 0, database: null, usePara: false},
     temps: [],
     editUUID: '',
     deleteModal: false,
@@ -55,7 +55,7 @@ const data:Ref<DATA> = ref({
     selection: []
 })
 
-const util:Util_Project = new Util_Project(props.backend, () => props.plugin, data, () => props.projects, () => props.parameters)
+const util:Util_Project = new Util_Project(props.backend, () => props.plugin, data, () => props.projects, () => props.databases)
 
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
 const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.ID.includes(realSearch.value)) })
@@ -154,8 +154,8 @@ const confirmEdit = () => {
             uuid: data.value.editUUID,
             title: data.value.editData.title, 
             description: data.value.editData.description,
-            parameter_uuid: selectp.parameter_uuid,
-            parameter: selectp.parameter,
+            database_uuid: selectp.database_uuid,
+            database: selectp.database,
             task: selectp.task
         }
     )
@@ -171,8 +171,8 @@ const ImportConfirm = async () => {
             try {
                 const buffer:Project = JSON.parse(x)
                 buffer.uuid = uuidv6()
-                buffer.parameter_uuid = ""
-                buffer.parameter = undefined
+                buffer.database_uuid = ""
+                buffer.database = undefined
                 return buffer
             }catch(err){
                 console.error("Convert text to project json format error")
@@ -378,7 +378,7 @@ onUnmounted(() => {
             :temps="data.temps"
             :preference="props.preference"
             :plugin="props.plugin"
-            :parameters="props.parameters"
+            :databases="props.databases"
             :is-edit="data.isEdit" 
             :error-message="data.errorMessage"
             :title-error="data.titleError"

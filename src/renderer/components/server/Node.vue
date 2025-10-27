@@ -10,15 +10,15 @@ import NodePluginDialog from '../dialog/NodePluginDialog.vue';
 import { BackendProxy } from '../../proxy';
 import DialogBase from '../dialog/DialogBase.vue';
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-
 interface PROPS {
     nodes: Array<NodeTable>
     manager: Execute_SocketManager.WebsocketManager | undefined
-    backend: BackendProxy
-    preference: Preference
     plugin: PluginPageData
 }
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
+const $t = i18n.global.t
 const props = defineProps<PROPS>()
 const deleteModal = ref(false)
 const deleteData:Ref<Array<string>> = ref([])
@@ -42,28 +42,28 @@ const isquery = ref(false)
 const selection:Ref<Array<string>> = ref([])
 
 const items_final = computed(() => {
-    return search.value == null || search.value.length == 0 ? props.nodes : props.nodes.filter(x => x.url.includes(search.value) || x.ID.includes(search.value))
+    return search.value == null || search.value.length == 0 ? props.nodes : props.nodes.filter(x => x.url.includes(search.value) || x.uuid.includes(search.value))
 })
 const hasSelect = computed(() => selection.value.length > 0)
-const selected_node_ids = computed(() => props.nodes.filter(x => selection.value.includes(x.ID)).map(x => x.ID))
-const infoTarget = computed(() => props.nodes.find(x => x.ID == infoUUID.value))
-const consoleTarget = computed(() => props.nodes.find(x => x.ID == consoleUUID.value))
-const pluginTarget = computed(() => props.nodes.find(x => x.ID == pluginUUID.value))
+const selected_node_ids = computed(() => props.nodes.filter(x => selection.value.includes(x.uuid)).map(x => x.uuid))
+const infoTarget = computed(() => props.nodes.find(x => x.uuid == infoUUID.value))
+const consoleTarget = computed(() => props.nodes.find(x => x.uuid == consoleUUID.value))
+const pluginTarget = computed(() => props.nodes.find(x => x.uuid == pluginUUID.value))
 
 watch(() => infoModal.value, () => {
     if(infoModal.value){
-        if(props.backend.config.haveBackend){
-            const p = props.nodes.find(x => x.ID == infoUUID.value)
-            props.backend.send('resource_start', p?.ID)
+        if(backend.config.haveBackend){
+            const p = props.nodes.find(x => x.uuid == infoUUID.value)
+            backend.send('resource_start', p?.uuid)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
             const d:Header = { name: 'resource_start', data: 0 }
             p?.websocket.send(JSON.stringify(d))
         }
     }else{
-        if(props.backend.config.haveBackend){
-            const p = props.nodes.find(x => x.ID == infoUUID.value)
-            props.backend.send('resource_end', p?.ID)
+        if(backend.config.haveBackend){
+            const p = props.nodes.find(x => x.uuid == infoUUID.value)
+            backend.send('resource_end', p?.uuid)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == infoUUID.value)
             const d:Header = { name: 'resource_end', data: 0 }
@@ -73,10 +73,10 @@ watch(() => infoModal.value, () => {
 })
 watch(() => pluginModal.value, () => {
     if(pluginModal.value){
-        if(props.backend.config.haveBackend){
-            const p = props.nodes.find(x => x.ID == pluginUUID.value)
-            props.backend.send('resource_start', p?.ID)
-            props.backend.send('plugin_info', p?.ID)
+        if(backend.config.haveBackend){
+            const p = props.nodes.find(x => x.uuid == pluginUUID.value)
+            backend.send('resource_start', p?.uuid)
+            backend.send('plugin_info', p?.uuid)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == pluginUUID.value)
             const d:Header = { name: 'resource_start', data: 0 }
@@ -85,9 +85,9 @@ watch(() => pluginModal.value, () => {
             p?.websocket.send(JSON.stringify(d2))
         }
     }else{
-        if(props.backend.config.haveBackend){
-            const p = props.nodes.find(x => x.ID == pluginUUID.value)
-            props.backend.send('resource_end', p?.ID)
+        if(backend.config.haveBackend){
+            const p = props.nodes.find(x => x.uuid == pluginUUID.value)
+            backend.send('resource_end', p?.uuid)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == pluginUUID.value)
             const d:Header = { name: 'resource_end', data: 0 }
@@ -97,18 +97,18 @@ watch(() => pluginModal.value, () => {
 })
 
 const serverUpdate = () => {
-    if(props.backend.config.haveBackend){
+    if(backend.config.haveBackend){
         if(isquery.value) return
         isquery.value = true
-        props.backend.invoke("node_update").then(p => {
+        backend.invoke("node_update").then(p => {
             if(p != undefined) emitter?.emit('updateNode', p)
-            selection.value = selection.value.filter(x => props.nodes.map(y => y.ID).includes(x))
+            selection.value = selection.value.filter(x => props.nodes.map(y => y.uuid).includes(x))
             isquery.value = false
         })
     }else{
         const p = props.manager?.server_update()
         if(p != undefined) emitter?.emit('updateNode', p)
-        selection.value = selection.value.filter(x => props.nodes.map(y => y.ID).includes(x))
+        selection.value = selection.value.filter(x => props.nodes.map(y => y.uuid).includes(x))
     }
 }
 
@@ -120,10 +120,10 @@ const createNode = () => {
 const deleteConfirm = () => {
     deleteModal.value = false
     deleteData.value.forEach(x => {
-        if(props.backend.config.haveBackend){
-            props.backend.send('node_delete', x)
-            props.backend.send('server_stop', x, 'Manually disconnect')
-            props.backend.send('delete_node', x)
+        if(backend.config.haveBackend){
+            backend.send('node_delete', x)
+            backend.send('server_stop', x, 'Manually disconnect')
+            backend.send('delete_node', x)
         }else{
             props.manager?.server_stop(x, 'Manually disconnect')
         }
@@ -136,13 +136,13 @@ const deleteNode = () => {
 }
 
 const selectall = () => {
-    selection.value = props.nodes.map(x => x.ID)
+    selection.value = props.nodes.map(x => x.uuid)
 }
 
 const confirmConnection = () => {
     connectionModal.value = false
-    if(props.backend.config.haveBackend){
-        props.backend.send("node_add", `wss://${connectionData.value.url}`, uuid6())
+    if(backend.config.haveBackend){
+        backend.send("node_add", `wss://${connectionData.value.url}`, uuid6())
     }else{
         props.manager?.server_start(`wss://${connectionData.value.url}`, uuid6())
     }
@@ -176,9 +176,9 @@ const showinfo = (uuid:string) => {
 const showconsole = (uuid:string) => {
     consoleModal.value = true
     consoleUUID.value = uuid
-    if(props.backend.config.haveBackend){
-        props.backend.send('shell_open', uuid)
-        props.backend.send('shell_folder', uuid, '')
+    if(backend.config.haveBackend){
+        backend.send('shell_open', uuid)
+        backend.send('shell_folder', uuid, '')
     }else{
         props.manager?.shell_open(uuid)
         props.manager?.shell_folder(uuid, '')
@@ -187,11 +187,11 @@ const showconsole = (uuid:string) => {
 
 const plugin_download = (plugin:Plugin) => {
     if(pluginTarget.value == undefined) return
-    if(props.backend.config.haveBackend){
-        props.backend.send("plugin_download", pluginTarget.value.ID, JSON.stringify(plugin), props.preference.plugin_token.map(x => x.token).join(' '))
+    if(backend.config.haveBackend){
+        backend.send("plugin_download", pluginTarget.value.uuid, JSON.stringify(plugin), preference.plugin_token.map(x => x.token).join(' '))
     }else{
-        const p = props.manager?.targets.find(x => x.uuid == pluginTarget.value?.ID)
-        const p2:PluginWithToken = {...plugin, token: props.preference.plugin_token.map(x => x.token)}
+        const p = props.manager?.targets.find(x => x.uuid == pluginTarget.value?.uuid)
+        const p2:PluginWithToken = {...plugin, token: preference.plugin_token.map(x => x.token)}
         const h:Header = { name: 'plugin_download', data: plugin }
         p?.websocket.send(JSON.stringify(h))
     }
@@ -199,10 +199,10 @@ const plugin_download = (plugin:Plugin) => {
 
 const plugin_remove = (plugin:Plugin) => {
     if(pluginTarget.value == undefined) return
-    if(props.backend.config.haveBackend){
-        props.backend.send("plugin_remove", pluginTarget.value.ID, JSON.stringify(plugin))
+    if(backend.config.haveBackend){
+        backend.send("plugin_remove", pluginTarget.value.uuid, JSON.stringify(plugin))
     }else{
-        const p = props.manager?.targets.find(x => x.uuid == pluginTarget.value?.ID)
+        const p = props.manager?.targets.find(x => x.uuid == pluginTarget.value?.uuid)
         const h:Header = { name: 'plugin_remove', data: plugin }
         p?.websocket.send(JSON.stringify(h))
     }
@@ -259,7 +259,7 @@ onUnmounted(() => {
                 </v-tooltip> 
             </v-toolbar>
         </div>
-        <v-data-table :style="{ 'fontSize': props.preference.font + 'px' }" style="background: transparent" :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
+        <v-data-table :style="{ 'fontSize': preference.font + 'px' }" style="background: transparent" :headers="fields" :items="items_final" show-select v-model="selection" item-value="ID">
             <template v-slot:item.state="{ item }">
                 <v-chip :color="translate_state_color(item.state)">{{ translate_state(item.state) }}</v-chip>
             </template>
@@ -267,22 +267,22 @@ onUnmounted(() => {
                 {{ item.connection_rate }}
             </template>
             <template v-slot:item.detail="{ item }">
-                <v-btn variant="text" icon @click="showplugin(item.ID)">
+                <v-btn variant="text" icon @click="showplugin(item.uuid)">
                     <v-icon>mdi-puzzle</v-icon>
                 </v-btn>
-                <v-btn variant="text" icon @click="showinfo(item.ID)">
+                <v-btn variant="text" icon @click="showinfo(item.uuid)">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
-                <v-btn variant="text" icon @click="showconsole(item.ID)" :disabled="item.state != 1">
+                <v-btn variant="text" icon @click="showconsole(item.uuid)" :disabled="item.state != 1">
                     <v-icon>mdi-console</v-icon>
                 </v-btn>
             </template>
         </v-data-table>
-        <NodeInfoDialog v-model="infoModal" :item="infoTarget" :preference="props.preference" />
-        <NodeShellDialog v-model="consoleModal" :backend="props.backend" :item="consoleTarget" :manager="props.manager" :preference="props.preference" />
-        <NodePluginDialog v-model="pluginModal" :backend="props.backend" :item="pluginTarget" :plugin="props.plugin" :preference="props.preference"
+        <NodeInfoDialog v-model="infoModal" :item="infoTarget" :preference="preference" />
+        <NodeShellDialog v-model="consoleModal" :backend="backend" :item="consoleTarget" :manager="props.manager" :preference="preference" />
+        <NodePluginDialog v-model="pluginModal" :backend="backend" :item="pluginTarget" :plugin="props.plugin" :preference="preference"
             @download="plugin_download" @remove="plugin_remove" />
-        <DialogBase width="500" v-model="connectionModal" class="text-white" :preference="props.preference">
+        <DialogBase width="500" v-model="connectionModal" class="text-white" :preference="preference">
             <template #title>
                 <v-icon>mdi-web</v-icon>
                 {{ $t('modal.new-node') }}
@@ -294,7 +294,7 @@ onUnmounted(() => {
                 <v-btn class="mt-3" color="primary" @click="confirmConnection">{{ $t('create') }}</v-btn>
             </template>
         </DialogBase>
-        <DialogBase width="500" v-model="deleteModal" class="text-white" :preference="props.preference">
+        <DialogBase width="500" v-model="deleteModal" class="text-white" :preference="preference">
             <template #title>
                 <v-icon>mdi-pencil</v-icon>
                 {{ $t('modal.delete-node') }}

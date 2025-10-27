@@ -8,7 +8,7 @@ import {
     ExecuteState, 
     Libraries, 
     NodeTable, 
-    Parameter, 
+    Database, 
     Preference, 
     Project, 
     Record 
@@ -18,7 +18,7 @@ import ConsoleDialog from '../dialog/ConsoleDialog.vue';
 import NumberDialog from '../dialog/NumberDialog.vue';
 import DebugLog from './../components/console/DebugLog.vue';
 import List from './../components/console/List.vue';
-import ParameterPage from './../components/console/Parameter.vue';
+import DatabasePage from './../components/console/Database.vue';
 import Process from './../components/console/Process.vue';
 import { BackendProxy } from '../../proxy';
 
@@ -32,7 +32,7 @@ interface PROPS {
     libs: Libraries
     projects: Array<Project>
     nodes: Array<NodeTable>
-    parameters: Array<Parameter>
+    databases: Array<Database>
 }
 const p_model = defineModel<ExecutePair>()
 const props = defineProps<PROPS>()
@@ -437,7 +437,7 @@ onUnmounted(() => {
                         {{ $t('console.dashboard') }}
                     </v-list-item>
                     <v-list-item v-if="model.record != undefined" @click="data.tag = 3" :value="3" :active="data.tag == 3">
-                        {{ $t('console.parameter') }}
+                        {{ $t('console.database') }}
                     </v-list-item>
                     <v-list-item @click="data.tag = 2" :value="2" :active="data.tag == 2">
                         Debug Log
@@ -466,14 +466,14 @@ onUnmounted(() => {
                 <DebugLog :preference="props.preference" />
             </v-col>
             <v-col v-if="model.record != undefined" :cols="data.rightSize" v-show="data.tag == 3">
-                <ParameterPage v-model="model.record!.para" :preference="props.preference" />
+                <DatabasePage v-model="model.record!.para" :preference="props.preference" />
             </v-col>
         </v-row>
         <ConsoleDialog v-model="data.createModal"
             :backend="props.backend"
             :projects="props.projects"
             :nodes="props.nodes"
-            :parameters="props.parameters"
+            :databases="props.databases"
             :preference="props.preference"
             :execute="props.execute"
             @confirm="(e, e1) => consoleAdded(e, e1)"

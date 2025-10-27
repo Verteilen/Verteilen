@@ -2,10 +2,10 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ExecutePair, Log, Parameter, Preference, Project } from '../../interface';
+import { AppConfig, BusType, ExecutePair, Log, Database, Preference, Project } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import LogProcess from './../components/console/LogProcess.vue';
-import ParameterPage from './../components/console/Parameter.vue';
+import DatabasePage from './../components/console/Database.vue';
 import LogMenuDialog from './../dialog/LogMenuDialog.vue';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
@@ -56,7 +56,7 @@ const clean = () => {
 
 const recover = () => {
     if(getselect.value == undefined) return
-    const p = getselect.value.project.parameter!.title == undefined ? `${getselect.value.project.title} ${i18n.global.t('parameter')}` : getselect.value.project.parameter!.title
+    const p = getselect.value.project.database!.title == undefined ? `${getselect.value.project.title} ${i18n.global.t('database')}` : getselect.value.project.database!.title
     holder.value = [
         `${getselect.value.project.title} ${i18n.global.t('recover')}`,
         `${p} ${i18n.global.t('recover')}`
@@ -75,7 +75,7 @@ const recoverConfirm = (mode:number, _names?:Array<string>) => {
         const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
         p.uuid = uuidv6()
         p.title = names[0]
-        p.parameter = getselect.value.parameter
+        p.database = getselect.value.database
         p.task.forEach(x => {
             x.uuid = uuidv6()
             x.jobs.forEach(y => {
@@ -84,10 +84,10 @@ const recoverConfirm = (mode:number, _names?:Array<string>) => {
         })
         emitter?.emit('recoverProject', p)
     }else{
-        const p:Parameter = JSON.parse(JSON.stringify(getselect.value.project.parameter))
+        const p:Database = JSON.parse(JSON.stringify(getselect.value.project.database))
         p.uuid = uuidv6()
         p.title = names[1]
-        emitter?.emit('recoverParameter', p)
+        emitter?.emit('recoverDatabase', p)
     }
 }
 
@@ -95,7 +95,7 @@ const exportConfirm = (mode:number) => {
     if(getselect.value == undefined) return
     const p:Project = JSON.parse(JSON.stringify(getselect.value.project))
     if(!props.config.isElectron) return
-    window.electronAPI.send("export_parameter", mode == 0 ? JSON.stringify(p) : JSON.stringify(p.parameter))
+    window.electronAPI.send("export_database", mode == 0 ? JSON.stringify(p) : JSON.stringify(p.database))
     exportDialog.value = false
 }
 
@@ -148,7 +148,7 @@ onUnmounted(() => {
                         {{ $t('console.dashboard') }}
                     </v-list-item>
                     <v-list-item @click="tag = 1" :value="1" :active="tag == 1">
-                        {{ $t('console.parameter') }}
+                        {{ $t('console.database') }}
                     </v-list-item>
                 </v-list>
                 <v-list style="overflow-y: scroll; height: calc(100vh - 260px);">
@@ -179,7 +179,7 @@ onUnmounted(() => {
                 />
             </v-col>
             <v-col :cols="rightSize" style="height: calc(100vh - 120px)" v-if="tag == 1 && getselect != undefined">
-                <ParameterPage v-model="getselect.parameter" :preference="props.preference" />
+                <DatabasePage v-model="getselect.database" :preference="props.preference" />
             </v-col>
         </v-row>
         <LogMenuDialog 
@@ -190,7 +190,7 @@ onUnmounted(() => {
             :recover="true"
             :holder="holder"
             @project="e => recoverConfirm(0, e)"
-            @parameter="e => recoverConfirm(1, e)" />
+            @database="e => recoverConfirm(1, e)" />
         <LogMenuDialog 
             v-model="exportDialog" 
             icon="mdi-export"
@@ -199,7 +199,7 @@ onUnmounted(() => {
             :recover="false"
             :holder="holder"
             @project="exportConfirm(0)"
-            @parameter="exportConfirm(1)" />
+            @database="exportConfirm(1)" />
     </v-container>
 </template>
 

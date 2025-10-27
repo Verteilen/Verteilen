@@ -1,34 +1,41 @@
 <script setup lang="ts">
+//#region Module
 import { Emitter } from 'mitt';
-import { inject, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { AppConfig, BusType, Preference } from '../interface';
+import { BackendProxy } from '../proxy';
+import { i18n } from '../plugins/i18n';
+//#endregion
 
-interface PROPS {
-    config: AppConfig
-    preference: Preference
-}
-
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-const propss = defineProps<PROPS>()
+//#region Data
+const $t = i18n.global.t
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
 const account = ref("")
 const password = ref("")
+//#endregion
 
+//#region Computed
+const config = computed(() => backend.config)
+//#endregion
+
+//#region Methods
 const loginClick = () => {
-    emitter?.emit('login', { key: account.value, value: password.value })
+    emitter?.emit('login', { username: account.value, password: password.value })
     account.value = ""
     password.value = ""
 }
-
 const guestClick = () => {
     emitter?.emit('loginGuest')
 }
-
+//#endregion
 </script>
 
 <template>
     <div style="margin: 0; padding:35vh 10vw; width: 100vw; height: 100vh; place-items: center;"
-        :class="{ 'bg-dark': propss.preference.theme == 'dark', 'bg-light': propss.preference.theme == 'light' }">
-        <h3 class="text-info mb-4" :style="{ 'fontSize': (propss.preference.font + 6) + 'px' }">{{ $t('login.title') }}</h3>
+        :class="{ 'bg-dark': preference.theme == 'dark', 'bg-light': preference.theme == 'light' }">
+        <h3 class="text-info mb-4" :style="{ 'fontSize': (preference.font + 6) + 'px' }">{{ $t('login.title') }}</h3>
         <v-text-field v-model="account" width="40vw" :label="$t('login.account')"></v-text-field>
         <v-text-field v-model="password" width="40vw" :label="$t('login.password')"></v-text-field>
         <v-row>

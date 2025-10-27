@@ -7,7 +7,6 @@ import { messager_log, set_feedback } from '../debugger'
 import { 
   Execute_ExecuteManager,
   Execute_SocketManager,
-  Execute_ConsoleManager,
   UtilServer_Console,
   UtilServer_Log,
   BusAnalysis, 
@@ -568,11 +567,11 @@ const dataset_init = () => {
     })
     data.value.nodes.forEach(y => {
       if(backend.config.haveBackend){
-        console.log("backend node_add", y.url, y.ID)
-        backend.send("node_add", y.url, y.ID)
+        console.log("backend node_add", y.url, y.uuid)
+        backend.send("node_add", y.url, y.uuid)
       }else{
-        console.log("static web node_add", y.url, y.ID)
-        data.value.websocket_manager?.server_start(y.url, y.ID)
+        console.log("static web node_add", y.url, y.uuid)
+        data.value.websocket_manager?.server_start(y.url, y.uuid)
       }
     })
     if (process.env.NODE_ENV == 'development') console.log("nodes", data.value.nodes)
@@ -648,7 +647,7 @@ onMounted(() => {
     InitCaller(!backend.config.isElectron)
     backend.eventOn('debuglog', debug_feedback)
     if(backend.config.isExpress){
-      backend.consoleM = new Execute_ConsoleManager.ConsoleManager(`wss://${window.location.hostname}:${WebPORT}`, messager_log, {
+      backend.Create_Console_Host(`wss://${window.location.hostname}:${WebPORT}`, {
         on: emitter!.on,
         off: emitter!.off,
         emit: emitter!.emit
@@ -807,8 +806,6 @@ onUnmounted(() => {
           <NodePage
             :manager="data.websocket_manager"
             :plugin="data.plugin"
-            :backend="backend"
-            :preference="preference"
             :nodes="data.nodes" />
         </v-tabs-window-item>
         <v-tabs-window-item :value="5">

@@ -1,3 +1,4 @@
+import { UserProfileClient } from "./interface";
 
 export const checkifElectron = ():boolean => {
     // Renderer process
@@ -24,10 +25,22 @@ const _checkIfExpress = async ():Promise<any> => {
     return t
 }
 
-export const checkIfExpress = (feedback:(e:any)=>void) => {
-    _checkIfExpress().then(x => {
-        feedback(JSON.parse(x))
-    }).catch(err => {
-        feedback(undefined)
+export const checkIfExpress = async ():Promise<UserProfileClient | undefined> => {
+    return new Promise<UserProfileClient | undefined>((resolve) => {
+        _checkIfExpress().then(x => resolve(JSON.parse(x)))
+        .catch(err => resolve(undefined))
+    })
+}
+
+const _checkExpressType = async ():Promise<any> => {
+    const p = await fetch('express')
+    const t = await p.text()
+    return t
+}
+
+export const checkExpressType = async ():Promise<number | undefined> => {
+    return new Promise<number | undefined>((resolve) => {
+        _checkExpressType().then(x => resolve(x))
+        .catch(err => resolve(undefined))
     })
 }

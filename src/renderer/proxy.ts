@@ -1,21 +1,31 @@
 import { reactive } from "vue";
-import { Execute_ConsoleManager, AppConfig, RawSend, UserProfileClient, UserType } from "./interface";
-import { checkifElectron, checkIfExpress } from "./platform";
+import { Execute_ConsoleManager, AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType } from "./interface";
+import { checkExpressType, checkifElectron, checkIfExpress } from "./platform";
 import Cookies from 'js-cookie'
+import { messager_log } from "./debugger";
 
 /**
  * **Data Backend Controller**\
  * The proxy middleware that connect the function call to express backend or electron backend 
  */
 export class BackendProxy {
+    /**
+     * **Application Configuration**\
+     * Show current state of the app
+     */
     config:AppConfig
+    /**
+     * **Console Hoster**\
+     * 
+     */
     consoleM: Execute_ConsoleManager.ConsoleManager | undefined
     is_init: boolean
     user: UserProfileClient = reactive({
         picture_url: false,
         name: "",
         type: UserType.GUEST,
-        permission: undefined
+        permission: undefined,
+        
     })
 
     constructor(){
@@ -26,6 +36,7 @@ export class BackendProxy {
             isAdmin: false,
             haveBackend: false,
             login: false,
+            backendType: BackendType.NONE,
         }
         this.is_init = false
         this.consoleM = undefined
@@ -37,29 +48,32 @@ export class BackendProxy {
      */
     init = () => {
         this.is_init = false
-        const k = new Promise<void>((resolve) => {
-            checkIfExpress((e:UserProfileClient | undefined) => {
-                Object.assign(this.user, e)
-                this.user.permission = e?.permission
-                this.config.isExpress = e != undefined
-                this.config.isAdmin = e ? (e.type == UserType.ADMIN || e.type == UserType.ROOT) : false
-                this.is_init = true
-                this.config.haveBackend = this.config.isElectron || this.config.isExpress
-
-                if(this.user != undefined){
-                    fetch('/pic').then(x => {
-                        this.user!.picture_url = x.ok
-                        resolve()
-                    }).catch(() => {
-                        this.user!.picture_url = false
-                        resolve()
-                    })
-                }else{
+        const k = new Promise<void>(async (resolve) => {
+            const e = await checkIfExpress()
+            Object.assign(this.user, e)
+            this.user.permission = e?.permission
+            this.config.isExpress = e != undefined
+            this.config.isAdmin = e ? (e.type == UserType.ADMIN || e.type == UserType.ROOT) : false
+            this.is_init = true
+            this.config.haveBackend = this.config.isElectron || this.config.isExpress
+            this.config.backendType = (await checkExpressType()) as BackendType ?? BackendType.NONE
+            if(this.user != undefined){
+                fetch('/pic').then(x => {
+                    this.user!.picture_url = x.ok
                     resolve()
-                }
-            })
+                }).catch(() => {
+                    this.user!.picture_url = false
+                    resolve()
+                })
+            }else{
+                resolve()
+            }
         })  
         return Promise.all([k])
+    }
+
+    Create_Console_Host = (_url: string, _emitter: EmitterProxy<BusType>) => {
+        this.consoleM = new Execute_ConsoleManager.ConsoleManager(_url, messager_log, _emitter)
     }
 
     /**

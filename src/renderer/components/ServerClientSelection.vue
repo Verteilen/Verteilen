@@ -3,7 +3,6 @@
 import { Emitter } from 'mitt'
 import { computed, inject, ref } from 'vue'
 import { 
-    AppConfig, 
     BusType, 
     Preference, 
     ToastData 
@@ -13,16 +12,18 @@ import { i18n } from './../plugins/i18n'
 
 //#region Views
 import AppBar from './components/layout/AppBar.vue'
+import { BackendProxy } from '../proxy'
 //#endregion
 
 //#region Data
-interface PROPS {
-    config: AppConfig
-    preference: Preference
-}
+const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const propss = defineProps<PROPS>()
+const backend:BackendProxy = inject("backend")!
+const preference:Preference = inject("preference")!
 const model = defineModel<number>()
+const emit = defineEmits<{
+    (e: 'selectd', mode:number | undefined, url:string | undefined):void
+}>()
 const data = ref({
     page: 0,
     is_server: -1,
@@ -71,7 +72,7 @@ const clientClick = () => {
         message: i18n.global.t("toast.cluster_d")
     }
     emitter?.emit('makeToast', d)
-    emitter?.emit('modeSelect', true);
+    emit('selectd', data.value.mode, data.value.url)
     model.value = 0
 }
 const clusterClick = () => {
@@ -81,7 +82,6 @@ const clusterClick = () => {
         message: i18n.global.t("toast.node_d")
     }
     emitter?.emit('makeToast', d)
-    emitter?.emit('modeSelect', true);
     model.value = 0
 }
 const confirm = () => {
@@ -94,7 +94,7 @@ const confirm = () => {
 
 <template>
     <div style="margin: 0; padding-top: 16px; width: 100vw; height: calc(100vh - 56px); place-items: center;"
-        :class="{ 'bg-dark': propss.preference.theme == 'dark', 'bg-light': propss.preference.theme == 'light' }">
+        :class="{ 'bg-dark': preference.theme == 'dark', 'bg-light': preference.theme == 'light' }">
         <!-- Top Appbar -->
         <AppBar />
 
@@ -137,7 +137,7 @@ const confirm = () => {
                         <v-tooltip location="bottom">
                             <template v-slot:activator="{ props }">
                                 <v-btn variant="outlined" color="primary" v-bind="props" prepend-icon="mdi-server" stacked class="buttonHeight w-75 mx-1" @click="selectMode(0)">
-                                    <span :style="{ 'fontSize': propss.preference.font + 'px' }">
+                                    <span :style="{ 'fontSize': preference.font + 'px' }">
                                         {{ $t('server') }}
                                     </span>
                                 </v-btn>
@@ -146,10 +146,10 @@ const confirm = () => {
                         </v-tooltip>
                     </v-col>
                     <v-col>
-                        <v-tooltip location="bottom" text="Tooltip" :no-click-animation="!propss.preference.animation">
+                        <v-tooltip location="bottom" text="Tooltip" :no-click-animation="!preference.animation">
                             <template v-slot:activator="{ props }">
                                 <v-btn variant="outlined" color="secondary" v-bind="props" prepend-icon="mdi-network" stacked class="buttonHeight w-75 mx-1" @click="selectMode(1)">
-                                    <span :style="{ 'fontSize': propss.preference.font + 'px' }">
+                                    <span :style="{ 'fontSize': preference.font + 'px' }">
                                         {{ $t('node') }}
                                     </span>
                                 </v-btn>    
@@ -161,7 +161,7 @@ const confirm = () => {
                         <v-tooltip location="bottom">
                             <template v-slot:activator="{ props }">
                                 <v-btn variant="outlined" color="primary" v-bind="props" prepend-icon="mdi-server" stacked class="buttonHeight w-75 mx-1" @click="selectMode(2)">
-                                    <span :style="{ 'fontSize': propss.preference.font + 'px' }">
+                                    <span :style="{ 'fontSize': preference.font + 'px' }">
                                         {{ $t('cluster') }}
                                     </span>
                                 </v-btn>
