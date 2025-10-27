@@ -1,8 +1,10 @@
-import { Plugin } from "vue";
-import { CreatePreference } from "../interface";
+import { Plugin, ref, Ref } from "vue";
+import { CreatePreference, Preference } from "../interface";
+
+const value:Ref<Preference> = ref(CreatePreference())
 
 export const preference:Plugin = {
     install(app, ...options) {
-        app.provide("preference", CreatePreference())
+        app.provide("preference", value)
     },
 }

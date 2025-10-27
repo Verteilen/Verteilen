@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //#region Module
 import { Emitter } from 'mitt';
-import { computed, inject, ref } from 'vue';
+import { computed, inject, Ref, ref } from 'vue';
 import { AppConfig, BusType, Preference } from '../interface';
 import { BackendProxy } from '../proxy';
 import { i18n } from '../plugins/i18n';
@@ -12,14 +12,14 @@ import AppBar from './components/layout/AppBar.vue';
 //#region Data
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 const account = ref("")
 const password = ref("")
 //#endregion
 
 //#region Computed
-const config = computed(() => backend.config)
+const config = computed(() => backend.value.config)
 //#endregion
 
 //#region Methods

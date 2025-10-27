@@ -1,1 +1,6 @@
-export * from 'verteilen-core/src/plugins/i18n'
+import * as i from 'verteilen-core/dist/plugins/i18n'
+
+export const i18n = i.Create({
+    ...(i.i18nDefaultData),
+    legacy: false
+})

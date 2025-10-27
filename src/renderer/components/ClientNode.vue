@@ -11,13 +11,15 @@ import {
 } from './../interface'
 import { BackendProxy } from '../proxy'
 import { i18n } from '../plugins/i18n'
+import Layout from './components/layout/Layout.vue'
+import AppBar from './components/layout/AppBar.vue'
 //#endregion
 
 //#region Data
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 let updateHandle:any = undefined
 const messages:Ref<Array<ClientLog>> = ref([
   {
@@ -35,7 +37,7 @@ const autoScroll = ref(true)
 //#endregion
 
 //#region Computed
-const config = computed(() => backend.config)
+const config = computed(() => backend.value.config)
 //#endregion
 
 //#region Methods
@@ -84,39 +86,26 @@ const clearMessage = () => {
 
 onMounted(() => {
   updateHandle = setInterval(() => emitter?.emit('updateHandle'), RENDER_UPDATETICK);
-  backend.wait_init().then(() => {
+  backend.value.wait_init().then(() => {
     if(config.value.isElectron){
-      backend.eventOn('msgAppend', msgAppend);
-      backend.send('menu', false)
-      backend.send('client_start');
+      backend.value.eventOn('msgAppend', msgAppend);
+      backend.value.send('menu', false)
+      backend.value.send('client_start');
     }
   })
 })
 
 onUnmounted(() => {
-  backend.eventOff('msgAppend', msgAppend);
-  backend.send('client_stop');
+  backend.value.eventOff('msgAppend', msgAppend);
+  backend.value.send('client_stop');
 })
 
 </script>
 
 <template>
-  <div class="text-white bg" style="margin: 0; width: 100vw; height: 100vh; place-items: center;">
-    <v-layout>
-      <v-app-bar :elevation="2">
-          <v-app-bar-title>{{ $t('node') }}</v-app-bar-title>
-          <template v-slot:append>
-          <v-menu location="left">
-              <template v-slot:activator="{ props }">
-              <v-btn v-bind="props" icon="mdi-dots-vertical"></v-btn>
-              </template>
-              <v-list width="120px">
-              <v-list-item @click="popSetting">{{ $t('setting') }}</v-list-item>
-              </v-list>
-          </v-menu>
-          </template>
-      </v-app-bar>
-    </v-layout>
+  <Layout>
+    <AppBar :title="$t('node')" goback />
+
     <v-toolbar density="compact" class="pr-3" style="padding-top: 65px">
       <v-tooltip location="bottom">
           <template v-slot:activator="{ props }">
@@ -158,7 +147,7 @@ onUnmounted(() => {
         </v-expansion-panel>
       </v-expansion-panels>
     </div>
-  </div>
+  </Layout>
 </template>
 
 <style scoped>

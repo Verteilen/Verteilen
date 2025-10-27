@@ -58,8 +58,8 @@ import AppBar from './components/layout/AppBar.vue'
 //#region Data
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 const tabs:Ref<Array<[string, string, number]>> = ref([])
 const data:Ref<DATA> = ref({
     websocket_manager: undefined,
@@ -82,7 +82,7 @@ const data:Ref<DATA> = ref({
     messages: [],
     plugin: { plugins: [], templates: [] }
 })
-const util:Util_Server = new Util_Server(data, () => backend, emitter!)
+const util:Util_Server = new Util_Server(data, () => backend.value, emitter!)
 let delayy = 0
 let updateHandle:any = undefined
 let slowUpdateHandle:any = undefined
@@ -99,7 +99,7 @@ watch(() => data.value.page, () => {
 //#endregion
 
 //#region Computed
-const config = computed(() => backend.config)
+const config = computed(() => backend.value.config)
 const selectExecute = computed(() => data.value.execute_manager[data.value.select_manager])
 const projectbind = computed(() => {
   if(data.value.selectProject == undefined) return undefined
@@ -153,7 +153,7 @@ const goDatabase = (e:string) => {
 
 //#region Lib
 const libFresh = () => {
-  backend.invoke('list_all_lib').then(x => {
+  backend.value.invoke('list_all_lib').then(x => {
     const texts:Array<any> = JSON.parse(x)
     console.log("list_all_lib", texts) 
     data.value.libs = { libs: texts.map(y => {
@@ -169,17 +169,17 @@ const libFresh = () => {
   })
 }
 const libEdit = (oldname:string, newname:string) => { 
-  backend.send("rename_lib", oldname, newname) 
+  backend.value.send("rename_lib", oldname, newname) 
   libFresh()
 }
 const libSave = (file:string, content:string, refresh: boolean) => { 
-  backend.send('save_lib', file, content)
+  backend.value.send('save_lib', file, content)
   if(refresh) libFresh()
 }
 const libLoad = (file:string) => {
   const ext = file.split('.').pop()!
   const name = file.slice(0, -(ext.length + 1))
-  backend.invoke('load_lib', file).then(r => {
+  backend.value.invoke('load_lib', file).then(r => {
     const target = data.value.libs.libs.find(x => x.name == name)
     console.log(r)
     if(target == undefined) return
@@ -188,7 +188,7 @@ const libLoad = (file:string) => {
   }).catch(err => console.error(err))
 }
 const libDelete = (file:string) => {
-  backend.send('delete_lib', file)
+  backend.value.send('delete_lib', file)
   data.value.projects.forEach(x => {
     x.task.forEach(y => {
       y.jobs.forEach(z => {
@@ -201,14 +201,14 @@ const libDelete = (file:string) => {
   })
   allUpdate()
 }
-const libJs = (code:string, para:Database | undefined) => { backend.send('javascript', code, para ? JSON.stringify(para) : undefined) }
+const libJs = (code:string, para:Database | undefined) => { backend.value.send('javascript', code, para ? JSON.stringify(para) : undefined) }
 //#endregion
 
 //#region Console
 const consoleAdded = (name:string, record:Record) => {
-  if(backend.config.haveBackend){
+  if(backend.value.config.haveBackend){
     // If we have backend, the instance should be place in the backend
-    backend.invoke('console_add', name, record, backend.config.isExpress ? preference : undefined).then(r => {
+    backend.value.invoke('console_add', name, record, backend.value.config.isExpress ? preference : undefined).then(r => {
       if(r != undefined){
         data.value.execute_manager.push({ record: r })
         data.value.select_manager = data.value.execute_manager.length - 1
@@ -249,7 +249,7 @@ const consoleAdded = (name:string, record:Record) => {
     em.libs = data.value.libs
     const p:ExecutePair = {manager: em, record: er}
     const uscp:UtilServer_Console.Util_Server_Console_Proxy = new UtilServer_Console.Util_Server_Console_Proxy(p)
-    const uslp:UtilServer_Log.Util_Server_Log_Proxy = new UtilServer_Log.Util_Server_Log_Proxy(p, data.value.logs, preference)
+    const uslp:UtilServer_Log.Util_Server_Log_Proxy = new UtilServer_Log.Util_Server_Log_Proxy(p, data.value.logs, preference.value)
     em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
     r = util.console.receivedPack(p, record)
     if(r){
@@ -266,7 +266,7 @@ const consoleAdded = (name:string, record:Record) => {
 }
 const consoleStop = () => {
   nextTick(() => {
-    if(!backend.config.haveBackend){
+    if(!backend.value.config.haveBackend){
       data.value.execute_manager[data.value.select_manager].manager!.Release()
     }
     data.value.execute_manager.splice(data.value.select_manager, 1)
@@ -283,8 +283,8 @@ const consoleSelect = (e:number) => { data.value.select_manager = e }
 
 //#region Log
 const LogClean = () => {
-  if(!backend.config.haveBackend) return
-  backend.send('delete_all_log')
+  if(!backend.value.config.haveBackend) return
+  backend.value.send('delete_all_log')
   data.value.logs.logs = []
 }
 //#endregion
@@ -296,7 +296,7 @@ const msgClean = () => util.self.clearMessage()
 
 //#region Plugin
 const pluginAdded = (name:string, url:string) => {
-  backend.invoke("import_plugin", name, url, preference.plugin_token.map(x => x.token).join(' ')).then(x => {
+  backend.value.invoke("import_plugin", name, url, preference.value.plugin_token.map(x => x.token).join(' ')).then(x => {
     if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
     nextTick(() => {
       data.value.plugin = { plugins: [], templates: [] }
@@ -307,7 +307,7 @@ const pluginAdded = (name:string, url:string) => {
   })
 }
 const templateAdded = (name:string, url:string) => {
-  backend.invoke("import_template", name, url, preference.plugin_token.map(x => x.token).join(' ')).then(x => {
+  backend.value.invoke("import_template", name, url, preference.value.plugin_token.map(x => x.token).join(' ')).then(x => {
     if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
     nextTick(() => {
       data.value.plugin = { plugins: [], templates: [] }
@@ -318,13 +318,13 @@ const templateAdded = (name:string, url:string) => {
   })
 }
 const pluginDelete = (name:string) => {
-  backend.invoke("import_plugin_delete", name).then(x => {
+  backend.value.invoke("import_plugin_delete", name).then(x => {
     if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
 }
 const templateDelete = (name:string) => {
-  backend.invoke("import_template_delete", name).then(x => {
+  backend.value.invoke("import_template_delete", name).then(x => {
     if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
     data.value.plugin = JSON.parse(x)
   })
@@ -336,7 +336,7 @@ const updateLocate = () => {
 }
 
 const updateHandleCall = () => {
-  if(backend.config.haveBackend){
+  if(backend.value.config.haveBackend){
   }
 }
 
@@ -346,20 +346,20 @@ const updateTab = () => {
       ["", "toolbar.editor", -1],
       ["mdi-cube", "toolbar.project", 0],
     ]
-    if(backend.user.permission?.task.view){
+    if(backend.value.user.permission?.task.view){
       tabs.value.push(["mdi-calendar", "toolbar.task", 1])
     }
-    if(backend.user.permission?.job.view){
+    if(backend.value.user.permission?.job.view){
       tabs.value.push(["mdi-hammer", "toolbar.job", 2])
     }
-    if(backend.user.permission?.database.view){
+    if(backend.value.user.permission?.database.view){
       tabs.value.push(["mdi-database", "toolbar.database", 3])
     }
     tabs.value.push(["", "toolbar.compute", -1])
-    if(backend.user.permission?.node.view){
+    if(backend.value.user.permission?.node.view){
       tabs.value.push(["mdi-network", "toolbar.node", 4])
     }
-    if(backend.user.permission?.execute_job){
+    if(backend.value.user.permission?.execute_job){
       tabs.value.push(["mdi-console-line", "toolbar.console", 5])
     }
   }else{
@@ -376,14 +376,14 @@ const updateTab = () => {
   }
   
   if(config.value.haveBackend){
-    if((config.value.isExpress && backend.user.permission?.plugin.view) || !config.value.isExpress){
+    if((config.value.isExpress && backend.value.user.permission?.plugin.view) || !config.value.isExpress){
       tabs.value.push(["mdi-puzzle", "toolbar.plugin", 11])
     }
     tabs.value.push(["", "toolbar.backend", -1])
-    if((config.value.isExpress && backend.user.permission?.log.view) || !config.value.isExpress){
+    if((config.value.isExpress && backend.value.user.permission?.log.view) || !config.value.isExpress){
       tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
     }
-    if((config.value.isExpress && backend.user.permission?.lib.view) || !config.value.isExpress){
+    if((config.value.isExpress && backend.value.user.permission?.lib.view) || !config.value.isExpress){
       tabs.value.push(["mdi-xml", "toolbar.library", 7])
     }
   }
@@ -403,8 +403,8 @@ const menuCreateProject = () => {
 }
 
 const menu_export_project = () => {
-  if(!backend.config.haveBackend) return
-  backend.send("export_project", JSON.stringify(data.value.projects))
+  if(!backend.value.config.haveBackend) return
+  backend.value.send("export_project", JSON.stringify(data.value.projects))
 }
 
 const import_project_feedback = (text:string) => {
@@ -492,7 +492,7 @@ const hotkey = (event:KeyboardEvent) => {
 const repull = (u:FrontendUpdate) => {
   const c: Array<Promise<void>> = []
   if((u & FrontendUpdate.PROJECT) == FrontendUpdate.PROJECT){
-    const p3 = backend.invoke('load_all_record').then(x => {
+    const p3 = backend.value.invoke('load_all_record').then(x => {
       const texts:Array<string> = JSON.parse(x)
       data.value.projects.push(...texts.map(y => JSON.parse(y)))
       if (process.env.NODE_ENV == 'development') console.log(data.value.projects)
@@ -500,7 +500,7 @@ const repull = (u:FrontendUpdate) => {
     c.push(p3)
   }
   if((u & FrontendUpdate.PARAMETER) == FrontendUpdate.PARAMETER){
-    const p5 = backend.invoke('load_all_database').then(x => {
+    const p5 = backend.value.invoke('load_all_database').then(x => {
       const texts:Array<string> = JSON.parse(x)
       data.value.databases = texts.map(y => JSON.parse(y))
       if (process.env.NODE_ENV == 'development') console.log("Databases", data.value.libs)
@@ -538,26 +538,26 @@ const dataset_init = () => {
   }
   else
   {
-    backend.eventOn('shellReply', (data:any) => emitter?.emit('shellReply', data) )
-    backend.eventOn('folderReply', (data:any) => emitter?.emit('folderReply', data) )
-    backend.eventOn('frontend_update', repull)
+    backend.value.eventOn('shellReply', (data:any) => emitter?.emit('shellReply', data) )
+    backend.value.eventOn('folderReply', (data:any) => emitter?.emit('folderReply', data) )
+    backend.value.eventOn('frontend_update', repull)
   }
-  backend.eventOn('makeToast', makeToastFromBackend)
-  backend.eventOn('logUpdate', logUpdate)
-  backend.eventOn('msgAppend', msgAppend)
-  backend.eventOn('console-delete', consoleDelete)
-  backend.eventOn('createProject', menuCreateProject)
-  backend.eventOn('menu_export_project', menu_export_project)
-  backend.eventOn('import_project_feedback', import_project_feedback)
-  backend.send('menu', true)
-  if(!backend.config.haveBackend) return
-  backend.send('client_start');
-  const p0 = backend.invoke('console_list').then((xs:any) => {
+  backend.value.eventOn('makeToast', makeToastFromBackend)
+  backend.value.eventOn('logUpdate', logUpdate)
+  backend.value.eventOn('msgAppend', msgAppend)
+  backend.value.eventOn('console-delete', consoleDelete)
+  backend.value.eventOn('createProject', menuCreateProject)
+  backend.value.eventOn('menu_export_project', menu_export_project)
+  backend.value.eventOn('import_project_feedback', import_project_feedback)
+  backend.value.send('menu', true)
+  if(!backend.value.config.haveBackend) return
+  backend.value.send('client_start');
+  const p0 = backend.value.invoke('console_list').then((xs:any) => {
     if(xs == undefined) xs = []
     data.value.execute_manager = Array.isArray(xs) ? xs.map(x => ({ record: x })) : [{record: xs}]
     console.log("execute", data.value.execute_manager)
   })
-  const p1 = backend.invoke('load_all_node').then(x => {
+  const p1 = backend.value.invoke('load_all_node').then(x => {
     const texts:Array<string> = JSON.parse(x)
     data.value.nodes.push(...texts.map(y => JSON.parse(y)))
     for(const x of data.value.nodes) x.s = false
@@ -569,9 +569,9 @@ const dataset_init = () => {
       })
     })
     data.value.nodes.forEach(y => {
-      if(backend.config.haveBackend){
+      if(backend.value.config.haveBackend){
         console.log("backend node_add", y.url, y.uuid)
-        backend.send("node_add", y.url, y.uuid)
+        backend.value.send("node_add", y.url, y.uuid)
       }else{
         console.log("static web node_add", y.url, y.uuid)
         data.value.websocket_manager?.server_start(y.url, y.uuid)
@@ -579,7 +579,7 @@ const dataset_init = () => {
     })
     if (process.env.NODE_ENV == 'development') console.log("nodes", data.value.nodes)
   })
-  const p2 = backend.invoke('list_all_lib').then(x => {
+  const p2 = backend.value.invoke('list_all_lib').then(x => {
     const texts:Array<any> = JSON.parse(x)
     if (process.env.NODE_ENV == 'development') console.log("list_all_lib", texts) 
     data.value.libs = { libs: texts.map(y => {
@@ -593,12 +593,12 @@ const dataset_init = () => {
     })}
     console.log("Libs", data.value.libs)
   })
-  const p4 = backend.invoke('get_plugin').then(x => {
+  const p4 = backend.value.invoke('get_plugin').then(x => {
     data.value.plugin = JSON.parse(x)
     if (process.env.NODE_ENV == 'development') console.log("Plugins", data.value.plugin)
   })
   const p35 = repull(FrontendUpdate.ALL)
-  const p6 = backend.invoke('load_all_log').then(x => {
+  const p6 = backend.value.invoke('load_all_log').then(x => {
       const stringlist:Array<string> = JSON.parse(x)
       const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
       ll.forEach(x => x.output = true)
@@ -641,22 +641,22 @@ onMounted(() => {
   emitter.on('updateLocate', updateLocate)
   emitter.on('updateHandle', updateHandleCall)
 
-  if(backend.config.haveBackend){
+  if(backend.value.config.haveBackend){
     data.value.loading = true
     InitCaller(true)
   }
-  backend.wait_init().then(() => {
+  backend.value.wait_init().then(() => {
     data.value.loading = true
-    InitCaller(!backend.config.isElectron)
-    backend.eventOn('debuglog', debug_feedback)
-    if(backend.config.isExpress){
-      backend.Create_Console_Host(`wss://${window.location.hostname}:${WebPORT}`, {
+    InitCaller(!backend.value.config.isElectron)
+    backend.value.eventOn('debuglog', debug_feedback)
+    if(backend.value.config.isExpress){
+      backend.value.Create_Console_Host(`wss://${window.location.hostname}:${WebPORT}`, {
         on: emitter!.on,
         off: emitter!.off,
         emit: emitter!.emit
       })
       const inter = setInterval(() => {
-        if(backend.consoleM?.ws.readyState == 1){
+        if(backend.value.consoleM?.ws.readyState == 1){
           dataset_init()
           clearInterval(inter)
         }
@@ -677,22 +677,22 @@ onUnmounted(() => {
   emitter.off('updateHandle', updateHandleCall)
   if(updateHandle != undefined) clearInterval(updateHandle)
   if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
-  backend.send('client_stop');
-  backend.eventOff('debuglog', debug_feedback)
-  backend.eventOff('console-delete', consoleDelete)
-  backend.eventOff('makeToast', makeToastFromBackend)
-  backend.eventOff('logUpdate', logUpdate)
-  backend.eventOff('createProject', menuCreateProject)
-  backend.eventOff('menu_export_project', menu_export_project)
-  backend.eventOff('import_project_feedback', import_project_feedback)
-  backend.eventOff('msgAppend', msgAppend)
+  backend.value.send('client_stop');
+  backend.value.eventOff('debuglog', debug_feedback)
+  backend.value.eventOff('console-delete', consoleDelete)
+  backend.value.eventOff('makeToast', makeToastFromBackend)
+  backend.value.eventOff('logUpdate', logUpdate)
+  backend.value.eventOff('createProject', menuCreateProject)
+  backend.value.eventOff('menu_export_project', menu_export_project)
+  backend.value.eventOff('import_project_feedback', import_project_feedback)
+  backend.value.eventOff('msgAppend', msgAppend)
 })
 
 </script>
 
 <template>
   <Layout>
-    <AppBar show_icon @click="data.drawer = true">
+    <AppBar show_icon @click="data.drawer = true" goback>
       <template #title>
         {{ $t(data.title).slice(0, $t(data.title).length - 4) }} 
         <span :style="{ 'fontSize': (preference.font - 5) + 'px' }">

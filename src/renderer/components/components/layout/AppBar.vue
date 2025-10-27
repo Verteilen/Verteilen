@@ -3,7 +3,7 @@
 import { Emitter } from 'mitt';
 import { BusType, Preference } from 'verteilen-core/src/interface';
 import { i18n } from 'verteilen-core/src/plugins/i18n';
-import { inject } from 'vue';
+import { inject, Ref } from 'vue';
 //#endregion
 
 //#region Data
@@ -15,7 +15,7 @@ interface PROP {
 }
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const preference:Preference = inject("preference")!
+const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROP>()
 const emit = defineEmits<{
     (e: 'click'):void
@@ -23,13 +23,13 @@ const emit = defineEmits<{
 //#endregion
 
 //#region Methods
-const popSetting = () => { emitter?.emit('setting') }
-const popGuide = () => { emitter?.emit('guide') }
-const popLogout = () => { emitter?.emit('logout') }
+const popSetting = () => { emitter.emit('setting') }
+const popGuide = () => { emitter.emit('guide') }
+const popLogout = () => { emitter.emit('logout') }
 const popGoBack = () => {
-    preference.mode = undefined
-    preference.url = undefined
-    emitter.emit('savePreference', preference)
+    preference.value.mode = undefined
+    preference.value.url = undefined
+    emitter.emit('savePreference', preference.value)
 }
 const click = () => {
     emit('click')
@@ -45,8 +45,7 @@ const click = () => {
                 <v-app-bar-nav-icon v-if="show_icon" nav-icon @click="click"></v-app-bar-nav-icon>
             </template>
             <v-app-bar-title>
-                {{ title }}
-                <slot name="title"></slot>
+                <slot name="title">{{ title }}</slot>
             </v-app-bar-title>
             <template v-slot:append>
                 <v-menu location="left">

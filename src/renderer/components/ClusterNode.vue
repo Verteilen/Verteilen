@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { inject } from 'vue';
+import { inject, Ref } from 'vue';
 import { Preference } from '../interface';
 
-const preference:Preference = inject("preference")!
+const preference:Ref<Preference> = inject("preference")!
 
 </script>
 

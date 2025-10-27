@@ -9,8 +9,8 @@ import { BackendProxy } from '../proxy'
 
 //#region Data
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 const messages:Ref<Array<IMessage>> = ref([])
 //#endregion
 
@@ -63,7 +63,7 @@ const update = () => {
 }
 const darken = (color: string) => {
     const e = GetColor(color)
-    return e == undefined ? color : (preference.theme == "dark" ? shadeColor(GetColor(color), -50) : shadeColor(GetColor(color), 50))
+    return e == undefined ? color : (preference.value.theme == "dark" ? shadeColor(GetColor(color), -50) : shadeColor(GetColor(color), 50))
 }
 //#endregion
 
