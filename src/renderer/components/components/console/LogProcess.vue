@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, Ref, ref, watch } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { AppConfig, ExecuteState, Log, Preference, SCROLL_LIMIT } from '../../../interface';
+import { AppConfig, ExecuteState, ExecutionLog, Preference, SCROLL_LIMIT } from '../../../interface';
 
 interface PROPS {
     preference: Preference
     config: AppConfig
-    logs: Log
+    logs: Array<ExecutionLog>
     selection: number
     current: number
     totalLength: number
@@ -23,7 +23,7 @@ const start = ref(0)
 const end = ref(0)
 const gap = ref(0)
 
-const items = computed(() => props.logs.logs.filter(x => x.output))
+const items = computed(() => props.logs.filter(x => x.output))
 const getselect = computed(() => items.value.length == 0 ? undefined : items.value[props.selection])
 const getselectTask = computed(() => getselect.value == undefined || props.current == -1 ? undefined : getselect.value.logs[props.current])
 const current_range = computed(() => {

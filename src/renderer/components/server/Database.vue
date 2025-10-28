@@ -31,8 +31,8 @@ interface PROPS {
 }
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', data:Database): void
@@ -87,11 +87,11 @@ const data:Ref<DATA> = ref({
     temps: [],
     object_temp: ''
 })
-const util:Util_Database = new Util_Database(backend, () => props.plugin, data, () => props.databases, () => props.select)
+const util:Util_Database = new Util_Database(backend.value, () => props.plugin, data, () => props.databases, () => props.select)
 //#endregion
 
 //#region Compute
-const config = computed(() => backend.config)
+const config = computed(() => backend.value.config)
 const items_final = computed(() => data.value.buffer.containers
     .filter(x => {
         if (!data.value.filter.showruntime && x.runtimeOnly) return false
@@ -187,7 +187,7 @@ const ImportConfirm = () => {
 
 const exportPara = async () => {
     if(config.value.isElectron) {
-        backend.send("export_database", JSON.stringify(data.value.buffer))
+        backend.value.send("export_database", JSON.stringify(data.value.buffer))
     }else if(config.value.isExpress){
         const handle = await window.showSaveFilePicker({ suggestedName: data.value.buffer.uuid + '.json' });
         const writer = await handle.createWritable();

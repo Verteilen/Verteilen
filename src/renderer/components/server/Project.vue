@@ -17,8 +17,8 @@ interface PROPS {
 }
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', project:Project[]): void
@@ -55,7 +55,7 @@ const data:Ref<DATA> = ref({
     selection: []
 })
 
-const util:Util_Project = new Util_Project(backend, () => props.plugin, data, () => props.projects, () => props.databases)
+const util:Util_Project = new Util_Project(backend.value, () => props.plugin, data, () => props.projects, () => props.databases)
 
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
 const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.uuid.includes(realSearch.value)) })
@@ -263,10 +263,10 @@ onMounted(() => {
     if(props.config.isElectron) {
         window.electronAPI.eventOn('createProject', createProject)
     }
-    backend.wait_init().then(() => {
-        if(backend.config.isExpress){
-            permission.value = backend.user.permission?.project
-            canViewDetail.value = backend.user.permission?.task.view ?? false
+    backend.value.wait_init().then(() => {
+        if(backend.value.config.isExpress){
+            permission.value = backend.value.user.permission?.project
+            canViewDetail.value = backend.value.user.permission?.task.view ?? false
         }
     })
 })

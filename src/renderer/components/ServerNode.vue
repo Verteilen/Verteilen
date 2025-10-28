@@ -30,10 +30,13 @@ import {
   WebsocketPack, 
   WebPORT, 
   ExecutePair, 
-  FrontendUpdate
+  FrontendUpdate,
+  ProjectTable,
+  DatabaseTable,
+  Library
 } from './../interface'
 import { BackendProxy } from '../proxy'
-import { DATA, Util_Server } from './server/server'
+import { DATA, Util_Server } from './server_logic'
 import { i18n } from './../plugins/i18n'
 //#endregion
 
@@ -70,11 +73,11 @@ const data:Ref<DATA> = ref({
     title: "",
     page: 0,
     select_manager: 0,
-    lanSelect: i18n.global.locale as string,
+    lanSelect: i18n.global.locale,
     databases: [],
     projects: [],
-    libs: {libs: []},
-    logs: {logs: []},
+    libs: [],
+    logs: [],
     selectProject: undefined,
     selectTask: undefined,
     selectDatabase: undefined,
@@ -110,15 +113,6 @@ const projectbind = computed(() => {
 //#region Methods
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
-
-// #region Project
-const addProject = (v:Array<Project>) => util.project.addProject(v)
-const editProject = (id:string, v:Project) => util.project.editProject(id, v)
-const deleteProject = (uuids:Array<string>, bind:boolean) => util.project.deleteProject(uuids, bind)
-const chooseProject = (uuid:string) => util.project.chooseProject(uuid)
-const moveupProject = (uuid:string) => util.project.moveupProject(uuid)
-const movedownProject = (uuid:string) => util.project.movedownProject(uuid)
-// #endregion
 
 //#region Task
 const addTask = (v:Array<Task>) => util.task.addTask(v)
@@ -156,15 +150,16 @@ const libFresh = () => {
   backend.value.invoke('list_all_lib').then(x => {
     const texts:Array<any> = JSON.parse(x)
     console.log("list_all_lib", texts) 
-    data.value.libs = { libs: texts.map(y => {
+    data.value.libs = texts.map(y => {
       const ext = y.split('.').pop()
       const r = {
+        uuid: uuidv6(),
         name: y.slice(0, -(ext.length + 1)),
         load: false,
         content: ""
       }
       return r
-    })}
+    })
     console.log("Libs", data.value.libs)
   })
 }
@@ -180,7 +175,7 @@ const libLoad = (file:string) => {
   const ext = file.split('.').pop()!
   const name = file.slice(0, -(ext.length + 1))
   backend.value.invoke('load_lib', file).then(r => {
-    const target = data.value.libs.libs.find(x => x.name == name)
+    const target = data.value.libs.find(x => x.name == name)
     console.log(r)
     if(target == undefined) return
     target.load = true
@@ -246,10 +241,10 @@ const consoleAdded = (name:string, record:Record) => {
       task_state: [],
       task_detail: [],
     }
-    em.libs = data.value.libs
+    em.libs = { libs: data.value.libs }
     const p:ExecutePair = {manager: em, record: er}
     const uscp:UtilServer_Console.Util_Server_Console_Proxy = new UtilServer_Console.Util_Server_Console_Proxy(p)
-    const uslp:UtilServer_Log.Util_Server_Log_Proxy = new UtilServer_Log.Util_Server_Log_Proxy(p, data.value.logs, preference.value)
+    const uslp:UtilServer_Log.Util_Server_Log_Proxy = new UtilServer_Log.Util_Server_Log_Proxy(p, { logs: data.value.logs }, preference.value)
     em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
     r = util.console.receivedPack(p, record)
     if(r){
@@ -285,7 +280,7 @@ const consoleSelect = (e:number) => { data.value.select_manager = e }
 const LogClean = () => {
   if(!backend.value.config.haveBackend) return
   backend.value.send('delete_all_log')
-  data.value.logs.logs = []
+  data.value.logs = []
 }
 //#endregion
 
@@ -408,7 +403,7 @@ const menu_export_project = () => {
 }
 
 const import_project_feedback = (text:string) => {
-  const ps:Array<Project> = JSON.parse(text)
+  const ps:Array<ProjectTable> = JSON.parse(text)
   for(const p of ps){
     for(const t of p.task){
       for(const j of t.jobs){
@@ -492,17 +487,28 @@ const hotkey = (event:KeyboardEvent) => {
 const repull = (u:FrontendUpdate) => {
   const c: Array<Promise<void>> = []
   if((u & FrontendUpdate.PROJECT) == FrontendUpdate.PROJECT){
-    const p3 = backend.value.invoke('load_all_record').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.projects.push(...texts.map(y => JSON.parse(y)))
+    const p3 = backend.value.invoke('load_all_record').then((texts:Array<string>) => {
+      data.value.projects = texts.map((y):ProjectTable => {
+        const p:Project = JSON.parse(y)
+        return {
+          ...p,
+          s: false,
+          taskCount: p.task.length
+        }
+      })
       if (process.env.NODE_ENV == 'development') console.log(data.value.projects)
     })
     c.push(p3)
   }
   if((u & FrontendUpdate.PARAMETER) == FrontendUpdate.PARAMETER){
-    const p5 = backend.value.invoke('load_all_database').then(x => {
-      const texts:Array<string> = JSON.parse(x)
-      data.value.databases = texts.map(y => JSON.parse(y))
+    const p5 = backend.value.invoke('load_all_database').then((texts:Array<string>) => {
+      data.value.databases = texts.map((y):DatabaseTable => {
+        const p:Database = JSON.parse(y)
+        return {
+          ...p,
+          s: false
+        }
+      })
       if (process.env.NODE_ENV == 'development') console.log("Databases", data.value.libs)
     })
     c.push(p5)
@@ -519,9 +525,9 @@ const logUpdate = (e:string) => {
   const as:Array<ExecutionLog> = JSON.parse(e)
   as.forEach(x => {
     x.dirty = true
-    const index = data.value.logs.logs.findIndex(y => y.uuid == x.uuid)
-    if(index == -1) data.value.logs.logs.push(x)
-    else data.value.logs.logs[index] = x;
+    const index = data.value.logs.findIndex(y => y.uuid == x.uuid)
+    if(index == -1) data.value.logs.push(x)
+    else data.value.logs[index] = x;
   })
 }
 
@@ -557,8 +563,7 @@ const dataset_init = () => {
     data.value.execute_manager = Array.isArray(xs) ? xs.map(x => ({ record: x })) : [{record: xs}]
     console.log("execute", data.value.execute_manager)
   })
-  const p1 = backend.value.invoke('load_all_node').then(x => {
-    const texts:Array<string> = JSON.parse(x)
+  const p1 = backend.value.invoke('load_all_node').then((texts:Array<string>) => {
     data.value.nodes.push(...texts.map(y => JSON.parse(y)))
     for(const x of data.value.nodes) x.s = false
     data.value.nodes = data.value.nodes.map(y => {
@@ -579,31 +584,30 @@ const dataset_init = () => {
     })
     if (process.env.NODE_ENV == 'development') console.log("nodes", data.value.nodes)
   })
-  const p2 = backend.value.invoke('list_all_lib').then(x => {
-    const texts:Array<any> = JSON.parse(x)
-    if (process.env.NODE_ENV == 'development') console.log("list_all_lib", texts) 
-    data.value.libs = { libs: texts.map(y => {
+  const p2 = backend.value.invoke('list_all_lib').then((texts:Array<any>) => {
+    data.value.libs = texts.map((y):Library => {
       const ext = y.split('.').pop()
-      const r = {
+      const r:Library = {
+        uuid: uuidv6(),
         name: y.slice(0, -(ext.length + 1)),
         load: false,
         content: ""
       }
       return r
-    })}
-    console.log("Libs", data.value.libs)
+    })
+    if (process.env.NODE_ENV == 'development') console.log("Libs", data.value.libs)
   })
   const p4 = backend.value.invoke('get_plugin').then(x => {
-    data.value.plugin = JSON.parse(x)
+    console.log("x", x)
+    data.value.plugin = x
     if (process.env.NODE_ENV == 'development') console.log("Plugins", data.value.plugin)
   })
   const p35 = repull(FrontendUpdate.ALL)
-  const p6 = backend.value.invoke('load_all_log').then(x => {
-      const stringlist:Array<string> = JSON.parse(x)
-      const ll:Array<ExecutionLog> = stringlist.map(x => JSON.parse(x))
+  const p6 = backend.value.invoke('load_all_log').then((texts:Array<string>) => {
+      const ll:Array<ExecutionLog> = texts.map(x => JSON.parse(x))
       ll.forEach(x => x.output = true)
       if (process.env.NODE_ENV == 'development') console.log("Logs", ll)
-      data.value.logs.logs = ll
+      data.value.logs = ll
   })
   Promise.all([p0, p1, p2, p4, ...p35, p6]).then(() => {
     nextTick(() => allUpdate())
@@ -693,7 +697,7 @@ onUnmounted(() => {
 <template>
   <Layout>
     <AppBar show_icon @click="data.drawer = true" goback>
-      <template #title>
+      <template v-if="data.title.length > 0" #title>
         {{ $t(data.title).slice(0, $t(data.title).length - 4) }} 
         <span :style="{ 'fontSize': (preference.font - 5) + 'px' }">
           {{ $t(data.title).slice($t(data.title).length - 4, $t(data.title).length) }}
@@ -732,7 +736,7 @@ onUnmounted(() => {
       <v-progress-circular color="blue-lighten-3" indeterminate></v-progress-circular>
     </div>
 
-    <v-tabs-window v-model="data.page">
+    <v-tabs-window v-model="data.page" class="w-100 h-100">
       <v-tabs-window-item :value="0">
         <ProjectPage
           :backend="backend"
@@ -741,12 +745,12 @@ onUnmounted(() => {
           :databases="data.databases"
           :config="config"
           :preference="preference"
-          @added="e => addProject(e)" 
-          @edit="(id, e) => editProject(id, e)" 
-          @select="e => chooseProject(e)" 
-          @delete="(e, e2) => deleteProject(e, e2)"
-          @moveup="e => moveupProject(e)"
-          @movedown="e => movedownProject(e)" />
+          @added="e => util.project.addProject(e)" 
+          @edit="(id, e) => util.project.editProject(id, e)" 
+          @select="e => util.project.chooseProject(e)" 
+          @delete="(e, e2) => util.project.deleteProject(e, e2)"
+          @moveup="e => util.project.moveupProject(e)"
+          @movedown="e => util.project.movedownProject(e)" />
       </v-tabs-window-item>
       <v-tabs-window-item :value="1">
         <TaskPage

@@ -1,5 +1,5 @@
 import { nextTick, Ref } from "vue"
-import { Task } from "../../../interface"
+import { Task } from "../../interface"
 import { DATA, save_and_update } from "."
 
 
@@ -51,10 +51,10 @@ export class Util_Server_Task {
 
     bindingTask = (uuid:string) => {
         if(this.data.value.selectProject == undefined) return
-        this.data.value.selectProject.parameter_uuid = uuid
+        this.data.value.selectProject.database_uuid = uuid
         const index = this.data.value.projects.findIndex(x => x.uuid == uuid)
         if(index != -1) {
-            this.data.value.projects[index].parameter_uuid = uuid
+            this.data.value.projects[index].database_uuid = uuid
         }
         this.update()
     }

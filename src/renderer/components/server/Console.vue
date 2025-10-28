@@ -34,8 +34,8 @@ interface PROPS {
     databases: Array<Database>
 }
 const $t = i18n.global.t
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 const p_model = defineModel<ExecutePair>()
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
@@ -85,10 +85,10 @@ const updateHandle = () => {
         model.value = { meta: Number.MIN_VALUE }
     }
 
-    if(backend.config.haveBackend){
+    if(backend.value.config.haveBackend){
         if(!updateWait.value){
             updateWait.value = true
-            backend.invoke("console_update").then((xs:Array<any>) => {
+            backend.value.invoke("console_update").then((xs:Array<any>) => {
                 if(xs){
                     for(let i = 0; i < xs.length; i++){
                         const x = xs[i]
@@ -108,7 +108,7 @@ const updateHandle = () => {
         }
         if(!queryWait.value && p_model.value?.record != undefined){
             queryWait.value = true
-            backend.invoke("console_record", p_model.value.record.uuid).then(x => {
+            backend.value.invoke("console_record", p_model.value.record.uuid).then(x => {
                 try{
                     const t = JSON.parse(x)
                     if(p_model.value?.record != undefined && t != undefined) p_model.value!.record = t
@@ -164,8 +164,8 @@ const createConsole = () => {
  * * 2: SIngle task through
  */
 const execute = (type:number) => {
-    if(backend.config.haveBackend){
-        backend.send('console_execute', model.value.record!.uuid, type)
+    if(backend.value.config.haveBackend){
+        backend.value.send('console_execute', model.value.record!.uuid, type)
     }else{
         model.value.record!.process_type = type
         model.value.record!.running = true
@@ -183,11 +183,11 @@ const execute = (type:number) => {
  */
 const skip = (forward:boolean, type:number, state:ExecuteState = ExecuteState.FINISH) => {
     console.log("skip", type, state)
-    if(backend.config.haveBackend){
+    if(backend.value.config.haveBackend){
         if(type == 2) {
             data.value.skipModal = true
         }else{
-            backend.send('console_skip', model.value.record?.uuid, forward, type, state)
+            backend.value.send('console_skip', model.value.record?.uuid, forward, type, state)
         }
     }else{
         if(type == 0){
@@ -259,8 +259,8 @@ const skip = (forward:boolean, type:number, state:ExecuteState = ExecuteState.FI
  * When user click confirm on the skip step modal
  */
 const confirmSkip = (v:number) => {
-    if(backend.config.haveBackend){
-        backend.send('console_skip2', model.value.record?.uuid, v)
+    if(backend.value.config.haveBackend){
+        backend.value.send('console_skip2', model.value.record?.uuid, v)
     }else{
         const index = model.value.manager!.SkipSubTask(v)
         if(index < 0) {
@@ -279,8 +279,8 @@ const confirmSkip = (v:number) => {
  */
 const clean = () => {
     stop()
-    if(backend.config.haveBackend){
-        backend.send('console_clean', model.value.record!.uuid)
+    if(backend.value.config.haveBackend){
+        backend.value.send('console_clean', model.value.record!.uuid)
     }else{
         model.value.manager!.Clean()
         model.value.record!.projects = []
@@ -303,8 +303,8 @@ const clean = () => {
  * If you want to destroy and reset all state, you should call {@link clean()} function instead
  */
 const stop = () => {
-    if(backend.config.haveBackend){
-        backend.send('console_stop', model.value.record!.uuid)
+    if(backend.value.config.haveBackend){
+        backend.value.send('console_stop', model.value.record!.uuid)
     }else{
         model.value.record!.stop = true
         model.value.manager!.Stop()

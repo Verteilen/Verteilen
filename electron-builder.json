@@ -22,7 +22,8 @@
     "linux":  {
         "target": "deb",
         "defaultArch": "x64",
-        "maintainer": "Elly"
+        "maintainer": "Elly",
+        "icon": "src/renderer/assets/icon.ico"
     },
     "extraFiles": [
         "README.md",

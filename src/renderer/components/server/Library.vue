@@ -13,8 +13,8 @@ interface PROPS {
 
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'edit', oldname:string, newname:string): void
@@ -148,13 +148,13 @@ const onHotkey = (value:string) => {
 
 onMounted(() => {
     console.log("Library Mounted")
-    backend.eventOn('javascript-feedback', javascriptFeedback)
-    emitter?.on('hotkey', onHotkey)
+    backend.value.eventOn('javascript-feedback', javascriptFeedback)
+    emitter.on('hotkey', onHotkey)
 })
 
 onUnmounted(() => {
-    backend.eventOff('javascript-feedback', javascriptFeedback)
-    emitter?.off('hotkey', onHotkey)
+    backend.value.eventOff('javascript-feedback', javascriptFeedback)
+    emitter.off('hotkey', onHotkey)
 })
 
 </script>

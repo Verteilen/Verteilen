@@ -10,18 +10,13 @@ import NodeShellDialog from '../dialog/NodeShellDialog.vue';
 import NodePluginDialog from '../dialog/NodePluginDialog.vue';
 import { BackendProxy } from '../../proxy';
 import DialogBase from '../dialog/DialogBase.vue';
-import { DATA } from './Node';
+import { DATA, Util_Node, PROPS } from './Node';
 //#endregion
 
 //#region Data
-interface PROPS {
-    nodes: Array<NodeTable>
-    manager: Execute_SocketManager.WebsocketManager | undefined
-    plugin: PluginPageData
-}
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 const $t = i18n.global.t
 const props = defineProps<PROPS>()
 const data:Ref<DATA> = ref({
@@ -57,23 +52,24 @@ const selected_node_ids = computed(() => props.nodes.filter(x => data.value.sele
 const infoTarget = computed(() => props.nodes.find(x => x.uuid == data.value.infoUUID))
 const consoleTarget = computed(() => props.nodes.find(x => x.uuid == data.value.consoleUUID))
 const pluginTarget = computed(() => props.nodes.find(x => x.uuid == data.value.pluginUUID))
+const util = new Util_Node(props, data, preference, backend, pluginTarget, selected_node_ids)
 //#endregion
 
 //#region Watch
 watch(() => data.value.infoModal, () => {
     if(data.value.infoModal){
-        if(backend.config.haveBackend){
+        if(backend.value.config.haveBackend){
             const p = props.nodes.find(x => x.uuid == data.value.infoUUID)
-            backend.send('resource_start', p?.uuid)
+            backend.value.send('resource_start', p?.uuid)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == data.value.infoUUID)
             const d:Header = { name: 'resource_start', data: 0 }
             p?.websocket.send(JSON.stringify(d))
         }
     }else{
-        if(backend.config.haveBackend){
+        if(backend.value.config.haveBackend){
             const p = props.nodes.find(x => x.uuid == data.value.infoUUID)
-            backend.send('resource_end', p?.uuid)
+            backend.value.send('resource_end', p?.uuid)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == data.value.infoUUID)
             const d:Header = { name: 'resource_end', data: 0 }
@@ -83,10 +79,10 @@ watch(() => data.value.infoModal, () => {
 })
 watch(() => data.value.pluginModal, () => {
     if(data.value.pluginModal){
-        if(backend.config.haveBackend){
+        if(backend.value.config.haveBackend){
             const p = props.nodes.find(x => x.uuid == data.value.pluginUUID)
-            backend.send('resource_start', p?.uuid)
-            backend.send('plugin_info', p?.uuid)
+            backend.value.send('resource_start', p?.uuid)
+            backend.value.send('plugin_info', p?.uuid)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == data.value.pluginUUID)
             const d:Header = { name: 'resource_start', data: 0 }
@@ -95,9 +91,9 @@ watch(() => data.value.pluginModal, () => {
             p?.websocket.send(JSON.stringify(d2))
         }
     }else{
-        if(backend.config.haveBackend){
+        if(backend.value.config.haveBackend){
             const p = props.nodes.find(x => x.uuid == data.value.pluginUUID)
-            backend.send('resource_end', p?.uuid)
+            backend.value.send('resource_end', p?.uuid)
         }else{
             const p = props.manager?.targets.find(x => x.uuid == data.value.pluginUUID)
             const d:Header = { name: 'resource_end', data: 0 }
@@ -109,10 +105,10 @@ watch(() => data.value.pluginModal, () => {
 
 //#region Methods
 const serverUpdate = () => {
-    if(backend.config.haveBackend){
+    if(backend.value.config.haveBackend){
         if(data.value.isquery) return
         data.value.isquery = true
-        backend.invoke("node_update").then(p => {
+        backend.value.invoke("node_update").then(p => {
             if(p != undefined) emitter.emit('updateNode', p)
             data.value.selection = data.value.selection.filter(x => props.nodes.map(y => y.uuid).includes(x))
             data.value.isquery = false
@@ -123,37 +119,8 @@ const serverUpdate = () => {
         data.value.selection = data.value.selection.filter(x => props.nodes.map(y => y.uuid).includes(x))
     }
 }
-const createNode = () => {
-    data.value.connectionData = {url: '127.0.0.1:12080'}
-    data.value.connectionModal = true
-}
-const deleteConfirm = () => {
-    data.value.deleteModal = false
-    data.value.deleteData.forEach(x => {
-        if(backend.config.haveBackend){
-            backend.send('node_delete', x)
-            backend.send('server_stop', x, 'Manually disconnect')
-            backend.send('delete_node', x)
-        }else{
-            props.manager?.server_stop(x, 'Manually disconnect')
-        }
-    })
-}
-const deleteNode = () => {
-    data.value.deleteModal = true
-    data.value.deleteData = selected_node_ids.value
-}
 const selectall = () => {
     data.value.selection = props.nodes.map(x => x.uuid)
-}
-const confirmConnection = () => {
-    data.value.connectionModal = false
-    if(backend.config.haveBackend){
-        backend.send("node_add", `wss://${data.value.connectionData.url}`, uuid6())
-    }else{
-        props.manager?.server_start(`wss://${data.value.connectionData.url}`, uuid6())
-    }
-    data.value.connectionData = { url: '' }
 }
 const translate_state = (state:number):string => {
     return i18n.global.t(ConnectionText[state])
@@ -167,62 +134,22 @@ const translate_state_color = (state:number):string => {
     }
     return 'white'
 }
-const showplugin = (uuid:string) => {
-    data.value.pluginModal = true
-    data.value.pluginUUID = uuid
-}
-const showinfo = (uuid:string) => {
-    data.value.infoModal = true
-    data.value.infoUUID = uuid
-}
-const showconsole = (uuid:string) => {
-    data.value.consoleModal = true
-    data.value.consoleUUID = uuid
-    if(backend.config.haveBackend){
-        backend.send('shell_open', uuid)
-        backend.send('shell_folder', uuid, '')
-    }else{
-        props.manager?.shell_open(uuid)
-        props.manager?.shell_folder(uuid, '')
-    }
-}
-const plugin_download = (plugin:Plugin) => {
-    if(pluginTarget.value == undefined) return
-    if(backend.config.haveBackend){
-        backend.send("plugin_download", pluginTarget.value.uuid, JSON.stringify(plugin), preference.plugin_token.map(x => x.token).join(' '))
-    }else{
-        const p = props.manager?.targets.find(x => x.uuid == pluginTarget.value?.uuid)
-        const p2:PluginWithToken = {...plugin, token: preference.plugin_token.map(x => x.token)}
-        const h:Header = { name: 'plugin_download', data: plugin }
-        p?.websocket.send(JSON.stringify(h))
-    }
-}
-const plugin_remove = (plugin:Plugin) => {
-    if(pluginTarget.value == undefined) return
-    if(backend.config.haveBackend){
-        backend.send("plugin_remove", pluginTarget.value.uuid, JSON.stringify(plugin))
-    }else{
-        const p = props.manager?.targets.find(x => x.uuid == pluginTarget.value?.uuid)
-        const h:Header = { name: 'plugin_remove', data: plugin }
-        p?.websocket.send(JSON.stringify(h))
-    }
-}
 const onHotkey = (value:string) => {
     if(value == 'create_node'){
-        createNode()
+        util.createNode()
     }
 }
 //#endregion
 
 onMounted(() => {
     console.log("Node Mounted")
-    emitter.on('hotkey', onHotkey)
     emitter.on('updateHandle', serverUpdate)
+    emitter.on('hotkey', onHotkey)
 })
 
 onUnmounted(() => {
-    emitter.off('hotkey', onHotkey)
     emitter.off('updateHandle', serverUpdate)
+    emitter.off('hotkey', onHotkey)
 })
 </script>
 
@@ -234,7 +161,7 @@ onUnmounted(() => {
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="createNode">
+                        <v-btn icon v-bind="props" @click="util.createNode">
                             <v-icon>mdi-plus</v-icon>
                         </v-btn>
                     </template>
@@ -250,7 +177,7 @@ onUnmounted(() => {
                 </v-tooltip>             
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon color='error' v-bind="props" @click="deleteNode" :disabled="!hasSelect">
+                        <v-btn icon color='error' v-bind="props" @click="util.deleteNode" :disabled="!hasSelect">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </template>
@@ -266,13 +193,13 @@ onUnmounted(() => {
                 {{ item.connection_rate }}
             </template>
             <template v-slot:item.detail="{ item }">
-                <v-btn variant="text" icon @click="showplugin(item.uuid)">
+                <v-btn variant="text" icon @click="util.showplugin(item.uuid)">
                     <v-icon>mdi-puzzle</v-icon>
                 </v-btn>
-                <v-btn variant="text" icon @click="showinfo(item.uuid)">
+                <v-btn variant="text" icon @click="util.showinfo(item.uuid)">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
-                <v-btn variant="text" icon @click="showconsole(item.uuid)" :disabled="item.state != 1">
+                <v-btn variant="text" icon @click="util.showconsole(item.uuid)" :disabled="item.state != 1">
                     <v-icon>mdi-console</v-icon>
                 </v-btn>
             </template>
@@ -280,7 +207,7 @@ onUnmounted(() => {
         <NodeInfoDialog v-model="data.infoModal" :item="infoTarget" :preference="preference" />
         <NodeShellDialog v-model="data.consoleModal" :backend="backend" :item="consoleTarget" :manager="props.manager" :preference="preference" />
         <NodePluginDialog v-model="data.pluginModal" :backend="backend" :item="pluginTarget" :plugin="props.plugin" :preference="preference"
-            @download="plugin_download" @remove="plugin_remove" />
+            @download="util.plugin_download" @remove="util.plugin_remove" />
         <DialogBase width="500" v-model="data.connectionModal" class="text-white" :preference="preference">
             <template #title>
                 <v-icon>mdi-web</v-icon>
@@ -290,7 +217,7 @@ onUnmounted(() => {
                 <v-text-field v-model="data.connectionData.url" :autofocus="true" required :label="$t('modal.enter-node-address')"></v-text-field>
             </template>
             <template #action>
-                <v-btn class="mt-3" color="primary" @click="confirmConnection">{{ $t('create') }}</v-btn>
+                <v-btn class="mt-3" color="primary" @click="util.confirmConnection">{{ $t('create') }}</v-btn>
             </template>
         </DialogBase>
         <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
@@ -307,7 +234,7 @@ onUnmounted(() => {
             </template>
             <template #action>
                 <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
-                <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+                <v-btn class="mt-3" color="error" @click="util.deleteConfirm">{{ $t('delete') }}</v-btn>
             </template>
         </DialogBase>
     </div>

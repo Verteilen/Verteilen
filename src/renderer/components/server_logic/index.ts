@@ -1,7 +1,7 @@
 //#region Methods
 import { Emitter } from "mitt"
 import { nextTick, Ref } from "vue"
-import { BackendProxy } from "../../../proxy";
+import { BackendProxy } from "../../proxy";
 import { 
     Execute_SocketManager,
     BusType, 
@@ -11,15 +11,20 @@ import {
     ExecuteState, 
     FeedBack, 
     Job, 
-    Libraries, 
-    Log, 
     NodeTable, 
     Database, 
     PluginPageData, 
     Project, 
     RenderUpdateType, 
-    Task 
-} from '../../../interface'
+    Task, 
+    ProjectTable,
+    DatabaseTable,
+    ExecutionLog,
+    Library
+} from '../../interface'
+import {
+    Server
+} from 'verteilen-core/src/server'
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Lib } from "./lib_handle";
@@ -43,10 +48,10 @@ export interface DATA {
     page:number
     select_manager: number
     lanSelect: string
-    databases: Array<Database>
-    projects: Array<Project>
-    libs: Libraries
-    logs: Log
+    databases: Array<DatabaseTable>
+    projects: Array<ProjectTable>
+    libs: Array<Library>
+    logs: Array<ExecutionLog>
     selectProject: Project | undefined
     selectTask: Task | undefined
     selectDatabase: Database | undefined
@@ -60,7 +65,7 @@ export interface DATA {
  * This worker have deep binding with data\
  * And also have deep connection with the views display logic
  */
-export class Util_Server {
+export class Util_Server extends Server {
     data:Ref<DATA>
     config:config_getter
     emitter:Emitter<BusType>
@@ -75,6 +80,7 @@ export class Util_Server {
     self:Util_Server_Self
 
     constructor(_data:Ref<DATA>, _config:config_getter, _emitter:Emitter<BusType>){
+        super()
         this.data = _data
         this.config = _config
         this.emitter = _emitter

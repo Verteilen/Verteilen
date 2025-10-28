@@ -1,5 +1,5 @@
 import { v6 as uuid6 } from 'uuid'
-import { ConditionResult, ExecutePair, ExecuteProxy, ExecuteRecordTask, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Parameter, Preference, Project, Task } from "../../../interface"
+import { ConditionResult, ExecutePair, ExecuteProxy, ExecuteRecordTask, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Database, Preference, Project, Task } from "../../interface"
 import * as fs from 'fs'
 
 export class Util_Server_Log_Proxy {
@@ -31,7 +31,7 @@ export class Util_Server_Log_Proxy {
             executeJobStart: (data:[Job, number, string]):void => { this.execute_job_start(data) },
             executeJobFinish: (data:[Job, number, string, number]):void => { this.execute_job_finish(data) },
             feedbackMessage: (data:FeedBack):void => { this.feedback_message(data) },
-            updateParameter: (data:Parameter):void => { this.update_runtime_parameter(data) }
+            updateDatabase: (data:Database):void => { this.update_runtime_database(data) }
         }
         return d
     }
@@ -48,7 +48,7 @@ export class Util_Server_Log_Proxy {
             project: target,
             state: ExecuteState.RUNNING,
             start_timer: Date.now(),
-            parameter: d[0].parameter!,
+            database: d[0].database!,
             end_timer: 0,
             logs: target.task.map(x => {
                 return {
@@ -172,9 +172,9 @@ export class Util_Server_Log_Proxy {
         }
     }
 
-    update_runtime_parameter = (d:Parameter) => {
+    update_runtime_database = (d:Database) => {
         if(this.target_log != undefined) {
-            this.target_log!.parameter = d
+            this.target_log!.database = d
             this.target_log!.dirty = true
         }
     }

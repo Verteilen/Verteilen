@@ -2,22 +2,21 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { AppConfig, BusType, ExecutePair, Log, Database, Preference, Project } from '../../interface';
+import { AppConfig, BusType, ExecutePair, Log, Database, Preference, Project, ExecutionLog } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import LogProcess from './../components/console/LogProcess.vue';
 import DatabasePage from './../components/console/Database.vue';
 import LogMenuDialog from './../dialog/LogMenuDialog.vue';
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-
 interface PROPS {
     execute: Array<ExecutePair>
-    preference: Preference
     config: AppConfig
-    logs: Log
+    logs: Array<ExecutionLog>
 }
 
 const $t = i18n.global.t
+const emitter:Emitter<BusType> = inject('emitter')!
+const preference:Ref<Preference> = inject('preference')!
 const emits = defineEmits<{
     (e: 'clean'):void
 }>()
@@ -33,7 +32,7 @@ const current:Ref<number> = ref(-1)
 const selection:Ref<number> = ref(0)
 const panelValue:Ref<Array<number>> = ref([])
 
-const items = computed(() => props.logs.logs.filter(x => x.output))
+const items = computed(() => props.logs.filter(x => x.output))
 const getselect = computed(() => items.value.length == 0 ? undefined : items.value[selection.value])
 
 const setEnable = (index:number) => {
@@ -168,7 +167,7 @@ onUnmounted(() => {
             </v-col>
             <v-col :cols="rightSize" style="height: calc(100vh - 120px)" v-if="tag == 0 && getselect != undefined">
                 <LogProcess 
-                    :preference="props.preference"
+                    :preference="preference"
                     :config="props.config"
                     :logs="props.logs"
                     :selection="selection"
@@ -180,7 +179,7 @@ onUnmounted(() => {
                 />
             </v-col>
             <v-col :cols="rightSize" style="height: calc(100vh - 120px)" v-if="tag == 1 && getselect != undefined">
-                <DatabasePage v-model="getselect.database" :preference="props.preference" />
+                <DatabasePage v-model="getselect.database" :preference="preference" />
             </v-col>
         </v-row>
         <LogMenuDialog 
@@ -195,7 +194,7 @@ onUnmounted(() => {
             v-model="exportDialog" 
             icon="mdi-export"
             :label="$t('export')"
-            :preference="props.preference"
+            :preference="preference"
             :recover="false"
             :holder="holder"
             @project="exportConfirm(0)"

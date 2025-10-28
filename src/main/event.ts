@@ -34,6 +34,9 @@ import {
     ServerDetail,
     PluginFeedback,
     BackendAction,
+    Record,
+    ServerDetailEvent,
+    ExecuteState,
 } from "./interface";
 import { raw_i18n } from "verteilen-core/dist/plugins/i18n"
 
@@ -58,6 +61,31 @@ const PluginInit = (loader:PluginLoader) => {
     ipcMain.handle('get_database', async (event, group:string, filename:string) => loader.get_database(group, filename))
     ipcMain.on('plugin_download', (event, uuid:string, plugin:string, tokens:string) => loader.plugin_download(uuid, plugin, tokens))
     ipcMain.on('plugin_remove', (event, uuid:string, plugin:string) => loader.plugin_remove(uuid, plugin))
+}
+const DetailInit = (detail:ServerDetailEvent) => {
+    ipcMain.on('resource_start', (e, uuid) => detail.resource_start(undefined, uuid))
+    ipcMain.on('resource_end', (e, uuid) => detail.resource_end(undefined, uuid))
+    ipcMain.on('plugin_info', (e, uuid) => detail.plugin_info(undefined, uuid))
+    // Shell
+    ipcMain.on('shell_enter', (e, uuid, value) => detail.shell_enter(undefined, uuid, value))
+    ipcMain.on('shell_open', (e, uuid) => detail.shell_open(undefined, uuid))
+    ipcMain.on('shell_close', (e, uuid) => detail.shell_close(undefined, uuid))
+    ipcMain.on('shell_folder', (e, uuid, path) => detail.shell_folder(undefined, uuid, path))
+    // Node Events
+    ipcMain.handle('node_list', (e) => detail.node_list(undefined))
+    ipcMain.on('node_add', (e, url:string, id:string) => detail.node_add(undefined, url, id))
+    ipcMain.handle('node_update', (e) => detail.node_update(undefined))
+    ipcMain.on('node_delete', (e, uuid:string, reason?:string) => detail.node_delete(undefined, uuid, reason))
+    // Console Events
+    ipcMain.handle('console_list', (event) => detail.console_list(undefined))
+    ipcMain.handle('console_record', (event, uuid:string) => detail.console_record(undefined, uuid))
+    ipcMain.on('console_execute', (event, uuid:string, type:number) => detail.console_execute(undefined, uuid, type))
+    ipcMain.on('console_stop', (event, uuid:string) => detail.console_stop(undefined, uuid))
+    ipcMain.on('console_clean', (event, uuid:string) => detail.console_clean(undefined, uuid))
+    ipcMain.on('console_skip', (event, uuid:string, forward:boolean, type:number, state:ExecuteState) => detail.console_skip(undefined, uuid, forward, type, state))
+    ipcMain.on('console_skip2', (event, uuid:string, type:number) => detail.console_skip2(undefined, uuid, type))
+    ipcMain.handle('console_add', (event, name:string, record:Record) => detail.console_add(undefined, name, record, undefined))
+    ipcMain.handle('console_update', (event) => detail.console_update(undefined))
 }
 const CreateIO = ():RecordIOBase => {
     return {
@@ -114,6 +142,7 @@ export class BackendEvent extends Server implements BackendAction {
         this.plugin_loader.load_all()
         PluginInit(this.plugin_loader)
         this.detail = new ServerDetail(this.io, this, feedback, messager, console.log, $t)
+        DetailInit(this.detail)
     }
 
     Destroy = () => {
@@ -153,9 +182,7 @@ export class BackendEvent extends Server implements BackendAction {
                 javascript_messager_feedback(x, "Finish")
             })
         })
-        ipcMain.on('message', (e, message:string, tag?:string) => {
-            console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`);
-        })
+        ipcMain.on('message', (e, message:string, tag?:string) => console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`))
         ipcMain.on('save_preference', (e, pre:string) => this.save_preference(pre))
         ipcMain.handle('load_preference', (e, cache:boolean = true) => JSON.stringify(this.load_preference(cache)))
         ipcMain.on('export_projects', (event, data:string) => {

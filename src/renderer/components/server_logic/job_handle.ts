@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { Job, Property } from "../../../interface"
+import { Job, Property } from "../../interface"
 import { DATA, save_and_update } from "."
 
 export class Util_Server_Job {

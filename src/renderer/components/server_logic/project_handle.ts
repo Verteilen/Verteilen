@@ -1,6 +1,6 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { BusType, Project } from "../../../interface";
+import { BusType, Project } from "../../interface";
 import { config_getter, DATA, save_and_update } from ".";
 
 export class Util_Server_Project {
@@ -20,11 +20,11 @@ export class Util_Server_Project {
 
     addProject = (v:Array<Project>) => {
         v.forEach(x => {
-            if(x.parameter == undefined){
+            if(x.database == undefined){
                 this.data.value.projects.push(x)
             }else{
-                this.data.value.parameters.push(x.parameter)
-                x.parameter_uuid = x.parameter.uuid
+                this.data.value.databases.push(x.database)
+                x.database_uuid = x.database.uuid
                 this.data.value.projects.push(x)
             }
         })
@@ -55,15 +55,15 @@ export class Util_Server_Project {
                 this.data.value.projects.splice(index, 1)
 
                 if(bind){
-                    const index2 = this.data.value.parameters.findIndex(x => x.uuid == target.parameter_uuid)
+                    const index2 = this.data.value.databases.findIndex(x => x.uuid == target.database_uuid)
                     if(index2 != -1){
-                        const target2 = this.data.value.parameters[index2]
-                        if(this.data.value.selectParameter?.uuid == target2.uuid){
-                            this.data.value.selectParameter = undefined
+                        const target2 = this.data.value.databases[index2]
+                        if(this.data.value.selectDatabase?.uuid == target2.uuid){
+                            this.data.value.selectDatabase = undefined
                         }
-                        this.data.value.parameters.splice(index2, 1)
+                        this.data.value.databases.splice(index2, 1)
                         if(this.config().config.isElectron){
-                            window.electronAPI.send('delete_parameter', target2.uuid)
+                            window.electronAPI.send('delete_database', target2.uuid)
                         }
                     }
                 }
