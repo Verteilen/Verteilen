@@ -162,10 +162,10 @@ const movedown = (uuid:string) => {
 }
 
 const TaskType = (item:TaskTable) => {
-    if(!item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('singlejob')
-    else if(item.setupjob && !item.cronjob && !item.multi) return i18n.global.t('setupjob')
-    else if(!item.setupjob && item.cronjob && !item.multi) return i18n.global.t('cronjob')
-    else return i18n.global.t('multicore')
+    if(!item.setupjob && !item.cronjob && !item.multi) return $t('singlejob')
+    else if(item.setupjob && !item.cronjob && !item.multi) return $t('setupjob')
+    else if(!item.setupjob && item.cronjob && !item.multi) return $t('cronjob')
+    else return $t('multicore')
 }
 const TaskTypeColor = (item:TaskTable) => {
     if(!item.setupjob && !item.cronjob && !item.multi) return ''
@@ -181,11 +181,11 @@ const updateFields = () => {
     data.value.fields = [
         { title: 'ID', align: 'center', key: 'ID' },
         { title: 'Order', align: 'center', key: 'Order' },
-        { title: i18n.global.t('headers.title'), align: 'center', key: 'title' },
-        { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
-        { title: i18n.global.t('headers.type'), align: 'center', key: 'type' },
-        { title: i18n.global.t('headers.job-count'), align: 'center', key: 'jobCount' },
-        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail' },
+        { title: $t('headers.title'), align: 'center', key: 'title' },
+        { title: $t('headers.description'), align: 'center', key: 'description' },
+        { title: $t('headers.type'), align: 'center', key: 'type' },
+        { title: $t('headers.job-count'), align: 'center', key: 'jobCount' },
+        { title: $t('headers.detail'), align: 'center', key: 'detail' },
     ]
 }
 
@@ -222,9 +222,9 @@ onUnmounted(() => {
 <template>
     <div>
         <div class="py-3">
-            <v-toolbar density="compact" class="pr-3">
+            <v-toolbar density="compact" class="px-3">
+                <v-btn size="sm" class="mr-2" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
                 <v-text-field :style="{ 'fontSize': preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
-                <v-btn size="sm" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
                 <p v-if="props.select != undefined" class="mx-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>

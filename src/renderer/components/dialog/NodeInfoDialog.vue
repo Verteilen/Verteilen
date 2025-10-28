@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import byteSize from 'byte-size';
-import { computed } from 'vue';
+import { computed, inject, Ref } from 'vue';
 import { NodeTable, Preference } from '../../interface';
 import DialogBase from './DialogBase.vue';
 
 interface PROPS {
     item: NodeTable | undefined
-    preference?: Preference
 }
 
+const preference: Ref<Preference> = inject('preference')!
 const props = defineProps<PROPS>()
 const modal = defineModel<boolean>({ required: true })
 
@@ -38,10 +38,10 @@ const netUpload = computed(() => {
 </script>
 
 <template>
-    <DialogBase width="800" v-model="modal" class="text-white text-center" :preference="props.preference">
+    <DialogBase width="800" v-model="modal" class="text-white text-center" :preference="preference">
         <template #title v-if="props.item != undefined && props.item.system != undefined">
             <v-icon>mdi-information-outline</v-icon>
-            {{ props.item.ID }}
+            {{ props.item.uuid }}
         </template>
         <template #text v-if="props.item != undefined && props.item.system != undefined">
             <v-row style="height: 300px">

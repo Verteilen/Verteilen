@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import { Emitter } from 'mitt';
-import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, Header, NodeTable, Preference, ShellFolder, Single } from '../../interface';
-import { WebsocketManager } from '../../script/socket_manager';
-import { BackendProxy } from '../../proxy';
-import DialogBase from './DialogBase.vue';
+//#region Modules
+import { Emitter } from 'mitt'
+import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
+import { BusType, NodeTable, Preference, ShellFolder, Single, Execute_SocketManager } from '../../interface'
+import { BackendProxy } from '../../proxy'
+import DialogBase from './DialogBase.vue'
+import { i18n } from 'verteilen-core/src/plugins/i18n'
+//#region 
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-
+//#region 
 interface PROPS {
     item: NodeTable | undefined
-    backend: BackendProxy
-    manager: WebsocketManager | undefined
-    preference?: Preference
+    manager: Execute_SocketManager.WebsocketManager | undefined
 }
-
+const $t = i18n.global.t
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:Ref<BackendProxy> = inject('backend')!
+const preference:Ref<Preference> = inject('preference')!
 const myDiv:Ref<HTMLDivElement | null> = ref(null);
 const props = defineProps<PROPS>()
 const modal = defineModel<boolean>({ required: true })
@@ -24,7 +26,9 @@ const path = ref('')
 const folders:Ref<ShellFolder | undefined> = ref(undefined)
 const histroy:Ref<Array<string>> = ref([])
 const cursor = ref(0)
+//#endregion
 
+//#region Computed
 const folderContent = computed(() => {
     if(folders.value == undefined) return []
     return [
@@ -32,31 +36,32 @@ const folderContent = computed(() => {
         ...folders.value.files.map(x => ({ value: x, icon: 'mdi-file', type: 1 }))
     ]
 })
+//#endregion
 
+//#region Watch
 watch(() => modal.value, () => {
     consoleCommand.value = ''
     consoleMessages.value = []
 })
+//#endregion
 
+//#region Methods
 const splitS = () => {
     const w = path.value.includes('\\')
     return w ? "\\" : "/"
 }
-
 const closeConsole = () => {
     if(props.item == undefined) return
     modal.value = false
-    if(props.backend.config.haveBackend){
-        props.backend.send("shell_close", props.item.ID)
+    if(backend.value.config.haveBackend){
+        backend.value.send("shell_close", props.item.uuid)
     }else{
-        props.manager?.shell_close(props.item.ID)
+        props.manager?.shell_close(props.item.uuid)
     }
 }
-
 const cleanConsole = () => {
     consoleMessages.value = []
 }
-
 const sendCommand = () => {
     if(consoleCommand.value.length == 0 || props.item == undefined) return
     if(consoleCommand.value == "cls" || consoleCommand.value == "clear"){
@@ -64,78 +69,72 @@ const sendCommand = () => {
         consoleCommand.value = ""
         return
     }
-    if(props.backend.config.haveBackend){
-        props.backend.send("shell_enter", props.item.ID, consoleCommand.value)
+    if(backend.value.config.haveBackend){
+        backend.value.send("shell_enter", props.item.uuid, consoleCommand.value)
     }else{
-        props.manager?.shell_enter(props.item.ID, consoleCommand.value)
+        props.manager?.shell_enter(props.item.uuid, consoleCommand.value)
     }
     histroy.value.push(consoleCommand.value)
     cursor.value = histroy.value.length - 1
     consoleCommand.value = ""
 }
-
 const check_up = () => {
     cursor.value -= 1
     if(cursor.value < 0) cursor.value = 0
     consoleCommand.value = histroy.value[cursor.value]
 }
-
 const check_down = () => {
     cursor.value += 1
     if(cursor.value >= histroy.value.length) cursor.value = histroy.value.length - 1
     consoleCommand.value = histroy.value[cursor.value]
 }
-
 const shellReply = (data:Single) => {
     consoleMessages.value.push(data.data.toString())
     setTimeout(() => {
         myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
     }, 10);
 }
-
 const folderReply = (data:ShellFolder) => {
     folders.value = data
     path.value = data.path
 }
-
 const enterPath = () => {
     if(props.item == undefined) return
-    if(props.backend.config.haveBackend){
-        props.backend.send("shell_folder", props.item.ID, path.value)
+    if(backend.value.config.haveBackend){
+        backend.value.send("shell_folder", props.item.uuid, path.value)
     }else{
-        props.manager?.shell_folder(props.item.ID, path.value)
+        props.manager?.shell_folder(props.item.uuid, path.value)
     }
 }
-
 const lastFolder = () => {
     const p = path.value.split(splitS()).reverse()
     p.shift()
     path.value = p.reverse().join(splitS())
     enterPath()
 }
-
 const enterFolder = (v:string) => {
     path.value = path.value + splitS() + v
     enterPath()
 }
+//#endregion
 
 onMounted(() => {
-    emitter?.on('shellReply', shellReply)
-    emitter?.on('folderReply', folderReply)
+    emitter.on('shellReply', shellReply)
+    emitter.on('folderReply', folderReply)
 })
 
 onUnmounted(() => {
-    emitter?.off('shellReply', shellReply)
-    emitter?.off('folderReply', folderReply)
+    emitter.off('shellReply', shellReply)
+    emitter.off('folderReply', folderReply)
 })
 
 </script>
 
 <template>
-    <DialogBase persistent width="90vw" v-model="modal" class="text-white" :preference="props.preference">
+    <DialogBase persistent width="90vw" v-model="modal" class="text-white" :preference="preference">
         <template #title>
             <v-icon>mdi-console</v-icon>
-            {{ item?.ID }}
+            {{ item?.uuid }}
         </template>
         <template #text>
             <v-row>

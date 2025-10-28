@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { NodeTable, Plugin, PluginList, PluginPageData, Preference } from '../../interface';
+import { computed, inject, Ref, ref } from 'vue';
+import { BusType, NodeTable, Plugin, PluginList, PluginPageData, Preference } from '../../interface';
 import { BackendProxy } from '../../proxy';
 import DialogBase from './DialogBase.vue';
+import { i18n } from 'verteilen-core/src/plugins/i18n';
+import { Emitter } from 'mitt';
 
 interface PROPS {
-    backend: BackendProxy
     item: NodeTable | undefined
     plugin: PluginPageData
-    preference?: Preference
 }
-
+const $t = i18n.global.t
+const emitter:Emitter<BusType> = inject('emitter')!
+const backend:Ref<BackendProxy> = inject('backend')!
+const preference:Ref<Preference> = inject('preference')!
 const modal = defineModel<boolean>({ required: true })
 const props = defineProps<PROPS>()
 const emit = defineEmits<{
@@ -58,10 +61,10 @@ const remove = (k:Plugin) => {
 </script>
 
 <template>
-    <DialogBase persistent width="75vw" v-model="modal" class="text-white" :preference="props.preference">
+    <DialogBase persistent width="75vw" v-model="modal" class="text-white" :preference="preference">
         <template #title>
             <v-icon>mdi-console</v-icon>
-            {{ item?.ID }} 
+            {{ item?.uuid }} 
             <v-chip :color="props.item?.state == 1 ? 'success' : 'error'">({{ nodeType }})</v-chip>
         </template>
         <template #text>

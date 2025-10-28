@@ -36,6 +36,7 @@ const data:Ref<DATA> = ref({
 })
 const fields:Ref<Array<any>> = ref([
     { title: 'ID', align: 'center', key: 'ID' },
+    { title: 'cluster', align: 'center', key: 'cluster' },
     { title: 'URL', align: 'center', key: 'url' },
     { title: 'State', align: 'center', key: 'state' },
     { title: 'Delay', align: 'center', key: 'delay' },
@@ -189,6 +190,9 @@ onUnmounted(() => {
             <template v-slot:item.state="{ item }">
                 <v-chip :color="translate_state_color(item.state)">{{ translate_state(item.state) }}</v-chip>
             </template>
+            <template v-slot:item.cluster="{ item }">
+                <v-chip :color="item.cluster ? 'info' : 'success'">{{ item.cluster ? $t('cluster') : $t('node') }}</v-chip>
+            </template>
             <template v-slot:item.delay="{ item }">
                 {{ item.connection_rate }}
             </template>
@@ -204,9 +208,11 @@ onUnmounted(() => {
                 </v-btn>
             </template>
         </v-data-table>
-        <NodeInfoDialog v-model="data.infoModal" :item="infoTarget" :preference="preference" />
-        <NodeShellDialog v-model="data.consoleModal" :backend="backend" :item="consoleTarget" :manager="props.manager" :preference="preference" />
-        <NodePluginDialog v-model="data.pluginModal" :backend="backend" :item="pluginTarget" :plugin="props.plugin" :preference="preference"
+        <NodeInfoDialog v-model="data.infoModal" :item="infoTarget"/>
+        <NodeShellDialog v-model="data.consoleModal" :item="consoleTarget" :manager="props.manager" />
+        <NodePluginDialog v-model="data.pluginModal" 
+            :item="pluginTarget" 
+            :plugin="props.plugin"
             @download="util.plugin_download" @remove="util.plugin_remove" />
         <DialogBase width="500" v-model="data.connectionModal" class="text-white" :preference="preference">
             <template #title>

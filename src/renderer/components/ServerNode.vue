@@ -679,7 +679,7 @@ onUnmounted(() => {
       <v-progress-circular color="blue-lighten-3" indeterminate></v-progress-circular>
     </div>
 
-    <v-tabs-window v-model="data.page" class="w-100 pt-10" style="height: 90vh">
+    <v-tabs-window v-model="data.page" class="w-100 pt-10" style="height: calc(100vh - 22px)">
       <v-tabs-window-item :value="0">
         <ProjectPage
           :backend="backend"

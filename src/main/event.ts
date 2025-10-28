@@ -1,4 +1,4 @@
-import { ipcMain } from "electron";
+import { ipcMain, shell } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import * as fsp from "fs/promises";
@@ -109,7 +109,7 @@ export class BackendEvent extends Server implements BackendAction {
      */
     preference: Preference = CreatePreference()
 
-    constructor(){
+    constructor() {
         super()
         /**
          * * Config Setup
@@ -118,14 +118,16 @@ export class BackendEvent extends Server implements BackendAction {
         /**
          * * IO And Plugin Setup
          */
-        const feedback:PluginFeedback = {
-            electron: mainWindow?.webContents.send,
-            socket: undefined
-        }
         this.io = CreateIO()
         this.loader = CreateRecordIOLoader(this.io, this.memory)
+        const feedback:PluginFeedback = {
+            electron: () => mainWindow?.webContents,
+            socket: undefined
+        }
+        console.log("feedback electron: ", feedback.electron != undefined)
+        console.log("feedback socket: ", feedback.socket != undefined)
         this.LoadFromDisk()
-        this.plugin_loader = CreatePluginLoader(this.io, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
+        this.plugin_loader = CreatePluginLoader(this.io!, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
         this.plugin_loader.load_all()
         PluginInit(this.plugin_loader)
         this.detail = new ServerDetail(this.io, this, feedback, messager, console.log)
@@ -208,6 +210,9 @@ export class BackendEvent extends Server implements BackendAction {
         ipcMain.on('locate', (event, data:string) => {
             // @ts-ignore
             //i18n.global.locale = data
+        })
+        ipcMain.on('open', (event, url:string) => {
+            shell.openExternal(url)
         })
 
         Loader(this.current_loader.project, 'record')

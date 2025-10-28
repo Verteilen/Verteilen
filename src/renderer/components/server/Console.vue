@@ -11,7 +11,8 @@ import {
     Database, 
     Preference, 
     Project, 
-    Record 
+    Record, 
+    Library
 } from '../../interface';
 import { DATA } from './Console';
 import { BackendProxy } from '../../proxy';
@@ -28,7 +29,7 @@ const emitter:Emitter<BusType> | undefined = inject('emitter');
 interface PROPS {
     socket: Execute_WebhookManager.WebhookManager | undefined
     execute: Array<ExecutePair>
-    libs: Libraries
+    libs: Array<Library>
     projects: Array<Project>
     nodes: Array<NodeTable>
     databases: Array<Database>

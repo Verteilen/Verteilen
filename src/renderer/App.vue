@@ -82,6 +82,9 @@ const load_preference = (x:string) => {
   preferenceUpdate(preference.value)
   backend.value.send('locate', preference.value.lan)  
 }
+const guide = () => {
+  backend.value.send('open', 'https://verteilen.github.io/wiki/')
+}
 const relogin = () => {
   config.value.login = false
   backend.value.removeCookie('token')
@@ -112,6 +115,7 @@ onMounted(() => {
     backend.value.send('message', 'Welcome Compute Tool')
   })
   defaultTransition.value = vuetify.defaults.value?.global
+  emitter.on('guide', guide)
   emitter.on('relogin', relogin)
   emitter.on('loginGuest', loginGuest)
   emitter.on('login', trylogin)
@@ -127,6 +131,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  emitter.off('guide', guide)
   emitter.off('savePreference', savePreference)
   emitter.off('setting', setting)
   backend.value.eventOff('locate', locate)

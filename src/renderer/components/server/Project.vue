@@ -2,7 +2,7 @@
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { AppConfig, BusType, LocalPermission, Database, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText } from '../../interface';
+import { AppConfig, BusType, LocalPermission, Database, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText, ProjectTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, IndexToValue, Temp, Util_Project, ValueToGroupName } from './Project';
 import ProjectDialog from '../dialog/ProjectDialog.vue';
@@ -21,8 +21,8 @@ const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
-    (e: 'added', project:Project[]): void
-    (e: 'edit', uuid:string, project:Project): void
+    (e: 'added', project:ProjectTable[]): void
+    (e: 'edit', uuid:string, project:ProjectTable): void
     (e: 'delete', uuids:Array<string>, bind:boolean): void
     (e: 'select', uuids:string): void
     (e: 'moveup', uuids:string): void

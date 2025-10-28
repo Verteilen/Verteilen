@@ -22,7 +22,8 @@ import {
     ExecutionLog,
     Library,
     Preference,
-    Node
+    Node,
+    TaskTable
 } from '../../interface'
 import {
     Server
@@ -55,9 +56,9 @@ export interface DATA {
     projects: Array<ProjectTable>
     libs: Array<Library>
     logs: Array<ExecutionLog>
-    selectProject: Project | undefined
-    selectTask: Task | undefined
-    selectDatabase: Database | undefined
+    selectProject: ProjectTable | undefined
+    selectTask: TaskTable | undefined
+    selectDatabase: DatabaseTable | undefined
     nodes: Array<NodeTable>
     messages: Array<ClientLog>
     plugin: PluginPageData

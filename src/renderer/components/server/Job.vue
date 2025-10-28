@@ -14,34 +14,35 @@ import {
     JobType2, 
     JobType2Text, 
     JobTypeText, 
-    Libraries, 
-    Database, 
-    Preference, 
-    Project, 
+    Preference,  
     Property, 
     Rename, 
-    Task } from '../../interface';
+    ProjectTable,
+    TaskTable,
+    DatabaseTable,
+    Library,
+    JobTable} from '../../interface';
 import { i18n } from './../../plugins/i18n';
 import DialogBase from '../dialog/DialogBase.vue';
 import { BackendProxy } from '../../proxy';
 
 
 interface PROPS {
-    projects: Array<Project>
-    select: Task | undefined
-    owner: Project | undefined
-    database: Database | undefined
-    libs: Libraries
+    projects: Array<ProjectTable>
+    select: TaskTable | undefined
+    owner: ProjectTable | undefined
+    database: DatabaseTable | undefined
+    libs: Array<Library>
 }
 
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
-const preference:Preference = inject("preference")!
+const backend:Ref<BackendProxy> = inject("backend")!
+const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', job:Job[]): void
-    (e: 'edit', task:Array<Job>, properties: Array<Property>): void
+    (e: 'edit', task:Array<JobTable>, properties: Array<Property>): void
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
     (e: 'keychange', key:string): void
@@ -81,7 +82,7 @@ const setdirty = () => {
 }
 
 const updateJob = () => {
-    const old:Array<Job> = JSON.parse(JSON.stringify(items.value))
+    const old:Array<JobTable> = JSON.parse(JSON.stringify(items.value))
     items.value = JSON.parse(JSON.stringify(props.select?.jobs ?? []))
     const ids = old.filter(x => x.s).map(x => x.uuid)
     items.value.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)
@@ -185,7 +186,8 @@ const confirmCreate = () => {
             script: "",
             string_args: [],
             number_args: [0],
-            boolean_args: []
+            boolean_args: [],
+            id_args: [],
         }]
     )
     nextTick(() => {
@@ -195,7 +197,7 @@ const confirmCreate = () => {
 }
 
 const scriptExist = (name:string) => {
-    return props.libs.libs!.findIndex(x => x.name == name) != -1
+    return props.libs!.findIndex(x => x.name == name) != -1
 }
 
 const libRename = (d:Rename) => {
@@ -376,8 +378,8 @@ onUnmounted(() => {
         </div>
         <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
             <!-- Property -->
+            <h4 class="text-info"> {{ $t('property') }} </h4>
             <div v-if="select != undefined" class="py-3 pb-5 mx-5">
-                <h4 class="text-info"> {{ $t('property') }} </h4>
                 <br />
                 <v-row>
                     <v-col>
@@ -417,8 +419,8 @@ onUnmounted(() => {
             </div>
             <!-- Job List -->
             <hr class="mx-5 my-2" />
+            <h4 class="text-info"> {{ $t('job') }} </h4>
             <div v-if="select != undefined" class="py-3 pb-7">
-                <h4 class="text-info"> {{ $t('job') }} </h4>
                 <br />
                 <v-expansion-panels color="dark" class="px-6">
                     <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2 pl-5">
@@ -451,7 +453,7 @@ onUnmounted(() => {
                                             style="text-align:left;"
                                             :style="{ height: '40vh' }"
                                             @change="setdirty"/>
-                                        <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
+                                        <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs" item-title="name" item-value="name" multiple label="Library">
                                             <template #selection="{ item }">
                                                 <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
                                                 <v-chip v-else closable color="danger">{{item.title}}</v-chip>
@@ -498,7 +500,7 @@ onUnmounted(() => {
                                             style="text-align:left;"
                                             :style="{ height: '40vh' }"
                                             @change="setdirty"/>
-                                        <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs.libs" item-title="name" item-value="name" multiple label="Library">
+                                        <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs" item-title="name" item-value="name" multiple label="Library">
                                             <template #selection="{ item }">
                                                 <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
                                                 <v-chip v-else closable color="danger">{{item.title}}</v-chip>
@@ -512,7 +514,7 @@ onUnmounted(() => {
                 </v-expansion-panels>
             </div>
         </div>
-        <DialogBase width="500" v-model="createModal" class="text-white" :preference="props.preference">
+        <DialogBase width="500" v-model="createModal" class="text-white" :preference="preference">
             <template #title>
                 <v-icon>mdi-hammer</v-icon>
                 {{ $t('modal.new-job') }}
@@ -526,7 +528,7 @@ onUnmounted(() => {
                 <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
             </template>
         </DialogBase>
-        <DialogBase width="500" v-model="deleteModal" class="text-white" :preference="props.preference">
+        <DialogBase width="500" v-model="deleteModal" class="text-white" :preference="preference">
             <template #title>
                 <v-icon>mdi-pencil</v-icon>
                 {{ $t('modal.delete-job') }}
