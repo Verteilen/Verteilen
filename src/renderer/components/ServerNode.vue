@@ -33,7 +33,8 @@ import {
   FrontendUpdate,
   ProjectTable,
   DatabaseTable,
-  Library
+  Library,
+  Node
 } from './../interface'
 import { BackendProxy } from '../proxy'
 import { DATA, Util_Server } from './server_logic'
@@ -85,7 +86,6 @@ const data:Ref<DATA> = ref({
     messages: [],
     plugin: { plugins: [], templates: [] }
 })
-const util:Util_Server = new Util_Server(data, () => backend.value, emitter!)
 let delayy = 0
 let updateHandle:any = undefined
 let slowUpdateHandle:any = undefined
@@ -108,6 +108,7 @@ const projectbind = computed(() => {
   if(data.value.selectProject == undefined) return undefined
   return data.value.databases.find(x => x.uuid == data.value.selectProject?.database_uuid) 
 })
+const util:Util_Server = new Util_Server(data, backend, preference, emitter!)
 //#endregion
 
 //#region Methods
@@ -446,8 +447,6 @@ const onAnalysis = (d:BusAnalysis) => {
   data.value.execute_manager.forEach(x => x.manager!.Analysis(JSON.parse(JSON.stringify(d))))
 }
 
-const popSetting = () => { emitter?.emit('setting') }
-
 const hotkey = (event:KeyboardEvent) => {
   if (event.altKey) {
     if(event.key == 'q') data.value.page = 0 // Project
@@ -487,30 +486,11 @@ const hotkey = (event:KeyboardEvent) => {
 const repull = (u:FrontendUpdate) => {
   const c: Array<Promise<void>> = []
   if((u & FrontendUpdate.PROJECT) == FrontendUpdate.PROJECT){
-    const p3 = backend.value.invoke('load_all_record').then((texts:Array<string>) => {
-      data.value.projects = texts.map((y):ProjectTable => {
-        const p:Project = JSON.parse(y)
-        return {
-          ...p,
-          s: false,
-          taskCount: p.task.length
-        }
-      })
-      if (process.env.NODE_ENV == 'development') console.log(data.value.projects)
-    })
+    const p3 = util.query.load_all_record()
     c.push(p3)
   }
   if((u & FrontendUpdate.PARAMETER) == FrontendUpdate.PARAMETER){
-    const p5 = backend.value.invoke('load_all_database').then((texts:Array<string>) => {
-      data.value.databases = texts.map((y):DatabaseTable => {
-        const p:Database = JSON.parse(y)
-        return {
-          ...p,
-          s: false
-        }
-      })
-      if (process.env.NODE_ENV == 'development') console.log("Databases", data.value.libs)
-    })
+    const p5 = util.query.load_all_database()
     c.push(p5)
   }
   return c
@@ -563,56 +543,15 @@ const dataset_init = () => {
     data.value.execute_manager = Array.isArray(xs) ? xs.map(x => ({ record: x })) : [{record: xs}]
     console.log("execute", data.value.execute_manager)
   })
-  const p1 = backend.value.invoke('load_all_node').then((texts:Array<string>) => {
-    data.value.nodes.push(...texts.map(y => JSON.parse(y)))
-    for(const x of data.value.nodes) x.s = false
-    data.value.nodes = data.value.nodes.map(y => {
-      return Object.assign(y, {
-        s: false,
-        state: 0,
-        connection_rate: 0
-      })
-    })
-    data.value.nodes.forEach(y => {
-      if(backend.value.config.haveBackend){
-        console.log("backend node_add", y.url, y.uuid)
-        backend.value.send("node_add", y.url, y.uuid)
-      }else{
-        console.log("static web node_add", y.url, y.uuid)
-        data.value.websocket_manager?.server_start(y.url, y.uuid)
-      }
-    })
-    if (process.env.NODE_ENV == 'development') console.log("nodes", data.value.nodes)
-  })
-  const p2 = backend.value.invoke('list_all_lib').then((texts:Array<any>) => {
-    data.value.libs = texts.map((y):Library => {
-      const ext = y.split('.').pop()
-      const r:Library = {
-        uuid: uuidv6(),
-        name: y.slice(0, -(ext.length + 1)),
-        load: false,
-        content: ""
-      }
-      return r
-    })
-    if (process.env.NODE_ENV == 'development') console.log("Libs", data.value.libs)
-  })
-  const p4 = backend.value.invoke('get_plugin').then(x => {
-    console.log("x", x)
-    data.value.plugin = x
-    if (process.env.NODE_ENV == 'development') console.log("Plugins", data.value.plugin)
-  })
+  const p1 = util.query.load_all_node()
+  const p2 = util.query.load_all_lib()
+  const p4 = util.query.load_plugin()
   const p35 = repull(FrontendUpdate.ALL)
-  const p6 = backend.value.invoke('load_all_log').then((texts:Array<string>) => {
-      const ll:Array<ExecutionLog> = texts.map(x => JSON.parse(x))
-      ll.forEach(x => x.output = true)
-      if (process.env.NODE_ENV == 'development') console.log("Logs", ll)
-      data.value.logs = ll
-  })
+  const p6 = util.query.load_all_log()
   Promise.all([p0, p1, p2, p4, ...p35, p6]).then(() => {
     nextTick(() => allUpdate())
   }).catch(err => {
-    console.error("Init Promises Call Failed: ", err)
+    console.error("Init Promises Call Failed: ", err, data.value)
   })
 }
 
@@ -736,7 +675,7 @@ onUnmounted(() => {
       <v-progress-circular color="blue-lighten-3" indeterminate></v-progress-circular>
     </div>
 
-    <v-tabs-window v-model="data.page" class="w-100 h-100">
+    <v-tabs-window v-model="data.page" class="w-100 pt-10" style="height: 90vh">
       <v-tabs-window-item :value="0">
         <ProjectPage
           :backend="backend"

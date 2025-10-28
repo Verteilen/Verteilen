@@ -20,7 +20,8 @@ import {
     ProjectTable,
     DatabaseTable,
     ExecutionLog,
-    Library
+    Library,
+    Preference
 } from '../../interface'
 import {
     Server
@@ -33,10 +34,10 @@ import { Util_Server_Database } from "./database_handle";
 import { Util_Server_Project } from "./project_handle";
 import { Util_Server_Self } from "./self_handle";
 import { Util_Server_Task } from "./task_handle";
+import { ServerQuery } from "./query";
 //#endregion
 
 export type save_and_update = () => void
-export type config_getter = () => BackendProxy
 
 export interface DATA {
     websocket_manager: Execute_SocketManager.WebsocketManager | undefined
@@ -67,9 +68,11 @@ export interface DATA {
  */
 export class Util_Server extends Server {
     data:Ref<DATA>
-    config:config_getter
+    backend:Ref<BackendProxy>
+    preference:Ref<Preference>
     emitter:Emitter<BusType>
 
+    query:ServerQuery
     project:Util_Server_Project
     task:Util_Server_Task
     job:Util_Server_Job
@@ -79,16 +82,22 @@ export class Util_Server extends Server {
     lib:Util_Server_Lib
     self:Util_Server_Self
 
-    constructor(_data:Ref<DATA>, _config:config_getter, _emitter:Emitter<BusType>){
+    constructor(data:Ref<DATA>,
+        backend:Ref<BackendProxy>,
+        preference:Ref<Preference>,
+        _emitter:Emitter<BusType>)
+    {
         super()
-        this.data = _data
-        this.config = _config
+        this.data = data
+        this.backend = backend
+        this.preference = preference
         this.emitter = _emitter
-        this.project = new Util_Server_Project(this.data, this.config, this.allUpdate, this.update, _emitter)
+        this.query = new ServerQuery(this.data, this.backend, this.preference)
+        this.project = new Util_Server_Project(this.data, this.backend, this.allUpdate, this.update, _emitter)
         this.task = new Util_Server_Task(this.data, this.allUpdate, this.update)
         this.job = new Util_Server_Job(this.data, this.update)
         this.node = new Util_Server_Node(this.data, this.saveRecord)
-        this.database = new Util_Server_Database(this.data, this.config, this.update)
+        this.database = new Util_Server_Database(this.data, this.backend, this.update)
         this.console = new Util_Server_Console()
         this.lib = new Util_Server_Lib(this.data, this.update)
         this.self = new Util_Server_Self(this.data)
@@ -112,19 +121,19 @@ export class Util_Server extends Server {
         if((type & RenderUpdateType.Project) == RenderUpdateType.Project){
             for(const x of this.data.value.projects){
                 const text = JSON.stringify(x)
-                this.config().send('save_record', x.uuid, text)
+                this.backend.value.send('save_record', x.uuid, text)
             }
         }
         if((type & RenderUpdateType.Node) == RenderUpdateType.Node){
             for(const x of this.data.value.nodes){
                 const text = JSON.stringify(x)
-                this.config().send('save_node', x.uuid, text)
+                this.backend.value.send('save_node', x.uuid, text)
             }
         }
         if((type & RenderUpdateType.Database) == RenderUpdateType.Database){
             for(const x of this.data.value.databases){
                 const text = JSON.stringify(x)
-                this.config().send('save_database', x.uuid, text)
+                this.backend.value.send('save_database', x.uuid, text)
             }
         }
     }

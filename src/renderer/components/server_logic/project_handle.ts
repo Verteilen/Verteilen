@@ -1,24 +1,26 @@
 import { Emitter } from "mitt";
 import { nextTick, Ref } from "vue";
-import { BusType, Project } from "../../interface";
-import { config_getter, DATA, save_and_update } from ".";
+import { BusType, Project, ProjectTable } from "../../interface";
+import { DATA, save_and_update } from ".";
+import { BackendProxy } from "../../proxy";
 
 export class Util_Server_Project {
     data:Ref<DATA>
-    config:config_getter
+    backend:Ref<BackendProxy>
     update:save_and_update
     updateOnly:save_and_update
     emitter:Emitter<BusType>
 
-    constructor (_data:Ref<DATA>, _config:config_getter, _updateOnly:save_and_update, _update:save_and_update, _emitter:Emitter<BusType>){
+    constructor (_data:Ref<DATA>, backend:Ref<BackendProxy>, _updateOnly:save_and_update, _update:save_and_update, _emitter:Emitter<BusType>){
         this.data = _data
-        this.config = _config
+        this.backend = backend
         this.updateOnly = _updateOnly
         this.update = _update
         this.emitter = _emitter
     }
 
-    addProject = (v:Array<Project>) => {
+    //#region Project CRUD
+    addProject = (v:Array<ProjectTable>) => {
         v.forEach(x => {
             if(x.database == undefined){
                 this.data.value.projects.push(x)
@@ -31,8 +33,7 @@ export class Util_Server_Project {
         this.update()
         this.data.value.page = 0
     }
-    
-    editProject = (id:string, v:Project) => {
+    editProject = (id:string, v:ProjectTable) => {
         const selectp = this.data.value.projects.findIndex(x => x.uuid == id)
         if(selectp == -1) return
         this.data.value.projects[selectp] = v
@@ -41,7 +42,6 @@ export class Util_Server_Project {
         }
         this.update()
     }
-    
     deleteProject = (uuids:Array<string>, bind:boolean) => {
         uuids.forEach(id => {
             const index = this.data.value.projects.findIndex(x => x.uuid == id)
@@ -62,7 +62,7 @@ export class Util_Server_Project {
                             this.data.value.selectDatabase = undefined
                         }
                         this.data.value.databases.splice(index2, 1)
-                        if(this.config().config.isElectron){
+                        if(this.backend.value.config.isElectron){
                             window.electronAPI.send('delete_database', target2.uuid)
                         }
                     }
@@ -71,12 +71,13 @@ export class Util_Server_Project {
             if(this.data.value.selectProject?.uuid == id){
                 this.data.value.selectProject = undefined
             }
-            if(this.config().config.isElectron){
+            if(this.backend.value.config.isElectron){
                 window.electronAPI.send('delete_record', id)
             }
         })
         this.update()
     }
+    //#endregion
     
     chooseProject = (uuid:string) => {
         this.data.value.selectProject = this.data.value.projects.find(x => x.uuid == uuid)

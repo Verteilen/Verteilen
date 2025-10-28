@@ -38,9 +38,7 @@ import {
     ServerDetailEvent,
     ExecuteState,
 } from "./interface";
-import { raw_i18n } from "verteilen-core/dist/plugins/i18n"
 
-const $t = raw_i18n.t
 const Loader = (loader:RecordIOLoader, key:string) => {
     ipcMain.handle(`load_all_${key}`, (e) => loader.load_all())
     ipcMain.on(`delete_all_${key}`, (e) => loader.delete_all())
@@ -52,6 +50,7 @@ const Loader = (loader:RecordIOLoader, key:string) => {
     ipcMain.handle(`load_${key}`, (e, name:string) => loader.load(name, true))
 }
 const PluginInit = (loader:PluginLoader) => {
+    loader.get_plugin()
     ipcMain.handle('get_plugin', async (e) => loader.get_plugin())
     ipcMain.handle('import_template', async (event, name:string, url:string, token:string) => loader.import_template(name, url, token))
     ipcMain.handle('import_plugin', async (event, name:string, url:string, token:string) => loader.import_plugin(name, url, token))
@@ -110,24 +109,12 @@ export class BackendEvent extends Server implements BackendAction {
      */
     preference: Preference = CreatePreference()
 
-    Init = () => {
+    constructor(){
+        super()
         /**
          * * Config Setup
          */
         this.load_preference(false)
-        /**
-         * * Local Client Setup
-         */
-        if(this.client != undefined) return
-        this.client = new Client.Client((...args:Array<string | undefined>) => {
-            messager(...args)
-            mainWindow?.webContents.send('debuglog', args.join(' '));
-        }, (msg:string, tag?:string, meta?:string) => {
-            messager_log(msg, tag, meta)
-            mainWindow?.webContents.send('debuglog', tag == undefined ? msg : `[${tag}] ${msg}`);
-        })
-        this.client.Init()
-
         /**
          * * IO And Plugin Setup
          */
@@ -141,8 +128,23 @@ export class BackendEvent extends Server implements BackendAction {
         this.plugin_loader = CreatePluginLoader(this.io, this.plugin, (uuid:string) => this.detail!.websocket_manager?.targets.find(x => x.uuid == uuid), feedback)
         this.plugin_loader.load_all()
         PluginInit(this.plugin_loader)
-        this.detail = new ServerDetail(this.io, this, feedback, messager, console.log, $t)
+        this.detail = new ServerDetail(this.io, this, feedback, messager, console.log)
         DetailInit(this.detail)
+    }
+
+    Init = () => {
+        /**
+         * * Local Client Setup
+         */
+        if(this.client != undefined) return
+        this.client = new Client.Client((...args:Array<string | undefined>) => {
+            messager(...args)
+            mainWindow?.webContents.send('debuglog', args.join(' '));
+        }, (msg:string, tag?:string, meta?:string) => {
+            messager_log(msg, tag, meta)
+            mainWindow?.webContents.send('debuglog', tag == undefined ? msg : `[${tag}] ${msg}`);
+        })
+        this.client.Init()
     }
 
     Destroy = () => {
@@ -184,7 +186,7 @@ export class BackendEvent extends Server implements BackendAction {
         })
         ipcMain.on('message', (e, message:string, tag?:string) => console.log(`${ tag == undefined ? '[Electron Backend]' : '[' + tag + ']' } ${message}`))
         ipcMain.on('save_preference', (e, pre:string) => this.save_preference(pre))
-        ipcMain.handle('load_preference', (e, cache:boolean = true) => JSON.stringify(this.load_preference(cache)))
+        ipcMain.handle('load_preference', (e, token:string) => JSON.stringify(this.load_preference(true)))
         ipcMain.on('export_projects', (event, data:string) => {
             const p:Array<Project> = JSON.parse(data)
             ExportProjects(p)
@@ -234,7 +236,7 @@ export class BackendEvent extends Server implements BackendAction {
         if(cache) return this.preference
         const p = path.join(os.homedir(), DATA_FOLDER, 'preference.json')
         const exist = fs.existsSync(p);
-        messager_log(`[Event] Read preference.js, file exist: ${exist}`)
+        console.log(`[Event] Read preference.js, file exist: ${exist}`)
         if(!exist){
             this.preference = CreatePreference()
             fs.writeFileSync(p, JSON.stringify(this.preference, null, 4))

@@ -77,9 +77,9 @@ const preferenceUpdate = (data:Preference) => {
   vuetify.defaults.value!.global = data.animation ? {} : defaultTransition.value
 }
 const load_preference = (x:string) => {
-  Object.assign(preference.value, JSON.parse(x))
-  preferenceUpdate(preference.value)
+  preference.value = JSON.parse(x)
   console.log(preference.value)
+  preferenceUpdate(preference.value)
   backend.value.send('locate', preference.value.lan)  
 }
 const relogin = () => {
@@ -120,8 +120,8 @@ onMounted(() => {
   backend.value.wait_init().then(() => {
     if(backend.value.config.haveBackend){
       backend.value.eventOn('locate', locate)
-      backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
       backend.value.eventOn('message', message)
+      backend.value.invoke('load_preference', true, token.value).then(x => load_preference(x))
     }
   })
 })

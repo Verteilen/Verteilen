@@ -334,13 +334,13 @@ onUnmounted(() => {
         <div class="pt-3">
             <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
-                    <a v-if="canViewDetail" href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
-                    <span v-else>{{ item.ID }}</span>
+                    <a v-if="canViewDetail" href="#" @click="datachoose(item.uuid)">{{ item.uuid }}</a>
+                    <span v-else>{{ item.uuid }}</span>
                 </template>
                 <template v-slot:item.detail="{ item }">
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="dataedit(item.ID)" :disabled="!permission?.edit" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon @click="dataedit(item.uuid)" :disabled="!permission?.edit" size="small">
                                 <v-icon>mdi-pencil</v-icon>
                             </v-btn>
                         </template>
@@ -348,7 +348,7 @@ onUnmounted(() => {
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="dataexport(item.ID)" :disabled="!permission?.view" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon @click="dataexport(item.uuid)" :disabled="!permission?.view" size="small">
                                 <v-icon>mdi-export</v-icon>
                             </v-btn>
                         </template>
@@ -356,7 +356,7 @@ onUnmounted(() => {
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon :disabled="isFirst(item.ID) || !permission?.edit" @click="moveup(item.ID)" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="isFirst(item.uuid) || !permission?.edit" @click="moveup(item.uuid)" size="small">
                                 <v-icon>mdi-arrow-up</v-icon>
                             </v-btn>
                         </template>
@@ -364,7 +364,7 @@ onUnmounted(() => {
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon :disabled="isLast(item.ID) || !permission?.edit" @click="movedown(item.ID)" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="isLast(item.uuid) || !permission?.edit" @click="movedown(item.uuid)" size="small">
                                 <v-icon>mdi-arrow-down</v-icon>
                             </v-btn>
                         </template>
