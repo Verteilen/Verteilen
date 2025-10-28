@@ -1,15 +1,16 @@
 import { Ref } from "vue"
 import { Database } from "../../interface"
-import { config_getter, DATA, save_and_update } from "."
+import { DATA, save_and_update } from "."
+import { BackendProxy } from "../../proxy"
 
 export class Util_Server_Database {
     data:Ref<DATA>
     update:save_and_update
-    config:config_getter
+    backend:Ref<BackendProxy>
 
-    constructor (_data:Ref<DATA>, _config:config_getter, _update:save_and_update){
+    constructor (_data:Ref<DATA>, backend:Ref<BackendProxy>, _update:save_and_update){
         this.data = _data
-        this.config = _config
+        this.backend = backend
         this.update = _update
     }
 
@@ -45,7 +46,7 @@ export class Util_Server_Database {
         if(this.data.value.selectDatabase?.uuid == e){
             this.data.value.selectDatabase = undefined
         }
-        if(this.config().config.isElectron){
+        if(this.backend.value.config.isElectron){
             window.electronAPI.send('delete_database', e)
         }
         this.update()

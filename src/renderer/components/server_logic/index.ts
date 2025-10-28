@@ -21,7 +21,8 @@ import {
     DatabaseTable,
     ExecutionLog,
     Library,
-    Preference
+    Preference,
+    Node
 } from '../../interface'
 import {
     Server
@@ -35,6 +36,7 @@ import { Util_Server_Project } from "./project_handle";
 import { Util_Server_Self } from "./self_handle";
 import { Util_Server_Task } from "./task_handle";
 import { ServerQuery } from "./query";
+import { pick, assign, keys } from 'lodash'
 //#endregion
 
 export type save_and_update = () => void
@@ -120,19 +122,29 @@ export class Util_Server extends Server {
     saveRecord = (type:RenderUpdateType = RenderUpdateType.All) => {
         if((type & RenderUpdateType.Project) == RenderUpdateType.Project){
             for(const x of this.data.value.projects){
-                const text = JSON.stringify(x)
+                const buffer:any = JSON.parse(JSON.stringify(x))
+                if(x.s != undefined) delete buffer['s']
+                const text = JSON.stringify(buffer)
                 this.backend.value.send('save_record', x.uuid, text)
             }
         }
         if((type & RenderUpdateType.Node) == RenderUpdateType.Node){
             for(const x of this.data.value.nodes){
-                const text = JSON.stringify(x)
+                const buffer:any = JSON.parse(JSON.stringify(x))
+                if(x.s != undefined) delete buffer['s']
+                if(x.state != undefined) delete buffer['state']
+                if(x.connection_rate != undefined) delete buffer['connection_rate']
+                if(x.plugins != undefined) delete buffer['plugins']
+                if(x.system != undefined) delete buffer['system']
+                const text = JSON.stringify(buffer)
                 this.backend.value.send('save_node', x.uuid, text)
             }
         }
         if((type & RenderUpdateType.Database) == RenderUpdateType.Database){
             for(const x of this.data.value.databases){
-                const text = JSON.stringify(x)
+                const buffer:any = JSON.parse(JSON.stringify(x))
+                if(x.s != undefined) delete buffer['s']
+                const text = JSON.stringify(buffer)
                 this.backend.value.send('save_database', x.uuid, text)
             }
         }

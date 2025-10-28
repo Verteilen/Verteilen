@@ -1,6 +1,5 @@
 import { Ref } from "vue"
-import { ExecuteRecord, NodeTable } from "../../../interface"
-import { ExecuteManager } from "../../script/execute_manager"
+import { NodeTable } from "../../interface"
 import { DATA, save_and_update } from "."
 
 export class Util_Server_Node {
@@ -16,19 +15,11 @@ export class Util_Server_Node {
         const old:Array<NodeTable> = JSON.parse(JSON.stringify(this.data.value.nodes))
         this.data.value.nodes = v
         old.filter(x => x.s).forEach(x => {
-            const index = this.data.value.nodes.findIndex(y => y.ID == x.ID)
+            const index = this.data.value.nodes.findIndex(y => y.uuid == x.uuid)
             if(index != -1){
                 this.data.value.nodes[index].s = true
             }
         })
         this.update()
-    }
-}
-
-export class Util_Server_Node_Proxy {
-    model:[ExecuteManager, ExecuteRecord]
-    
-    constructor(_model:[ExecuteManager, ExecuteRecord]){
-        this.model = _model
     }
 }

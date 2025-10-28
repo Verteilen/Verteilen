@@ -511,6 +511,10 @@ const logUpdate = (e:string) => {
   })
 }
 
+/**
+ * **Initialize Dataset**\
+ * Query data from the backend and assign to data variables
+ */
 const dataset_init = () => {
   updateTab()
   data.value.title = tabs.value.find(x => x[2] == 0)![1]
@@ -695,7 +699,6 @@ onUnmounted(() => {
         <TaskPage
           :projects="data.projects" 
           :select="data.selectProject" 
-          :preference="preference"
           :databases="data.databases"
           @added="e => addTask(e)" 
           @edit="(id, e) => editTask(id, e)" 

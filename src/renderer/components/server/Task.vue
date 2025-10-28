@@ -2,7 +2,7 @@
 //#region Modules
 import { Emitter } from 'mitt';
 import { computed, ComputedRef, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, Database, Preference, Project, Task, TaskTable } from '../../interface';
+import { BusType, DataType, DatabaseTable, Preference, ProjectTable, Task, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, Util_Task } from './Task';
 import TaskDialog from '../dialog/TaskDialog.vue';
@@ -12,13 +12,13 @@ import DialogBase from '../dialog/DialogBase.vue';
 
 //#region Data
 interface PROPS {
-    projects: Array<Project>
-    select: Project | undefined
-    databases: Array<Database>
+    projects: Array<ProjectTable>
+    select: ProjectTable | undefined
+    databases: Array<DatabaseTable>
 }
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const preference:Preference = inject("preference")!
+const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'added', task:Task[]): void
@@ -273,19 +273,19 @@ onUnmounted(() => {
         <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
             <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
-                    <a href="#" @click="datachoose(item.ID)">{{ item.ID }}</a>
+                    <a href="#" @click="datachoose(item.uuid)">{{ item.uuid }}</a>
                 </template>
                 <template v-slot:item.Order="{ item }">
-                    {{ getIndex(item.ID) }}
+                    {{ getIndex(item.uuid) }}
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-btn variant="text" icon @click="dataedit(item.ID)" size="small">
+                    <v-btn variant="text" icon @click="dataedit(item.uuid)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn variant="text" icon :disabled="isFirst(item.ID)" @click="moveup(item.ID)" size="small">
+                    <v-btn variant="text" icon :disabled="isFirst(item.uuid)" @click="moveup(item.uuid)" size="small">
                         <v-icon>mdi-arrow-up</v-icon>
                     </v-btn>
-                    <v-btn variant="text" icon :disabled="isLast(item.ID)" @click="movedown(item.ID)" size="small">
+                    <v-btn variant="text" icon :disabled="isLast(item.uuid)" @click="movedown(item.uuid)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
                 </template>

@@ -45,7 +45,7 @@ export class ServerQuery {
                 s: false
                 }
             })
-            if (process.env.NODE_ENV == 'development') console.log("Databases", this.data.value.libs)
+            if (process.env.NODE_ENV == 'development') console.log("Databases", this.data.value.databases)
         })
     }
 

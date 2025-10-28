@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch, watchEffect } from 'vue';
-import { BusType, Libraries, Database, Preference } from '../../interface';
+import { BusType, Libraries, Database, Preference, Library } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Lib } from './Library';
 import { BackendProxy } from '../../proxy';
@@ -23,7 +23,7 @@ const emits = defineEmits<{
     (e: 'delete', file:string): void
     (e: 'execute-js', content:string, database:Database | undefined):void
 }>()
-const model = defineModel<Libraries>()
+const model = defineModel<Array<Library>>()
 const data:Ref<DATA> = ref({
     leftSize: 3,
     rightSize: 9,
@@ -45,17 +45,17 @@ const data:Ref<DATA> = ref({
 })
 
 const openBottom = computed(() => data.value.messages.length > 0)
-const selection = computed(() => data.value.select < 0 ? undefined : model.value?.libs[data.value.select])
+const selection = computed(() => data.value.select < 0 ? undefined : model.value![data.value.select])
 const hasPara = computed(() => data.value.database != undefined)
 
 watch(() => data.value.select, (newv:any, oldv:any) => {
     if(model.value == undefined || oldv == newv) return
     if(oldv && oldv[0] >= 0){
-        model.value.libs[oldv].load = false
-        model.value.libs[oldv].content = ""
+        model.value[oldv].load = false
+        model.value[oldv].content = ""
     }
     if(newv && newv[0] >= 0){
-        const target = model.value?.libs[data.value.select];
+        const target = model.value![data.value.select]
         emits('load', target.name + '.js')
     }
 })
@@ -83,15 +83,15 @@ const remove = () => {
 
 const deleteConfirm = () => {
     if(selection.value == undefined) return
-    model.value?.libs.forEach(x => {
+    model.value?.forEach(x => {
         x.load = false
         x.content = ""
     })
     emits('delete', selection.value!.name + '.js')
-    model.value!.libs = model.value!.libs.filter(x => x.name != selection.value!.name)
+    model.value! = model.value!.filter(x => x.name != selection.value!.name)
     data.value.dirty = false
     clean()
-    const target = model.value?.libs[data.value.select];
+    const target = model.value![data.value.select]
     if(target) emits('load', target.name + '.js')
     data.value.deleteModal = false
 }
@@ -215,8 +215,8 @@ onUnmounted(() => {
         </div>
         <v-row style="height: calc(100vh - 120px)" class="w-100">
             <v-col :cols="data.leftSize" class="border border-e-lg">
-                <v-list class="my-1" style="height: 100%" :style="{ 'fontSize': preference.font + 'px' }" :items="model.libs" v-model:selected="data.select">
-                    <v-list-item v-for="(lib, i) in model.libs" :key="i" :value="i">  
+                <v-list class="my-1" style="height: 100%" :style="{ 'fontSize': preference.font + 'px' }" :items="model" v-model:selected="data.select">
+                    <v-list-item v-for="(lib, i) in model" :key="i" :value="i">  
                         {{ lib.name }}.js
                     </v-list-item>
                 </v-list>
