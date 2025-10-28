@@ -104,7 +104,7 @@ const confirm = () => {
             style="margin-top: 50px;"
             v-model.number="data.page"
             progress="primary"
-            height="100%"
+            height="calc(100% - 55px)"
             disabled
             hide-delimiter-background
             :show-arrows="false"
@@ -112,14 +112,14 @@ const confirm = () => {
             crossfade
         >
             <v-carousel-item cover :key="0" class="my-auto py-auto h-100">
-                <div style="height: 20%"></div>
+                <div style="height: 42%"></div>
                 <h3 class="mb-2">{{ $t('modeselect.welcome') }}</h3>
                 <p>{{ $t('modeselect.welcome2') }}</p>
                 <br/>
                 <v-btn color="success" append-icon="mdi-arrow-right" @click="data.page++">{{ $t("next") }}</v-btn>
             </v-carousel-item>
             <v-carousel-item cover :key="1" class="my-auto py-auto h-100">
-                <div style="height: 20%"></div>
+                <div style="height: 42%"></div>
                 <h3 class="mb-2">{{ $t('modeselect.server') }}</h3>
                 <p>{{ $t('modeselect.server2') }}</p>
                 <br v-if="data.is_server == -1"/>
@@ -131,7 +131,7 @@ const confirm = () => {
                 <v-btn v-if="data.is_server == 1" class="mx-2" color="success" append-icon="mdi-arrow-right" @click="data.page++">{{ $t("confirm") }}</v-btn>
             </v-carousel-item>
             <v-carousel-item cover :key="2" class="my-auto py-auto h-100 w-75 mx-auto">
-                <div style="height: 20%"></div>
+                <div style="height: 42%"></div>
                 <h2 class="text-info mb-2">{{ $t('modeselect.title') }}</h2>
                 <p class="text-info">{{ $t('modeselect.title2') }}</p>
                 <br />
@@ -177,7 +177,7 @@ const confirm = () => {
                 <v-btn class="mx-2" color="warning" append-icon="mdi-arrow-left" @click="previousClick(0)">{{ $t("previous") }}</v-btn>
             </v-carousel-item>
             <v-carousel-item cover :key="3" class="my-auto py-auto h-100 w-75 mx-auto">
-                <div style="height: 20%"></div>
+                <div style="height: 42%"></div>
                 <h3 class="mb-2">{{ $t('modeselect.confirm') }}</h3>
                 <p>{{ $t('modeselect.confirm2') }}</p>
                 <p>{{ $t('modeselect.confirm3') }}: {{ is_server }}</p>
