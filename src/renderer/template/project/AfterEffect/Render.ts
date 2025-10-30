@@ -9,7 +9,7 @@ export const GetAfterEffectTemplate = (r:Project):Project => {
         containers: []
     }
     r.database = para
-    r.task = [
+    r.tasks = [
 
     ]
     return r

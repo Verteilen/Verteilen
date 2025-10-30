@@ -1,27 +1,17 @@
 import { v6 as uuidv6 } from 'uuid';
-import { DataType, Job, JobCategory, JobType, Database, Project, Task } from "../../../interface";
+import { DataType, Job, JobCategory, JobType, Database, Project, Task, CreateDefaultTask, CreateDefaultJob } from "../../../interface";
 import { GetBlenderProject_Database } from '../../database/Blender';
 
 const Render = ():Task => {
     const render:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        script: "",
         string_args: ["", "blender", "-b %project% %_a% %_s% %_e% -E %engine% -F %format% -t %thread% --log-level %log% -o %output%"],
-        number_args: [],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Single Node Render",
-        description: "",
-        setupjob: false,
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
         properties: [
             {
                 name: "_a",
@@ -51,7 +41,7 @@ export const GetBlenderSingleTemplate = (r:Project):Project => {
         containers: GetBlenderProject_Database()
     }
     r.database = para
-    r.task = [
+    r.tasks = [
         Render()
     ]
     return r

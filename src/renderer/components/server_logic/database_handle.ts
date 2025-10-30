@@ -1,20 +1,37 @@
 import { Ref } from "vue"
-import { Database } from "../../interface"
-import { DATA, save_and_update } from "."
+import { BusType, Database, DatabaseTable } from "../../interface"
+import { DATA, save_and_update, Util_Server } from "."
 import { BackendProxy } from "../../proxy"
+import { Emitter } from "mitt"
+import { ServerSave } from "./save"
 
 export class Util_Server_Database {
-    data:Ref<DATA>
-    update:save_and_update
-    backend:Ref<BackendProxy>
+    server:Util_Server
 
-    constructor (_data:Ref<DATA>, backend:Ref<BackendProxy>, _update:save_and_update){
-        this.data = _data
-        this.backend = backend
-        this.update = _update
+    constructor (server:Util_Server){
+        this.server = server
     }
 
-    addDatabase = (e:Database) => {
+    public get data() : Ref<DATA> {
+        return this.server.data
+    }
+    public get backend() : Ref<BackendProxy> {
+        return this.server.backend
+    }
+    public get save() : ServerSave {
+        return this.server.save
+    }
+    public get update() : save_and_update {
+        return this.server.allUpdate
+    }
+    public get updateOnly() : save_and_update {
+        return this.server.update
+    }
+    public get emitter() : Emitter<BusType> {
+        return this.server.emitter
+    }
+
+    addDatabase = (e:DatabaseTable) => {
         this.data.value.page = 3
         const b = JSON.parse(JSON.stringify(e))
         this.data.value.databases.push(b)

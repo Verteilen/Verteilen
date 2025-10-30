@@ -3,8 +3,8 @@ import * as path from "path";
 import * as fs from "fs";
 import * as fsp from "fs/promises";
 import * as os from "os";
+import * as Chokidar from 'chokidar'
 import { messager, messager_log } from "./debugger";
-import { Util_Server } from "./util/server";
 import { 
     ExportProjects, 
     ImportProject, 
@@ -37,17 +37,20 @@ import {
     Record,
     ServerDetailEvent,
     ExecuteState,
+    Project_Module,
+    CreateEventObserver,
+    RecordType,
 } from "./interface";
 
 const Loader = (loader:RecordIOLoader, key:string) => {
     ipcMain.handle(`load_all_${key}`, (e) => loader.load_all())
     ipcMain.on(`delete_all_${key}`, (e) => loader.delete_all())
     ipcMain.handle(`list_all_${key}`, (e) => loader.list_all())
-    ipcMain.on(`save_${key}`, (e, name:string, data:string) => loader.save(name, data))
+    ipcMain.on(`save_${key}`, (e, uuid:string, data:string) => loader.save(uuid, data))
     ipcMain.on(`rename_${key}`, (e, name:string, newname:string) => loader.rename(name, newname))
-    ipcMain.on(`delete_${key}`, (e, name:string) => loader.delete(name))
+    ipcMain.on(`delete_${key}`, (e, uuid:string) => loader.delete(uuid))
     ipcMain.on(`delete_all_${key}`, (e) => loader.delete_all())
-    ipcMain.handle(`load_${key}`, (e, name:string) => loader.load(name, true))
+    ipcMain.handle(`load_${key}`, (e, uuid:string) => loader.load(uuid, true))
 }
 const PluginInit = (loader:PluginLoader) => {
     loader.get_plugin()
@@ -86,6 +89,18 @@ const DetailInit = (detail:ServerDetailEvent) => {
     ipcMain.handle('console_add', (event, name:string, record:Record) => detail.console_add(undefined, name, record, undefined))
     ipcMain.handle('console_update', (event) => detail.console_update(undefined))
 }
+const ModuleInit = (project:Project_Module) => {
+    ipcMain.handle("project_module:populate_project", (event, uuid:string) => project.PopulateProject(uuid))
+    ipcMain.handle("project_module:populate_task", (event, uuid:string) => project.PopulateTask(uuid))
+    ipcMain.handle("project_module:get_tasks", (event, uuid:string) => project.GetProjectRelatedTask(uuid))
+    ipcMain.handle("project_module:get_jobs", (event, uuid:string) => project.GetTaskRelatedJob(uuid))
+    ipcMain.handle("project_module:clone_projects", (event, ...uuid:Array<string>) => project.CloneProjects(uuid))
+    ipcMain.handle("project_module:clone_tasks", (event, ...uuid:Array<string>) => project.CloneTasks(uuid))
+    ipcMain.handle("project_module:clone_jobs", (event, ...uuid:Array<string>) => project.CloneJobs(uuid))
+    ipcMain.handle("project_module:cascade_project", (event, uuid:string, bind:boolean) => project.CascadeDeleteProject(uuid, bind))
+    ipcMain.handle("project_module:cascade_task", (event, uuid:string) => project.CascadeDeleteTask(uuid))
+    ipcMain.handle("project_module:cascade_job", (event, uuid:string) => project.CascadeDeleteJob(uuid))
+}
 const CreateIO = ():RecordIOBase => {
     return {
         root: path.join(os.homedir(), DATA_FOLDER),
@@ -108,6 +123,7 @@ export class BackendEvent extends Server implements BackendAction {
      * Memory preference config
      */
     preference: Preference = CreatePreference()
+    page:number = 0
 
     constructor() {
         super()
@@ -120,6 +136,10 @@ export class BackendEvent extends Server implements BackendAction {
          */
         this.io = CreateIO()
         this.loader = CreateRecordIOLoader(this.io, this.memory)
+        this.loader = CreateEventObserver(this.loader, {
+            changed: this.RecordChanged,
+            loaded: this.RecordLoaded
+        })
         const feedback:PluginFeedback = {
             electron: () => mainWindow?.webContents,
             socket: undefined
@@ -132,9 +152,11 @@ export class BackendEvent extends Server implements BackendAction {
         PluginInit(this.plugin_loader)
         this.detail = new ServerDetail(this.io, this, feedback, messager, console.log)
         DetailInit(this.detail)
+        ModuleInit(this.module_project)
+        this.InitClient()
     }
 
-    Init = () => {
+    InitClient = () => {
         /**
          * * Local Client Setup
          */
@@ -149,7 +171,7 @@ export class BackendEvent extends Server implements BackendAction {
         this.client.Init()
     }
 
-    Destroy = () => {
+    DestroyClient = () => {
         if(this.client == undefined) return
         this.client.Destroy()
         this.client.Dispose()
@@ -161,8 +183,6 @@ export class BackendEvent extends Server implements BackendAction {
     }
 
     AppInit = () => {
-        ipcMain.on('client_start', (event) => this.Init())
-        ipcMain.on('client_stop', (event) => this.Destroy())
         ipcMain.handle('exist', (event, path:string) => fs.existsSync(path))
         ipcMain.on('javascript', (event, content:string, database:string | undefined) => {
             const javascript_messager_feedback = (msg:string, tag?:string) => {
@@ -214,8 +234,14 @@ export class BackendEvent extends Server implements BackendAction {
         ipcMain.on('open', (event, url:string) => {
             shell.openExternal(url)
         })
+        ipcMain.on('server_page', (event, page:number) => {
+            console.log("Page: ", page)
+            this.page = page
+        })
 
-        Loader(this.current_loader.project, 'record')
+        Loader(this.current_loader.project, 'project')
+        Loader(this.current_loader.task, 'task')
+        Loader(this.current_loader.job, 'job')
         Loader(this.current_loader.database, 'database')
         Loader(this.current_loader.node, 'node')
         Loader(this.current_loader.log, 'log')
@@ -252,6 +278,14 @@ export class BackendEvent extends Server implements BackendAction {
             this.preference = JSON.parse(file.toString())
             return this.preference
         }
+    }
+
+    RecordChanged = (type: RecordType) => {
+
+    }
+
+    RecordLoaded = (type: RecordType) => {
+        
     }
 }
 

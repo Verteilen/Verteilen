@@ -1,52 +1,87 @@
 import { nextTick, Ref } from "vue"
-import { Task } from "../../interface"
-import { DATA, save_and_update } from "."
+import { BusType, Task, TaskTable } from "../../interface"
+import { DATA, save_and_update, Util_Server } from "."
+import { Emitter } from "mitt"
+import { BackendProxy } from "../../proxy"
+import { ServerSave } from "./save"
 
 
 export class Util_Server_Task {
-    data:Ref<DATA>
-    update:save_and_update
-    updateOnly:save_and_update
+    server:Util_Server
 
-    constructor (_data:Ref<DATA>, _updateOnly:save_and_update, _update:save_and_update){
-        this.data = _data
-        this.updateOnly = _updateOnly
-        this.update = _update
+    constructor (server:Util_Server){
+        this.server = server
     }
 
-    addTask = (v:Array<Task>) => {
-        if(this.data.value.selectProject == undefined) return
-        this.data.value.selectProject.task.push(...v)
-        this.update()
+    public get data() : Ref<DATA> {
+        return this.server.data
     }
-    
-    editTask = (id:string, v:Task) => {
-        if(this.data.value.selectProject == undefined) return
-        const selectt = this.data.value.selectProject.task.findIndex(x => x.uuid == id)
-        if(selectt == -1) return
-        this.data.value.selectProject.task[selectt] = v
-        if(this.data.value.selectTask?.uuid == id){
-            this.data.value.selectTask = v
-        }
-        this.update()
+    public get backend() : Ref<BackendProxy> {
+        return this.server.backend
+    }
+    public get save() : ServerSave {
+        return this.server.save
+    }
+    public get update() : save_and_update {
+        return this.server.allUpdate
+    }
+    public get updateOnly() : save_and_update {
+        return this.server.update
+    }
+    public get emitter() : Emitter<BusType> {
+        return this.server.emitter
+    }
+
+    //#region Project CRUD
+    /**
+     * Add task through the dialog UI
+     * @param v Array of task
+     */
+    addTask = (v:Array<TaskTable>) => {
+        const ps = v.map(async x => {
+            const t = await this.server.job.addJob(x.jobs)
+            await Promise.all(t)
+            return this.save.save_task({
+                ...x,
+                jobs_uuid: x.jobs.map(y => y.uuid),
+                jobs: [],
+            })
+        })
+        return Promise.all(ps)
+    }
+    cloneTask = (v:Array<string>) => {
+        const s = this.data.value.tasks.filter(x => v.includes(x.uuid))
+        this.save.clone_tasks(s)
+    }
+    editTask = (uuid:string, v:TaskTable) => {
+        const selectp = this.data.value.tasks.findIndex(x => x.uuid == uuid)
+        if(selectp == -1) return
+        this.data.value.tasks[selectp] = v
+        this.save.save_task(v)
     }
     
     deleteTask = (uuids:Array<string>) => {
-        uuids.forEach(id => {
-            if(this.data.value.selectProject == undefined) return
-            const index = this.data.value.selectProject.task.findIndex(x => x.uuid == id)
-            if(index != -1) this.data.value.selectProject.task.splice(index, 1)
-            if(this.data.value.selectTask?.uuid == id){
-                this.data.value.selectTask = undefined
+        const ps = uuids.map(id => {
+            const index = this.data.value.tasks.findIndex(x => x.uuid == id)
+            if(index != -1) this.data.value.tasks.splice(index, 1)
+            return this.server.del.delete_task(id) 
+        })
+        const ps2 = Promise.all(ps).then(() => {
+            if(this.data.value.selectProject != undefined){
+                for(let uuid of uuids){
+                    const index = this.data.value.selectProject.tasks_uuid.findIndex(x => x == uuid)
+                    this.data.value.selectProject.tasks_uuid.splice(index, 1)
+                }
+                this.save.save_project(this.data.value.selectProject)
             }
         })
-        this.update()
+        return ps2
     }
+    //#endregion
     
     chooseTask = (uuid:string) => {
-        this.data.value.selectTask = this.data.value.selectProject?.task.find(x => x.uuid == uuid)
-        this.data.value.page = 2
-        nextTick(this.updateOnly)
+        this.data.value.selectTask = this.data.value.tasks.find(x => x.uuid == uuid)
+        this.data.value.page = 2 // Go to job page
     }
 
     bindingTask = (uuid:string) => {
@@ -61,21 +96,21 @@ export class Util_Server_Task {
     
     moveupTask = (uuid:string) => {
         if(this.data.value.selectProject == undefined) return
-        const index = this.data.value.selectProject.task.findIndex(x => x.uuid == uuid)
+        const index = this.data.value.selectProject.tasks.findIndex(x => x.uuid == uuid)
         if(index == -1) return
-        const b = this.data.value.selectProject.task[index - 1]
-        this.data.value.selectProject.task[index - 1] = this.data.value.selectProject.task[index]
-        this.data.value.selectProject.task[index] = b
+        const b = this.data.value.selectProject.tasks[index - 1]
+        this.data.value.selectProject.tasks[index - 1] = this.data.value.selectProject.tasks[index]
+        this.data.value.selectProject.tasks[index] = b
         this.update()
     }
     
     movedownTask = (uuid:string) => {
         if(this.data.value.selectProject == undefined) return
-        const index = this.data.value.selectProject.task.findIndex(x => x.uuid == uuid)
+        const index = this.data.value.selectProject.tasks.findIndex(x => x.uuid == uuid)
         if(index == -1) return
-        const b = this.data.value.selectProject.task[index + 1]
-        this.data.value.selectProject.task[index + 1] = this.data.value.selectProject.task[index]
-        this.data.value.selectProject.task[index] = b
+        const b = this.data.value.selectProject.tasks[index + 1]
+        this.data.value.selectProject.tasks[index + 1] = this.data.value.selectProject.tasks[index]
+        this.data.value.selectProject.tasks[index] = b
         this.update()
     }
 }

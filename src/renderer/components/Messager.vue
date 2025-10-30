@@ -4,12 +4,10 @@ import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, ref, Ref } from 'vue'
 import { BusType, IMessage, Preference, RENDER_UPDATETICK, ToastData } from './../interface'
 import { GetColor } from '../plugins/vuetify'
-import { BackendProxy } from '../proxy'
 //#endregion
 
 //#region Data
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
 const messages:Ref<Array<IMessage>> = ref([])
 //#endregion

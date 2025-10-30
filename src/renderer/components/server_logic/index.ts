@@ -15,15 +15,15 @@ import {
     Database, 
     PluginPageData, 
     Project, 
-    RenderUpdateType, 
     Task, 
     ProjectTable,
     DatabaseTable,
     ExecutionLog,
     Library,
     Preference,
-    Node,
-    TaskTable
+    TaskTable,
+    JobTable,
+    FrontendUpdate
 } from '../../interface'
 import {
     Server
@@ -37,7 +37,8 @@ import { Util_Server_Project } from "./project_handle";
 import { Util_Server_Self } from "./self_handle";
 import { Util_Server_Task } from "./task_handle";
 import { ServerQuery } from "./query";
-import { pick, assign, keys } from 'lodash'
+import { ServerSave } from "./save";
+import { ServerDelete } from "./delete";
 //#endregion
 
 export type save_and_update = () => void
@@ -46,7 +47,6 @@ export interface DATA {
     websocket_manager: Execute_SocketManager.WebsocketManager | undefined
     execute_manager: Array<ExecutePair>
 
-    loading: boolean
     drawer: boolean
     title: string
     page:number
@@ -54,6 +54,8 @@ export interface DATA {
     lanSelect: string
     databases: Array<DatabaseTable>
     projects: Array<ProjectTable>
+    tasks: Array<TaskTable>
+    jobs: Array<JobTable>
     libs: Array<Library>
     logs: Array<ExecutionLog>
     selectProject: ProjectTable | undefined
@@ -71,11 +73,14 @@ export interface DATA {
  */
 export class Util_Server extends Server {
     data:Ref<DATA>
+    emitter:Emitter<BusType>
     backend:Ref<BackendProxy>
     preference:Ref<Preference>
-    emitter:Emitter<BusType>
+    server:Ref<Server | undefined>
 
     query:ServerQuery
+    save:ServerSave
+    del:ServerDelete
     project:Util_Server_Project
     task:Util_Server_Task
     job:Util_Server_Job
@@ -86,27 +91,32 @@ export class Util_Server extends Server {
     self:Util_Server_Self
 
     constructor(data:Ref<DATA>,
+        emitter:Emitter<BusType>,
         backend:Ref<BackendProxy>,
         preference:Ref<Preference>,
-        _emitter:Emitter<BusType>)
+        server:Ref<Server | undefined>
+        )
     {
         super()
         this.data = data
+        this.emitter = emitter
         this.backend = backend
         this.preference = preference
-        this.emitter = _emitter
-        this.query = new ServerQuery(this.data, this.backend, this.preference)
-        this.project = new Util_Server_Project(this.data, this.backend, this.allUpdate, this.update, _emitter)
-        this.task = new Util_Server_Task(this.data, this.allUpdate, this.update)
-        this.job = new Util_Server_Job(this.data, this.update)
-        this.node = new Util_Server_Node(this.data, this.saveRecord)
-        this.database = new Util_Server_Database(this.data, this.backend, this.update)
+        this.server = server
+        this.query = new ServerQuery(this)
+        this.save = new ServerSave(this)
+        this.del = new ServerDelete(this)
+        this.project = new Util_Server_Project(this)
+        this.task = new Util_Server_Task(this)
+        this.job = new Util_Server_Job(this)
+        this.node = new Util_Server_Node(this)
+        this.database = new Util_Server_Database(this)
         this.console = new Util_Server_Console()
         this.lib = new Util_Server_Lib(this.data, this.update)
         this.self = new Util_Server_Self(this.data)
     }
 
-    private update = () => {
+    update = () => {
         this.allUpdate()
         this.saveRecord()
     }
@@ -119,9 +129,34 @@ export class Util_Server extends Server {
             this.emitter.emit('updateDatabase')
         })
     }
+
+    /**
+     * Change the backend observe patterm\
+     * Backend should re submit different set of events
+     * @param v new page number
+     */
+    page_update = (v:number) => {
+        if(!this.backend.value.config.haveBackend) return
+        this.backend.value.send("server_page", v)
+        switch(v){
+            case 0:
+                {
+                    this.query.load_all_project()
+                    break;
+                }
+            case 1:
+                {
+                    if(this.data.value.selectProject != undefined){
+                        this.query.load_tasks(this.data.value.selectProject.uuid)
+                    }else{
+                        this.data.value.tasks = []
+                    }
+                }
+        }
+    }
     
-    saveRecord = (type:RenderUpdateType = RenderUpdateType.All) => {
-        if((type & RenderUpdateType.Project) == RenderUpdateType.Project){
+    saveRecord = (type:FrontendUpdate = FrontendUpdate.ALL) => {
+        if((type & FrontendUpdate.PROJECT) == FrontendUpdate.PROJECT){
             for(const x of this.data.value.projects){
                 const buffer:any = JSON.parse(JSON.stringify(x))
                 if(x.s != undefined) delete buffer['s']
@@ -129,7 +164,7 @@ export class Util_Server extends Server {
                 this.backend.value.send('save_record', x.uuid, text)
             }
         }
-        if((type & RenderUpdateType.Node) == RenderUpdateType.Node){
+        if((type & FrontendUpdate.NODE) == FrontendUpdate.NODE){
             for(const x of this.data.value.nodes){
                 const buffer:any = JSON.parse(JSON.stringify(x))
                 if(x.s != undefined) delete buffer['s']
@@ -141,7 +176,7 @@ export class Util_Server extends Server {
                 this.backend.value.send('save_node', x.uuid, text)
             }
         }
-        if((type & RenderUpdateType.Database) == RenderUpdateType.Database){
+        if((type & FrontendUpdate.DATABASE) == FrontendUpdate.DATABASE){
             for(const x of this.data.value.databases){
                 const buffer:any = JSON.parse(JSON.stringify(x))
                 if(x.s != undefined) delete buffer['s']

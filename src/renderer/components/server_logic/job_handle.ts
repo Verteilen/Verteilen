@@ -1,20 +1,39 @@
 import { Ref } from "vue"
-import { Job, Property } from "../../interface"
-import { DATA, save_and_update } from "."
+import { BusType, Job, Property } from "../../interface"
+import { DATA, save_and_update, Util_Server } from "."
+import { Emitter } from "mitt"
+import { BackendProxy } from "../../proxy"
+import { ServerSave } from "./save"
 
 export class Util_Server_Job {
-    data:Ref<DATA>
-    update:save_and_update
+    server:Util_Server
 
-    constructor (_data:Ref<DATA>, _update:save_and_update){
-        this.data = _data
-        this.update = _update
+    constructor (server:Util_Server){
+        this.server = server
+    }
+
+    public get data() : Ref<DATA> {
+        return this.server.data
+    }
+    public get backend() : Ref<BackendProxy> {
+        return this.server.backend
+    }
+    public get save() : ServerSave {
+        return this.server.save
+    }
+    public get update() : save_and_update {
+        return this.server.allUpdate
+    }
+    public get updateOnly() : save_and_update {
+        return this.server.update
+    }
+    public get emitter() : Emitter<BusType> {
+        return this.server.emitter
     }
 
     addJob = (v:Array<Job>) => {
-        if(this.data.value.selectTask == undefined) return
-        this.data.value.selectTask.jobs.push(...v)
-        this.update()
+        const ps = v.map(x => this.save.save_job(x))
+        return Promise.all(ps)
     }
 
     editJob = (v:Array<Job>, v2:Array<Property>) => {

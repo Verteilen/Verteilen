@@ -13,7 +13,6 @@ import {
   BusType, 
   ExecuteRecord, 
   ExecutionLog, 
-  Job, 
   JobCategory, 
   JobType, 
   JobType2, 
@@ -21,20 +20,14 @@ import {
   NodeTable, 
   Database, 
   Preference, 
-  Project, 
-  Property, 
   Record, 
   RENDER_FILE_UPDATETICK, 
   RENDER_UPDATETICK, 
-  Task, 
   WebsocketPack, 
   WebPORT, 
   ExecutePair, 
   FrontendUpdate,
   ProjectTable,
-  DatabaseTable,
-  Library,
-  Node
 } from './../interface'
 import { BackendProxy } from '../proxy'
 import { DATA, Util_Server } from './server_logic'
@@ -57,6 +50,7 @@ import ProfilePage from './server/Profile.vue';
 import PluginPage from './server/Plugin.vue';
 import Layout from './components/layout/Layout.vue'
 import AppBar from './components/layout/AppBar.vue'
+import { Server } from 'verteilen-core/src/server'
 //#endregion
 
 //#region Data
@@ -64,6 +58,7 @@ const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
+const server:Ref<Server | undefined> = ref(undefined)
 const tabs:Ref<Array<[string, string, number]>> = ref([])
 const data:Ref<DATA> = ref({
     websocket_manager: undefined,
@@ -77,6 +72,8 @@ const data:Ref<DATA> = ref({
     lanSelect: i18n.global.locale,
     databases: [],
     projects: [],
+    tasks: [],
+    jobs: [],
     libs: [],
     logs: [],
     selectProject: undefined,
@@ -97,7 +94,8 @@ watch(() => data.value.page, () => {
   data.value.drawer = false
   if(tab == undefined) return
   data.value.page = tab[2]; 
-  data.value.title = tab[1]; 
+  data.value.title = tab[1];
+  util.page_update(data.value.page)
 })
 //#endregion
 
@@ -108,38 +106,16 @@ const projectbind = computed(() => {
   if(data.value.selectProject == undefined) return undefined
   return data.value.databases.find(x => x.uuid == data.value.selectProject?.database_uuid) 
 })
-const util:Util_Server = new Util_Server(data, backend, preference, emitter!)
+const util:Util_Server = new Util_Server(data, emitter, backend, preference, server)
 //#endregion
 
 //#region Methods
 const allUpdate = () => util.allUpdate()
 const saveRecord = () => util.saveRecord()
 
-//#region Task
-const addTask = (v:Array<Task>) => util.task.addTask(v)
-const editTask = (id:string, v:Task) => util.task.editTask(id, v)
-const deleteTask = (uuids:Array<string>) => util.task.deleteTask(uuids)
-const chooseTask = (uuid:string) => util.task.chooseTask(uuid)
-const bindingTask = (uuid:string) => util.task.bindingTask(uuid)
-const moveupTask = (uuid:string) => util.task.moveupTask(uuid)
-const movedownTask = (uuid:string) => util.task.movedownTask(uuid)
-//#endregion
-
-//#region Job
-const addJob = (v:Array<Job>) => util.job.addJob(v)
-const editJob = (v:Array<Job>, v2:Array<Property>) => util.job.editJob(v, v2)
-const deleteJob = (uuids:Array<string>) => util.job.deleteJob(uuids)
-//#endregion
-
-//#region Node
 const server_clients_update = (v:Array<NodeTable>) => util.node.server_clients_update(v)
-//#endregion
 
 //#region Database
-const addDatabase = (e:Database) => util.database.addDatabase(e)
-const selectDatabase = (e:string) => util.database.selectDatabase(e)
-const editDatabase = (e:Database) => util.database.editDatabase(e)
-const deleteDatabase = (e:string) => util.database.deleteDatabase(e)
 const goDatabase = (e:string) => {
   data.value.page = 3
   nextTick(() => emitter?.emit('selectDatabase', e))
@@ -186,7 +162,7 @@ const libLoad = (file:string) => {
 const libDelete = (file:string) => {
   backend.value.send('delete_lib', file)
   data.value.projects.forEach(x => {
-    x.task.forEach(y => {
+    x.tasks.forEach(y => {
       y.jobs.forEach(z => {
         if((z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT) || (z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT)){
           const index = z.string_args.findIndex(x => x == file)
@@ -406,7 +382,7 @@ const menu_export_project = () => {
 const import_project_feedback = (text:string) => {
   const ps:Array<ProjectTable> = JSON.parse(text)
   for(const p of ps){
-    for(const t of p.task){
+    for(const t of p.tasks){
       for(const j of t.jobs){
         j.uuid = uuidv6()
       }
@@ -486,10 +462,10 @@ const hotkey = (event:KeyboardEvent) => {
 const repull = (u:FrontendUpdate) => {
   const c: Array<Promise<void>> = []
   if((u & FrontendUpdate.PROJECT) == FrontendUpdate.PROJECT){
-    const p3 = util.query.load_all_record()
+    const p3 = util.query.load_all_project()
     c.push(p3)
   }
-  if((u & FrontendUpdate.PARAMETER) == FrontendUpdate.PARAMETER){
+  if((u & FrontendUpdate.DATABASE) == FrontendUpdate.DATABASE){
     const p5 = util.query.load_all_database()
     c.push(p5)
   }
@@ -520,18 +496,17 @@ const dataset_init = () => {
   data.value.title = tabs.value.find(x => x[2] == 0)![1]
   const x = config.value
   if(!x.haveBackend){
+    server.value = new Server()
     const nodeproxy:NodeProxy = {
       shellReply: data => { emitter?.emit('shellReply', data) },
       folderReply: data => { emitter?.emit('folderReply', data) },
     }
     data.value.websocket_manager = new Execute_SocketManager.WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
+    return
   }
-  else
-  {
-    backend.value.eventOn('shellReply', (data:any) => emitter?.emit('shellReply', data) )
-    backend.value.eventOn('folderReply', (data:any) => emitter?.emit('folderReply', data) )
-    backend.value.eventOn('frontend_update', repull)
-  }
+  backend.value.eventOn('shellReply', (data:any) => emitter?.emit('shellReply', data) )
+  backend.value.eventOn('folderReply', (data:any) => emitter?.emit('folderReply', data) )
+  backend.value.eventOn('frontend_update', repull)
   backend.value.eventOn('makeToast', makeToastFromBackend)
   backend.value.eventOn('logUpdate', logUpdate)
   backend.value.eventOn('msgAppend', msgAppend)
@@ -539,42 +514,6 @@ const dataset_init = () => {
   backend.value.eventOn('createProject', menuCreateProject)
   backend.value.eventOn('menu_export_project', menu_export_project)
   backend.value.eventOn('import_project_feedback', import_project_feedback)
-  backend.value.send('menu', true)
-  if(!backend.value.config.haveBackend) return
-  backend.value.send('client_start');
-  const p0 = backend.value.invoke('console_list').then((xs:any) => {
-    if(xs == undefined) xs = []
-    data.value.execute_manager = Array.isArray(xs) ? xs.map(x => ({ record: x })) : [{record: xs}]
-    console.log("execute", data.value.execute_manager)
-  })
-  const p1 = util.query.load_all_node()
-  const p2 = util.query.load_all_lib()
-  const p4 = util.query.load_plugin()
-  const p35 = repull(FrontendUpdate.ALL)
-  const p6 = util.query.load_all_log()
-  Promise.all([p0, p1, p2, p4, ...p35, p6]).then(() => {
-    nextTick(() => allUpdate())
-  }).catch(err => {
-    console.error("Init Promises Call Failed: ", err, data.value)
-  })
-}
-
-const InitCaller = (delay:boolean) => {
-  if(data.value.page > 20){
-    data.value.page = 0
-    setTimeout(() => {
-      data.value.loading = false
-    }, 800);
-    return
-  }
-  nextTick(() => {
-    if(delayy == 2){
-      data.value.page += 1
-      delayy = 0
-    }
-    delayy += 1
-    InitCaller(delay)
-  })
 }
 //#endregion
 
@@ -587,14 +526,7 @@ onMounted(() => {
   emitter.on('deleteScript', libDelete)
   emitter.on('updateLocate', updateLocate)
   emitter.on('updateHandle', updateHandleCall)
-
-  if(backend.value.config.haveBackend){
-    data.value.loading = true
-    InitCaller(true)
-  }
   backend.value.wait_init().then(() => {
-    data.value.loading = true
-    InitCaller(!backend.value.config.isElectron)
     backend.value.eventOn('debuglog', debug_feedback)
     if(backend.value.config.isExpress){
       backend.value.Create_Console_Host(`wss://${window.location.hostname}:${WebPORT}`, {
@@ -612,19 +544,19 @@ onMounted(() => {
       dataset_init()
     }
   })
+  util.page_update(0)
 })
 
 onUnmounted(() => {
-  data.value.loading = true
   document.removeEventListener('keydown', hotkey)
-  data.value.execute_manager = []
+  if(updateHandle != undefined) clearInterval(updateHandle)
+  if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
   emitter.off('updateNode', server_clients_update)
   emitter.off('deleteScript', libDelete)
   emitter.off('updateLocate', updateLocate)
   emitter.off('updateHandle', updateHandleCall)
-  if(updateHandle != undefined) clearInterval(updateHandle)
-  if(slowUpdateHandle != undefined) clearInterval(slowUpdateHandle)
-  backend.value.send('client_stop');
+  data.value.execute_manager = []
+  if(!backend.value.config.haveBackend) return
   backend.value.eventOff('debuglog', debug_feedback)
   backend.value.eventOff('console-delete', consoleDelete)
   backend.value.eventOff('makeToast', makeToastFromBackend)
@@ -674,7 +606,7 @@ onUnmounted(() => {
       </v-navigation-drawer>
     </AppBar>
 
-    <div v-if="data.loading" class="loading">
+    <div v-if="false" class="loading">
       <p>{{ $t('loading') }}</p>
       <v-progress-circular color="blue-lighten-3" indeterminate></v-progress-circular>
     </div>
@@ -682,6 +614,7 @@ onUnmounted(() => {
     <v-tabs-window v-model="data.page" class="w-100 pt-10" style="height: calc(100vh - 22px)">
       <v-tabs-window-item :value="0">
         <ProjectPage
+          v-if="data.page == 0"
           :backend="backend"
           :projects="data.projects" 
           :plugin="data.plugin"
@@ -689,6 +622,7 @@ onUnmounted(() => {
           :config="config"
           :preference="preference"
           @added="e => util.project.addProject(e)" 
+          @clone="e => util.project.cloneProject(e)"
           @edit="(id, e) => util.project.editProject(id, e)" 
           @select="e => util.project.chooseProject(e)" 
           @delete="(e, e2) => util.project.deleteProject(e, e2)"
@@ -697,54 +631,61 @@ onUnmounted(() => {
       </v-tabs-window-item>
       <v-tabs-window-item :value="1">
         <TaskPage
+          v-if="data.page == 1"
           :projects="data.projects" 
+          :tasks="data.tasks"
           :select="data.selectProject" 
           :databases="data.databases"
-          @added="e => addTask(e)" 
-          @edit="(id, e) => editTask(id, e)" 
-          @select="e => chooseTask(e)"
-          @bind="e => bindingTask(e)"
-          @delete="e => deleteTask(e)"
-          @moveup="e => moveupTask(e)"
-          @movedown="e => movedownTask(e)"
+          @added="e => util.task.addTask(e)" 
+          @clone="e => util.task.cloneTask(e)"
+          @edit="(id, e) => util.task.editTask(id, e)" 
+          @select="e => util.task.chooseTask(e)"
+          @bind="e => util.task.bindingTask(e)"
+          @delete="e => util.task.deleteTask(e)"
+          @moveup="e => util.task.moveupTask(e)"
+          @movedown="e => util.task.movedownTask(e)"
           @database="e => goDatabase(e)"
           @return="data.page = 0"/>
       </v-tabs-window-item>
       <v-tabs-window-item :value="2">
         <JobPage
+          v-if="data.page == 2"
           :projects="data.projects" 
+          :jobs="data.jobs"
           :select="data.selectTask"
           :owner="data.selectProject"
           :libs="data.libs"
           :database="projectbind"
-          :preference="preference"
-          @added="e => addJob(e)" 
-          @edit="(e, e2) => editJob(e, e2)" 
-          @delete="e => deleteJob(e)"
+          @added="e => util.job.addJob(e)" 
+          @edit="(e, e2) => util.job.editJob(e, e2)" 
+          @delete="e => util.job.deleteJob(e)"
           @return="data.page = 1"/>
       </v-tabs-window-item>
       <v-tabs-window-item :value="3">
         <DatabasePage
+          v-if="data.page == 3"
           :config="config"
           :databases="data.databases"
           :select="data.selectDatabase"
           :backend="backend"
           :preference="preference"
           :plugin="data.plugin"
-          @added="e => addDatabase(e)"
-          @select="e => selectDatabase(e)"
-          @edit="e => editDatabase(e)" 
-          @delete="e => deleteDatabase(e)"
+          @added="e => util.database.addDatabase(e)"
+          @select="e => util.database.selectDatabase(e)"
+          @edit="e => util.database.editDatabase(e)" 
+          @delete="e => util.database.deleteDatabase(e)"
           @return="data.page = 1"/>
       </v-tabs-window-item>
       <v-tabs-window-item :value="4">
         <NodePage
+          v-if="data.page == 4"
           :manager="data.websocket_manager"
           :plugin="data.plugin"
           :nodes="data.nodes" />
       </v-tabs-window-item>
       <v-tabs-window-item :value="5">
         <ConsolePage
+          v-if="data.page == 5"
           :backend="backend"
           :preference="preference"
           :socket="data.websocket_manager"
@@ -760,6 +701,7 @@ onUnmounted(() => {
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.haveBackend" :value="6">
         <LogPage 
+          v-if="data.page == 6"
           :config="config"
           :execute="data.execute_manager"
           :preference="preference"
@@ -769,6 +711,7 @@ onUnmounted(() => {
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.haveBackend" :value="7">
         <LibraryPage
+          v-if="data.page == 7"
           :backend="backend"
           :preference="preference"
           :databases="data.databases"
@@ -781,6 +724,7 @@ onUnmounted(() => {
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.haveBackend" :value="8">
         <SelfPage
+          v-if="data.page == 8"
           :backend="backend"
           :messages="data.messages"
           :preference="preference"
@@ -788,6 +732,7 @@ onUnmounted(() => {
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.isExpress" :value="9">
         <RolePage 
+          v-if="data.page == 9"
           :preference="preference"
           :items="[]"
         />
@@ -797,13 +742,16 @@ onUnmounted(() => {
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.haveBackend" :value="11">
         <PluginPage :plugin="data.plugin"
+          v-if="data.page == 11"
           @added-plugin="pluginAdded"
           @added-template="templateAdded"
           @delete-plugin="pluginDelete"
           @delete-template="templateDelete" />
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.isExpress" :value="100">
-        <ProfilePage :backend="backend" />
+        <ProfilePage 
+          v-if="data.page == 100"
+          :backend="backend" />
       </v-tabs-window-item>
     </v-tabs-window>
   </Layout>

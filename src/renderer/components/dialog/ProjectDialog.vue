@@ -1,23 +1,42 @@
 <script setup lang="ts">
+//#region Modules
 import { computed, Ref, ref, watch } from 'vue';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import { CreateField, DialogDATA, Temp } from '../server/Project';
-import DialogBase from './DialogBase.vue';
+import { i18n } from 'verteilen-core/src/plugins/i18n';
+//#endregion
 
+//#region Views
+import DialogBase from './DialogBase.vue';
+//#endregion
+
+//#region Data
+const $t = i18n.global.t
 const theme = useTheme()
 const data = defineModel<boolean>({ required: true })
 const propss = defineProps<DialogDATA>()
 const emits = defineEmits<{
     (e: 'submit', d:CreateField): void
 }>()
-const buffer:Ref<CreateField> = ref({title: "", description: "", usePara: false, useTemp: false, temp: null, parameter: null})
+const buffer:Ref<CreateField> = ref({title: "", description: "", usePara: false, useTemp: false, temp: null, database: null})
 const selectTempModel = ref(false)
 const selectTempIndex:Ref<Array<number | string>> = ref([])
 const search:Ref<string | null> = ref(null)
+//#endregion
 
+//#region Watch
+watch(() => data.value, () => {
+    search.value = null
+    selectTempModel.value = false
+    if(propss.isEdit) buffer.value = propss.editData
+    else buffer.value = {title: "", description: "", useTemp: false, usePara: false, temp: null, database: null}
+})
+//#endregion
+
+//#region Computed
 const isDark = computed(() => theme.global.name.value == "dark")
 const paras = computed(() => {
-    return propss.parameters.map((x, index) => {
+    return propss.databases.map((x, index) => {
         return {
             value: x.uuid,
             title: x.title,
@@ -44,7 +63,7 @@ const convert = computed(() => {
     return {
         ...buffer.value,
         useTemp: buffer.value.temp != null,
-        usePara: buffer.value.parameter != null
+        usePara: buffer.value.database != null
     }
 })
 const temp_name = computed(() => {
@@ -52,38 +71,29 @@ const temp_name = computed(() => {
     if(typeof buffer.value.temp == 'number') return propss.temps.find(x => x.value == buffer.value.temp)?.text
     else return propss.temps.find(x => x.text == buffer.value.temp)?.text
 })
+//#endregion
 
+//#region Methods
 const itemProps = (item:any) => {
     return {
         title: item.title,
         subtitle: item.uuid
     }
 }
-
-watch(() => data.value, () => {
-    search.value = null
-    selectTempModel.value = false
-    if(propss.isEdit) buffer.value = propss.editData
-    else buffer.value = {title: "", description: "", useTemp: false, usePara: false, temp: null, parameter: null}
-})
-
 const openSelectTemp = () => {
     selectTempModel.value = true
 }
-
 const onSelectTemp = (d:Temp) => {
     selectTempIndex.value = d.value >= 1000 ? [d.text] : [d.value]
 }
-
 const confirm_temp = () => {
     buffer.value.temp = selectTempIndex.value[0]
     selectTempModel.value = false
 }
-
 const confirm = () => {
     emits('submit', convert.value)
 }
-
+//#endregion
 </script>
 
 <template>
@@ -115,8 +125,8 @@ const confirm = () => {
                     </span>
                 </v-btn>
                 <br />
-                <v-checkbox v-model="buffer.usePara" :label="$t('useExistParameter')" hide-details></v-checkbox>
-                <v-autocomplete v-if="buffer.usePara" :item-props="itemProps" v-model="buffer.parameter" clearable :items="paras" item-title="text" :label="$t('parameter')" hide-details></v-autocomplete>
+                <v-checkbox v-model="buffer.usePara" :label="$t('useExistDatabase')" hide-details></v-checkbox>
+                <v-autocomplete v-if="buffer.usePara" :item-props="itemProps" v-model="buffer.database" clearable :items="paras" item-title="text" :label="$t('database')" hide-details></v-autocomplete>
             </div>
             <p v-if="propss.errorMessage.length > 0" class="mt-3 text-red">{{ propss.errorMessage }}</p>
 

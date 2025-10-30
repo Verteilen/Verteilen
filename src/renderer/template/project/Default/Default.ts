@@ -1,5 +1,5 @@
-import { v6 as uuidv6 } from 'uuid';
-import { ConditionResult, Job, JobCategory, JobType, JobType2, Database, Project, Task } from "../../../interface";
+import { v6 as uuidv6 } from 'uuid'
+import { ConditionResult, Job, JobCategory, JobType, JobType2, Database, Project, Task, CreateDefaultJob, CreateDefaultTask } from "../../../interface";
 import { GetDefaultProject_Database } from '../../database/Default';
 import { DEFAULT_JsCronMultiExample } from '../../js/Default/CronMultiExample';
 import { DEFAULT_JsExample } from '../../js/Default/Example';
@@ -10,7 +10,7 @@ import { DEFAULT_JsLibPrintExample } from '../../js/Default/LibCaller';
 
 const path_checker = ():Task => {
     const checker:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Condition,
         type: JobType2.CHECK_PATH,
         script: "",
@@ -20,15 +20,8 @@ const path_checker = ():Task => {
         id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Check Path",
-        description: "",
-        setupjob: false,
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
-        properties: [],
         jobs: [
             checker
         ]
@@ -38,7 +31,7 @@ const path_checker = ():Task => {
 
 const database_expression = ():Task => {
     const checker:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
         script: "",
@@ -48,15 +41,10 @@ const database_expression = ():Task => {
         id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Print Expression",
-        description: "",
-        setupjob: false,
         cronjob: true,
         cronjobKey: "cluster",
-        multi: false,
-        multiKey: "",
-        properties: [],
         jobs: [
             checker
         ]
@@ -66,7 +54,7 @@ const database_expression = ():Task => {
 
 const os_action = ():Task => {
     const testFolder:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.CREATE_DIR,
         script: "",
@@ -76,7 +64,7 @@ const os_action = ():Task => {
         id_args: [],
     }
     const writef:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.CREATE_FILE,
         script: "",
@@ -86,15 +74,8 @@ const os_action = ():Task => {
         id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "OS Action",
-        description: "",
-        setupjob: false,
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
-        properties: [],
         jobs: [
             testFolder,
             writef
@@ -105,25 +86,17 @@ const os_action = ():Task => {
 
 const ck_print = ():Task => {
     const checker:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        script: "",
         string_args: ["", "echo", "%ck%"],
         number_args: [ConditionResult.ThrowProject],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Print Index",
-        description: "",
-        setupjob: false,
         cronjob: true,
         cronjobKey: "cluster",
-        multi: false,
-        multiKey: "",
-        properties: [],
         jobs: [
             checker
         ]
@@ -133,24 +106,17 @@ const ck_print = ():Task => {
 
 const ck_calc_print = ():Task => {
     const checker:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.COMMAND,
-        script: "",
         string_args: ["", "echo", "%prop%"],
         number_args: [ConditionResult.ThrowProject],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Print number (With property calc)",
-        description: "",
-        setupjob: false,
         cronjob: true,
         cronjobKey: "cluster",
-        multi: false,
-        multiKey: "",
         properties: [
             {
                 name: "prop",
@@ -166,196 +132,128 @@ const ck_calc_print = ():Task => {
 
 const js_print = ():Task => {
     const script:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.JAVASCRIPT,
         script: DEFAULT_JsExample,
-        string_args: [],
-        number_args: [],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Run Js",
-        description: "",
-        setupjob: false,
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
-        properties: [],
         jobs: [
             script
-        ]
+        ],
     }
     return t
 }
 
 const js_print_expression = ():Task => {
     const script:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.JAVASCRIPT,
         script: DEFAULT_JsExpressionExample,
-        string_args: [],
-        number_args: [],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Run Js",
-        description: "",
-        setupjob: false,
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
-        properties: [],
         jobs: [
             script
-        ]
+        ],
     }
     return t
 }
 
 const js_cron_print = ():Task => {
     const script:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.JAVASCRIPT,
         script: DEFAULT_JsCronMultiExample,
-        string_args: [],
-        number_args: [],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Run Cronjob Js",
-        description: "",
-        setupjob: false,
         cronjob: true,
         cronjobKey: "cluster",
-        multi: false,
-        multiKey: "",
-        properties: [],
         jobs: [
             script
-        ]
+        ],
     }
     return t
 }
 
 const save_database = ():Task => {
     const script:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.JAVASCRIPT,
         script: DEFAULT_JsSaveExample,
-        string_args: [],
-        number_args: [],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Save Paramter",
-        description: "",
-        setupjob: false,
         cronjob: true,
         cronjobKey: "cluster",
-        multi: false,
-        multiKey: "",
-        properties: [],
         jobs: [
             script
-        ]
+        ],
     }
     return t
 }
 
 const load_database_multicore = ():Task => {
     const script:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.JAVASCRIPT,
         script: DEFAULT_JsPrintExample,
-        string_args: [],
-        number_args: [],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Load Paramter MultiCore",
-        description: "",
-        setupjob: false,
         cronjob: true,
         cronjobKey: "cluster",
         multi: true,
         multiKey: "core",
-        properties: [],
         jobs: [
             script
-        ]
+        ],
     }
     return t
 }
 
 const calllib = ():Task => {
     const script:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.LIB_COMMAND,
-        script: "",
         string_args: ["Default", ""],
-        number_args: [],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Call Lib Exe",
-        description: "",
-        setupjob: false,
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
-        properties: [],
         jobs: [
             script
-        ]
+        ],
     }
     return t
 }
 
 const calllibjs = ():Task => {
     const script:Job = {
-        uuid: uuidv6(),
+        ...CreateDefaultJob(),
         category: JobCategory.Execution,
         type: JobType.JAVASCRIPT,
         script: DEFAULT_JsLibPrintExample,
-        string_args: [],
-        number_args: [],
-        boolean_args: [],
-        id_args: [],
     }
     const t:Task = {
-        uuid: uuidv6(),
+        ...CreateDefaultTask(),
         title: "Call Lib JS Exe",
-        description: "",
-        setupjob: false,
-        cronjob: false,
-        cronjobKey: "",
-        multi: false,
-        multiKey: "",
         properties: [],
         jobs: [
             script
-        ]
+        ],
     }
     return t
 }
@@ -368,7 +266,7 @@ export const GetDefaultProjectTemplate = (r:Project):Project => {
         containers: GetDefaultProject_Database()
     }
     r.database = para
-    r.task = [
+    r.tasks = [
         path_checker(),
         database_expression(),
         os_action(),

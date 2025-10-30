@@ -102,7 +102,7 @@ export function RUN(){
     app.on('before-quit', (event) => {
         console.log('Before Quit Event')
         mainWindow = undefined
-        backendEvent.Destroy()
+        backendEvent.DestroyClient()
     })
 
     return call

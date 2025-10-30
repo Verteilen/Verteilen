@@ -1,27 +1,47 @@
 import { Emitter } from "mitt";
-import { nextTick, Ref } from "vue";
-import { BusType, Project, ProjectTable } from "../../interface";
-import { DATA, save_and_update } from ".";
+import { Ref } from "vue";
+import { BusType, Project, ProjectTable, Task } from "../../interface";
+import { DATA, save_and_update, Util_Server } from ".";
 import { BackendProxy } from "../../proxy";
+import { ServerSave } from "./save";
+import { Server } from "verteilen-core/src/server";
 
 export class Util_Server_Project {
-    data:Ref<DATA>
-    backend:Ref<BackendProxy>
-    update:save_and_update
-    updateOnly:save_and_update
-    emitter:Emitter<BusType>
+    server:Util_Server
 
-    constructor (_data:Ref<DATA>, backend:Ref<BackendProxy>, _updateOnly:save_and_update, _update:save_and_update, _emitter:Emitter<BusType>){
-        this.data = _data
-        this.backend = backend
-        this.updateOnly = _updateOnly
-        this.update = _update
-        this.emitter = _emitter
+    constructor (server:Util_Server){
+        this.server = server
+    }
+
+    public get static_server () : Ref<Server | undefined> {
+        return this.server.server
+    }
+    public get data() : Ref<DATA> {
+        return this.server.data
+    }
+    public get backend() : Ref<BackendProxy> {
+        return this.server.backend
+    }
+    public get save() : ServerSave {
+        return this.server.save
+    }
+    public get update() : save_and_update {
+        return this.server.allUpdate
+    }
+    public get updateOnly() : save_and_update {
+        return this.server.update
+    }
+    public get emitter() : Emitter<BusType> {
+        return this.server.emitter
     }
 
     //#region Project CRUD
+    /**
+     * Add project through the dialog UI
+     * @param v Array of project
+     */
     addProject = (v:Array<ProjectTable>) => {
-        v.forEach(x => {
+        const p = v.map(async x => {
             if(x.database == undefined){
                 this.data.value.projects.push(x)
             }else{
@@ -29,62 +49,59 @@ export class Util_Server_Project {
                 x.database_uuid = x.database.uuid
                 this.data.value.projects.push(x)
             }
+            await this.server.task.addTask(x.tasks.map(y => ({ ...y, jobCount: y.jobs.length })))
+            return this.save.save_project({
+                ...x,
+                tasks: [],
+                tasks_uuid: x.tasks.map(y => y.uuid)
+            })
         })
-        this.update()
-        this.data.value.page = 0
+        return Promise.all(p).then(() => {
+            return this.server.query.load_all_project()
+        })
     }
-    editProject = (id:string, v:ProjectTable) => {
-        const selectp = this.data.value.projects.findIndex(x => x.uuid == id)
+    cloneProject = (v:Array<string>) => {
+        const s = this.data.value.projects.filter(x => v.includes(x.uuid))
+        this.save.clone_projects(s)
+    }
+    /**
+     * Add project through the import feature
+     * @param v Array of project
+     */
+    importProject = (v:Array<Project>) => {
+        v.forEach(x => {
+            this.server.task.addTask(x.tasks.map(y => ({ ...y, jobCount: y.jobs.length })))
+            x.tasks_uuid = x.tasks.map(y => y.uuid)
+            x.tasks = []
+            this.save.save_project({...x, taskCount: x.tasks.length})
+        })
+    }
+    /**
+     * **Edit Project Metadata**
+     * @param uuid Target Project
+     * @param v Change Data
+     * @returns 
+     */
+    editProject = (uuid:string, v:ProjectTable) => {
+        const selectp = this.data.value.projects.findIndex(x => x.uuid == uuid)
         if(selectp == -1) return
         this.data.value.projects[selectp] = v
-        if(this.data.value.selectProject?.uuid == id){
-            this.data.value.selectProject = v
-        }
-        this.update()
+        this.save.save_project(v)
     }
     deleteProject = (uuids:Array<string>, bind:boolean) => {
         uuids.forEach(id => {
             const index = this.data.value.projects.findIndex(x => x.uuid == id)
-            if(index != -1) {
-                const target = this.data.value.projects[index]
-                target.task.forEach(tid => {
-                    if(this.data.value.selectTask?.uuid == tid.uuid){
-                        this.data.value.selectTask = undefined
-                    }
-                })
-                this.data.value.projects.splice(index, 1)
-
-                if(bind){
-                    const index2 = this.data.value.databases.findIndex(x => x.uuid == target.database_uuid)
-                    if(index2 != -1){
-                        const target2 = this.data.value.databases[index2]
-                        if(this.data.value.selectDatabase?.uuid == target2.uuid){
-                            this.data.value.selectDatabase = undefined
-                        }
-                        this.data.value.databases.splice(index2, 1)
-                        if(this.backend.value.config.isElectron){
-                            window.electronAPI.send('delete_database', target2.uuid)
-                        }
-                    }
-                }
-            }
-            if(this.data.value.selectProject?.uuid == id){
-                this.data.value.selectProject = undefined
-            }
-            if(this.backend.value.config.isElectron){
-                window.electronAPI.send('delete_record', id)
-            }
+            if(index != -1) this.data.value.projects.splice(index, 1)
+            this.server.del.delete_project(id, bind)
         })
-        this.update()
     }
     //#endregion
-    
+
     chooseProject = (uuid:string) => {
         this.data.value.selectProject = this.data.value.projects.find(x => x.uuid == uuid)
-        this.data.value.page = 1
-        nextTick(this.updateOnly)
+        this.data.value.page = 1 // Go to task page
     }
-    
+
     moveupProject = (uuid:string) => {
         const index = this.data.value.projects.findIndex(x => x.uuid == uuid)
         if(index == -1) return

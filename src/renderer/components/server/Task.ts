@@ -1,10 +1,11 @@
 import { v6 as uuidv6 } from 'uuid';
-import { Ref } from "vue";
-import { DataType, Preference, Project, Task, TaskTable } from "../../interface";
+import { ComputedRef, Ref } from "vue";
+import { DatabaseTable, DataType, Preference, Project, ProjectTable, Task, TaskTable } from "../../interface";
 import { i18n } from '../../plugins/i18n';
 
-type getselect = () => Project | undefined
-
+/**
+ * **Task Dialog Buffer**
+ */
 export interface CreateField {
     title: string
     description: string
@@ -14,7 +15,44 @@ export interface CreateField {
     multi: boolean
     multiKey: string
 }
-
+/**
+ * **Create Dialog Data**
+ */
+export interface DialogDATA {
+    isEdit: boolean
+    editData: CreateField
+    errorMessage: string
+    titleError: boolean
+    para_keys:Array<{ title:string, subtitle: string, value: string }>
+    preference?: Preference
+}
+/**
+ * **Page Properties**
+ */
+export interface PROPS {
+    projects: Array<ProjectTable>
+    tasks: Array<TaskTable>
+    select: ProjectTable | undefined
+    databases: Array<DatabaseTable>
+}
+/**
+ * **Page Emit Type**
+ */
+export type EmitType = {
+    (e: 'added', task:TaskTable[]): void
+    (e: 'clone', uuid:string[]): void
+    (e: 'edit', uuid:string, task:TaskTable): void
+    (e: 'delete', uuids:Array<string>): void
+    (e: 'select', uuids:string): void
+    (e: 'database', uuid:string):void
+    (e: 'bind', uuid:string):void
+    (e: 'moveup', uuids:string): void
+    (e: 'movedown', uuids:string): void
+    (e: 'return'): void
+}
+/**
+ * **Page Data**
+ */
 export interface DATA {
     fields: Array<any>
     itemPrePage: number
@@ -25,7 +63,6 @@ export interface DATA {
     editUUID: string
     deleteModal: boolean
     deleteData:Array<string>
-    items:Array<TaskTable>
     errorMessage: string
     titleError: boolean
     search: string | undefined
@@ -33,115 +70,37 @@ export interface DATA {
     selection:Array<string>
 }
 
-export interface DialogDATA {
-    isEdit: boolean
-    editData: CreateField
-    errorMessage: string
-    titleError: boolean
-    para_keys:Array<{ title:string, subtitle: string, value: string }>
-    preference?: Preference
-}
-
 export class Util_Task {
     data:Ref<DATA>
-    select:getselect
+    emits:EmitType
+    select:ComputedRef<ProjectTable | undefined>
+    tasks: ComputedRef<Array<TaskTable>>
+    selected_task_ids: ComputedRef<string[]>
 
-    public get select_props() : Project | undefined {
-        return this.select()
+    constructor(
+        data:Ref<DATA>, 
+        emits:EmitType,
+        select:ComputedRef<ProjectTable | undefined>,
+        tasks: ComputedRef<Array<TaskTable>>,
+        selected_task_ids: ComputedRef<string[]>
+    ){
+        this.data = data
+        this.emits = emits
+        this.select = select
+        this.tasks = tasks
+        this.selected_task_ids = selected_task_ids
     }
 
-    constructor(_data:Ref<DATA>, _select:getselect){
-        this.data = _data
-        this.select = _select
+    //#region Event
+    moveUp = (uuid:string) => {
+        this.emits('moveup', uuid)
     }
-
-    updateTask = () => {
-        const p = this.select_props
-        this.data.value.items = p?.task.map(x => {
-            const y:TaskTable = JSON.parse(JSON.stringify(x))
-            y.s = false
-            y.jobCount = y.jobs.length
-            return y
-        }) ?? []
-        const allid = this.data.value.items.map(x => x.uuid)
-        this.data.value.selection = this.data.value.selection.filter(x => allid.includes(x)) 
+    moveDown = (uuid:string) => {
+        this.emits('movedown', uuid)
     }
-
-    updateDatabase = () => {
-        const p = this.select_props
-    }
-
-    createProject = () => {
-        this.data.value.editData = {cronjob: false, cronjobKey: '', title: "", description: "", setupjob: false, multi: false, multiKey: ''}
-        this.data.value.dialogModal = true
-        this.data.value.errorMessage = ''
-        this.data.value.titleError = false
-    }
-
-    cloneSelect = () => {
-        const p = this.select_props
-        if(p == undefined) return undefined
-        const selected_task_ids = this.data.value.items.filter(x => this.data.value.selection.includes(x.uuid)).map(x => x.uuid)
-        const ts:Array<Task> = p.task.filter(x => selected_task_ids.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
-        ts.forEach(x => {
-            x.uuid = uuidv6()
-            x.title = x.title + ` (${i18n.global.t('clone')})`
-            x.jobs.forEach(y => {
-                y.uuid = uuidv6()
-            })
-        })
-        return ts
-    }
-
-    confirmCreate = () => {
-        if(this.data.value.editData.title.length == 0){
-            this.data.value.errorMessage = i18n.global.t('error.title-needed')
-            this.data.value.titleError = true
-            return undefined
-        }
-        this.data.value.dialogModal = false
-        return [{ 
-            uuid: uuidv6(),
-            title: this.data.value.editData.title, 
-            description: this.data.value.editData.description,
-            setupjob: this.data.value.editData.setupjob,
-            cronjob: this.data.value.editData.cronjob,
-            cronjobKey: this.data.value.editData.cronjobKey,
-            multi: this.data.value.editData.multi, 
-            multiKey: this.data.value.editData.multiKey,
-            properties: [],
-            jobs: []
-        }]
-    }
-
-    confirmEdit = () => {
-        if(this.data.value.editData.title.length == 0){
-            this.data.value.errorMessage = i18n.global.t('error.title-needed')
-            this.data.value.titleError = true
-            return
-        }
-        const p = this.select_props
-        if(p == undefined) return
-        const selectp = p.task.find(x => x.uuid == this.data.value.editUUID)
-        if(selectp == undefined) return undefined;
-        this.data.value.dialogModal = false
-        return { 
-            uuid: this.data.value.editUUID,
-            title: this.data.value.editData.title, 
-            description: this.data.value.editData.description,
-            setupjob: this.data.value.editData.setupjob,
-            cronjob: this.data.value.editData.cronjob,
-            cronjobKey: this.data.value.editData.cronjobKey,
-            multi: this.data.value.editData.multi, 
-            multiKey: this.data.value.editData.multiKey,
-            properties: selectp.properties,
-            jobs: selectp.jobs
-        }
-    }
-
-    dataedit = (uuid:string) => {
-        if(this.select() == undefined) return
-        const selectp = this.select()!.task.find(x => x.uuid == uuid)
+    dataEdit = (uuid:string) => {
+        if(this.select.value == undefined) return
+        const selectp = this.tasks.value.find(x => x.uuid == uuid)
         if(selectp == undefined) return;
         this.data.value.editData = {
             setupjob: selectp.setupjob,
@@ -158,18 +117,99 @@ export class Util_Task {
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
     }
+    /**
+     * Select task and get to see job detail
+     * @param uuid 
+     */
+    dataChoose = (uuid:string):void => {
+        this.emits('select', uuid)
+    }
+    /**
+     * **Create UI Button Event Trigger**\
+     * Open create dialog
+     */
+    createProject = () => {
+        this.data.value.editData = {cronjob: false, cronjobKey: '', title: "", description: "", setupjob: false, multi: false, multiKey: ''}
+        this.data.value.dialogModal = true
+        this.data.value.errorMessage = ''
+        this.data.value.titleError = false
+    }
 
+    cloneSelect = () => {
+        this.emits('clone', this.selected_task_ids.value)
+        this.data.value.selection = []
+    }
+
+    confirmCreate = ():Array<TaskTable> | undefined => {
+        if(this.data.value.editData.title.length == 0){
+            this.data.value.errorMessage = i18n.global.t('error.title-needed')
+            this.data.value.titleError = true
+            return undefined
+        }
+        this.data.value.dialogModal = false
+        return [{ 
+            uuid: uuidv6(),
+            title: this.data.value.editData.title, 
+            description: this.data.value.editData.description,
+            setupjob: this.data.value.editData.setupjob,
+            cronjob: this.data.value.editData.cronjob,
+            cronjobKey: this.data.value.editData.cronjobKey,
+            multi: this.data.value.editData.multi, 
+            multiKey: this.data.value.editData.multiKey,
+            properties: [],
+            jobs: [],
+            jobs_uuid: [],
+            jobCount: 0,
+        }]
+    }
+
+    confirmEdit = ():TaskTable | undefined => {
+        if(this.data.value.editData.title.length == 0){
+            this.data.value.errorMessage = i18n.global.t('error.title-needed')
+            this.data.value.titleError = true
+            return undefined
+        }
+        const p = this.select.value
+        if(p == undefined) return
+        const selectp = p.tasks.find(x => x.uuid == this.data.value.editUUID)
+        if(selectp == undefined) return undefined;
+        this.data.value.dialogModal = false
+        return { 
+            uuid: this.data.value.editUUID,
+            title: this.data.value.editData.title, 
+            description: this.data.value.editData.description,
+            setupjob: this.data.value.editData.setupjob,
+            cronjob: this.data.value.editData.cronjob,
+            cronjobKey: this.data.value.editData.cronjobKey,
+            multi: this.data.value.editData.multi, 
+            multiKey: this.data.value.editData.multiKey,
+            properties: selectp.properties,
+            jobs: selectp.jobs,
+            jobs_uuid: selectp.jobs_uuid,
+            jobCount: selectp.jobs_uuid.length,
+        }
+    }
+    //#endregion
+
+    //#region Getter
+    /**
+     * Check select task uuid is first in order
+     * @param uuid Task UUID
+     */
     isFirst = (uuid:string) => {
-        if(this.select_props == undefined) return
-        const index = this.select_props.task.findIndex(x => x.uuid == uuid)
+        if(this.select.value == undefined) return
+        const index = this.select.value?.tasks_uuid.findIndex(x => x == uuid)
         return index <= 0
     }
-    
+    /**
+     * Check select task uuid is last in order
+     * @param uuid Task UUID
+     */
     isLast = (uuid:string) => {
-        const p = this.select_props
-        if(p == undefined) return
-        const index = p.task.findIndex(x => x.uuid == uuid)
+        if(this.select.value == undefined) return
+        const index = this.select.value?.tasks_uuid.findIndex(x => x == uuid)
         if(index == -1) return true
-        return index == p.task.length - 1
+        return index == this.select.value?.tasks_uuid.length - 1
     }
+    //#endregion
 }

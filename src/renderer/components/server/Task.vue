@@ -4,33 +4,18 @@ import { Emitter } from 'mitt';
 import { computed, ComputedRef, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { BusType, DataType, DatabaseTable, Preference, ProjectTable, Task, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, DATA, Util_Task } from './Task';
+import { CreateField, DATA, EmitType, PROPS, Util_Task } from './Task';
 import TaskDialog from '../dialog/TaskDialog.vue';
 import DatabaseSelectionDialog from '../dialog/DatabaseSelectionDialog.vue';
 import DialogBase from '../dialog/DialogBase.vue';
 //#endregion
 
 //#region Data
-interface PROPS {
-    projects: Array<ProjectTable>
-    select: ProjectTable | undefined
-    databases: Array<DatabaseTable>
-}
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
-const emits = defineEmits<{
-    (e: 'added', task:Task[]): void
-    (e: 'edit', uuid:string, task:Task): void
-    (e: 'delete', uuids:Array<string>): void
-    (e: 'select', uuids:string): void
-    (e: 'database', uuid:string):void
-    (e: 'bind', uuid:string):void
-    (e: 'moveup', uuids:string): void
-    (e: 'movedown', uuids:string): void
-    (e: 'return'): void
-}>()
+const emits = defineEmits<EmitType>()
 const data:Ref<DATA> = ref({
     fields: [],
     itemPrePage: -1,
@@ -41,14 +26,12 @@ const data:Ref<DATA> = ref({
     editUUID: '',
     deleteModal: false,
     deleteData: [],
-    items: [],
     errorMessage: '',
     titleError: false,
     search: '',
     selectSearch: '',
     selection: []
 })
-const util:Util_Task = new Util_Task(data, () => props.select)
 //#endregion
 
 //#region Computed
@@ -58,10 +41,10 @@ const hasPara = computed(() => {
 })
 const realSearch = computed(() => data.value.search?.trimStart().trimEnd() ?? '')
 const items_final = computed(() => {
-    return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.uuid.includes(realSearch.value))
+    return realSearch.value == null || realSearch.value.length == 0 ? props.tasks : props.tasks.filter(x => x.title.includes(realSearch.value) || x.uuid.includes(realSearch.value))
 })
 const hasSelect = computed(() => data.value.selection.length > 0)
-const selected_task_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
+const selected_task_ids = computed(() => props.tasks.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
 const para_title = computed(() => props.databases.find(x => x.uuid == props.select?.database_uuid)?.title)
 const para_keys:ComputedRef<Array<{ title:string, subtitle: string, value: string }>> = computed(() => {
     if(props.select == undefined) return []
@@ -74,33 +57,20 @@ const para_keys:ComputedRef<Array<{ title:string, subtitle: string, value: strin
         value: x.name
     })) ?? []
 })
+const tasks = computed(() => props.tasks)
+const selected = computed(() => props.select)
+const util:Util_Task = new Util_Task(data, emits, selected, tasks, selected_task_ids)
 //#endregion
 
 //#region Methods
-const updateDatabase = () => util.updateDatabase()
-const updateTask = () => {
-    util.updateTask()
-    updateDatabase()
-}
 const createProject = () => util.createProject()
 const detailOpen = () => emits('database', props.select!.database_uuid)
-
-const datachoose = (uuid:string) => emits('select', uuid)
-const dataedit = (uuid:string) => util.dataedit(uuid)
 
 const detailSelect = () => {
     data.value.paraModal = true
 }
-const cloneSelect = () => {
-    const ts = util.cloneSelect()
-    if(ts == undefined) return
-    emits('added', ts)
-    nextTick(() => {
-        updateTask();
-    })
-}
 
-const selectall = () => data.value.selection = data.value.items.map(x => x.uuid)
+const selectall = () => data.value.selection = props.tasks.map(x => x.uuid)
 
 const deleteSelect = () => {
     data.value.deleteData = selected_task_ids.value
@@ -109,10 +79,8 @@ const deleteSelect = () => {
 
 const deleteConfirm = () => {
     data.value.deleteModal = false
+    data.value.selection = []
     emits('delete', data.value.deleteData)
-    nextTick(() => {
-        updateTask()
-    })
 }
 
 const selectDatabase = (uuid:string) => {
@@ -129,36 +97,18 @@ const confirmCreate = () => {
     if(p == undefined) return
     emits('added', p)
     nextTick(() => {
-        updateTask();
         data.value.editData = {cronjob: false, cronjobKey: "", title: "", description: "", setupjob: false, multi: false, multiKey: ""};
     })
 }
 
 const getIndex = (ID:string) => {
-    return data.value.items.findIndex(x => x.uuid == ID)
+    return props.tasks.findIndex(x => x.uuid == ID)
 }
 
 const confirmEdit = () => {
     const p = util.confirmEdit()
     if(p == undefined) return
     emits('edit', data.value.editUUID, p)
-    nextTick(() => {
-        updateTask()
-    })
-}
-
-const moveup = (uuid:string) => {
-    emits('moveup', uuid)
-    nextTick(() => {
-        updateTask();
-    })
-}
-
-const movedown = (uuid:string) => {
-    emits('movedown', uuid)
-    nextTick(() => {
-        updateTask();
-    })
 }
 
 const TaskType = (item:TaskTable) => {
@@ -205,16 +155,13 @@ const onHotkey = (value:string) => {
 //#endregion
 
 onMounted(() => {
-    console.log("Task Mounted")
     updateFields()
     emitter.on('hotkey', onHotkey)
-    emitter.on('updateTask', updateTask)
     emitter.on('updateLocate', updateLocate)
 })
 
 onUnmounted(() => {
     emitter.off('hotkey', onHotkey)
-    emitter.off('updateTask', updateTask)
     emitter.off('updateLocate', updateLocate)
 })
 </script>
@@ -254,7 +201,7 @@ onUnmounted(() => {
                 </v-tooltip>    
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="cloneSelect" :disabled="!hasSelect || select == undefined">
+                        <v-btn icon v-bind="props" @click="util.cloneSelect" :disabled="!hasSelect || select == undefined">
                             <v-icon>mdi-content-paste</v-icon>
                         </v-btn>
                     </template>
@@ -271,21 +218,21 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
-            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': preference.font + 'px' }">
+            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
-                    <a href="#" @click="datachoose(item.uuid)">{{ item.uuid }}</a>
+                    <a href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid }}</a>
                 </template>
                 <template v-slot:item.Order="{ item }">
                     {{ getIndex(item.uuid) }}
                 </template>
                 <template v-slot:item.detail="{ item }">
-                    <v-btn variant="text" icon @click="dataedit(item.uuid)" size="small">
+                    <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
                         <v-icon>mdi-pencil</v-icon>
                     </v-btn>
-                    <v-btn variant="text" icon :disabled="isFirst(item.uuid)" @click="moveup(item.uuid)" size="small">
+                    <v-btn variant="text" icon :disabled="isFirst(item.uuid)" @click="util.moveUp(item.uuid)" size="small">
                         <v-icon>mdi-arrow-up</v-icon>
                     </v-btn>
-                    <v-btn variant="text" icon :disabled="isLast(item.uuid)" @click="movedown(item.uuid)" size="small">
+                    <v-btn variant="text" icon :disabled="isLast(item.uuid)" @click="util.moveDown(item.uuid)" size="small">
                         <v-icon>mdi-arrow-down</v-icon>
                     </v-btn>
                 </template>

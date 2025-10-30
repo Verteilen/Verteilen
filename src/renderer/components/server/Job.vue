@@ -29,6 +29,7 @@ import { BackendProxy } from '../../proxy';
 
 interface PROPS {
     projects: Array<ProjectTable>
+    jobs: Array<JobTable>
     select: TaskTable | undefined
     owner: ProjectTable | undefined
     database: DatabaseTable | undefined

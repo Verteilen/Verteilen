@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //#region Modules
 import { Emitter } from 'mitt'
-import { computed, inject, onMounted, onUnmounted, reactive, Ref, ref } from 'vue'
+import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue'
 import { useTheme } from 'vuetify'
 import { BackendType, BusType, Login, Preference } from './interface'
 import { i18n } from './plugins/i18n'
@@ -17,6 +17,7 @@ import ServerNodePage from './components/ServerNode.vue'
 import ClusterNodePage from './components/ClusterNode.vue'
 import SettingDialog from './components/dialog/SettingDialog.vue'
 import Messager from './components/Messager.vue'
+import { DATA, Util_App } from './App'
 //#endregion
 
 //#region Data
@@ -25,8 +26,10 @@ const theme = useTheme()
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
-const settingModal = ref(false)
-const defaultTransition = ref()
+const data:Ref<DATA> = ref({
+  settingModal: false,
+  defaultTransition: undefined
+})
 //#endregion
 
 //#region Computed
@@ -49,39 +52,14 @@ const route = computed(() => {
     else if(config.value.backendType == BackendType.NODE) return 2
     else if(config.value.backendType == BackendType.CLUSTER) return 4
   }
-  return -1
+  return 3
 })
+const util = new Util_App(data, theme, emitter, backend, preference, token)
 //#endregion
 
 //#region Methods
-const savePreference = (v:Preference) => {
-  backend.value.send('save_preference', JSON.stringify(v, null, 4), token.value)
-}
-const locate = (v:string) => {
-  const t = i18n.global
-  // @ts-ignore
-  t.locale = v
-  preference.value.lan = v
-  emitter.emit('updateLocate')
-  backend.value.send('save_preference', JSON.stringify(preference.value, null, 4), token.value)
-}
-const setting = () => { settingModal.value = true }
+const setting = () => { data.value.settingModal = true }
 const message = (e:string) => console.log(e)
-const preferenceUpdate = (data:Preference) => {
-  Object.assign(preference.value, data)
-  locate(preference.value.lan)
-  theme.change(data.theme)
-  const t = i18n.global
-  // @ts-ignore
-  t.locale = preference.value.lan
-  vuetify.defaults.value!.global = data.animation ? {} : defaultTransition.value
-}
-const load_preference = (x:string) => {
-  preference.value = JSON.parse(x)
-  console.log(preference.value)
-  preferenceUpdate(preference.value)
-  backend.value.send('locate', preference.value.lan)  
-}
 const guide = () => {
   backend.value.send('open', 'https://verteilen.github.io/wiki/')
 }
@@ -93,16 +71,16 @@ const loginGuest = () => {
   config.value.login = true
   backend.value.removeCookie('token')
   backend.value.init().then(() => {
-    backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
+    backend.value.invoke('load_preference', token.value).then(x => util.load_preference(x))
   })
 }
 const trylogin = (v:Login) => {
-  backend.value.invoke('load_preference', token.value).then(x => load_preference(x))
+  backend.value.invoke('load_preference', token.value).then(x => util.load_preference(x))
 }
 const UpdateSelection = (mode:number | undefined, url:string | undefined):void => {
   preference.value.mode = mode
   preference.value.url = url
-  savePreference(preference.value)
+  util.save_preference(preference.value)
 }
 //#endregion
 
@@ -114,27 +92,27 @@ onMounted(() => {
     console.log("env", process.env.NODE_ENV)
     backend.value.send('message', 'Welcome Compute Tool')
   })
-  defaultTransition.value = vuetify.defaults.value?.global
+  data.value.defaultTransition = vuetify.defaults.value?.global
   emitter.on('guide', guide)
   emitter.on('relogin', relogin)
   emitter.on('loginGuest', loginGuest)
   emitter.on('login', trylogin)
-  emitter.on('savePreference', savePreference)
+  emitter.on('savePreference', util.save_preference)
   emitter.on('setting', setting)
   backend.value.wait_init().then(() => {
     if(backend.value.config.haveBackend){
-      backend.value.eventOn('locate', locate)
+      backend.value.eventOn('locate', util.locate)
       backend.value.eventOn('message', message)
-      backend.value.invoke('load_preference', true, token.value).then(x => load_preference(x))
+      backend.value.invoke('load_preference', true, token.value).then(x => util.load_preference(x))
     }
   })
 })
 
 onUnmounted(() => {
   emitter.off('guide', guide)
-  emitter.off('savePreference', savePreference)
+  emitter.off('savePreference', util.save_preference)
   emitter.off('setting', setting)
-  backend.value.eventOff('locate', locate)
+  backend.value.eventOff('locate', util.locate)
   backend.value.eventOff('message', message)
 })
 </script>
@@ -152,6 +130,6 @@ onUnmounted(() => {
     <span v-else>route: {{ route }} {{ JSON.stringify(config, null, 4) }}</span>
     <!-- Extra components -->
     <Messager />
-    <SettingDialog v-model="settingModal" @update="preferenceUpdate" />
+    <SettingDialog v-model="data.settingModal" @update="e => util.update_preference(e)" />
   </v-container>
 </template>

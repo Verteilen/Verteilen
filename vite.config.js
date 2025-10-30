@@ -2,10 +2,10 @@ const Path = require('path');
 const vuePlugin = require('@vitejs/plugin-vue')
 
 const { defineConfig } = require('vite');
+import { VitePWA } from 'vite-plugin-pwa'
 import IconsResolve from 'unplugin-icons/resolver';
 import Icons from 'unplugin-icons/vite';
 import Components from 'unplugin-vue-components/vite';
-import { I18N } from "verteilen-core";
 
 /**
  * https://vitejs.dev/config
@@ -24,6 +24,17 @@ const config = defineConfig({
         emptyOutDir: true
     },
     plugins: [
+        VitePWA(
+            { 
+                includeAssets: ['assets/icon.ico'],
+                registerType: 'autoUpdate',
+                injectRegister: 'auto',
+                manifest: {
+                    name: "Verteilen Compute Server",
+                    short_name: "Verteilen"
+                }
+            }
+        ),
         vuePlugin(
             { 
                 script: {

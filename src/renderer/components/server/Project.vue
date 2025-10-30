@@ -1,42 +1,27 @@
 <script setup lang="ts">
-import { Emitter } from 'mitt';
+//#region Modules
 import { v6 as uuidv6 } from 'uuid';
+import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { AppConfig, BusType, LocalPermission, Database, PluginPageData, Preference, Project, ProjectTemplate, ProjectTemplateText, ProjectTable } from '../../interface';
+import { BusType, Preference, ProjectTemplate, ProjectTemplateText, ProjectTable, CreateRootLocalPermission } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, DATA, IndexToValue, Temp, Util_Project, ValueToGroupName } from './Project';
-import ProjectDialog from '../dialog/ProjectDialog.vue';
+import { CreateField, DATA, EmitType, IndexToValue, PROPS, Temp, Util_Project, ValueToGroupName } from './Project';
 import { BackendProxy } from '../../proxy';
-import DialogBase from '../dialog/DialogBase.vue';
+//#endregion
 
-interface PROPS {
-    projects: Array<Project>
-    databases: Array<Database>
-    config: AppConfig
-    plugin: PluginPageData
-}
+//#region Views
+import ProjectDialog from '../dialog/ProjectDialog.vue';
+import DialogBase from '../dialog/DialogBase.vue';
+//#endregion
+
+//#region Data
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
-const emits = defineEmits<{
-    (e: 'added', project:ProjectTable[]): void
-    (e: 'edit', uuid:string, project:ProjectTable): void
-    (e: 'delete', uuids:Array<string>, bind:boolean): void
-    (e: 'select', uuids:string): void
-    (e: 'moveup', uuids:string): void
-    (e: 'movedown', uuids:string): void
-}>()
-const permission:Ref<LocalPermission | undefined> = ref({
-    view: true,
-    create: true,
-    edit: true,
-    delete: true,
-})
-const canViewDetail = ref(true)
+const emits = defineEmits<EmitType>()
 const data:Ref<DATA> = ref({
-    items: [],
     itemPrePage: -1,
     fields: [],
     importModal: false,
@@ -54,122 +39,52 @@ const data:Ref<DATA> = ref({
     search: '',
     selection: []
 })
+//#endregion
 
-const util:Util_Project = new Util_Project(backend.value, () => props.plugin, data, () => props.projects, () => props.databases)
-
+//#region Computed
+const config = computed(() => backend.value.config)
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
-const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? data.value.items : data.value.items.filter(x => x.title.includes(realSearch.value) || x.uuid.includes(realSearch.value)) })
+const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? props.projects : props.projects.filter(x => x.title.includes(realSearch.value) || x.uuid.includes(realSearch.value)) })
 const hasSelect = computed(() => data.value.selection.length > 0)
-const selected_project_ids = computed(() => data.value.items.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
+const selected_project_ids = computed(() => props.projects.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
+const projects = computed(() => props.projects)
+const databases = computed(() => props.databases)
+const plugin = computed(() => props.plugin)
+const canViewDetail = computed(() => backend.value.config.isExpress ? (backend.value.user.permission?.task.view ?? false) : true)
+const permission = computed(() => backend.value.config.isExpress ? backend.value.user.permission?.project : CreateRootLocalPermission() )
+const util:Util_Project = new Util_Project(data, backend, emits, plugin, projects, databases, selected_project_ids)
+//#endregion
 
+//#region Watch
 watch(() => props.plugin, () => {
     updateTemps()
 })
+//#endregion
 
-const updateProject = () => util.updateProject()
-const recoverProject = (p:Project) => emits('added', [p])
-const createProject = () => util.createProject()
-const datachoose = (uuid:string) => emits('select', uuid)
-const dataedit = (uuid:string) => util.dataedit(uuid)
-const dataimport = () => {
+//#region Methods
+
+//#region Import Expert Related
+const dataImport = () => {
     data.value.importModal = true
 }
-
-const dataexport = async (uuid:string) => {
+const dataExport = async (uuid:string) => {
     const p = props.projects.find(x => x.uuid == uuid)
     if(p == undefined) return
-    if(props.config.isElectron){
+    if(config.value.isElectron){
         window.electronAPI.send('export_project', JSON.stringify(p))
-    }else if(props.config.isExpress){
+    }else if(config.value.isExpress){
         const handle = await window.showSaveFilePicker({ suggestedName: p.uuid + '.json' });
         const writer = await handle.createWritable();
         await writer.write(new Blob([JSON.stringify(p, null, 2)]))
         await writer.close()
     }
 }
-
-const deleteSelect = () => {
-    data.value.deleteData = selected_project_ids.value
-    data.value.deleteModal = true
-}
-
-const deleteConfirm = () => {
-    data.value.deleteModal = false
-    emits('delete', data.value.deleteData, data.value.deleteBind)
-    nextTick(() => {
-        updateProject()
-        data.value.deleteBind = false
-    })
-}
-
-const cloneSelect = () => {
-    const ps:Array<Project> = props.projects.filter(x => selected_project_ids.value.includes(x.uuid)).map(y => JSON.parse(JSON.stringify(y)))
-    ps.forEach(x => {
-        x.uuid = uuidv6()
-        x.title = x.title + ` (${i18n.global.t('clone')})`
-        x.task.forEach(y => {
-            y.uuid = uuidv6()
-            y.jobs.forEach(z => {
-                z.uuid = uuidv6()
-            })
-        })
-    })
-    emits('added', ps)
-    nextTick(() => {
-        updateProject();
-    })
-}
-
-const selectall = () => {
-    data.value.selection = data.value.items.map(x => x.uuid)
-}
-
-const DialogSubmit = (p:CreateField) => {
-    data.value.editData = p
-    nextTick(() => {
-        if(data.value.isEdit) confirmEdit()
-        else confirmCreate()
-    }) 
-}
-
-const confirmCreate = async () => {
-    const buffer = await util.confirmCreate()
-    if(buffer == undefined) return
-    data.value.dialogModal = false
-    emits('added', 
-        [buffer]
-    )
-    nextTick(() => {
-        updateProject();
-    })
-}
-
-const confirmEdit = () => {
-    const selectp = util.confirmEdit()
-    if(selectp == undefined) return
-    data.value.dialogModal = false
-    emits('edit', 
-    data.value.editUUID,
-        { 
-            uuid: data.value.editUUID,
-            title: data.value.editData.title, 
-            description: data.value.editData.description,
-            database_uuid: selectp.database_uuid,
-            database: selectp.database,
-            task: selectp.task
-        }
-    )
-    nextTick(() => {
-        updateProject();
-    })
-}
-
-const ImportConfirm = async () => {
+const importConfirm = async () => {
     data.value.importModal = false
     Promise.all(data.value.importData.map(x => x.text())).then(texts => {
         const a = texts.map(x => {
             try {
-                const buffer:Project = JSON.parse(x)
+                const buffer:ProjectTable = JSON.parse(x)
                 buffer.uuid = uuidv6()
                 buffer.database_uuid = ""
                 buffer.database = undefined
@@ -180,43 +95,63 @@ const ImportConfirm = async () => {
             }
         }).filter(x => x != undefined)
         emits('added', a)
-        nextTick(() => {
-            updateProject();
-        })
+    })
+}
+//#endregion
+
+//#region Create Edit Related
+const dialogSubmit = (p:CreateField) => {
+    data.value.editData = p
+    nextTick(() => {
+        if(data.value.isEdit) confirmEdit()
+        else confirmCreate()
+    }) 
+}
+const confirmCreate = async () => {
+    const buffer = await util.confirmCreate()
+    if(buffer == undefined) return
+    data.value.dialogModal = false
+    emits('added', 
+        [buffer]
+    )
+}
+const confirmEdit = () => {
+    const selectp = util.confirmEdit()
+    if(selectp == undefined) return
+    data.value.dialogModal = false
+    emits('edit', 
+    data.value.editUUID,
+        { 
+            ...selectp,
+            uuid: data.value.editUUID,
+            title: data.value.editData.title, 
+            description: data.value.editData.description,
+        }
+    )
+}
+//#endregion
+
+const deleteSelect = () => {
+    data.value.deleteData = selected_project_ids.value
+    data.value.deleteModal = true
+}
+
+const deleteConfirm = () => {
+    data.value.deleteModal = false
+    data.value.selection = []
+    emits('delete', data.value.deleteData, data.value.deleteBind)
+    nextTick(() => {
+        data.value.deleteBind = false
     })
 }
 
-const moveup = (uuid:string) => {
-    emits('moveup', uuid)
-    nextTick(() => {
-        updateProject();
-    })
+const selectAll = () => {
+    data.value.selection = props.projects.map(x => x.uuid)
 }
 
 const ProjectTemplateTranslate = (t:number):string => {
     return ProjectTemplateText.hasOwnProperty(t) ? i18n.global.t(ProjectTemplateText[t]) : ""
 }
-
-const movedown = (uuid:string) => {
-    emits('movedown', uuid)
-    nextTick(() => {
-        updateProject();
-    })
-}
-
-const isFirst = (uuid:string) => util.isFirst(uuid)
-const isLast = (uuid:string) => util.isLast(uuid)
-
-const updateFields = () => {
-    data.value.fields = [
-        { title: 'ID', align: 'center', key: 'ID', width: "25%" },
-        { title: i18n.global.t('headers.title'), align: 'center', key: 'title', width: "20%" },
-        { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
-        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount', width: "150px" },
-        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail', width: "20%" },
-    ]
-}
-
 const updateTemps = () => {
     data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         const text = ProjectTemplateTranslate(IndexToValue(index))
@@ -240,45 +175,41 @@ const updateTemps = () => {
     })
 }
 
-const onHotkey = (value:string) => {
-    if(value == 'create_project'){
-        createProject()
-    }
-}
-
 const updateLocate = () => {
     updateTemps()
     updateFields()
 }
+const updateFields = () => {
+    data.value.fields = [
+        { title: 'ID', align: 'center', key: 'ID', width: "25%" },
+        { title: i18n.global.t('headers.title'), align: 'center', key: 'title', width: "20%" },
+        { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
+        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount', width: "150px" },
+        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail', width: "20%" },
+    ]
+}
+const onHotkey = (value:string) => {
+    if(value == 'create_project'){
+        util.createProject()
+    }
+}
+//#endregion
 
 onMounted(() => {
-    console.log("Project Mounted")
     updateLocate()
     updateFields()
     emitter.on('hotkey', onHotkey)
-    emitter.on('updateProject', updateProject)
-    emitter.on('recoverProject', recoverProject)
-    emitter.on('createProject', createProject)
     emitter.on('updateLocate', updateLocate)
-    if(props.config.isElectron) {
-        window.electronAPI.eventOn('createProject', createProject)
+    if(config.value.isElectron) {
+        window.electronAPI.eventOn('createProject', util.createProject)
     }
-    backend.value.wait_init().then(() => {
-        if(backend.value.config.isExpress){
-            permission.value = backend.value.user.permission?.project
-            canViewDetail.value = backend.value.user.permission?.task.view ?? false
-        }
-    })
 })
 
 onUnmounted(() => {
     emitter.off('hotkey', onHotkey)
-    emitter.off('updateProject', updateProject)
-    emitter.off('recoverProject', recoverProject)
-    emitter.off('createProject', createProject)
     emitter.off('updateLocate', updateLocate)
-    if(props.config.isElectron) {
-        window.electronAPI.eventOff('createProject', createProject)
+    if(config.value.isElectron) {
+        window.electronAPI.eventOff('createProject', util.createProject)
     }
 })
 </script>
@@ -291,7 +222,7 @@ onUnmounted(() => {
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="createProject" :disabled="!permission?.create">
+                        <v-btn icon v-bind="props" @click="util.createProject" :disabled="!permission?.create">
                             <v-icon>mdi-plus</v-icon>
                         </v-btn>
                     </template>
@@ -299,7 +230,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="dataimport" :disabled="!permission?.create">
+                        <v-btn icon v-bind="props" @click="dataImport" :disabled="!permission?.create">
                             <v-icon>mdi-import</v-icon>
                         </v-btn>
                     </template>
@@ -307,7 +238,7 @@ onUnmounted(() => {
                 </v-tooltip>   
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="selectall">
+                        <v-btn icon v-bind="props" @click="selectAll">
                             <v-icon>mdi-check-all</v-icon>
                         </v-btn>
                     </template>
@@ -315,7 +246,7 @@ onUnmounted(() => {
                 </v-tooltip>    
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="cloneSelect" :disabled="!hasSelect || !permission?.create">
+                        <v-btn icon v-bind="props" @click="util.cloneSelect" :disabled="!hasSelect || !permission?.create">
                             <v-icon>mdi-content-paste</v-icon>
                         </v-btn>
                     </template>
@@ -332,15 +263,15 @@ onUnmounted(() => {
             </v-toolbar>
         </div>
         <div class="pt-3">
-            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="ID" :style="{ 'fontSize': preference.font + 'px' }">
+            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
                 <template v-slot:item.ID="{ item }">
-                    <a v-if="canViewDetail" href="#" @click="datachoose(item.uuid)">{{ item.uuid }}</a>
+                    <a v-if="canViewDetail" href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid }}</a>
                     <span v-else>{{ item.uuid }}</span>
                 </template>
                 <template v-slot:item.detail="{ item }">
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="dataedit(item.uuid)" :disabled="!permission?.edit" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon @click="util.dataEdit(item.uuid)" :disabled="!permission?.edit" size="small">
                                 <v-icon>mdi-pencil</v-icon>
                             </v-btn>
                         </template>
@@ -348,7 +279,7 @@ onUnmounted(() => {
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="dataexport(item.uuid)" :disabled="!permission?.view" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon @click="dataExport(item.uuid)" :disabled="!permission?.view" size="small">
                                 <v-icon>mdi-export</v-icon>
                             </v-btn>
                         </template>
@@ -356,7 +287,7 @@ onUnmounted(() => {
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon :disabled="isFirst(item.uuid) || !permission?.edit" @click="moveup(item.uuid)" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="util.isFirst(item.uuid) || !permission?.edit" @click="util.moveUp(item.uuid)" size="small">
                                 <v-icon>mdi-arrow-up</v-icon>
                             </v-btn>
                         </template>
@@ -364,7 +295,7 @@ onUnmounted(() => {
                     </v-tooltip>
                     <v-tooltip location="bottom">
                         <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon :disabled="isLast(item.uuid) || !permission?.edit" @click="movedown(item.uuid)" size="small">
+                            <v-btn variant="text" v-bind="props" flat icon :disabled="util.isLast(item.uuid) || !permission?.edit" @click="util.moveDown(item.uuid)" size="small">
                                 <v-icon>mdi-arrow-down</v-icon>
                             </v-btn>
                         </template>
@@ -382,7 +313,7 @@ onUnmounted(() => {
             :error-message="data.errorMessage"
             :title-error="data.titleError"
             :edit-data="data.editData" 
-            @submit="DialogSubmit" />
+            @submit="dialogSubmit" />
         <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
             <template #title>
                 <v-icon>mdi-pencil</v-icon>
@@ -410,7 +341,7 @@ onUnmounted(() => {
                 <v-file-upload v-model="data.importData" show-size clearable multiple density="default"></v-file-upload>
             </template>
             <template #action>
-                <v-btn class="mt-3" :disabled="data.importData.length == 0" color="primary" @click="ImportConfirm">{{ $t('import') }}</v-btn>
+                <v-btn class="mt-3" :disabled="data.importData.length == 0" color="primary" @click="importConfirm">{{ $t('import') }}</v-btn>
             </template>
         </DialogBase>
     </div>

@@ -12,14 +12,12 @@ import { i18n } from './../plugins/i18n'
 
 //#region Views
 import AppBar from './components/layout/AppBar.vue'
-import { BackendProxy } from '../proxy'
 import Layout from './components/layout/Layout.vue'
 //#endregion
 
 //#region Data
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
-const backend:BackendProxy = inject("backend")!
 const preference:Preference = inject("preference")!
 const model = defineModel<number>()
 const emit = defineEmits<{
