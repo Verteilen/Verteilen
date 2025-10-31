@@ -39,7 +39,9 @@ const data:Ref<DATA> = ref({
     errorMessage: '',
     titleError: false,
     search: '',
-    selection: []
+    selection: [],
+    sort: undefined,
+    order: undefined,
 })
 //#endregion
 
@@ -47,12 +49,21 @@ const data:Ref<DATA> = ref({
 const config = computed(() => backend.value.config)
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
 const items_final = computed(() => { 
-    return realSearch.value == null || 
+    let a = realSearch.value == null || 
         realSearch.value.length == 0 ? props.projects : 
             props.projects.filter(x => 
                 x.title.includes(realSearch.value) || 
                 x.uuid.slice(x.uuid.length - 12, x.uuid.length).includes(realSearch.value)
             ) 
+    a = JSON.parse(JSON.stringify(a))
+    if(data.value.sort != undefined && data.value.order != undefined){
+        a = a.sort((a:any, b:any) => {
+            return a[data.value.sort!] - b[data.value.sort!]
+        })
+        if(data.value.order != 'asc') a = a.reverse()
+        return a
+    }
+    else return a
 })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_project_ids = computed(() => props.projects.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))

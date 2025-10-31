@@ -74,6 +74,8 @@ export interface DATA {
     titleError:boolean
     search:string
     selection:Array<string>
+    sort: string | undefined
+    order: string | undefined
 }
 
 export const ValueToGroupName = (v:number) => BuildIn_ProjectTempGroup.find(x => x.value == v)?.group
