@@ -68,6 +68,8 @@ export interface DATA {
     search: string | undefined
     selectSearch: string | undefined
     selection:Array<string>
+    sort: string | undefined
+    order: string | undefined
 }
 
 export class Util_Task {

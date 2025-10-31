@@ -10,7 +10,6 @@ import { CreateField, DATA, EmitType, PROPS, Util_Task } from './Task';
 //#region Views
 import TaskDialog from '../dialog/task/TaskDialog.vue';
 import DatabaseSelectionDialog from '../dialog/DatabaseSelectionDialog.vue';
-import DialogBase from '../dialog/DialogBase.vue';
 import ContextFrame from '../components/layout/ContextFrame.vue';
 import DeleteDialog from '../dialog/DeleteDialog.vue';
 //#endregion
@@ -35,7 +34,9 @@ const data:Ref<DATA> = ref({
     titleError: false,
     search: '',
     selectSearch: '',
-    selection: []
+    selection: [],
+    sort: undefined,
+    order: undefined,
 })
 //#endregion
 
@@ -46,7 +47,18 @@ const hasPara = computed(() => {
 })
 const realSearch = computed(() => data.value.search?.trimStart().trimEnd() ?? '')
 const items_final = computed(() => {
-    return realSearch.value == null || realSearch.value.length == 0 ? props.tasks : props.tasks.filter(x => x.title.includes(realSearch.value) || x.uuid.slice(x.uuid.length - 12, x.uuid.length).includes(realSearch.value))
+    let a = realSearch.value == null || 
+        realSearch.value.length == 0 ? props.tasks : 
+            props.tasks.filter(x => x.title.includes(realSearch.value) || x.uuid.slice(x.uuid.length - 12, x.uuid.length).includes(realSearch.value))
+    a = JSON.parse(JSON.stringify(a))
+    if(data.value.sort != undefined && data.value.order != undefined){
+        a = a.sort((a:any, b:any) => {
+            return a[data.value.sort!] - b[data.value.sort!]
+        })
+        if(data.value.order != 'asc') a = a.reverse()
+        return a
+    }
+    else return a
 })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_task_ids = computed(() => props.tasks.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
@@ -129,8 +141,10 @@ const TaskTypeColor = (item:TaskTable) => {
     else return 'success'
 }
 
-const isFirst = (uuid:string) => util.isFirst(uuid)
-const isLast = (uuid:string) => util.isLast(uuid)
+const updateOptions = (a:any) => {
+    data.value.order = a.sortBy.length == 0 ? undefined : a.sortBy[0].order
+    data.value.sort = a.sortBy.length == 0 ? undefined : a.sortBy[0].key
+}
 
 const updateFields = () => {
     data.value.fields = [
@@ -150,6 +164,22 @@ const updateLocate = () => {
 
 const goreturn = () => {
     emits('return')
+}
+
+const onMoveCallback = (evt:any, originalEvent:any) => {
+    const item = evt.draggedContext.element;
+    const itemIdx = evt.draggedContext.futureIndex;
+
+    console.log("onMoveCallback");
+
+    if (item.locked) {
+    return false;
+    }
+
+    return true;
+}
+const onDropCallback = (evt:any, originalEvent:any) => {
+    console.log("onDropCallback");
 }
 
 const onHotkey = (value:string) => {
@@ -244,7 +274,7 @@ onUnmounted(() => {
         <v-card flat style="background: transparent">
             <v-card-text class="my-0 py-0">
                 <v-text-field v-model="data.search" class="mb-2" :style="{ 'fontSize': preference.font + 'px' }" :placeholder="$t('search')" clearable prepend-icon="mdi-magnify" hide-details single-line></v-text-field>
-                <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
+                <v-data-table style="background: transparent" @update:options="updateOptions" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
                     <template v-slot:item.ID="{ item }">
                         <a href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid.slice(item.uuid.length - 12, item.uuid.length) }}</a>
                     </template>
@@ -255,10 +285,10 @@ onUnmounted(() => {
                         <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
                             <v-icon>mdi-pencil</v-icon>
                         </v-btn>
-                        <v-btn variant="text" icon :disabled="isFirst(item.uuid)" @click="util.moveUp(item.uuid)" size="small">
+                        <v-btn variant="text" icon :disabled="util.isFirst(item.uuid)" @click="util.moveUp(item.uuid)" size="small">
                             <v-icon>mdi-arrow-up</v-icon>
                         </v-btn>
-                        <v-btn variant="text" icon :disabled="isLast(item.uuid)" @click="util.moveDown(item.uuid)" size="small">
+                        <v-btn variant="text" icon :disabled="util.isLast(item.uuid)" @click="util.moveDown(item.uuid)" size="small">
                             <v-icon>mdi-arrow-down</v-icon>
                         </v-btn>
                     </template>
