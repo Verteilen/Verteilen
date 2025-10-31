@@ -1,4 +1,5 @@
 <script setup lang="ts">
+//#region Modules
 import { Emitter } from 'mitt';
 import { v6 as uuidv6 } from 'uuid';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
@@ -25,8 +26,13 @@ import {
 import { i18n } from './../../plugins/i18n';
 import DialogBase from '../dialog/DialogBase.vue';
 import { BackendProxy } from '../../proxy';
+//#endregion
 
+//#region Views
+import ContextFrame from '../components/layout/ContextFrame.vue';
+//#endregion
 
+//#region Data
 interface PROPS {
     projects: Array<ProjectTable>
     jobs: Array<JobTable>
@@ -63,6 +69,7 @@ const types2:Ref<Array<any>> = ref([])
 const result:Ref<Array<any>> = ref([])
 const categorise:Ref<Array<any>> = ref([])
 const dirty = ref(false)
+//#endregion
 
 const hasSelect = computed(() => items.value.filter(x => x.s).length > 0)
 const replaceString = (job:Job, index:number):string => {
@@ -293,26 +300,26 @@ const onHotkey = (value:string) => {
 onMounted(() => {
     updateLocate()
     updateJob()
-    emitter?.on('hotkey', onHotkey)
-    emitter?.on('updateJob', updateJob)
-    emitter?.on('updateLocate', updateLocate)
-    emitter?.on('renameScript', libRename)
-    emitter?.on('deleteScript', libDelete)
+    emitter.on('hotkey', onHotkey)
+    emitter.on('updateJob', updateJob)
+    emitter.on('updateLocate', updateLocate)
+    emitter.on('renameScript', libRename)
+    emitter.on('deleteScript', libDelete)
 })
 
 onUnmounted(() => {
-    emitter?.off('hotkey', onHotkey)
-    emitter?.off('updateJob', updateJob)
-    emitter?.off('updateLocate', updateLocate)
-    emitter?.off('renameScript', libRename)
-    emitter?.off('deleteScript', libDelete)
+    emitter.off('hotkey', onHotkey)
+    emitter.off('updateJob', updateJob)
+    emitter.off('updateLocate', updateLocate)
+    emitter.off('renameScript', libRename)
+    emitter.off('deleteScript', libDelete)
 })
 
 </script>
 
 <template>
-    <div>
-        <div class="py-3">
+    <ContextFrame>
+        <template #toolbar>
             <v-toolbar density="compact" class="px-3">
                 <v-btn size="sm" class="mr-2" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
                 <p v-if="props.select != undefined" class="mr-4">
@@ -376,177 +383,177 @@ onUnmounted(() => {
                     {{ $t('delete') }}
                 </v-tooltip> 
             </v-toolbar>
+        </template>
+        <template #dialog>
+            <DialogBase width="500" v-model="createModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-hammer</v-icon>
+                    {{ $t('modal.new-job') }}
+                </template>
+                <template #text>
+                    <v-select class="mb-1" hide-details v-model="createData.category" :autofocus="true" :items="categorise" item-title="text" item-value="value"></v-select>
+                    <v-select class="mb-1" hide-details v-if="createData.category == 0" v-model="createData.type" :items="types2" item-title="text" item-value="value"></v-select>
+                    <v-select class="mb-1" hide-details v-if="createData.category == 1" v-model="createData.type" :items="types" item-title="text" item-value="value"></v-select>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
+                </template>
+            </DialogBase>
+            <DialogBase width="500" v-model="deleteModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.delete-job') }}
+                </template>
+                <template #text>
+                    <p>{{ $t('modal.delete-job-confirm') }}</p>
+                    <br />
+                    <p v-for="(p, i) in deleteData">
+                        {{ i }}. {{ p }}
+                    </p>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+                </template>
+            </DialogBase>
+        </template>
+        <!-- Property -->
+        <h4 class="text-info"> {{ $t('property') }} </h4>
+        <div v-if="select != undefined" class="py-3 pb-5 mx-5">
+            <br />
+            <v-row>
+                <v-col>
+                    <v-text-field v-model.number="ck" label="ck" hide-details :min="0" type="number"></v-text-field>
+                </v-col>
+            </v-row>
+            <v-row v-for="(c, i) in items2" :key="i">
+                <v-col cols="2" class="my-0 py-0">
+                    <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
+                </v-col>
+                <v-col cols="6" class="my-0 py-0">
+                    <v-text-field hide-detail v-model="c.expression" :label="$t('expression.value')" @input="setdirty"></v-text-field>
+                </v-col>
+                <v-col cols="2" class="my-0 py-0">
+                    <v-text-field type="number" :rules="[rules.required, rules.deep]" :min="1" hide-detail v-model.number="c.deep" :label="$t('expression.deep')" @input="setdirty"></v-text-field>
+                </v-col>
+                <v-col cols="2" class="my-0 py-0">
+                    <v-row>
+                        <v-col cols="4">
+                            <v-btn flat icon @click="upProperty(i)" :disabled="i == 0">
+                                <v-icon>mdi-arrow-up</v-icon>
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="4">
+                            <v-btn flat icon @click="downProperty(i)" :disabled="i == items2.length - 1">
+                                <v-icon>mdi-arrow-down</v-icon>
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="4">
+                            <v-btn flat icon @click="deleteProperty(c.name)">
+                                <v-icon>mdi-delete</v-icon>
+                            </v-btn>
+                        </v-col>
+                    </v-row>
+                </v-col>
+            </v-row>
         </div>
-        <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
-            <!-- Property -->
-            <h4 class="text-info"> {{ $t('property') }} </h4>
-            <div v-if="select != undefined" class="py-3 pb-5 mx-5">
-                <br />
-                <v-row>
-                    <v-col>
-                        <v-text-field v-model.number="ck" label="ck" hide-details :min="0" type="number"></v-text-field>
-                    </v-col>
-                </v-row>
-                <v-row v-for="(c, i) in items2" :key="i">
-                    <v-col cols="2" class="my-0 py-0">
-                        <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
-                    </v-col>
-                    <v-col cols="6" class="my-0 py-0">
-                        <v-text-field hide-detail v-model="c.expression" :label="$t('expression.value')" @input="setdirty"></v-text-field>
-                    </v-col>
-                    <v-col cols="2" class="my-0 py-0">
-                        <v-text-field type="number" :rules="[rules.required, rules.deep]" :min="1" hide-detail v-model.number="c.deep" :label="$t('expression.deep')" @input="setdirty"></v-text-field>
-                    </v-col>
-                    <v-col cols="2" class="my-0 py-0">
-                        <v-row>
-                            <v-col cols="4">
-                                <v-btn flat icon @click="upProperty(i)" :disabled="i == 0">
-                                    <v-icon>mdi-arrow-up</v-icon>
-                                </v-btn>
-                            </v-col>
-                            <v-col cols="4">
-                                <v-btn flat icon @click="downProperty(i)" :disabled="i == items2.length - 1">
-                                    <v-icon>mdi-arrow-down</v-icon>
-                                </v-btn>
-                            </v-col>
-                            <v-col cols="4">
-                                <v-btn flat icon @click="deleteProperty(c.name)">
-                                    <v-icon>mdi-delete</v-icon>
-                                </v-btn>
-                            </v-col>
-                        </v-row>
-                    </v-col>
-                </v-row>
-            </div>
-            <!-- Job List -->
-            <hr class="mx-5 my-2" />
-            <h4 class="text-info"> {{ $t('job') }} </h4>
-            <div v-if="select != undefined" class="py-3 pb-7">
-                <br />
-                <v-expansion-panels color="dark" class="px-6">
-                    <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2 pl-5">
-                        <v-row>
-                            <v-col cols="auto" class="mt-2">
-                                <v-checkbox type="checkbox" v-model="c.s" hide-details width="25" density="compact"></v-checkbox>
-                            </v-col>
-                            <v-col cols="auto" class="mt-2">
-                                <v-btn variant="text" size="small" icon :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">
-                                    <v-icon>mdi-arrow-up</v-icon>
-                                </v-btn>
-                                <v-btn variant="text" size="small" icon :disabled="isLast(c.uuid)" @click="movedown(c.uuid)" class="ml-2">
-                                    <v-icon>mdi-arrow-down</v-icon>
-                                </v-btn>
-                            </v-col>
-                            <v-col cols="10">
-                                <v-expansion-panel-title style="background: transparent">
-                                    <v-chip class="mr-1">{{ i }}. {{ c.category == 0 ? JobType2Translate(c.type) : JobTypeTranslate(c.type) }}</v-chip>
-                                    <v-chip>{{ c.uuid }}</v-chip>
-                                </v-expansion-panel-title>
-                            </v-col>
-                        </v-row>
-                        
-                        <v-expansion-panel-text>
-                            <v-card flat>
-                                <v-card-text>
-                                    <div v-if="checkPatterm(c.category, c.type, 'Javascript_n')">
-                                        <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
-                                        <codemirror-js v-model="c.script" 
-                                            style="text-align:left;"
-                                            :style="{ height: '40vh' }"
-                                            @change="setdirty"/>
-                                        <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs" item-title="name" item-value="name" multiple label="Library">
-                                            <template #selection="{ item }">
-                                                <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
-                                                <v-chip v-else closable color="danger">{{item.title}}</v-chip>
-                                            </template>
-                                        </v-select>
-                                    </div>
-                                    <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
-                                        <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
-                                        <p class="hint">{{ replaceString(c, 0) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                                    </div>
-                                    <!-- Execution -->
-                                    <div v-else-if="checkPatterm(c.category, c.type, 'TwoPath')">
-                                        <p class="hint">{{ replaceString(c, 0) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.from')" hide-details></v-text-field>
-                                        <p class="hint">{{ replaceString(c, 1) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.to')" hide-details></v-text-field>
-                                    </div>
-                                    <div v-else-if="checkPatterm(c.category, c.type, 'OnePath')">
-                                        <p class="hint">{{ replaceString(c, 0) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                                    </div>
-                                    <div v-else-if="checkPatterm(c.category, c.type, 'Writer')">
-                                        <p class="hint">{{ replaceString(c, 0) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                                        <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.content')" hide-details></v-textarea>
-                                    </div>
-                                    <div v-else-if="checkPatterm(c.category, c.type, 'Command')">
-                                        <p class="hint">{{ replaceString(c, 0) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
-                                        <p class="hint">{{ replaceString(c, 1) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
-                                        <p class="hint">{{ replaceString(c, 2) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.databases')" hide-details></v-text-field>
-                                    </div>
-                                    <div v-else-if="checkPatterm(c.category, c.type, 'Lib_Command')">
-                                        <p class="hint">{{ replaceString(c, 0) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
-                                        <p class="hint">{{ replaceString(c, 1) }}</p>
-                                        <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.databases')" hide-details></v-text-field>
-                                    </div>
-                                    <div v-else-if="checkPatterm(c.category, c.type, 'Javascript')">
-                                        <codemirror-js v-model="c.script"
-                                            style="text-align:left;"
-                                            :style="{ height: '40vh' }"
-                                            @change="setdirty"/>
-                                        <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs" item-title="name" item-value="name" multiple label="Library">
-                                            <template #selection="{ item }">
-                                                <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
-                                                <v-chip v-else closable color="danger">{{item.title}}</v-chip>
-                                            </template>
-                                        </v-select>
-                                    </div>
-                                </v-card-text>
-                            </v-card>
-                        </v-expansion-panel-text>
-                    </v-expansion-panel>
-                </v-expansion-panels>
-            </div>
+        <!-- Job List -->
+        <hr class="mx-5 my-2" />
+        <h4 class="text-info"> {{ $t('job') }} </h4>
+        <div v-if="select != undefined" class="py-3 pb-7">
+            <br />
+            <v-expansion-panels color="dark" class="px-6">
+                <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2 pl-5">
+                    <v-row>
+                        <v-col cols="auto" class="mt-2">
+                            <v-checkbox type="checkbox" v-model="c.s" hide-details width="25" density="compact"></v-checkbox>
+                        </v-col>
+                        <v-col cols="auto" class="mt-2">
+                            <v-btn variant="text" size="small" icon :disabled="isFirst(c.uuid)" @click="moveup(c.uuid)">
+                                <v-icon>mdi-arrow-up</v-icon>
+                            </v-btn>
+                            <v-btn variant="text" size="small" icon :disabled="isLast(c.uuid)" @click="movedown(c.uuid)" class="ml-2">
+                                <v-icon>mdi-arrow-down</v-icon>
+                            </v-btn>
+                        </v-col>
+                        <v-col cols="10">
+                            <v-expansion-panel-title style="background: transparent">
+                                <v-chip class="mr-1">{{ i }}. {{ c.category == 0 ? JobType2Translate(c.type) : JobTypeTranslate(c.type) }}</v-chip>
+                                <v-chip>{{ c.uuid }}</v-chip>
+                            </v-expansion-panel-title>
+                        </v-col>
+                    </v-row>
+                    
+                    <v-expansion-panel-text>
+                        <v-card flat>
+                            <v-card-text>
+                                <div v-if="checkPatterm(c.category, c.type, 'Javascript_n')">
+                                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                    <codemirror-js v-model="c.script" 
+                                        style="text-align:left;"
+                                        :style="{ height: '40vh' }"
+                                        @change="setdirty"/>
+                                    <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs" item-title="name" item-value="name" multiple label="Library">
+                                        <template #selection="{ item }">
+                                            <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
+                                            <v-chip v-else closable color="danger">{{item.title}}</v-chip>
+                                        </template>
+                                    </v-select>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
+                                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                    <p class="hint">{{ replaceString(c, 0) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                </div>
+                                <!-- Execution -->
+                                <div v-else-if="checkPatterm(c.category, c.type, 'TwoPath')">
+                                    <p class="hint">{{ replaceString(c, 0) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.from')" hide-details></v-text-field>
+                                    <p class="hint">{{ replaceString(c, 1) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.to')" hide-details></v-text-field>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'OnePath')">
+                                    <p class="hint">{{ replaceString(c, 0) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'Writer')">
+                                    <p class="hint">{{ replaceString(c, 0) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                    <v-textarea class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.content')" hide-details></v-textarea>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'Command')">
+                                    <p class="hint">{{ replaceString(c, 0) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
+                                    <p class="hint">{{ replaceString(c, 1) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
+                                    <p class="hint">{{ replaceString(c, 2) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[2]" @input="setdirty" :label="$t('jobpage.databases')" hide-details></v-text-field>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'Lib_Command')">
+                                    <p class="hint">{{ replaceString(c, 0) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.command')" hide-details></v-text-field>
+                                    <p class="hint">{{ replaceString(c, 1) }}</p>
+                                    <v-text-field class="my-2" v-model="c.string_args[1]" @input="setdirty" :label="$t('jobpage.databases')" hide-details></v-text-field>
+                                </div>
+                                <div v-else-if="checkPatterm(c.category, c.type, 'Javascript')">
+                                    <codemirror-js v-model="c.script"
+                                        style="text-align:left;"
+                                        :style="{ height: '40vh' }"
+                                        @change="setdirty"/>
+                                    <v-select @update:model-value="setdirty" clearable v-model="c.string_args" :items="props.libs" item-title="name" item-value="name" multiple label="Library">
+                                        <template #selection="{ item }">
+                                            <v-chip v-if="scriptExist(item.title)" color="primary">{{item.title}}</v-chip>
+                                            <v-chip v-else closable color="danger">{{item.title}}</v-chip>
+                                        </template>
+                                    </v-select>
+                                </div>
+                            </v-card-text>
+                        </v-card>
+                    </v-expansion-panel-text>
+                </v-expansion-panel>
+            </v-expansion-panels>
         </div>
-        <DialogBase width="500" v-model="createModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-hammer</v-icon>
-                {{ $t('modal.new-job') }}
-            </template>
-            <template #text>
-                <v-select class="mb-1" hide-details v-model="createData.category" :autofocus="true" :items="categorise" item-title="text" item-value="value"></v-select>
-                <v-select class="mb-1" hide-details v-if="createData.category == 0" v-model="createData.type" :items="types2" item-title="text" item-value="value"></v-select>
-                <v-select class="mb-1" hide-details v-if="createData.category == 1" v-model="createData.type" :items="types" item-title="text" item-value="value"></v-select>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase width="500" v-model="deleteModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.delete-job') }}
-            </template>
-            <template #text>
-                <p>{{ $t('modal.delete-job-confirm') }}</p>
-                <br />
-                <p v-for="(p, i) in deleteData">
-                    {{ i }}. {{ p }}
-                </p>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
-                <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
-            </template>
-        </DialogBase>
-    </div>
+    </ContextFrame>
 </template>
 
 <style scoped>

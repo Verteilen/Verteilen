@@ -8,6 +8,7 @@ import { CreateField, DATA, EmitType, PROPS, Util_Task } from './Task';
 import TaskDialog from '../dialog/TaskDialog.vue';
 import DatabaseSelectionDialog from '../dialog/DatabaseSelectionDialog.vue';
 import DialogBase from '../dialog/DialogBase.vue';
+import ContextFrame from '../components/layout/ContextFrame.vue';
 //#endregion
 
 //#region Data
@@ -167,8 +168,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div>
-        <div class="py-3">
+    <ContextFrame>
+        <template #toolbar>
             <v-toolbar density="compact" class="px-3">
                 <v-btn size="sm" class="mr-2" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
                 <v-text-field :style="{ 'fontSize': preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
@@ -216,62 +217,62 @@ onUnmounted(() => {
                     {{ $t('delete') }}
                 </v-tooltip> 
             </v-toolbar>
-        </div>
-        <div class="py-3" style="height: calc(100vh - 130px); overflow-y: auto;">
-            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
-                <template v-slot:item.ID="{ item }">
-                    <a href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid }}</a>
+        </template>
+        <template #dialog>
+            <TaskDialog v-model="data.dialogModal" 
+                :para_keys="para_keys"
+                :is-edit="data.isEdit" 
+                :error-message="data.errorMessage"
+                :title-error="data.titleError"
+                :edit-data="data.editData" 
+                :preference="preference"
+                @submit="DialogSubmit" />
+            <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.delete-task') }}
                 </template>
-                <template v-slot:item.Order="{ item }">
-                    {{ getIndex(item.uuid) }}
+                <template #text>
+                    <p>{{ $t('modal.delete-task-confirm') }}</p>
+                    <br />
+                    <p v-for="(p, i) in data.deleteData">
+                        {{ i }}. {{ p }}
+                    </p>
                 </template>
-                <template v-slot:item.detail="{ item }">
-                    <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
-                        <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
-                    <v-btn variant="text" icon :disabled="isFirst(item.uuid)" @click="util.moveUp(item.uuid)" size="small">
-                        <v-icon>mdi-arrow-up</v-icon>
-                    </v-btn>
-                    <v-btn variant="text" icon :disabled="isLast(item.uuid)" @click="util.moveDown(item.uuid)" size="small">
-                        <v-icon>mdi-arrow-down</v-icon>
-                    </v-btn>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
                 </template>
-                <template v-slot:item.type="{ item }">
-                    <v-chip :color="TaskTypeColor(item)">{{ TaskType(item) }}</v-chip>
-                </template>
-            </v-data-table>
-        </div>
-        <TaskDialog v-model="data.dialogModal" 
-            :para_keys="para_keys"
-            :is-edit="data.isEdit" 
-            :error-message="data.errorMessage"
-            :title-error="data.titleError"
-            :edit-data="data.editData" 
-            :preference="preference"
-            @submit="DialogSubmit" />
-        <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.delete-task') }}
+            </DialogBase>
+            <DatabaseSelectionDialog v-model="data.paraModal" 
+                :items="props.databases"
+                :preference="preference"
+                @select_uuid="selectDatabase">
+            </DatabaseSelectionDialog>
+        </template>
+        <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
+            <template v-slot:item.ID="{ item }">
+                <a href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid }}</a>
             </template>
-            <template #text>
-                <p>{{ $t('modal.delete-task-confirm') }}</p>
-                <br />
-                <p v-for="(p, i) in data.deleteData">
-                    {{ i }}. {{ p }}
-                </p>
+            <template v-slot:item.Order="{ item }">
+                {{ getIndex(item.uuid) }}
             </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
-                <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+            <template v-slot:item.detail="{ item }">
+                <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
+                    <v-icon>mdi-pencil</v-icon>
+                </v-btn>
+                <v-btn variant="text" icon :disabled="isFirst(item.uuid)" @click="util.moveUp(item.uuid)" size="small">
+                    <v-icon>mdi-arrow-up</v-icon>
+                </v-btn>
+                <v-btn variant="text" icon :disabled="isLast(item.uuid)" @click="util.moveDown(item.uuid)" size="small">
+                    <v-icon>mdi-arrow-down</v-icon>
+                </v-btn>
             </template>
-        </DialogBase>
-        <DatabaseSelectionDialog v-model="data.paraModal" 
-            :items="props.databases"
-            :preference="preference"
-            @select_uuid="selectDatabase">
-        </DatabaseSelectionDialog>
-    </div>
+            <template v-slot:item.type="{ item }">
+                <v-chip :color="TaskTypeColor(item)">{{ TaskType(item) }}</v-chip>
+            </template>
+        </v-data-table>
+    </ContextFrame>
 </template>
 
 <style scoped>

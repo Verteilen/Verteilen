@@ -4,11 +4,14 @@ import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
 import { BusType, NodeTable, Preference, ShellFolder, Single, Execute_SocketManager } from '../../interface'
 import { BackendProxy } from '../../proxy'
-import DialogBase from './DialogBase.vue'
 import { i18n } from 'verteilen-core/src/plugins/i18n'
 //#region 
 
-//#region 
+//#region Views
+import DialogBase from './DialogBase.vue'
+//#endregion
+
+//#region Data
 interface PROPS {
     item: NodeTable | undefined
     manager: Execute_SocketManager.WebsocketManager | undefined

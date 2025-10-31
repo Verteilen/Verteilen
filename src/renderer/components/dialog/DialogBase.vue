@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import { inject, Ref } from 'vue';
 import { Preference } from '../../interface';
 
+const preference:Ref<Preference> = inject('preference')!
 const modal = defineModel<boolean>({ required: true })
 const props = defineProps<{
     width?: string
     height?: string
     persistent?:boolean
     color?:string
-    preference?: Preference
     nocard?: boolean
 }>()
 </script>
@@ -15,8 +16,8 @@ const props = defineProps<{
 <template>
     <v-dialog :width="props.width ?? '500'" :height="props.height ?? undefined" v-model="modal" class="text-white" 
         :persistent="props.persistent ?? false"
-        :scrim="props.preference?.animation" 
-        :no-click-animation="!props.preference?.animation">
+        :scrim="preference?.animation" 
+        :no-click-animation="preference?.animation">
         <slot></slot>
         <v-card v-if="!nocard" :style="{ 'background': color ? color : '' }">
             <v-card-title>

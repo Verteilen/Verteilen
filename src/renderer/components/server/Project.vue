@@ -10,8 +10,10 @@ import { BackendProxy } from '../../proxy';
 //#endregion
 
 //#region Views
-import ProjectDialog from '../dialog/ProjectDialog.vue';
-import DialogBase from '../dialog/DialogBase.vue';
+import ProjectDialog from '../dialog/project/ProjectDialog.vue';
+import ProjectImportDialog from '../dialog/project/ProjectImportDialog.vue';
+import DeleteDialog from '../dialog/DeleteDialog.vue';
+import ContextFrame from '../components/layout/ContextFrame.vue';
 //#endregion
 
 //#region Data
@@ -215,8 +217,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div>
-        <div class="py-3">
+    <ContextFrame>
+        <template #toolbar>
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field :style="{ 'fontSize': preference.font + 'px' }" max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <v-spacer></v-spacer>
@@ -261,88 +263,70 @@ onUnmounted(() => {
                     {{ $t('delete') }}
                 </v-tooltip> 
             </v-toolbar>
-        </div>
-        <div class="pt-3">
-            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
-                <template v-slot:item.ID="{ item }">
-                    <a v-if="canViewDetail" href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid }}</a>
-                    <span v-else>{{ item.uuid }}</span>
-                </template>
-                <template v-slot:item.detail="{ item }">
-                    <v-tooltip location="bottom">
-                        <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="util.dataEdit(item.uuid)" :disabled="!permission?.edit" size="small">
-                                <v-icon>mdi-pencil</v-icon>
-                            </v-btn>
-                        </template>
-                        {{ $t('edit') }}
-                    </v-tooltip>
-                    <v-tooltip location="bottom">
-                        <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon @click="dataExport(item.uuid)" :disabled="!permission?.view" size="small">
-                                <v-icon>mdi-export</v-icon>
-                            </v-btn>
-                        </template>
-                        {{ $t('export') }}
-                    </v-tooltip>
-                    <v-tooltip location="bottom">
-                        <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon :disabled="util.isFirst(item.uuid) || !permission?.edit" @click="util.moveUp(item.uuid)" size="small">
-                                <v-icon>mdi-arrow-up</v-icon>
-                            </v-btn>
-                        </template>
-                        {{ $t('moveup') }}
-                    </v-tooltip>
-                    <v-tooltip location="bottom">
-                        <template v-slot:activator="{ props }">
-                            <v-btn variant="text" v-bind="props" flat icon :disabled="util.isLast(item.uuid) || !permission?.edit" @click="util.moveDown(item.uuid)" size="small">
-                                <v-icon>mdi-arrow-down</v-icon>
-                            </v-btn>
-                        </template>
-                        {{ $t('movedown') }}
-                    </v-tooltip>
-                </template>
-            </v-data-table>
-        </div>
-        <ProjectDialog v-model="data.dialogModal" 
-            :temps="data.temps"
-            :preference="preference"
-            :plugin="props.plugin"
-            :databases="props.databases"
-            :is-edit="data.isEdit" 
-            :error-message="data.errorMessage"
-            :title-error="data.titleError"
-            :edit-data="data.editData" 
-            @submit="dialogSubmit" />
-        <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.delete-project') }}
-            </template>
-            <template #text>
-                <p>{{ $t('modal.delete-project-confirm') }}</p>
-                <br />
-                <p v-for="(p, i) in data.deleteData">
-                    {{ i }}. {{ p }}
-                </p>
+        </template>
+        <template #dialog>
+            <ProjectDialog v-model="data.dialogModal" 
+                :temps="data.temps"
+                :preference="preference"
+                :plugin="props.plugin"
+                :databases="props.databases"
+                :is-edit="data.isEdit" 
+                :error-message="data.errorMessage"
+                :title-error="data.titleError"
+                :edit-data="data.editData" 
+                @submit="dialogSubmit" />
+            <ProjectImportDialog v-model="data.importModal"
+                v-model:files="data.importData"
+                @confirm="importConfirm"/>
+            <DeleteDialog v-model="data.deleteModal" 
+                :title="$t('modal.delete-project')"
+                :text="$t('modal.delete-project-confirm')"
+                :data="data.deleteData"
+                width="500"
+                @cancel="data.deleteModal = false"
+                @delete="deleteConfirm">
                 <v-checkbox v-model="data.deleteBind" :label="$t('modal.delete-project-binding')"></v-checkbox>
+            </DeleteDialog>
+        </template>
+        <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
+            <template v-slot:item.ID="{ item }">
+                <a v-if="canViewDetail" href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid }}</a>
+                <span v-else>{{ item.uuid }}</span>
             </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
-                <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+            <template v-slot:item.detail="{ item }">
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn variant="text" v-bind="props" flat icon @click="util.dataEdit(item.uuid)" :disabled="!permission?.edit" size="small">
+                            <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('edit') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn variant="text" v-bind="props" flat icon @click="dataExport(item.uuid)" :disabled="!permission?.view" size="small">
+                            <v-icon>mdi-export</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('export') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn variant="text" v-bind="props" flat icon :disabled="util.isFirst(item.uuid) || !permission?.edit" @click="util.moveUp(item.uuid)" size="small">
+                            <v-icon>mdi-arrow-up</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('moveup') }}
+                </v-tooltip>
+                <v-tooltip location="bottom">
+                    <template v-slot:activator="{ props }">
+                        <v-btn variant="text" v-bind="props" flat icon :disabled="util.isLast(item.uuid) || !permission?.edit" @click="util.moveDown(item.uuid)" size="small">
+                            <v-icon>mdi-arrow-down</v-icon>
+                        </v-btn>
+                    </template>
+                    {{ $t('movedown') }}
+                </v-tooltip>
             </template>
-        </DialogBase>
-        <DialogBase width="800" v-model="data.importModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-import</v-icon>
-                {{ $t('modal.import-project') }}
-            </template>
-            <template #text>
-                <v-file-upload v-model="data.importData" show-size clearable multiple density="default"></v-file-upload>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" :disabled="data.importData.length == 0" color="primary" @click="importConfirm">{{ $t('import') }}</v-btn>
-            </template>
-        </DialogBase>
-    </div>
+        </v-data-table>
+    </ContextFrame>
 </template>

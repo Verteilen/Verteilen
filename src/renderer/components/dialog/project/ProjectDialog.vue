@@ -2,12 +2,12 @@
 //#region Modules
 import { computed, Ref, ref, watch } from 'vue';
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import { CreateField, DialogDATA, Temp } from '../server/Project';
+import { CreateField, DialogDATA, Temp } from '../../server/Project';
 import { i18n } from 'verteilen-core/src/plugins/i18n';
 //#endregion
 
 //#region Views
-import DialogBase from './DialogBase.vue';
+import DialogBase from './../DialogBase.vue';
 //#endregion
 
 //#region Data
