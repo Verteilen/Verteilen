@@ -1,8 +1,16 @@
 <script setup lang="ts">
+//#endregion Modules
 import { computed, ref, watch } from 'vue';
 import { Database, Preference } from '../../interface';
-import DialogBase from './DialogBase.vue';
+import { i18n } from 'verteilen-core/src/plugins/i18n';
+//#endregion
 
+//#region Views
+import DialogBase from './DialogBase.vue';
+//#endregion
+
+//#region Data
+const $t = i18n.global.t
 const model = defineModel<boolean>()
 const props = defineProps<{
     items: Array<Database>,
@@ -13,6 +21,7 @@ const emits = defineEmits<{
     (e: 'select', v:Database | undefined): void
     (e: 'select_uuid', v:string): void
 }>()
+//#endregion
 
 watch(() => model.value, () => {
     search.value = ''

@@ -1,64 +1,47 @@
 <script setup lang="ts">
+//#region Modules
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
 import { 
-    Execute_WebhookManager,
     BusType, 
     ExecutePair, 
     ExecuteState, 
-    Libraries, 
-    NodeTable, 
-    Database, 
-    Preference, 
-    Project, 
-    Record, 
-    Library
-} from '../../interface';
-import { DATA } from './Console';
+    Preference} from '../../interface';
+import { DATA, EmitType, PROPS, Util_COnsole } from './Console';
 import { BackendProxy } from '../../proxy';
 import { i18n } from 'verteilen-core/src/plugins/i18n';
+//#endregion
+
+//#region Views
 import ConsoleDialog from '../dialog/ConsoleDialog.vue';
 import NumberDialog from '../dialog/NumberDialog.vue';
 import DebugLog from './../components/console/DebugLog.vue';
 import List from './../components/console/List.vue';
 import DatabasePage from './../components/console/Database.vue';
 import Process from './../components/console/Process.vue';
+//#endregion
 
-const emitter:Emitter<BusType> | undefined = inject('emitter');
-
-interface PROPS {
-    socket: Execute_WebhookManager.WebhookManager | undefined
-    execute: Array<ExecutePair>
-    libs: Array<Library>
-    projects: Array<Project>
-    nodes: Array<NodeTable>
-    databases: Array<Database>
-}
+//#region Data
 const $t = i18n.global.t
+const emitter:Emitter<BusType> | undefined = inject('emitter');
 const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
 const p_model = defineModel<ExecutePair>()
 const props = defineProps<PROPS>()
-const emits = defineEmits<{
-    (e: 'added', name:string, record:Record):void,
-    (e: 'select', index:number):void
-    (e: 'stop'):void
-}>()
+const emits = defineEmits<EmitType>()
 const data:Ref<DATA> = ref({
     leftSize: 4,
     rightSize: 8,
     tag: 2,
     createModal: false,
     skipModal: false,
+    updateWait: false,
+    queryWait: false,
 })
 const model:Ref<ExecutePair> = ref({})
-const updateWait = ref(false)
-const queryWait = ref(false)
+//#endregion
 
-const consoleAdded = (name:string, data:Record) => {
-    emits('added', name, data)
-}
-
+//#region Computed
 const firstProject = computed(() => {
     if(model.value == undefined) return true
     return (model.value.record?.project_index ?? 0) <= 0
@@ -67,6 +50,10 @@ const firstTask = computed(() => {
     if(model.value == undefined) return true
     return (model.value.record?.task_index ?? 0) <= 0
 })
+const util = new Util_COnsole(data, emits)
+//#endregion
+
+//#region Methods
 
 //#region Bus Events
 /**
@@ -87,8 +74,8 @@ const updateHandle = () => {
     }
 
     if(backend.value.config.haveBackend){
-        if(!updateWait.value){
-            updateWait.value = true
+        if(data.value.updateWait){
+            data.value.updateWait = true
             backend.value.invoke("console_update").then((xs:Array<any>) => {
                 if(xs){
                     for(let i = 0; i < xs.length; i++){
@@ -104,16 +91,16 @@ const updateHandle = () => {
                         }
                     }
                 }
-                updateWait.value = false
+                data.value.updateWait = false
             })
         }
-        if(!queryWait.value && p_model.value?.record != undefined){
-            queryWait.value = true
+        if(data.value.queryWait && p_model.value?.record != undefined){
+            data.value.queryWait = true
             backend.value.invoke("console_record", p_model.value.record.uuid).then(x => {
                 try{
                     const t = JSON.parse(x)
                     if(p_model.value?.record != undefined && t != undefined) p_model.value!.record = t
-                    queryWait.value = false
+                    data.value.queryWait = false
                 }catch(err:any){
                     console.warn(err.message)
                 }
@@ -150,11 +137,7 @@ const updateHandle = () => {
         })
     }
 }
-
-const createConsole = () => {
-    data.value.createModal = true
-}
-//#end1on
+//#endregion
 
 //#region UI Events
 /**
@@ -203,7 +186,7 @@ const skip = (forward:boolean, type:number, state:ExecuteState = ExecuteState.FI
                 if(model.value.record!.project_index < 0){
                     model.value.record!.project_index = 0
                 }
-                model.value.record!.task_state = model.value.record!.projects[model.value.record!.project_index].task.map(x => {
+                model.value.record!.task_state = model.value.record!.projects[model.value.record!.project_index].tasks.map(x => {
                     return {
                         uuid: x.uuid,
                         state: ExecuteState.NONE
@@ -211,7 +194,7 @@ const skip = (forward:boolean, type:number, state:ExecuteState = ExecuteState.FI
                 })
                 model.value.record!.task_detail = []
                 const p = model.value.record!.projects[model.value.record!.project_index]
-                const t = p.task[model.value.record!.task_index]
+                const t = p.tasks[model.value.record!.task_index]
                 const count = model.value.manager!.get_task_state_count(t)
                 for(let i = 0; i < count; i++){
                     model.value.record!.task_detail.push({
@@ -238,7 +221,7 @@ const skip = (forward:boolean, type:number, state:ExecuteState = ExecuteState.FI
                 else if (!forward) model.value.record!.task_state[model.value.record!.task_index].state = ExecuteState.RUNNING
                 model.value.record!.task_detail = []
                 const p = model.value.record!.projects[model.value.record!.project_index]
-                const t = p.task[model.value.record!.task_index]
+                const t = p.tasks[model.value.record!.task_index]
                 const count = model.value.manager!.get_task_state_count(t)
                 for(let i = 0; i < count; i++){
                     model.value.record!.task_detail.push({
@@ -315,9 +298,10 @@ const stop = () => {
 
 const onHotkey = (value:string) => {
     if(value == 'create_console'){
-        createConsole()
+        util.createConsole()
     }
 }
+//#endregion
 
 onMounted(() => {
     console.log("Console Mounted")
@@ -422,7 +406,7 @@ onUnmounted(() => {
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="createConsole">
+                        <v-btn icon v-bind="props" @click="util.createConsole">
                             <v-icon>mdi-plus</v-icon>
                         </v-btn>
                     </template>
@@ -477,7 +461,7 @@ onUnmounted(() => {
             :nodes="props.nodes"
             :databases="props.databases"
             :execute="props.execute"
-            @confirm="(e, e1) => consoleAdded(e, e1)"
+            @confirm="(e, e1) => util.consoleAdded(e, e1)"
         />
         <NumberDialog v-model="data.skipModal" 
             icon="mdi-debug-step-over"

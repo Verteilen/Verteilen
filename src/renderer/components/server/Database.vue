@@ -17,11 +17,15 @@ import { AppConfig,
 } from '../../interface'
 import { i18n } from '../../plugins/i18n'
 import { CreateField, DATA, IndexToValue, Temp, Util_Database, ValueToGroupName } from './Database'
+import { v6 as uuidv6 } from 'uuid'
+import { BackendProxy } from '../../proxy'
+
+//#region Views
 import DialogBase from '../dialog/DialogBase.vue'
 import DatabaseDialog from '../dialog/DatabaseDialog.vue'
 import DatabaseSetDialog from '../dialog/DatabaseSetDialog.vue'
-import { v6 as uuidv6 } from 'uuid'
-import { BackendProxy } from '../../proxy'
+import ContextFrame from '../components/layout/ContextFrame.vue'
+//#endregion
 
 //#region Data
 interface PROPS {
@@ -440,14 +444,12 @@ onUnmounted(() => {
         window.electronAPI.eventOff("import_database_feedback", import_database_feedback)
     }
 })
-
 </script>
 
 <template>
-    <div>
-        <div class="py-3">
-            <v-toolbar density="compact" class="pr-3">
-                <v-text-field :style="{ 'fontSize': preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
+    <ContextFrame>
+        <template #toolbar>
+            <v-toolbar density="compact" class="px-3">
                 <v-btn size="sm" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
                 <v-chip class="mx-3" v-if="select == undefined" prepend-icon="mdi-paperclip" @click="paraSelect" color="warning">
                     {{ $t('database-select') }}
@@ -515,247 +517,252 @@ onUnmounted(() => {
                     {{ $t('filters') }}
                 </v-tooltip> 
             </v-toolbar>
-        </div>
-        <div class="py-3 px-5 text-left" style="height: calc(100vh - 130px); overflow-y: auto;">
-            <v-checkbox class="pr-5 text-info" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
-            <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': preference.font + 'px' }">
-                <template v-slot:item.detail="{ item }">
-                    <v-btn variant="text" icon @click="editDatabase(item.name)" size="small">
-                        <v-icon>mdi-pencil</v-icon>
-                    </v-btn>
-                    <v-btn variant="text" icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
-                        <v-icon>mdi-arrow-up</v-icon>
-                    </v-btn>
-                    <v-btn variant="text" icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
-                        <v-icon>mdi-arrow-down</v-icon>
-                    </v-btn>
-                    <v-btn variant="text" icon @click="deleteitem(item.name)" size="small">
-                        <v-icon>mdi-delete</v-icon>
-                    </v-btn>
+        </template>
+        <template #dialog>
+            <DatabaseDialog width="500" v-model="data.createModal"
+                :is-edit="data.editMode"
+                :error-message="data.errorMessage"
+                :title-error="data.titleError"
+                :target-data="data.createData"
+                :options="data.options"
+                :temps="data.temps"
+                :preference="preference"
+                @confirm-create="confirmCreate"
+                @confirm-edit="confirmEdit">
+            </DatabaseDialog>
+            <DatabaseSetDialog width="500" v-model="data.createDatabaseModal"
+                :is-edit="data.editMode"
+                :error-message="data.errorMessage"
+                :title-error="data.titleError"
+                :target-data="data.editData"
+                :temps="data.temps"
+                :preference="preference"
+                @submit="confirmSubmitSet">
+            </DatabaseSetDialog>
+            <DialogBase width="500" v-model="data.cloneModal" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-content-paste</v-icon>
+                    {{ $t('modal.clone-database-set') }}
                 </template>
-                <template v-slot:item.value="{ item }">
-                    <v-checkbox density="compact" hide-details v-if="item.type == DataType.Boolean" v-model="item.value" @input="setdirty"></v-checkbox>
-                    <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Number" type="number" v-model.number="item.value" @input="setdirty"></v-text-field>
-                    <v-text-field density="compact" hide-details v-else-if="item.type == DataType.String" v-model="item.value" @input="setdirty"></v-text-field>
-                    <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Expression" v-model="item.meta" @input="setdirty"></v-text-field>
-                    <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Object" @click="modifyContent(item)">{{ $t("modify") }}</v-btn>
-                    <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Textarea" @click="modifyContent_T(item)">{{ $t("modify") }}</v-btn>
-                    <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.List" @click="modifyContent_L(item)">{{ $t("modify") }}</v-btn>
-                    <v-row v-else-if="item.type == DataType.Select">
-                        <v-col cols="4">
-                            <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details @click="modifyContent_S(item)">{{ $t("modify") }}</v-btn>
-                        </v-col>
-                        <v-col cols="8">
-                            <v-btn class="w-100" color="warning" variant="tonal" density="compact" hide-details @click="modifyContent_S1(item)">{{ $t("types.select") }}</v-btn>
-                        </v-col>
-                    </v-row>
+                <template #text>
+                    <v-text-field :error="data.titleError" v-model="data.cloneName" required :label="$t('modal.enter-database-set-name')" hide-details></v-text-field>
+                    <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
                 </template>
-                <template v-slot:item.hidden="{ item }">
-                    <v-chip :color="item.hidden ? 'success' : 'error'">{{ item.hidden }}</v-chip>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="cloneSelectConfirm">{{ $t('create') }}</v-btn>
                 </template>
-                <template v-slot:item.runtimeOnly="{ item }">
-                    <v-chip :color="item.runtimeOnly ? 'success' : 'error'">{{ item.runtimeOnly }}</v-chip>
+            </DialogBase>
+            <DialogBase width="500" v-model="data.selectModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('database-select') }}
                 </template>
-                <template v-slot:item.type="{ item }">
-                    <v-chip color="info">{{ DataTypeTranslate(item.type) }}</v-chip>
-                </template>
-            </v-data-table>
-        </div>
-        <DatabaseDialog width="500" v-model="data.createModal"
-            :is-edit="data.editMode"
-            :error-message="data.errorMessage"
-            :title-error="data.titleError"
-            :target-data="data.createData"
-            :options="data.options"
-            :temps="data.temps"
-            :preference="preference"
-            @confirm-create="confirmCreate"
-            @confirm-edit="confirmEdit">
-        </DatabaseDialog>
-        <DatabaseSetDialog width="500" v-model="data.createDatabaseModal"
-            :is-edit="data.editMode"
-            :error-message="data.errorMessage"
-            :title-error="data.titleError"
-            :target-data="data.editData"
-            :temps="data.temps"
-            :preference="preference"
-            @submit="confirmSubmitSet">
-        </DatabaseSetDialog>
-        <DialogBase width="500" v-model="data.cloneModal" :preference="preference">
-            <template #title>
-                <v-icon>mdi-content-paste</v-icon>
-                {{ $t('modal.clone-database-set') }}
-            </template>
-            <template #text>
-                <v-text-field :error="data.titleError" v-model="data.cloneName" required :label="$t('modal.enter-database-set-name')" hide-details></v-text-field>
-                <p v-if="data.errorMessage.length > 0" class="mt-3 text-red">{{ data.errorMessage }}</p>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="cloneSelectConfirm">{{ $t('create') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase width="500" v-model="data.selectModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pen</v-icon>
-                {{ $t('database-select') }}
-            </template>
-            <template #text>
-                <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
-                </v-text-field>
-                <v-list>
-                    <v-list-item v-for="(p, i) in selectSearchF" :key="i">
-                        <v-list-item-title>
-                            {{ p.title }}
-                        </v-list-item-title>
-                        <v-list-item-subtitle>
-                            {{ p.uuid }}
-                        </v-list-item-subtitle>
-                        <template v-slot:append>
-                            <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectDatabase(p.uuid); data.selectModal = false"
-                            ></v-btn>
-                        </template>
-                    </v-list-item>
-                </v-list>
-            </template>
-        </DialogBase>
-        <DialogBase width="500" v-model="data.filterModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pen</v-icon>
-                {{ $t('search') }}
-            </template>
-            <template #text>
-                <v-checkbox class="pl-3" :label="$t('filter.show-hidden')" v-model="data.buffer_filter.showhidden" hide-details></v-checkbox>
-                <v-checkbox class="pl-3" :label="$t('filter.show-runtime')" v-model="data.buffer_filter.showruntime" hide-details></v-checkbox>
-                <v-select class="pl-3" :label="$t('filter.type')" v-model="data.buffer_filter.type" :items="data.options" item-text="text" hide-details></v-select>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="confirmFilter">{{ $t('confirm') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase :persistent="true" width="800" v-model="data.objectModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pen</v-icon>
-                {{ $t('types.object') }}
-            </template>
-            <template #text v-if="data.objectTarget != undefined">
-                <codemirror-json v-model="data.object_temp" 
-                    style="text-align:left;"
-                    :style="{ height: '40vh' }"
-                    @change="setdirty"/>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify_O">{{ $t('confirm') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase :persistent="true" width="800" v-model="data.selecterModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pen</v-icon>
-                {{ $t('types.select') }}
-            </template>
-            <template #text v-if="data.selecterTarget != undefined">
-                <v-sheet>
-                    <v-btn variant="text" class="mx-1" color="primary" @click="selectAdd">{{ $t('create') }}</v-btn>
-                    <v-btn variant="text" class="mx-1" color="error" @click="data.selecterTarget.meta = []">{{ $t('clean') }}</v-btn>
-                </v-sheet>
-                <v-card style="height: 50vh; overflow-y: auto;" class="border-thin border-primary" v-if="data.selecterTarget.config">
-                    <v-row v-for="(item, index) in data.selecterTarget.meta" :key="index">
-                        <v-col cols="1" class="mt-1 pl-4">
-                            <v-chip>{{ index }}</v-chip>
-                        </v-col>
-                        <v-col cols="2">
-                            <v-select v-model="data.selecterTarget.config.types[index]" :items="data.options1" density="compact" hide-details></v-select>
-                        </v-col>
-                        <v-col cols="9">
-                            <v-checkbox density="compact" hide-details v-if="data.selecterTarget.config.types[index] === DataTypeBase.Boolean" v-model="data.selecterTarget.meta[index]"></v-checkbox>
-                            <v-text-field density="compact" hide-details v-else-if="data.selecterTarget.config.types[index] === DataTypeBase.Number" type="number" v-model.number="data.selecterTarget.meta[index]"></v-text-field>
-                            <v-text-field density="compact" hide-details v-else-if="data.selecterTarget.config.types[index] === DataTypeBase.String" v-model="data.selecterTarget.meta[index]"></v-text-field>
-                        </v-col>
-                    </v-row>
-                </v-card>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase :persistent="true" width="800" v-model="data.selecterModal1" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pen</v-icon>
-                {{ $t('types.select') }}
-            </template>
-            <template #text v-if="data.selecterTarget != undefined">
-                <v-select class="w-100" v-model="data.selecterTarget.value" :items="select_option">
-                </v-select>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase :persistent="true" width="800" v-model="data.textareaModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pen</v-icon>
-                {{ $t('types.textarea') }}
-            </template>
-            <template #text v-if="data.textareaTarget != undefined">
-                <v-textarea v-model="data.textareaTarget.value" 
-                    style="text-align:left;"
-                    placeholder="Enter Text Here..."
-                    :style="{ height: '40vh' }"
-                    @change="setdirty"/>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase :persistent="true" width="800" v-model="data.listModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pen</v-icon>
-                {{ $t('types.list') }}
-            </template>
-            <template #text v-if="data.listTarget != undefined">
-                <v-sheet>
-                    <v-btn variant="text" class="mx-1" color="primary" @click="data.listTarget.value.push('')">{{ $t('create') }}</v-btn>
-                    <v-btn variant="text" class="mx-1" color="error" @click="data.listTarget.value = []">{{ $t('clean') }}</v-btn>
-                </v-sheet>
-                <v-card style="height: 50vh; overflow-y: auto;" class="border-thin border-primary">
-                    <div v-for="(ttt, index) in data.listTarget.value" :key="index">
-                        <v-text-field :label="String(index)" hide-details single-line v-model="data.listTarget.value[index]">
-                            <template v-slot:prepend>
-                                <v-btn color="error" icon="mdi-delete" variant="text" @click="data.listTarget.value.splice(index, 1)"></v-btn>
+                <template #text>
+                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
+                    </v-text-field>
+                    <v-list>
+                        <v-list-item v-for="(p, i) in selectSearchF" :key="i">
+                            <v-list-item-title>
+                                {{ p.title }}
+                            </v-list-item-title>
+                            <v-list-item-subtitle>
+                                {{ p.uuid }}
+                            </v-list-item-subtitle>
+                            <template v-slot:append>
+                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectDatabase(p.uuid); data.selectModal = false"
+                                ></v-btn>
                             </template>
-                        </v-text-field>
-                    </div>
-                </v-card>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase width="500" v-model="data.deleteModal" class="text-white">
-            <template #title>
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.delete-database') }}
-            </template>
-            <template #text>
-                <p>{{ $t('modal.delete-database-confirm') }}</p>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
-                <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase width="800" v-model="data.importModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-import</v-icon>
-                {{ $t('modal.import-project') }}
-            </template>
-            <template #text>
-                <v-file-upload v-model="data.importData" show-size clearable multiple density="default"></v-file-upload>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" :disabled="data.importData.length == 0" color="primary" @click="ImportConfirm">{{ $t('import') }}</v-btn>
-            </template>
-        </DialogBase>
-    </div>
+                        </v-list-item>
+                    </v-list>
+                </template>
+            </DialogBase>
+            <DialogBase width="500" v-model="data.filterModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('search') }}
+                </template>
+                <template #text>
+                    <v-checkbox class="pl-3" :label="$t('filter.show-hidden')" v-model="data.buffer_filter.showhidden" hide-details></v-checkbox>
+                    <v-checkbox class="pl-3" :label="$t('filter.show-runtime')" v-model="data.buffer_filter.showruntime" hide-details></v-checkbox>
+                    <v-select class="pl-3" :label="$t('filter.type')" v-model="data.buffer_filter.type" :items="data.options" item-text="text" hide-details></v-select>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="confirmFilter">{{ $t('confirm') }}</v-btn>
+                </template>
+            </DialogBase>
+            <DialogBase :persistent="true" width="800" v-model="data.objectModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('types.object') }}
+                </template>
+                <template #text v-if="data.objectTarget != undefined">
+                    <codemirror-json v-model="data.object_temp" 
+                        style="text-align:left;"
+                        :style="{ height: '40vh' }"
+                        @change="setdirty"/>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="confirmSpecialModify_O">{{ $t('confirm') }}</v-btn>
+                </template>
+            </DialogBase>
+            <DialogBase :persistent="true" width="800" v-model="data.selecterModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('types.select') }}
+                </template>
+                <template #text v-if="data.selecterTarget != undefined">
+                    <v-sheet>
+                        <v-btn variant="text" class="mx-1" color="primary" @click="selectAdd">{{ $t('create') }}</v-btn>
+                        <v-btn variant="text" class="mx-1" color="error" @click="data.selecterTarget.meta = []">{{ $t('clean') }}</v-btn>
+                    </v-sheet>
+                    <v-card style="height: 50vh; overflow-y: auto;" class="border-thin border-primary" v-if="data.selecterTarget.config">
+                        <v-row v-for="(item, index) in data.selecterTarget.meta" :key="index">
+                            <v-col cols="1" class="mt-1 pl-4">
+                                <v-chip>{{ index }}</v-chip>
+                            </v-col>
+                            <v-col cols="2">
+                                <v-select v-model="data.selecterTarget.config.types[index]" :items="data.options1" density="compact" hide-details></v-select>
+                            </v-col>
+                            <v-col cols="9">
+                                <v-checkbox density="compact" hide-details v-if="data.selecterTarget.config.types[index] === DataTypeBase.Boolean" v-model="data.selecterTarget.meta[index]"></v-checkbox>
+                                <v-text-field density="compact" hide-details v-else-if="data.selecterTarget.config.types[index] === DataTypeBase.Number" type="number" v-model.number="data.selecterTarget.meta[index]"></v-text-field>
+                                <v-text-field density="compact" hide-details v-else-if="data.selecterTarget.config.types[index] === DataTypeBase.String" v-model="data.selecterTarget.meta[index]"></v-text-field>
+                            </v-col>
+                        </v-row>
+                    </v-card>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
+                </template>
+            </DialogBase>
+            <DialogBase :persistent="true" width="800" v-model="data.selecterModal1" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('types.select') }}
+                </template>
+                <template #text v-if="data.selecterTarget != undefined">
+                    <v-select class="w-100" v-model="data.selecterTarget.value" :items="select_option">
+                    </v-select>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
+                </template>
+            </DialogBase>
+            <DialogBase :persistent="true" width="800" v-model="data.textareaModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('types.textarea') }}
+                </template>
+                <template #text v-if="data.textareaTarget != undefined">
+                    <v-textarea v-model="data.textareaTarget.value" 
+                        style="text-align:left;"
+                        placeholder="Enter Text Here..."
+                        :style="{ height: '40vh' }"
+                        @change="setdirty"/>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
+                </template>
+            </DialogBase>
+            <DialogBase :persistent="true" width="800" v-model="data.listModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pen</v-icon>
+                    {{ $t('types.list') }}
+                </template>
+                <template #text v-if="data.listTarget != undefined">
+                    <v-sheet>
+                        <v-btn variant="text" class="mx-1" color="primary" @click="data.listTarget.value.push('')">{{ $t('create') }}</v-btn>
+                        <v-btn variant="text" class="mx-1" color="error" @click="data.listTarget.value = []">{{ $t('clean') }}</v-btn>
+                    </v-sheet>
+                    <v-card style="height: 50vh; overflow-y: auto;" class="border-thin border-primary">
+                        <div v-for="(ttt, index) in data.listTarget.value" :key="index">
+                            <v-text-field :label="String(index)" hide-details single-line v-model="data.listTarget.value[index]">
+                                <template v-slot:prepend>
+                                    <v-btn color="error" icon="mdi-delete" variant="text" @click="data.listTarget.value.splice(index, 1)"></v-btn>
+                                </template>
+                            </v-text-field>
+                        </div>
+                    </v-card>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="confirmSpecialModify">{{ $t('confirm') }}</v-btn>
+                </template>
+            </DialogBase>
+            <DialogBase width="500" v-model="data.deleteModal" class="text-white">
+                <template #title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.delete-database') }}
+                </template>
+                <template #text>
+                    <p>{{ $t('modal.delete-database-confirm') }}</p>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
+                </template>
+            </DialogBase>
+            <DialogBase width="800" v-model="data.importModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-import</v-icon>
+                    {{ $t('modal.import-project') }}
+                </template>
+                <template #text>
+                    <v-file-upload v-model="data.importData" show-size clearable multiple density="default"></v-file-upload>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" :disabled="data.importData.length == 0" color="primary" @click="ImportConfirm">{{ $t('import') }}</v-btn>
+                </template>
+            </DialogBase>
+        </template>
+        <v-card flat style="background: transparent">
+            <v-card-text class="my-0 py-0">
+                <v-text-field v-model="data.search" class="mb-2" :style="{ 'fontSize': preference.font + 'px' }" :placeholder="$t('search')" clearable prepend-icon="mdi-magnify" hide-details single-line></v-text-field>
+                <v-checkbox class="pr-5 text-info" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
+                <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': preference.font + 'px' }">
+                    <template v-slot:item.detail="{ item }">
+                        <v-btn variant="text" icon @click="editDatabase(item.name)" size="small">
+                            <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                        <v-btn variant="text" icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
+                            <v-icon>mdi-arrow-up</v-icon>
+                        </v-btn>
+                        <v-btn variant="text" icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
+                            <v-icon>mdi-arrow-down</v-icon>
+                        </v-btn>
+                        <v-btn variant="text" icon @click="deleteitem(item.name)" size="small">
+                            <v-icon>mdi-delete</v-icon>
+                        </v-btn>
+                    </template>
+                    <template v-slot:item.value="{ item }">
+                        <v-checkbox density="compact" hide-details v-if="item.type == DataType.Boolean" v-model="item.value" @input="setdirty"></v-checkbox>
+                        <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Number" type="number" v-model.number="item.value" @input="setdirty"></v-text-field>
+                        <v-text-field density="compact" hide-details v-else-if="item.type == DataType.String" v-model="item.value" @input="setdirty"></v-text-field>
+                        <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Expression" v-model="item.meta" @input="setdirty"></v-text-field>
+                        <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Object" @click="modifyContent(item)">{{ $t("modify") }}</v-btn>
+                        <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Textarea" @click="modifyContent_T(item)">{{ $t("modify") }}</v-btn>
+                        <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.List" @click="modifyContent_L(item)">{{ $t("modify") }}</v-btn>
+                        <v-row v-else-if="item.type == DataType.Select">
+                            <v-col cols="4">
+                                <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details @click="modifyContent_S(item)">{{ $t("modify") }}</v-btn>
+                            </v-col>
+                            <v-col cols="8">
+                                <v-btn class="w-100" color="warning" variant="tonal" density="compact" hide-details @click="modifyContent_S1(item)">{{ $t("types.select") }}</v-btn>
+                            </v-col>
+                        </v-row>
+                    </template>
+                    <template v-slot:item.hidden="{ item }">
+                        <v-chip :color="item.hidden ? 'success' : 'error'">{{ item.hidden }}</v-chip>
+                    </template>
+                    <template v-slot:item.runtimeOnly="{ item }">
+                        <v-chip :color="item.runtimeOnly ? 'success' : 'error'">{{ item.runtimeOnly }}</v-chip>
+                    </template>
+                    <template v-slot:item.type="{ item }">
+                        <v-chip color="info">{{ DataTypeTranslate(item.type) }}</v-chip>
+                    </template>
+                </v-data-table>
+            </v-card-text>
+        </v-card>
+    </ContextFrame>
 </template>
 
 <style scoped>

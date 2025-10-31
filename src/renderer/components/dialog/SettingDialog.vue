@@ -5,10 +5,12 @@ import { BusType, Preference } from '../../interface';
 import DialogBase from './DialogBase.vue';
 import { Emitter } from 'mitt';
 import { BackendProxy } from '../../proxy';
+import { i18n } from 'verteilen-core/src/plugins/i18n';
 //#endregion
 
 //#region Data
-const preference:Preference = inject("preference")!
+const $t = i18n.global.t
+const preference:Ref<Preference> = inject("preference")!
 const modal = defineModel<boolean>({ required: true })
 const emit = defineEmits<{
     (e: 'update', data:Preference):void,
@@ -28,7 +30,7 @@ const tokenContent = ref('')
 
 //#region Watch
 watch(() => modal.value, () => {
-    buffer.value = JSON.parse(JSON.stringify(preference))
+    buffer.value = JSON.parse(JSON.stringify(preference.value))
 })
 //#endregion
 

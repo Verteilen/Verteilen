@@ -53,8 +53,6 @@ export type EmitType = {
     (e: 'edit', uuid:string, project:ProjectTable): void
     (e: 'delete', uuids:Array<string>, bind:boolean): void
     (e: 'select', uuids:string): void
-    (e: 'moveup', uuids:string): void
-    (e: 'movedown', uuids:string): void
 }
 /**
  * **Page Data**
@@ -110,12 +108,6 @@ export class Util_Project {
 
     
     //#region Event
-    moveUp = (uuid:string) => {
-        this.emits('moveup', uuid)
-    }
-    moveDown = (uuid:string) => {
-        this.emits('movedown', uuid)
-    }
     /**
      * **Edit UI Button Event Trigger**\
      * Open edit dialog

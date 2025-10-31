@@ -46,7 +46,14 @@ const data:Ref<DATA> = ref({
 //#region Computed
 const config = computed(() => backend.value.config)
 const realSearch = computed(() => data.value.search.trimStart().trimEnd())
-const items_final = computed(() => { return realSearch.value == null || realSearch.value.length == 0 ? props.projects : props.projects.filter(x => x.title.includes(realSearch.value) || x.uuid.includes(realSearch.value)) })
+const items_final = computed(() => { 
+    return realSearch.value == null || 
+        realSearch.value.length == 0 ? props.projects : 
+            props.projects.filter(x => 
+                x.title.includes(realSearch.value) || 
+                x.uuid.slice(x.uuid.length - 12, x.uuid.length).includes(realSearch.value)
+            ) 
+})
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_project_ids = computed(() => props.projects.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
 const projects = computed(() => props.projects)
@@ -183,11 +190,11 @@ const updateLocate = () => {
 }
 const updateFields = () => {
     data.value.fields = [
-        { title: 'ID', align: 'center', key: 'ID', width: "25%" },
+        { title: 'ID', align: 'center', key: 'ID', maxWidth: "20%" },
         { title: i18n.global.t('headers.title'), align: 'center', key: 'title', width: "20%" },
         { title: i18n.global.t('headers.description'), align: 'center', key: 'description' },
-        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount', width: "150px" },
-        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail', width: "20%" },
+        { title: i18n.global.t('headers.task-count'), align: 'center', key: 'taskCount', minWidth: "150px" },
+        { title: i18n.global.t('headers.detail'), align: 'center', key: 'detail', minWidth: "200px" },
     ]
 }
 const onHotkey = (value:string) => {
@@ -219,8 +226,7 @@ onUnmounted(() => {
 <template>
     <ContextFrame>
         <template #toolbar>
-            <v-toolbar density="compact" class="pr-3">
-                <v-text-field :style="{ 'fontSize': preference.font + 'px' }" max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
+            <v-toolbar density="compact" class="px-3">
                 <v-spacer></v-spacer>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
@@ -288,45 +294,42 @@ onUnmounted(() => {
                 <v-checkbox v-model="data.deleteBind" :label="$t('modal.delete-project-binding')"></v-checkbox>
             </DeleteDialog>
         </template>
-        <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
-            <template v-slot:item.ID="{ item }">
-                <a v-if="canViewDetail" href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid }}</a>
-                <span v-else>{{ item.uuid }}</span>
-            </template>
-            <template v-slot:item.detail="{ item }">
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn variant="text" v-bind="props" flat icon @click="util.dataEdit(item.uuid)" :disabled="!permission?.edit" size="small">
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
+        <v-card flat style="background: transparent">
+            <v-card-text class="my-0 py-0">
+                <v-text-field v-model="data.search" class="mb-2" :style="{ 'fontSize': preference.font + 'px' }" :placeholder="$t('search')" clearable prepend-icon="mdi-magnify" hide-details single-line></v-text-field>
+                <v-data-table v-model="data.selection" style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
+                    <template v-slot:item.ID="{ item }">
+                        <a v-if="canViewDetail" href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid.slice(item.uuid.length - 12, item.uuid.length) }}</a>
+                        <span v-else>{{ item.uuid.slice(item.uuid.length - 12, item.uuid.length) }}</span>
                     </template>
-                    {{ $t('edit') }}
-                </v-tooltip>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn variant="text" v-bind="props" flat icon @click="dataExport(item.uuid)" :disabled="!permission?.view" size="small">
-                            <v-icon>mdi-export</v-icon>
-                        </v-btn>
+                    <template v-slot:item.detail="{ item }">
+                        <v-tooltip location="bottom">
+                            <template v-slot:activator="{ props }">
+                                <v-btn variant="text" v-bind="props" flat icon @click="util.dataEdit(item.uuid)" :disabled="!permission?.edit" size="small">
+                                    <v-icon>mdi-pencil</v-icon>
+                                </v-btn>
+                            </template>
+                            {{ $t('edit') }}
+                        </v-tooltip>
+                        <v-tooltip location="bottom">
+                            <template v-slot:activator="{ props }">
+                                <v-btn variant="text" v-bind="props" flat icon @click="dataExport(item.uuid)" :disabled="!permission?.view" size="small">
+                                    <v-icon>mdi-export</v-icon>
+                                </v-btn>
+                            </template>
+                            {{ $t('export') }}
+                        </v-tooltip>
+                        <v-tooltip location="bottom">
+                            <template v-slot:activator="{ props }">
+                                <v-btn variant="text" v-bind="props" flat icon @click="dataExport(item.uuid)" :disabled="!permission?.edit || !backend.config.isExpress" size="small">
+                                    <v-icon>mdi-lock</v-icon>
+                                </v-btn>
+                            </template>
+                            {{ $t('export') }}
+                        </v-tooltip>
                     </template>
-                    {{ $t('export') }}
-                </v-tooltip>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn variant="text" v-bind="props" flat icon :disabled="util.isFirst(item.uuid) || !permission?.edit" @click="util.moveUp(item.uuid)" size="small">
-                            <v-icon>mdi-arrow-up</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('moveup') }}
-                </v-tooltip>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn variant="text" v-bind="props" flat icon :disabled="util.isLast(item.uuid) || !permission?.edit" @click="util.moveDown(item.uuid)" size="small">
-                            <v-icon>mdi-arrow-down</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('movedown') }}
-                </v-tooltip>
-            </template>
-        </v-data-table>
+                </v-data-table>
+            </v-card-text>
+        </v-card>
     </ContextFrame>
 </template>

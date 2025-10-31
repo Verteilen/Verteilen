@@ -44,16 +44,15 @@ export class Util_App {
         this.locate(this.preference.value.lan)
         this.theme.change(v.theme)
         // @ts-ignore
-        i18n.global.locale = this.preference.value.lan
         vuetify.defaults.value!.global = v.animation ? {} : this.data.value.defaultTransition
     }
 
     locate = (v:string) => {
         const t = i18n.global
         // @ts-ignore
-        t.locale = v
+        t.locale.value = v
         this.preference.value.lan = v
         this.emitter.emit('updateLocate')
-        this.backend.value.send('save_preference', JSON.stringify(this.preference.value, null, 4), this.token.value)
+        this.save_preference(this.preference.value)
     }
 }

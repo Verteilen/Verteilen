@@ -31,9 +31,15 @@ export class Util_Server_Job {
         return this.server.emitter
     }
 
+    //#region Job CRUD
     addJob = (v:Array<Job>) => {
         const ps = v.map(x => this.save.save_job(x))
         return Promise.all(ps)
+    }
+
+    cloneJob = (v:Array<string>) => {
+        const s = this.data.value.jobs.filter(x => v.includes(x.uuid))
+        this.save.clone_jobs(s)
     }
 
     editJob = (v:Array<Job>, v2:Array<Property>) => {
@@ -54,4 +60,5 @@ export class Util_Server_Job {
         })
         this.update()
     }
+    //#endregion
 }

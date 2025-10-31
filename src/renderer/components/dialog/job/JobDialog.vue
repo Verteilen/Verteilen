@@ -4,11 +4,11 @@ import { Emitter } from 'mitt'
 import { BusType, JobTable, Preference } from 'verteilen-core/src/interface'
 import { i18n } from 'verteilen-core/src/plugins/i18n'
 import { inject, ref, Ref } from 'vue'
-import { BackendProxy } from '../../proxy'
+import { BackendProxy } from '../../../proxy'
 //#endregion
 
 //#region Views
-import DialogBase from './DialogBase.vue'
+import DialogBase from './../DialogBase.vue'
 //#endregion
 
 //#region Data

@@ -1,9 +1,16 @@
 <script setup lang="ts">
+//#region Modules
 import { computed, ref, Ref, watch } from 'vue';
-import { CreateField, DialogDATA } from '../server/Task';
-import DialogBase from './DialogBase.vue';
-import { i18n } from '../../plugins/i18n';
+import { CreateField, DialogDATA } from '../../server/Task';
+import { i18n } from '../../../plugins/i18n';
+//#endregion
 
+//#region Views
+import DialogBase from './../DialogBase.vue';
+//#endregion
+
+//#region Data
+const $t = i18n.global.t
 const data = defineModel<boolean>()
 const props = defineProps<DialogDATA>()
 const emits = defineEmits<{
@@ -17,6 +24,7 @@ const types = ref([
     "multicore",
 ])
 const select_type = ref(0)
+//#endregion
 
 const types_items = computed(() => {
     return types.value.map((x, i) => ({title: i18n.global.t(x), value: i}))

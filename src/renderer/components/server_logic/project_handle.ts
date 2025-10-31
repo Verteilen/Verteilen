@@ -101,22 +101,4 @@ export class Util_Server_Project {
         this.data.value.selectProject = this.data.value.projects.find(x => x.uuid == uuid)
         this.data.value.page = 1 // Go to task page
     }
-
-    moveupProject = (uuid:string) => {
-        const index = this.data.value.projects.findIndex(x => x.uuid == uuid)
-        if(index == -1) return
-        const b = this.data.value.projects[index - 1]
-        this.data.value.projects[index - 1] = this.data.value.projects[index]
-        this.data.value.projects[index] = b
-        this.update()
-    }
-    
-    movedownProject = (uuid:string) => {
-        const index = this.data.value.projects.findIndex(x => x.uuid == uuid)
-        if(index == -1) return
-        const b = this.data.value.projects[index + 1]
-        this.data.value.projects[index + 1] = this.data.value.projects[index]
-        this.data.value.projects[index] = b
-        this.update()
-    }
 }

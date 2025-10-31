@@ -625,9 +625,7 @@ onUnmounted(() => {
           @clone="e => util.project.cloneProject(e)"
           @edit="(id, e) => util.project.editProject(id, e)" 
           @select="e => util.project.chooseProject(e)" 
-          @delete="(e, e2) => util.project.deleteProject(e, e2)"
-          @moveup="e => util.project.moveupProject(e)"
-          @movedown="e => util.project.movedownProject(e)" />
+          @delete="(e, e2) => util.project.deleteProject(e, e2)"/>
       </v-tabs-window-item>
       <v-tabs-window-item :value="1">
         <TaskPage

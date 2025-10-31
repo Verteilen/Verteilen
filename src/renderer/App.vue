@@ -103,7 +103,7 @@ onMounted(() => {
     if(backend.value.config.haveBackend){
       backend.value.eventOn('locate', util.locate)
       backend.value.eventOn('message', message)
-      backend.value.invoke('load_preference', true, token.value).then(x => util.load_preference(x))
+      backend.value.invoke('load_preference', true, token.value).then(x => util.load_preference(x)).then(() => console.log(i18n.global.t('project')))
     }
   })
 })

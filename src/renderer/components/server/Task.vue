@@ -2,13 +2,17 @@
 //#region Modules
 import { Emitter } from 'mitt';
 import { computed, ComputedRef, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, DatabaseTable, Preference, ProjectTable, Task, TaskTable } from '../../interface';
+import { BusType, DataType, Preference, TaskTable } from '../../interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, EmitType, PROPS, Util_Task } from './Task';
-import TaskDialog from '../dialog/TaskDialog.vue';
+//#endregion
+
+//#region Views
+import TaskDialog from '../dialog/task/TaskDialog.vue';
 import DatabaseSelectionDialog from '../dialog/DatabaseSelectionDialog.vue';
 import DialogBase from '../dialog/DialogBase.vue';
 import ContextFrame from '../components/layout/ContextFrame.vue';
+import DeleteDialog from '../dialog/DeleteDialog.vue';
 //#endregion
 
 //#region Data
@@ -42,7 +46,7 @@ const hasPara = computed(() => {
 })
 const realSearch = computed(() => data.value.search?.trimStart().trimEnd() ?? '')
 const items_final = computed(() => {
-    return realSearch.value == null || realSearch.value.length == 0 ? props.tasks : props.tasks.filter(x => x.title.includes(realSearch.value) || x.uuid.includes(realSearch.value))
+    return realSearch.value == null || realSearch.value.length == 0 ? props.tasks : props.tasks.filter(x => x.title.includes(realSearch.value) || x.uuid.slice(x.uuid.length - 12, x.uuid.length).includes(realSearch.value))
 })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_task_ids = computed(() => props.tasks.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
@@ -130,13 +134,13 @@ const isLast = (uuid:string) => util.isLast(uuid)
 
 const updateFields = () => {
     data.value.fields = [
-        { title: 'ID', align: 'center', key: 'ID' },
+        { title: 'ID', align: 'center', key: 'ID', maxWidth: "20%" },
         { title: 'Order', align: 'center', key: 'Order' },
         { title: $t('headers.title'), align: 'center', key: 'title' },
         { title: $t('headers.description'), align: 'center', key: 'description' },
         { title: $t('headers.type'), align: 'center', key: 'type' },
-        { title: $t('headers.job-count'), align: 'center', key: 'jobCount' },
-        { title: $t('headers.detail'), align: 'center', key: 'detail' },
+        { title: $t('headers.job-count'), align: 'center', key: 'jobCount', minWidth: "150px" },
+        { title: $t('headers.detail'), align: 'center', key: 'detail', minWidth: "200px" },
     ]
 }
 
@@ -172,7 +176,6 @@ onUnmounted(() => {
         <template #toolbar>
             <v-toolbar density="compact" class="px-3">
                 <v-btn size="sm" class="mr-2" variant="text" icon="mdi-chevron-left" @click="goreturn"></v-btn>
-                <v-text-field :style="{ 'fontSize': preference.font + 'px' }" max-width="400px" class="pl-5 mr-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <p v-if="props.select != undefined" class="mx-4">
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
@@ -227,51 +230,44 @@ onUnmounted(() => {
                 :edit-data="data.editData" 
                 :preference="preference"
                 @submit="DialogSubmit" />
-            <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
-                <template #title>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.delete-task') }}
-                </template>
-                <template #text>
-                    <p>{{ $t('modal.delete-task-confirm') }}</p>
-                    <br />
-                    <p v-for="(p, i) in data.deleteData">
-                        {{ i }}. {{ p }}
-                    </p>
-                </template>
-                <template #action>
-                    <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
-                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
-                </template>
-            </DialogBase>
             <DatabaseSelectionDialog v-model="data.paraModal" 
                 :items="props.databases"
                 :preference="preference"
-                @select_uuid="selectDatabase">
-            </DatabaseSelectionDialog>
+                @select_uuid="selectDatabase" />
+            <DeleteDialog v-model="data.deleteModal"
+                :title="$t('modal.delete-task')"
+                :text="$t('modal.delete-task-confirm')"
+                :data="data.deleteData"
+                @cancel="data.deleteModal = false"
+                @delete="deleteConfirm"/>
         </template>
-        <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
-            <template v-slot:item.ID="{ item }">
-                <a href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid }}</a>
-            </template>
-            <template v-slot:item.Order="{ item }">
-                {{ getIndex(item.uuid) }}
-            </template>
-            <template v-slot:item.detail="{ item }">
-                <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
-                    <v-icon>mdi-pencil</v-icon>
-                </v-btn>
-                <v-btn variant="text" icon :disabled="isFirst(item.uuid)" @click="util.moveUp(item.uuid)" size="small">
-                    <v-icon>mdi-arrow-up</v-icon>
-                </v-btn>
-                <v-btn variant="text" icon :disabled="isLast(item.uuid)" @click="util.moveDown(item.uuid)" size="small">
-                    <v-icon>mdi-arrow-down</v-icon>
-                </v-btn>
-            </template>
-            <template v-slot:item.type="{ item }">
-                <v-chip :color="TaskTypeColor(item)">{{ TaskType(item) }}</v-chip>
-            </template>
-        </v-data-table>
+        <v-card flat style="background: transparent">
+            <v-card-text class="my-0 py-0">
+                <v-text-field v-model="data.search" class="mb-2" :style="{ 'fontSize': preference.font + 'px' }" :placeholder="$t('search')" clearable prepend-icon="mdi-magnify" hide-details single-line></v-text-field>
+                <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
+                    <template v-slot:item.ID="{ item }">
+                        <a href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid.slice(item.uuid.length - 12, item.uuid.length) }}</a>
+                    </template>
+                    <template v-slot:item.Order="{ item }">
+                        {{ getIndex(item.uuid) }}
+                    </template>
+                    <template v-slot:item.detail="{ item }">
+                        <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
+                            <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                        <v-btn variant="text" icon :disabled="isFirst(item.uuid)" @click="util.moveUp(item.uuid)" size="small">
+                            <v-icon>mdi-arrow-up</v-icon>
+                        </v-btn>
+                        <v-btn variant="text" icon :disabled="isLast(item.uuid)" @click="util.moveDown(item.uuid)" size="small">
+                            <v-icon>mdi-arrow-down</v-icon>
+                        </v-btn>
+                    </template>
+                    <template v-slot:item.type="{ item }">
+                        <v-chip :color="TaskTypeColor(item)">{{ TaskType(item) }}</v-chip>
+                    </template>
+                </v-data-table>
+            </v-card-text>
+        </v-card>
     </ContextFrame>
 </template>
 

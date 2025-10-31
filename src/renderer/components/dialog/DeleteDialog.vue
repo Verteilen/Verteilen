@@ -1,20 +1,17 @@
 <script lang="ts" setup>
 import { i18n } from 'verteilen-core/src/plugins/i18n';
 import DialogBase from './DialogBase.vue';
+import { PROPS as BasePROPS } from './DialogBase.vue'
 
 //#region Data
-const $t = i18n.global.t
-const data = defineModel<boolean>({ required: true })
-const props = defineProps<{
+export interface PROPS extends BasePROPS{
     title?: string
     text?: string
-    width?: string
-    height?: string
-    persistent?:boolean
-    color?:string
-    nocard?: boolean
     data?:Array<string>
-}>()
+}
+const $t = i18n.global.t
+const data = defineModel<boolean>({ required: true })
+const props = defineProps<PROPS>()
 const emits = defineEmits<{
     (e: 'cancel'):void
     (e: 'delete'):void

@@ -2,15 +2,16 @@
 import { inject, Ref } from 'vue';
 import { Preference } from '../../interface';
 
-const preference:Ref<Preference> = inject('preference')!
-const modal = defineModel<boolean>({ required: true })
-const props = defineProps<{
+export interface PROPS {
     width?: string
     height?: string
     persistent?:boolean
     color?:string
     nocard?: boolean
-}>()
+}
+const preference:Ref<Preference> = inject('preference')!
+const modal = defineModel<boolean>({ required: true })
+const props = defineProps<PROPS>()
 </script>
 
 <template>
