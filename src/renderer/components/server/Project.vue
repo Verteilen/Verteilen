@@ -56,7 +56,7 @@ const items_final = computed(() => {
                 x.uuid.slice(x.uuid.length - 12, x.uuid.length).includes(realSearch.value)
             ) 
     a = JSON.parse(JSON.stringify(a))
-    if(data.value.sort != undefined && data.value.order != undefined){
+    if(util.isSort()){
         a = a.sort((a:any, b:any) => {
             return a[data.value.sort!] - b[data.value.sort!]
         })

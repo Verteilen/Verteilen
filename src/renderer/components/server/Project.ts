@@ -255,5 +255,8 @@ export class Util_Project {
         if(index == -1) return true
         return index == this.projects.value.length - 1
     }
+    isSort = ():boolean => {
+        return this.data.value.order != undefined && this.data.value.sort != undefined
+    }
     //#endregion
 }

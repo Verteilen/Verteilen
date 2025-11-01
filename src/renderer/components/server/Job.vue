@@ -30,54 +30,45 @@ import { BackendProxy } from '../../proxy';
 
 //#region Views
 import ContextFrame from '../components/layout/ContextFrame.vue';
+import { DATA, EmitType, PROPS, Util_Job } from './Job';
+import DeleteDialog from '../dialog/DeleteDialog.vue';
 //#endregion
 
 //#region Data
-interface PROPS {
-    projects: Array<ProjectTable>
-    jobs: Array<JobTable>
-    select: TaskTable | undefined
-    owner: ProjectTable | undefined
-    database: DatabaseTable | undefined
-    libs: Array<Library>
-}
-
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
-const emits = defineEmits<{
-    (e: 'added', job:Job[]): void
-    (e: 'edit', task:Array<JobTable>, properties: Array<Property>): void
-    (e: 'delete', uuids:Array<string>): void
-    (e: 'select', uuids:string): void
-    (e: 'keychange', key:string): void
-    (e: 'moveup', uuids:string): void
-    (e: 'movedown', uuids:string): void
-    (e: 'return'): void
-}>()
-const ck = ref(0)
-const createModal = ref(false)
-const createData = ref({category: 0, type: 0, spe_template: 0})
-const deleteModal = ref(false)
-const deleteData:Ref<Array<string>> = ref([])
-const items:Ref<Array<JobTable>> = ref([])
-const items2:Ref<Array<Property>> = ref([])
-const types:Ref<Array<any>> = ref([])
-const types2:Ref<Array<any>> = ref([])
-const result:Ref<Array<any>> = ref([])
-const categorise:Ref<Array<any>> = ref([])
-const dirty = ref(false)
+const emits = defineEmits<EmitType>()
+const data:Ref<DATA> = ref({
+    ck: 0,
+    createModal: false,
+    createData: {category: 0, type: 0, spe_template: 0},
+    deleteModal: false,
+    deleteData: [],
+    items: [],
+    items2: [],
+    types: [],
+    types2: [],
+    result: [],
+    categorise: [],
+    dirty: false,
+})
 //#endregion
 
-const hasSelect = computed(() => items.value.filter(x => x.s).length > 0)
+//#region  Computed
+const hasSelect = computed(() => data.value.items.filter(x => x.s).length > 0)
+const util = new Util_Job(data, emits)
+//#endregion
+
+
 const replaceString = (job:Job, index:number):string => {
     if(props.select == undefined) return ""
     const copyJob:Job = JSON.parse(JSON.stringify(job))
     if(index >= copyJob.string_args.length || index < 0) return ""
     if(props.database == undefined) return copyJob.string_args[index]
-    Execute_PART.ExecuteManager_Base.string_args_transform(props.select, copyJob, (str) => console.log(str), props.database, ck.value)
+    Execute_PART.ExecuteManager_Base.string_args_transform(props.select, copyJob, (str) => console.log(str), props.database, data.value.ck)
     return copyJob.string_args[index]
 }
 const rules = {
@@ -86,17 +77,17 @@ const rules = {
 }
 
 const setdirty = () => {
-    dirty.value = true
+    data.value.dirty = true
 }
 
 const updateJob = () => {
-    const old:Array<JobTable> = JSON.parse(JSON.stringify(items.value))
-    items.value = JSON.parse(JSON.stringify(props.select?.jobs ?? []))
+    const old:Array<JobTable> = JSON.parse(JSON.stringify(data.value.items))
+    data.value.items = JSON.parse(JSON.stringify(props.select?.jobs ?? []))
     const ids = old.filter(x => x.s).map(x => x.uuid)
-    items.value.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)
-    items.value.forEach(x => x.s = false)
-    items2.value = JSON.parse(JSON.stringify(props.select?.properties ?? []))
-    dirty.value = false
+    data.value.items.filter(x => ids.includes(x.uuid)).forEach(x => x.s = true)
+    data.value.items.forEach(x => x.s = false)
+    data.value.items2 = JSON.parse(JSON.stringify(props.select?.properties ?? []))
+    data.value.dirty = false
 }
 
 const checkPatterm = (category:number, type:number, checker:string):boolean => {
@@ -116,27 +107,27 @@ const checkPatterm = (category:number, type:number, checker:string):boolean => {
 }
 
 const expressionNameCheck = (x:string) => {
-    return x.length == 0 || x == null || items2.value.filter(y => x == y.name).length >= 2
+    return x.length == 0 || x == null || data.value.items2.filter(y => x == y.name).length >= 2
 }
 
 const upProperty = (index: number) => {
     setdirty()
-    const buffer = items2.value[index]
-    items2.value[index] = items2.value[index - 1]
-    items2.value[index - 1] = buffer
+    const buffer = data.value.items2[index]
+    data.value.items2[index] = data.value.items2[index - 1]
+    data.value.items2[index - 1] = buffer
 }
 
 const downProperty = (index: number) => {
     setdirty()
-    const buffer = items2.value[index]
-    items2.value[index] = items2.value[index + 1]
-    items2.value[index + 1] = buffer
+    const buffer = data.value.items2[index]
+    data.value.items2[index] = data.value.items2[index + 1]
+    data.value.items2[index + 1] = buffer
 }
 
 const deleteProperty = (name:string) => {
     setdirty()
-    const index = items2.value.findIndex(x => x.name == name)
-    items2.value.splice(index, 1)
+    const index = data.value.items2.findIndex(x => x.name == name)
+    data.value.items2.splice(index, 1)
 }
 
 const JobCategoryTranslate = (t:number):string => {
@@ -153,44 +144,44 @@ const JobResultTranslate = (t:number):string => {
 }
 
 const createJob = () => {
-    createData.value = {category: 0, type: 0, spe_template: 0};
-    createModal.value = true
+    data.value.createData = {category: 0, type: 0, spe_template: 0};
+    data.value.createModal = true
 }
 
 const createProperty = () => {
-    items2.value.push({name: "default", expression: "1 + 1", deep: 1})
+    data.value.items2.push({name: "default", expression: "1 + 1", deep: 1})
     setdirty()
 }
 
 const saveJobs = () => {
-    emits('edit', items.value, items2.value)
-    dirty.value = false
+    emits('edit', data.value.items, data.value.items2)
+    data.value.dirty = false
 }
 
 const cloneSelect = () => {
-    const buffer:JobTable[] = JSON.parse(JSON.stringify(items.value.filter(x => x.s != undefined && x.s === true)))
+    const buffer:JobTable[] = JSON.parse(JSON.stringify(data.value.items.filter(x => x.s != undefined && x.s === true)))
     buffer.forEach(x => x.uuid = uuidv6())
-    items.value.push(...buffer)
+    data.value.items.push(...buffer)
 }
 
 const deleteSelect = () => {
-    deleteData.value = items.value.filter(x => x.s == true).map(x => x.uuid)
-    deleteModal.value = true
+    data.value.deleteData = data.value.items.filter(x => x.s == true).map(x => x.uuid)
+    data.value.deleteModal = true
 }
 
 const deleteConfirm = () => {
-    deleteModal.value = false
-    items.value = items.value.filter(x => !deleteData.value.includes(x.uuid))
-    dirty.value = true
+    data.value.deleteModal = false
+    data.value.items = data.value.items.filter(x => !data.value.deleteData.includes(x.uuid))
+    data.value.dirty = true
 }
 
 const confirmCreate = () => {
-    createModal.value = false
+    data.value.createModal = false
     emits('added', 
         [{ 
             uuid: uuidv6(),
-            category: createData.value.category,
-            type: createData.value.type,
+            category: data.value.createData.category,
+            type: data.value.createData.type,
             script: "",
             string_args: [],
             number_args: [0],
@@ -200,7 +191,7 @@ const confirmCreate = () => {
     )
     nextTick(() => {
         updateJob();
-        dirty.value = true
+        data.value.dirty = true
     })
 }
 
@@ -209,7 +200,7 @@ const scriptExist = (name:string) => {
 }
 
 const libRename = (d:Rename) => {
-    items.value.forEach(z => {
+    data.value.items.forEach(z => {
         if((z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT) || (z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT)){
             const index = z.string_args.findIndex(x => x == d.oldname)
             if(index != -1) z.string_args[index] = d.newname
@@ -218,7 +209,7 @@ const libRename = (d:Rename) => {
 }
 
 const libDelete = (name:string) => {
-    items.value.forEach(z => {
+    data.value.items.forEach(z => {
         if((z.category == JobCategory.Condition && z.type == JobType2.JAVASCRIPT) || (z.category == JobCategory.Execution && z.type == JobType.JAVASCRIPT)){
             const index = z.string_args.findIndex(x => x == name)
             if(index != -1) z.string_args.splice(index, 1)
@@ -227,56 +218,56 @@ const libDelete = (name:string) => {
 }
 
 const selectall = (s:boolean) => {
-    items.value.forEach(x => x.s = s)
+    data.value.items.forEach(x => x.s = s)
 }
 
 const moveup = (uuid:string) => {
-    dirty.value = true
-    const index = items.value.findIndex(x => x.uuid == uuid)
-    const buffer = items.value[index - 1]
-    items.value[index - 1] = items.value[index]
-    items.value[index] = buffer
+    data.value.dirty = true
+    const index = data.value.items.findIndex(x => x.uuid == uuid)
+    const buffer = data.value.items[index - 1]
+    data.value.items[index - 1] = data.value.items[index]
+    data.value.items[index] = buffer
 }
 
 const movedown = (uuid:string) => {
-    dirty.value = true
-    const index = items.value.findIndex(x => x.uuid == uuid)
-    const buffer = items.value[index + 1]
-    items.value[index + 1] = items.value[index]
-    items.value[index] = buffer
+    data.value.dirty = true
+    const index = data.value.items.findIndex(x => x.uuid == uuid)
+    const buffer = data.value.items[index + 1]
+    data.value.items[index + 1] = data.value.items[index]
+    data.value.items[index] = buffer
 }
 
 const isFirst = (uuid:string) => {
-    const index = items.value.findIndex(x => x.uuid == uuid)
+    const index = data.value.items.findIndex(x => x.uuid == uuid)
     return index <= 0
 }
 
 const isLast = (uuid:string) => {
-    const index = items.value.findIndex(x => x.uuid == uuid)
+    const index = data.value.items.findIndex(x => x.uuid == uuid)
     if(index == -1) return true
-    return index == items.value.length - 1
+    return index == data.value.items.length - 1
 }
 
 const updateLocate = () => {
-    categorise.value = Object.keys(JobCategory).filter(key => isNaN(Number(key))).map((x, index) => {
+    data.value.categorise = Object.keys(JobCategory).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: JobCategoryTranslate(index as JobCategory),
             value: index
         }
     })
-    types.value = Object.keys(JobType).filter(key => isNaN(Number(key))).map((x, index) => {
+    data.value.types = Object.keys(JobType).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: JobTypeTranslate(index as JobType),
             value: index
         }
     })
-    types2.value = Object.keys(JobType2).filter(key => isNaN(Number(key))).map((x, index) => {
+    data.value.types2 = Object.keys(JobType2).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: JobType2Translate(index as JobType2),
             value: index
         }
     })
-    result.value = Object.keys(ConditionResult).filter(key => isNaN(Number(key))).map((x, index) => {
+    data.value.result = Object.keys(ConditionResult).filter(key => isNaN(Number(key))).map((x, index) => {
         return {
             text: JobResultTranslate(index as ConditionResult),
             value: index
@@ -314,7 +305,6 @@ onUnmounted(() => {
     emitter.off('renameScript', libRename)
     emitter.off('deleteScript', libDelete)
 })
-
 </script>
 
 <template>
@@ -344,7 +334,7 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" color="success" @click="saveJobs" :disabled="select == undefined || !dirty">
+                        <v-btn icon v-bind="props" color="success" @click="saveJobs" :disabled="select == undefined || !data.dirty">
                             <v-icon>mdi-content-save</v-icon>
                         </v-btn>
                     </template>
@@ -385,37 +375,26 @@ onUnmounted(() => {
             </v-toolbar>
         </template>
         <template #dialog>
-            <DialogBase width="500" v-model="createModal" class="text-white" :preference="preference">
+            <DialogBase width="500" v-model="data.createModal" class="text-white" :preference="preference">
                 <template #title>
                     <v-icon>mdi-hammer</v-icon>
                     {{ $t('modal.new-job') }}
                 </template>
                 <template #text>
-                    <v-select class="mb-1" hide-details v-model="createData.category" :autofocus="true" :items="categorise" item-title="text" item-value="value"></v-select>
-                    <v-select class="mb-1" hide-details v-if="createData.category == 0" v-model="createData.type" :items="types2" item-title="text" item-value="value"></v-select>
-                    <v-select class="mb-1" hide-details v-if="createData.category == 1" v-model="createData.type" :items="types" item-title="text" item-value="value"></v-select>
+                    <v-select class="mb-1" hide-details v-model="data.createData.category" :autofocus="true" :items="data.categorise" item-title="text" item-value="value"></v-select>
+                    <v-select class="mb-1" hide-details v-if="data.createData.category == 0" v-model="data.createData.type" :items="data.types2" item-title="text" item-value="value"></v-select>
+                    <v-select class="mb-1" hide-details v-if="data.createData.category == 1" v-model="data.createData.type" :items="data.types" item-title="text" item-value="value"></v-select>
                 </template>
                 <template #action>
                     <v-btn class="mt-3" color="primary" @click="confirmCreate">{{ $t('create') }}</v-btn>
                 </template>
             </DialogBase>
-            <DialogBase width="500" v-model="deleteModal" class="text-white" :preference="preference">
-                <template #title>
-                    <v-icon>mdi-pencil</v-icon>
-                    {{ $t('modal.delete-job') }}
-                </template>
-                <template #text>
-                    <p>{{ $t('modal.delete-job-confirm') }}</p>
-                    <br />
-                    <p v-for="(p, i) in deleteData">
-                        {{ i }}. {{ p }}
-                    </p>
-                </template>
-                <template #action>
-                    <v-btn class="mt-3" color="primary" @click="deleteModal = false">{{ $t('cancel') }}</v-btn>
-                    <v-btn class="mt-3" color="error" @click="deleteConfirm">{{ $t('delete') }}</v-btn>
-                </template>
-            </DialogBase>
+            <DeleteDialog v-model="data.deleteModal"
+                :title="$t('modal.delete-job')"
+                :text="$t('modal.delete-job-confirm')"
+                :data="data.deleteData"
+                @cancel="data.deleteModal = false"
+                @delete="deleteConfirm"/>
         </template>
         <!-- Property -->
         <h4 class="text-info"> {{ $t('property') }} </h4>
@@ -423,10 +402,10 @@ onUnmounted(() => {
             <br />
             <v-row>
                 <v-col>
-                    <v-text-field v-model.number="ck" label="ck" hide-details :min="0" type="number"></v-text-field>
+                    <v-text-field v-model.number="data.ck" label="ck" hide-details :min="0" type="number"></v-text-field>
                 </v-col>
             </v-row>
-            <v-row v-for="(c, i) in items2" :key="i">
+            <v-row v-for="(c, i) in data.items2" :key="i">
                 <v-col cols="2" class="my-0 py-0">
                     <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
                 </v-col>
@@ -444,7 +423,7 @@ onUnmounted(() => {
                             </v-btn>
                         </v-col>
                         <v-col cols="4">
-                            <v-btn flat icon @click="downProperty(i)" :disabled="i == items2.length - 1">
+                            <v-btn flat icon @click="downProperty(i)" :disabled="i == data.items2.length - 1">
                                 <v-icon>mdi-arrow-down</v-icon>
                             </v-btn>
                         </v-col>
@@ -463,7 +442,7 @@ onUnmounted(() => {
         <div v-if="select != undefined" class="py-3 pb-7">
             <br />
             <v-expansion-panels color="dark" class="px-6">
-                <v-expansion-panel v-for="(c, i) in items" :key="i" class="my-2 pl-5">
+                <v-expansion-panel v-for="(c, i) in data.items" :key="i" class="my-2 pl-5">
                     <v-row>
                         <v-col cols="auto" class="mt-2">
                             <v-checkbox type="checkbox" v-model="c.s" hide-details width="25" density="compact"></v-checkbox>
@@ -488,7 +467,7 @@ onUnmounted(() => {
                         <v-card flat>
                             <v-card-text>
                                 <div v-if="checkPatterm(c.category, c.type, 'Javascript_n')">
-                                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="data.result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
                                     <codemirror-js v-model="c.script" 
                                         style="text-align:left;"
                                         :style="{ height: '40vh' }"
@@ -501,7 +480,7 @@ onUnmounted(() => {
                                     </v-select>
                                 </div>
                                 <div v-else-if="checkPatterm(c.category, c.type, 'OnePath_n')">
-                                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                                    <v-select v-model="c.number_args[0]" @update:model-value="setdirty" :items="data.result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
                                     <p class="hint">{{ replaceString(c, 0) }}</p>
                                     <v-text-field class="my-2" v-model="c.string_args[0]" @input="setdirty" :label="$t('jobpage.path')" hide-details></v-text-field>
                                 </div>

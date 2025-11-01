@@ -51,7 +51,7 @@ const items_final = computed(() => {
         realSearch.value.length == 0 ? props.tasks : 
             props.tasks.filter(x => x.title.includes(realSearch.value) || x.uuid.slice(x.uuid.length - 12, x.uuid.length).includes(realSearch.value))
     a = JSON.parse(JSON.stringify(a))
-    if(data.value.sort != undefined && data.value.order != undefined){
+    if(util.isSort()){
         a = a.sort((a:any, b:any) => {
             return a[data.value.sort!] - b[data.value.sort!]
         })
@@ -285,10 +285,10 @@ onUnmounted(() => {
                         <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
                             <v-icon>mdi-pencil</v-icon>
                         </v-btn>
-                        <v-btn variant="text" icon :disabled="util.isFirst(item.uuid)" @click="util.moveUp(item.uuid)" size="small">
+                        <v-btn variant="text" icon :disabled="util.isFirst(item.uuid) || util.isSort()" @click="util.moveUp(item.uuid)" size="small">
                             <v-icon>mdi-arrow-up</v-icon>
                         </v-btn>
-                        <v-btn variant="text" icon :disabled="util.isLast(item.uuid)" @click="util.moveDown(item.uuid)" size="small">
+                        <v-btn variant="text" icon :disabled="util.isLast(item.uuid) || util.isSort()" @click="util.moveDown(item.uuid)" size="small">
                             <v-icon>mdi-arrow-down</v-icon>
                         </v-btn>
                     </template>

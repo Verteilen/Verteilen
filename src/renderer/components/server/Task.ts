@@ -198,8 +198,8 @@ export class Util_Task {
      * Check select task uuid is first in order
      * @param uuid Task UUID
      */
-    isFirst = (uuid:string) => {
-        if(this.select.value == undefined) return
+    isFirst = (uuid:string):boolean => {
+        if(this.select.value == undefined) return false
         const index = this.select.value?.tasks_uuid.findIndex(x => x == uuid)
         return index <= 0
     }
@@ -207,11 +207,14 @@ export class Util_Task {
      * Check select task uuid is last in order
      * @param uuid Task UUID
      */
-    isLast = (uuid:string) => {
-        if(this.select.value == undefined) return
+    isLast = (uuid:string):boolean => {
+        if(this.select.value == undefined) return false
         const index = this.select.value?.tasks_uuid.findIndex(x => x == uuid)
         if(index == -1) return true
         return index == this.select.value?.tasks_uuid.length - 1
+    }
+    isSort = ():boolean => {
+        return this.data.value.order != undefined && this.data.value.sort != undefined
     }
     //#endregion
 }
