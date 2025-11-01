@@ -152,6 +152,14 @@ export class Util_Server extends Server {
                         this.data.value.tasks = []
                     }
                 }
+            case 2:
+                {
+                    if(this.data.value.selectTask != undefined){
+                        this.query.load_jobs(this.data.value.selectTask.uuid)
+                    }else{
+                        this.data.value.jobs = []
+                    }
+                }
         }
     }
     

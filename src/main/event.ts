@@ -40,6 +40,7 @@ import {
     Project_Module,
     CreateEventObserver,
     RecordType,
+    CreateDefaultJob,
 } from "./interface";
 
 const Loader = (loader:RecordIOLoader, key:string) => {
@@ -190,14 +191,11 @@ export class BackendEvent extends Server implements BackendAction {
                 event.sender.send('javascript-feedback', msg)
             }
             const d:Job = {
+                ...CreateDefaultJob(),
                 uuid: 'javascript',
                 category: JobCategory.Execution,
                 type: JobType.JAVASCRIPT,
-                script: content,
-                string_args: [],
-                number_args: [],
-                boolean_args: [],
-                id_args: [],
+                script: content
             }
             const p:PluginList = { plugins: [] }
             const worker = new ClientJobExecute.ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)

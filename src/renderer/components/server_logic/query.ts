@@ -110,7 +110,9 @@ export class ServerQuery {
             const p:Array<Job> = x
             this.data.value.jobs = p
         })
-        return p
+        return p.then(() => {
+            if (process.env.NODE_ENV == 'development') console.log("job", this.data.value.selectTask, this.data.value.jobs)
+        })
     }
 
     load_all_job = async ():Promise<void> => {
