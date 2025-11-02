@@ -98,7 +98,7 @@ export class Util_Server_Project {
     //#endregion
 
     chooseProject = (uuid:string) => {
-        this.data.value.selectProject = this.data.value.projects.find(x => x.uuid == uuid)
+        this.data.value.selectProjectID = uuid
         this.data.value.page = 1 // Go to task page
     }
 }

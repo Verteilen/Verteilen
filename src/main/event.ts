@@ -51,7 +51,7 @@ const Loader = (loader:RecordIOLoader, key:string) => {
     ipcMain.on(`rename_${key}`, (e, name:string, newname:string) => loader.rename(name, newname))
     ipcMain.on(`delete_${key}`, (e, uuid:string) => loader.delete(uuid))
     ipcMain.on(`delete_all_${key}`, (e) => loader.delete_all())
-    ipcMain.handle(`load_${key}`, (e, uuid:string) => loader.load(uuid, true))
+    ipcMain.handle(`load_${key}`, (e, uuid:string) => loader.load(uuid, false))
 }
 const PluginInit = (loader:PluginLoader) => {
     loader.get_plugin()
@@ -91,6 +91,7 @@ const DetailInit = (detail:ServerDetailEvent) => {
     ipcMain.handle('console_update', (event) => detail.console_update(undefined))
 }
 const ModuleInit = (project:Project_Module) => {
+    ipcMain.handle("project_module:reorder_project_tasks", (event, uuid:string, uuids:Array<string>) => project.ReOrderProjectTask(uuid, uuids))
     ipcMain.handle("project_module:populate_project", (event, uuid:string) => project.PopulateProject(uuid))
     ipcMain.handle("project_module:populate_task", (event, uuid:string) => project.PopulateTask(uuid))
     ipcMain.handle("project_module:get_tasks", (event, uuid:string) => project.GetProjectRelatedTask(uuid))

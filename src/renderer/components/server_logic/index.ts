@@ -1,6 +1,6 @@
 //#region Methods
 import { Emitter } from "mitt"
-import { nextTick, Ref } from "vue"
+import { ComputedRef, nextTick, Ref } from "vue"
 import { BackendProxy } from "../../proxy";
 import { 
     Execute_SocketManager,
@@ -58,9 +58,9 @@ export interface DATA {
     jobs: Array<JobTable>
     libs: Array<Library>
     logs: Array<ExecutionLog>
-    selectProject: ProjectTable | undefined
-    selectTask: TaskTable | undefined
-    selectDatabase: DatabaseTable | undefined
+    selectProjectID: string
+    selectTaskID: string
+    selectDatabaseID: string
     nodes: Array<NodeTable>
     messages: Array<ClientLog>
     plugin: PluginPageData
@@ -90,11 +90,18 @@ export class Util_Server extends Server {
     lib:Util_Server_Lib
     self:Util_Server_Self
 
+    selectProject:ComputedRef<ProjectTable | undefined>
+    selectTask:ComputedRef<TaskTable | undefined>
+    selectDatabase:ComputedRef<DatabaseTable | undefined>
+
     constructor(data:Ref<DATA>,
         emitter:Emitter<BusType>,
         backend:Ref<BackendProxy>,
         preference:Ref<Preference>,
-        server:Ref<Server | undefined>
+        server:Ref<Server | undefined>,
+        selectProject:ComputedRef<ProjectTable | undefined>,
+        selectTask:ComputedRef<TaskTable | undefined>,
+        selectDatabase:ComputedRef<DatabaseTable | undefined>
         )
     {
         super()
@@ -114,6 +121,9 @@ export class Util_Server extends Server {
         this.console = new Util_Server_Console()
         this.lib = new Util_Server_Lib(this.data, this.update)
         this.self = new Util_Server_Self(this.data)
+        this.selectProject = selectProject
+        this.selectTask = selectTask
+        this.selectDatabase = selectDatabase
     }
 
     update = () => {
@@ -146,16 +156,16 @@ export class Util_Server extends Server {
                 }
             case 1:
                 {
-                    if(this.data.value.selectProject != undefined){
-                        this.query.load_tasks(this.data.value.selectProject.uuid)
+                    if(this.selectProject.value != undefined){
+                        this.query.load_tasks(this.selectProject.value.uuid)
                     }else{
                         this.data.value.tasks = []
                     }
                 }
             case 2:
                 {
-                    if(this.data.value.selectTask != undefined){
-                        this.query.load_jobs(this.data.value.selectTask.uuid)
+                    if(this.selectTask.value != undefined){
+                        this.query.load_jobs(this.selectTask.value.uuid)
                     }else{
                         this.data.value.jobs = []
                     }

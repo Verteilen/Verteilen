@@ -248,7 +248,11 @@ onUnmounted(() => {
         >
             <template #body="props"></template>
             <template #tbody="props">
-                <VueDraggableNext v-model="items_final" tag="tbody">
+                <VueDraggableNext v-model="items_final" 
+                    tag="tbody"
+                    :move="util.move"
+                    @end="util.end"
+                >
                     <v-data-table-row v-for="(item, index) in props.internalItems"
                         :key="index"
                         :item="item"
@@ -261,12 +265,6 @@ onUnmounted(() => {
                         <template v-slot:item.detail="{ item }">
                             <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
                                 <v-icon>mdi-pencil</v-icon>
-                            </v-btn>
-                            <v-btn variant="text" icon :disabled="util.isFirst(item.uuid) || util.isSort()" @click="util.moveUp(item.uuid)" size="small">
-                                <v-icon>mdi-arrow-up</v-icon>
-                            </v-btn>
-                            <v-btn variant="text" icon :disabled="util.isLast(item.uuid) || util.isSort()" @click="util.moveDown(item.uuid)" size="small">
-                                <v-icon>mdi-arrow-down</v-icon>
                             </v-btn>
                         </template>
                         <template v-slot:item.type="{ item }">

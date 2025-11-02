@@ -46,8 +46,7 @@ export type EmitType = {
     (e: 'select', uuids:string): void
     (e: 'database', uuid:string):void
     (e: 'bind', uuid:string):void
-    (e: 'moveup', uuids:string): void
-    (e: 'movedown', uuids:string): void
+    (e: 'reorder', uuids:Array<string>): void
     (e: 'return'): void
 }
 /**
@@ -92,12 +91,6 @@ export class Util_Task {
     }
 
     //#region Event
-    moveUp = (uuid:string) => {
-        this.emits('moveup', uuid)
-    }
-    moveDown = (uuid:string) => {
-        this.emits('movedown', uuid)
-    }
     dataEdit = (uuid:string) => {
         if(this.select.value == undefined) return
         const selectp = this.tasks.value.find(x => x.uuid == uuid)
@@ -211,8 +204,16 @@ export class Util_Task {
         if(index == -1) return true
         return index == this.select.value?.tasks_uuid.length - 1
     }
-    isSort = ():boolean => {
-        return this.data.value.order != undefined && this.data.value.sort != undefined
+    move = (e:any, oge:any) => {
+        //console.log("MOVE", e, oge)
+    }
+    end = (e:any) => {
+        const uuids = this.tasks.value.map(x => x.uuid)
+        const n:number = e.newIndex
+        const o:number = e.oldIndex
+        const buffer = uuids.splice(o, 1)
+        uuids.splice(n, 0, ...buffer)
+        this.emits('reorder', uuids)
     }
     //#endregion
 }

@@ -76,9 +76,9 @@ const data:Ref<DATA> = ref({
     jobs: [],
     libs: [],
     logs: [],
-    selectProject: undefined,
-    selectTask: undefined,
-    selectDatabase: undefined,
+    selectProjectID: "",
+    selectTaskID: "",
+    selectDatabaseID: "",
     nodes: [],
     messages: [],
     plugin: { plugins: [], templates: [] }
@@ -100,13 +100,16 @@ watch(() => data.value.page, () => {
 //#endregion
 
 //#region Computed
+const selectProject = computed(() => data.value.projects.find(x => x.uuid == data.value.selectProjectID))
+const selectTask = computed(() => data.value.tasks.find(x => x.uuid == data.value.selectTaskID))
+const selectDatabase = computed(() => data.value.databases.find(x => x.uuid == data.value.selectDatabaseID))
 const config = computed(() => backend.value.config)
 const selectExecute = computed(() => data.value.execute_manager[data.value.select_manager])
 const projectbind = computed(() => {
-  if(data.value.selectProject == undefined) return undefined
-  return data.value.databases.find(x => x.uuid == data.value.selectProject?.database_uuid) 
+  if(selectProject.value == undefined) return undefined
+  return data.value.databases.find(x => x.uuid == selectProject.value?.database_uuid) 
 })
-const util:Util_Server = new Util_Server(data, emitter, backend, preference, server)
+const util:Util_Server = new Util_Server(data, emitter, backend, preference, server, selectProject, selectTask, selectDatabase)
 //#endregion
 
 //#region Methods
@@ -632,7 +635,7 @@ onUnmounted(() => {
           v-if="data.page == 1"
           :projects="data.projects" 
           :tasks="data.tasks"
-          :select="data.selectProject" 
+          :select="selectProject" 
           :databases="data.databases"
           @added="e => util.task.addTask(e)" 
           @clone="e => util.task.cloneTask(e)"
@@ -640,8 +643,7 @@ onUnmounted(() => {
           @select="e => util.task.chooseTask(e)"
           @bind="e => util.task.bindingTask(e)"
           @delete="e => util.task.deleteTask(e)"
-          @moveup="e => util.task.moveupTask(e)"
-          @movedown="e => util.task.movedownTask(e)"
+          @reorder="e => util.task.reorderTask(e)"
           @database="e => goDatabase(e)"
           @return="data.page = 0"/>
       </v-tabs-window-item>
@@ -650,8 +652,8 @@ onUnmounted(() => {
           v-if="data.page == 2"
           :projects="data.projects" 
           :jobs="data.jobs"
-          :select="data.selectTask"
-          :owner="data.selectProject"
+          :select="selectTask"
+          :owner="selectProject"
           :libs="data.libs"
           :database="projectbind"
           @added="e => util.job.addJob(e)" 
@@ -664,7 +666,7 @@ onUnmounted(() => {
           v-if="data.page == 3"
           :config="config"
           :databases="data.databases"
-          :select="data.selectDatabase"
+          :select="selectDatabase"
           :backend="backend"
           :preference="preference"
           :plugin="data.plugin"

@@ -23,6 +23,12 @@ export class ServerQuery {
     public get preference () : Ref<Preference> {
         return this.server.preference
     }
+    public get selectProject () {
+        return this.server.selectProject
+    }
+    public get selectTask () {
+        return this.server.selectTask
+    }
 
     load_all_project = async ():Promise<void> => {
         const p:Promise<void> = !this.backend.value.config.haveBackend ? 
@@ -44,6 +50,36 @@ export class ServerQuery {
                     taskCount: p.tasks_uuid.length
                 }
             })
+        })
+        return p.then(() => {
+            if (process.env.NODE_ENV == 'development') console.log("Projects", this.data.value.projects)
+        })
+    }
+
+    load_project = async (uuid:string):Promise<void> => {
+        const bi = this.data.value.projects.findIndex(b => b.uuid == uuid)
+        const p:Promise<void> = !this.backend.value.config.haveBackend ? 
+        new Promise((resolve) => {
+            const buffer:Project | undefined = this.static_server.value?.memory.projects.find(x => x.uuid == uuid)
+            if(buffer != undefined){
+                if(bi != -1) this.data.value.projects.splice(bi, 1)
+                this.data.value.projects.push({
+                    ...buffer,
+                    s: false,
+                    taskCount: buffer.tasks_uuid.length
+                })
+            }
+            resolve()
+        }) : this.backend.value.invoke('load_project', uuid).then((text:string) => {
+            const buffer:Project | undefined = JSON.parse(text)
+            if(buffer != undefined){
+                if(bi != -1) this.data.value.projects.splice(bi, 1)
+                this.data.value.projects.push({
+                    ...buffer,
+                    s: false,
+                    taskCount: buffer.tasks_uuid.length
+                })
+            }
         })
         return p.then(() => {
             if (process.env.NODE_ENV == 'development') console.log("Project", this.data.value.projects)
@@ -70,7 +106,7 @@ export class ServerQuery {
             })
         })
         return p.then(() => {
-            if (process.env.NODE_ENV == 'development') console.log("task", this.data.value.selectProject, this.data.value.tasks)
+            if (process.env.NODE_ENV == 'development') console.log("tasks", this.selectProject.value, this.data.value.tasks)
         })
     }
 
@@ -111,7 +147,7 @@ export class ServerQuery {
             this.data.value.jobs = p
         })
         return p.then(() => {
-            if (process.env.NODE_ENV == 'development') console.log("job", this.data.value.selectTask, this.data.value.jobs)
+            if (process.env.NODE_ENV == 'development') console.log("job", this.selectTask.value, this.data.value.jobs)
         })
     }
 

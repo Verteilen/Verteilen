@@ -23,6 +23,12 @@ export class ServerSave {
     public get preference () : Ref<Preference> {
         return this.server.preference
     }
+    public get selectProject() {
+        return this.server.selectProject
+    }
+    public get selectTask() {
+        return this.server.selectTask
+    }
 
     save_project = async (v:ProjectTable):Promise<void> => {
         const project:any = JSON.parse(JSON.stringify(v))
@@ -96,19 +102,19 @@ export class ServerSave {
         new Promise<void>(async (resolve) => {
             if(this.static_server.value == undefined) return
             const xs = await this.static_server.value.module_project.CloneTasks(v.map(x => x.uuid))
-            if(this.data.value.selectProject != undefined){
-                this.data.value.selectProject.tasks_uuid.push(...xs)
-                await this.server.save.save_project(this.data.value.selectProject)
-                await this.server.query.load_tasks(this.data.value.selectProject.uuid)
+            if(this.selectProject.value != undefined){
+                this.selectProject.value.tasks_uuid.push(...xs)
+                await this.server.save.save_project(this.selectProject.value)
+                await this.server.query.load_tasks(this.selectProject.value.uuid)
             }
             resolve()
         }) : new Promise<void>(async (resolve) => {
             const xs = await this.backend.value.invoke("project_module:clone_tasks", ...v.map(x => x.uuid))
-            if(this.data.value.selectProject != undefined){
-                this.data.value.selectProject.tasks_uuid.push(...xs)
-                console.log(this.data.value.selectProject)
-                await this.server.save.save_project(this.data.value.selectProject)
-                await this.server.query.load_tasks(this.data.value.selectProject.uuid)
+            if(this.selectProject.value != undefined){
+                this.selectProject.value.tasks_uuid.push(...xs)
+                console.log(this.selectProject.value)
+                await this.server.save.save_project(this.selectProject.value)
+                await this.server.query.load_tasks(this.selectProject.value.uuid)
             }
             resolve()
         })
@@ -146,19 +152,19 @@ export class ServerSave {
         new Promise<void>((resolve) => {
             if(this.static_server.value == undefined) return
             this.static_server.value.module_project.CloneJobs(v.map(x => x.uuid)).then(async xs => {
-                if(this.data.value.selectTask){
-                    this.data.value.selectTask.jobs_uuid.push(...xs)
-                    await this.server.save.save_task(this.data.value.selectTask)
-                    await this.server.query.load_jobs(this.data.value.selectTask.uuid)
+                if(this.selectTask.value){
+                    this.selectTask.value.jobs_uuid.push(...xs)
+                    await this.server.save.save_task(this.selectTask.value)
+                    await this.server.query.load_jobs(this.selectTask.value.uuid)
                 }
                 resolve()
             })
         }) : new Promise<void>((resolve) => {
             this.backend.value.invoke("project_module:clone_jobs", v.map(x => x.uuid)).then(async (xs:Array<string>) => {
-                if(this.data.value.selectTask){
-                    this.data.value.selectTask.jobs_uuid.push(...xs)
-                    await this.server.save.save_task(this.data.value.selectTask)
-                    await this.server.query.load_jobs(this.data.value.selectTask.uuid)
+                if(this.selectTask.value){
+                    this.selectTask.value.jobs_uuid.push(...xs)
+                    await this.server.save.save_task(this.selectTask.value)
+                    await this.server.query.load_jobs(this.selectTask.value.uuid)
                 }
                 resolve()
             })

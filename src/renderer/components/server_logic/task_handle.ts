@@ -4,6 +4,7 @@ import { DATA, save_and_update, Util_Server } from "."
 import { Emitter } from "mitt"
 import { BackendProxy } from "../../proxy"
 import { ServerSave } from "./save"
+import { ServerQuery } from "./query"
 
 
 export class Util_Server_Task {
@@ -22,6 +23,9 @@ export class Util_Server_Task {
     public get save() : ServerSave {
         return this.server.save
     }
+    public get query() : ServerQuery {
+        return this.server.query
+    }
     public get update() : save_and_update {
         return this.server.allUpdate
     }
@@ -30,6 +34,9 @@ export class Util_Server_Task {
     }
     public get emitter() : Emitter<BusType> {
         return this.server.emitter
+    }
+    public get selectProject() {
+        return this.server.selectProject
     }
 
     //#region Task CRUD
@@ -67,12 +74,12 @@ export class Util_Server_Task {
             return this.server.del.delete_task(id) 
         })
         const ps2 = Promise.all(ps).then(() => {
-            if(this.data.value.selectProject != undefined){
+            if(this.selectProject.value != undefined){
                 for(let uuid of uuids){
-                    const index = this.data.value.selectProject.tasks_uuid.findIndex(x => x == uuid)
-                    this.data.value.selectProject.tasks_uuid.splice(index, 1)
+                    const index = this.selectProject.value.tasks_uuid.findIndex(x => x == uuid)
+                    this.selectProject.value.tasks_uuid.splice(index, 1)
                 }
-                this.save.save_project(this.data.value.selectProject)
+                this.save.save_project(this.selectProject.value)
             }
         })
         return ps2
@@ -80,13 +87,13 @@ export class Util_Server_Task {
     //#endregion
     
     chooseTask = (uuid:string) => {
-        this.data.value.selectTask = this.data.value.tasks.find(x => x.uuid == uuid)
+        this.data.value.selectTaskID = uuid
         this.data.value.page = 2 // Go to job page
     }
 
     bindingTask = (uuid:string) => {
-        if(this.data.value.selectProject == undefined) return
-        this.data.value.selectProject.database_uuid = uuid
+        if(this.selectProject.value == undefined) return
+        this.selectProject.value.database_uuid = uuid
         const index = this.data.value.projects.findIndex(x => x.uuid == uuid)
         if(index != -1) {
             this.data.value.projects[index].database_uuid = uuid
@@ -94,23 +101,33 @@ export class Util_Server_Task {
         this.update()
     }
     
+    reorderTask = (uuids:Array<string>) => {
+        if(this.selectProject.value == undefined) return
+        this.selectProject.value.tasks_uuid = uuids
+        this.save.save_project(this.selectProject.value).then(() => {
+            this.query.load_project(this.selectProject.value!.uuid).then(() => {
+                this.query.load_tasks(this.selectProject.value!.uuid)
+            })
+        })
+    }
+
     moveupTask = (uuid:string) => {
-        if(this.data.value.selectProject == undefined) return
-        const index = this.data.value.selectProject.tasks.findIndex(x => x.uuid == uuid)
+        if(this.selectProject.value == undefined) return
+        const index = this.selectProject.value.tasks.findIndex(x => x.uuid == uuid)
         if(index == -1) return
-        const b = this.data.value.selectProject.tasks[index - 1]
-        this.data.value.selectProject.tasks[index - 1] = this.data.value.selectProject.tasks[index]
-        this.data.value.selectProject.tasks[index] = b
+        const b = this.selectProject.value.tasks[index - 1]
+        this.selectProject.value.tasks[index - 1] = this.selectProject.value.tasks[index]
+        this.selectProject.value.tasks[index] = b
         this.update()
     }
     
     movedownTask = (uuid:string) => {
-        if(this.data.value.selectProject == undefined) return
-        const index = this.data.value.selectProject.tasks.findIndex(x => x.uuid == uuid)
+        if(this.selectProject.value == undefined) return
+        const index = this.selectProject.value.tasks.findIndex(x => x.uuid == uuid)
         if(index == -1) return
-        const b = this.data.value.selectProject.tasks[index + 1]
-        this.data.value.selectProject.tasks[index + 1] = this.data.value.selectProject.tasks[index]
-        this.data.value.selectProject.tasks[index] = b
+        const b = this.selectProject.value.tasks[index + 1]
+        this.selectProject.value.tasks[index + 1] = this.selectProject.value.tasks[index]
+        this.selectProject.value.tasks[index] = b
         this.update()
     }
 }
