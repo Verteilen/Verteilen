@@ -8,6 +8,7 @@ import { CreateField, DATA, EmitType, PROPS, Util_Task } from './Task';
 //#endregion
 
 //#region Views
+import { VueDraggableNext } from 'vue-draggable-next'
 import TaskDialog from '../dialog/task/TaskDialog.vue';
 import DatabaseSelectionDialog from '../dialog/DatabaseSelectionDialog.vue';
 import ContextFrame from '../components/layout/ContextFrame.vue';
@@ -35,8 +36,6 @@ const data:Ref<DATA> = ref({
     search: '',
     selectSearch: '',
     selection: [],
-    sort: undefined,
-    order: undefined,
 })
 //#endregion
 
@@ -50,15 +49,7 @@ const items_final = computed(() => {
     let a = realSearch.value == null || 
         realSearch.value.length == 0 ? props.tasks : 
             props.tasks.filter(x => x.title.includes(realSearch.value) || x.uuid.slice(x.uuid.length - 12, x.uuid.length).includes(realSearch.value))
-    a = JSON.parse(JSON.stringify(a))
-    if(util.isSort()){
-        a = a.sort((a:any, b:any) => {
-            return a[data.value.sort!] - b[data.value.sort!]
-        })
-        if(data.value.order != 'asc') a = a.reverse()
-        return a
-    }
-    else return a
+    return JSON.parse(JSON.stringify(a)) as TaskTable[]
 })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_task_ids = computed(() => props.tasks.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
@@ -118,10 +109,6 @@ const confirmCreate = () => {
     })
 }
 
-const getIndex = (ID:string) => {
-    return props.tasks.findIndex(x => x.uuid == ID)
-}
-
 const confirmEdit = () => {
     const p = util.confirmEdit()
     if(p == undefined) return
@@ -141,20 +128,14 @@ const TaskTypeColor = (item:TaskTable) => {
     else return 'success'
 }
 
-const updateOptions = (a:any) => {
-    data.value.order = a.sortBy.length == 0 ? undefined : a.sortBy[0].order
-    data.value.sort = a.sortBy.length == 0 ? undefined : a.sortBy[0].key
-}
-
 const updateFields = () => {
     data.value.fields = [
-        { title: 'ID', align: 'center', key: 'ID', maxWidth: "20%" },
-        { title: 'Order', align: 'center', key: 'Order' },
-        { title: $t('headers.title'), align: 'center', key: 'title' },
-        { title: $t('headers.description'), align: 'center', key: 'description' },
-        { title: $t('headers.type'), align: 'center', key: 'type' },
-        { title: $t('headers.job-count'), align: 'center', key: 'jobCount', minWidth: "150px" },
-        { title: $t('headers.detail'), align: 'center', key: 'detail', minWidth: "200px" },
+        { title: 'ID', align: 'center', key: 'ID', maxWidth: "20%", sortable: false },
+        { title: $t('headers.title'), align: 'center', key: 'title', sortable: false },
+        { title: $t('headers.description'), align: 'center', key: 'description', sortable: false },
+        { title: $t('headers.type'), align: 'center', key: 'type', sortable: false },
+        { title: $t('headers.job-count'), align: 'center', key: 'jobCount', minWidth: "150px", sortable: false },
+        { title: $t('headers.detail'), align: 'center', key: 'detail', minWidth: "200px", sortable: false },
     ]
 }
 
@@ -164,22 +145,6 @@ const updateLocate = () => {
 
 const goreturn = () => {
     emits('return')
-}
-
-const onMoveCallback = (evt:any, originalEvent:any) => {
-    const item = evt.draggedContext.element;
-    const itemIdx = evt.draggedContext.futureIndex;
-
-    console.log("onMoveCallback");
-
-    if (item.locked) {
-    return false;
-    }
-
-    return true;
-}
-const onDropCallback = (evt:any, originalEvent:any) => {
-    console.log("onDropCallback");
 }
 
 const onHotkey = (value:string) => {
@@ -271,33 +236,46 @@ onUnmounted(() => {
                 @cancel="data.deleteModal = false"
                 @delete="deleteConfirm"/>
         </template>
-        <v-card flat style="background: transparent">
-            <v-card-text class="my-0 py-0">
-                <v-text-field v-model="data.search" class="mb-2" :style="{ 'fontSize': preference.font + 'px' }" :placeholder="$t('search')" clearable prepend-icon="mdi-magnify" hide-details single-line></v-text-field>
-                <v-data-table style="background: transparent" @update:options="updateOptions" :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" show-select v-model="data.selection" item-value="uuid" :style="{ 'fontSize': preference.font + 'px' }">
-                    <template v-slot:item.ID="{ item }">
-                        <a href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid.slice(item.uuid.length - 12, item.uuid.length) }}</a>
-                    </template>
-                    <template v-slot:item.Order="{ item }">
-                        {{ getIndex(item.uuid) }}
-                    </template>
-                    <template v-slot:item.detail="{ item }">
-                        <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-                        <v-btn variant="text" icon :disabled="util.isFirst(item.uuid) || util.isSort()" @click="util.moveUp(item.uuid)" size="small">
-                            <v-icon>mdi-arrow-up</v-icon>
-                        </v-btn>
-                        <v-btn variant="text" icon :disabled="util.isLast(item.uuid) || util.isSort()" @click="util.moveDown(item.uuid)" size="small">
-                            <v-icon>mdi-arrow-down</v-icon>
-                        </v-btn>
-                    </template>
-                    <template v-slot:item.type="{ item }">
-                        <v-chip :color="TaskTypeColor(item)">{{ TaskType(item) }}</v-chip>
-                    </template>
-                </v-data-table>
-            </v-card-text>
-        </v-card>
+        <v-data-table v-model="data.selection" show-select 
+            class="px-6"
+            style="background: transparent" 
+            :style="{ 'fontSize': preference.font + 'px' }"
+            :headers="data.fields" 
+            :items-per-page="data.itemPrePage" 
+            item-value="uuid"
+            hide-default-footer
+            :items="items_final" 
+        >
+            <template #body="props"></template>
+            <template #tbody="props">
+                <VueDraggableNext v-model="items_final" tag="tbody">
+                    <v-data-table-row v-for="(item, index) in props.internalItems"
+                        :key="index"
+                        :item="item"
+                        :index="index"
+                        :cell-props="props"
+                    >
+                        <template v-slot:item.ID="{ item }">
+                            <a href="#" @click="util.dataChoose(item.uuid)">{{ item.uuid.slice(item.uuid.length - 12, item.uuid.length) }}</a>
+                        </template>
+                        <template v-slot:item.detail="{ item }">
+                            <v-btn variant="text" icon @click="util.dataEdit(item.uuid)" size="small">
+                                <v-icon>mdi-pencil</v-icon>
+                            </v-btn>
+                            <v-btn variant="text" icon :disabled="util.isFirst(item.uuid) || util.isSort()" @click="util.moveUp(item.uuid)" size="small">
+                                <v-icon>mdi-arrow-up</v-icon>
+                            </v-btn>
+                            <v-btn variant="text" icon :disabled="util.isLast(item.uuid) || util.isSort()" @click="util.moveDown(item.uuid)" size="small">
+                                <v-icon>mdi-arrow-down</v-icon>
+                            </v-btn>
+                        </template>
+                        <template v-slot:item.type="{ item }">
+                            <v-chip :color="TaskTypeColor(item)">{{ TaskType(item) }}</v-chip>
+                        </template>
+                    </v-data-table-row>
+                </VueDraggableNext>
+            </template>
+        </v-data-table>
     </ContextFrame>
 </template>
 

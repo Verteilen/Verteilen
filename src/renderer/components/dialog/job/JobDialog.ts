@@ -17,3 +17,7 @@ export interface DATA {
     ck: number
     buffer: Job
 }
+
+export type EmitType = {
+    (e: 'confirm', job:Job):void
+}

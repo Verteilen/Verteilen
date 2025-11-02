@@ -1,4 +1,4 @@
-import { JobTable, Property, ProjectTable, TaskTable, DatabaseTable, Library, Job, TaskBase, JobCategory } from "verteilen-core/src/interface"
+import { JobTable, Property, ProjectTable, TaskTable, DatabaseTable, Library, TaskBase, JobCategory } from "verteilen-core/src/interface"
 import { ComputedRef, Ref } from "vue"
 
 export interface ViewTreeNode {
@@ -12,7 +12,7 @@ export interface DATA {
     page: number
     createModal: boolean
     createType: JobCategory
-    createData: Job
+    createData: JobTable
     editMode: boolean
     deleteModal: boolean
     deleteData: Array<string>
@@ -35,9 +35,9 @@ export interface PROPS {
 }
 
 export type EmitType = {
-    (e: 'added', job:Job[]): void
-    (e: 'clone', job:Job[]): void
-    (e: 'edit', task:Array<JobTable>, properties: Array<Property>): void
+    (e: 'added', job:JobTable): void
+    (e: 'clone', job:JobTable): void
+    (e: 'edit', job:JobTable): void
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
     (e: 'keychange', key:string): void

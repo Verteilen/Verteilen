@@ -16,7 +16,9 @@ import {
     Preference,  
     Rename,
     TaskLogicUnit,
-    CreateDefaultJob, 
+    CreateDefaultJob,
+    Job,
+    JobTable, 
 } from '../../interface';
 import { i18n } from './../../plugins/i18n';
 import { BackendProxy } from '../../proxy'
@@ -134,7 +136,14 @@ const deleteConfirm = () => {
     data.value.dirty = true
 }
 
-const confirmCreate = () => {
+const dialogConfirm = (job:JobTable) => {
+
+}
+const confirmEdit = (job:JobTable) => {
+    data.value.createModal = false
+    emits('edit', job)
+}
+const confirmCreate = (job:JobTable) => {
     data.value.createModal = false
     emits('added', 
         [{ 
@@ -276,7 +285,8 @@ onUnmounted(() => {
                 :result="data.result"
                 :task="props.select"
                 :libs="props.libs"
-                :database="props.database">
+                :database="props.database"
+                @confirm="dialogConfirm">
             </JobDialog>
             <DeleteDialog v-model="data.deleteModal"
                 :title="$t('modal.delete-job')"

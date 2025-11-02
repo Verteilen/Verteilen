@@ -21,7 +21,7 @@ import { BackendProxy } from '../../../proxy'
 
 //#region Views
 import DialogBase from './../DialogBase.vue'
-import { DATA, PROPS } from './JobDialog'
+import { DATA, EmitType, PROPS } from './JobDialog'
 //#endregion
 
 //#region Data
@@ -30,6 +30,7 @@ const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject('backend')!
 const modal = defineModel<boolean>({ required: true })
 const props = defineProps<PROPS>()
+const emits = defineEmits<EmitType>()
 const data:Ref<DATA> = ref({
     ck: 0,
     buffer: CreateDefaultJob()
