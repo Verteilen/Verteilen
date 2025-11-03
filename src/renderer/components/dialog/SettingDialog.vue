@@ -1,11 +1,9 @@
 <script setup lang="ts">
 //#region Modules
 import { inject, ref, Ref, watch } from 'vue';
-import { BusType, Preference } from '../../interface';
+import { Preference } from '../../interface';
 import DialogBase from './DialogBase.vue';
-import { Emitter } from 'mitt';
-import { BackendProxy } from '../../proxy';
-import { i18n } from 'verteilen-core/src/plugins/i18n';
+import { i18n } from './../../plugins/i18n';
 //#endregion
 
 //#region Data

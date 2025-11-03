@@ -3,6 +3,7 @@ import { ComputedRef, Ref } from "vue";
 import { DatabaseTable, DataType, Preference, Project, ProjectTable, Task, TaskTable } from "../../interface";
 import { i18n } from '../../plugins/i18n';
 
+//#region Data
 /**
  * **Task Dialog Buffer**
  */
@@ -68,6 +69,7 @@ export interface DATA {
     selectSearch: string | undefined
     selection:Array<string>
 }
+//#endregion
 
 export class Util_Task {
     data:Ref<DATA>
@@ -160,12 +162,19 @@ export class Util_Task {
         if(this.data.value.editData.title.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
+            if(process.env.NODE_ENV === 'development') console.warn("Task.ts confirmEdit failed, title is needed")
             return undefined
         }
         const p = this.select.value
-        if(p == undefined) return
-        const selectp = p.tasks.find(x => x.uuid == this.data.value.editUUID)
-        if(selectp == undefined) return undefined;
+        if(p == undefined) {
+            if(process.env.NODE_ENV === 'development') console.warn("Task.ts confirmEdit failed, select project is undefined")
+            return undefined
+        }
+        const selectp = this.tasks.value.find(x => x.uuid == this.data.value.editUUID)
+        if(selectp == undefined) {
+            console.warn("Task.ts confirmEdit failed, Cannot find target uuid from task list")
+            return undefined;
+        }
         this.data.value.dialogModal = false
         return { 
             uuid: this.data.value.editUUID,

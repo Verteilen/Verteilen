@@ -1,14 +1,11 @@
 import { v6 as uuid6 } from 'uuid';
-import { Ref } from "vue";
+import { ComputedRef, Ref } from "vue";
 import { DataType, DataTypeBase, Database, DatabaseContainer, DatabaseTable, PluginPageData, Preference } from "../../interface";
 import { i18n } from "../../plugins/i18n";
 import { BuildIn_DatabaseTempGroup } from '../../template/projectTemplate';
 import { BackendProxy } from '../../proxy';
 
-type getdatabases = () => Array<Database>
-type getdatabase = () => Database | undefined
-type getplugin = () => PluginPageData
-
+//#region Data
 export interface Temp {
     text: string
     group: string
@@ -64,8 +61,9 @@ export type EmitType = {
 }
 
 export interface DATA {
-    importModal: boolean,
-    importData: File[],
+    fields: Array<any>
+    importModal: boolean
+    importData: File[]
     selectTempModel: boolean
     itemPrePage: number
     cloneModal: boolean
@@ -101,30 +99,33 @@ export interface DATA {
     search_para: string | undefined
     object_temp: string
 }
+//#endregion
 
 export const ValueToGroupName = (v:number) => BuildIn_DatabaseTempGroup.find(x => x.value == v)?.group
 export const IndexToValue = (v:number) => BuildIn_DatabaseTempGroup[v].value
 
 export class Util_Database {
-    backend: BackendProxy
-    plugin: getplugin
-    databases:getdatabases
-    database:getdatabase
+    backend: Ref<BackendProxy>
     data:Ref<DATA>
+    emits:EmitType
+    plugin: ComputedRef<PluginPageData>
+    databases:ComputedRef<Array<DatabaseTable>>
+    select:ComputedRef<DatabaseTable | undefined>
 
-    constructor(_backend: BackendProxy, _plugin: getplugin, _data:Ref<DATA>, _getdatabases:getdatabases, _getdatabase:getdatabase){
-        this.backend =_backend
-        this.plugin = _plugin
-        this.data = _data
-        this.databases = _getdatabases
-        this.database = _getdatabase
-    }
-
-    updateDatabase = () => {
-        this.data.value.dirty = false
-        this.data.value.buffer = this.database() ? 
-            JSON.parse(JSON.stringify(this.database())) : 
-            { uuid: '', title: '', canWrite: true, containers: [] }
+    constructor(
+        backend: Ref<BackendProxy>, 
+        data:Ref<DATA>, 
+        emits:EmitType,
+        plugin: ComputedRef<PluginPageData>, 
+        databases:ComputedRef<Array<DatabaseTable>>, 
+        select:ComputedRef<DatabaseTable | undefined>
+    ){
+        this.backend =backend
+        this.emits = emits
+        this.data = data
+        this.plugin = plugin
+        this.databases = databases
+        this.select = select
     }
 
     createDatabase = () => {
@@ -233,7 +234,7 @@ export class Util_Database {
                 const select = this.data.value.editData.temp as string
                 let mfilename: string = ""
                 let mGruop: string = ""
-                this.plugin().templates.forEach(x => {
+                this.plugin.value.templates.forEach(x => {
                     x.database.forEach(y => {
                         if(y.title == select){
                             mfilename = y.filename!
@@ -241,7 +242,7 @@ export class Util_Database {
                         }
                     })
                 })
-                let p = await this.backend.invoke('get_database', mGruop, mfilename)
+                let p = await this.backend.value.invoke('get_database', mGruop, mfilename)
                 try{
                     d.containers = JSON.parse(p)
                 }catch(e){
@@ -253,7 +254,7 @@ export class Util_Database {
     }
 
     confirmEditSet = async () => {
-        if(this.database() == undefined) return
+        if(this.select.value == undefined) return
         if(this.data.value.editData.name.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
             this.data.value.titleError = true
@@ -261,9 +262,9 @@ export class Util_Database {
         }
         const d:Database = {
             title: this.data.value.editData.name,
-            uuid: this.database()!.uuid,
+            uuid: this.select.value!.uuid,
             canWrite: this.data.value.editData.canWrite,
-            containers: this.database()!.containers
+            containers: this.select.value!.containers
         }
         return d
     }
@@ -289,14 +290,30 @@ export class Util_Database {
         this.data.value.dirty = true
     }
 
+    save = () => {
+        this.emits('edit', this.data.value.buffer)
+        this.data.value.dirty = false
+    }
+
+    //#region Utility
     isFirst = (name:string) => {
         const index = this.data.value.buffer.containers.findIndex(x => x.name == name)
         return index <= 0
     }
-
     isLast = (name:string) => {
         const index = this.data.value.buffer.containers.findIndex(x => x.name == name)
         if(index == -1) return true
         return index == this.data.value.buffer.containers.length - 1
     }
+    move = (e:any, oge:any) => {
+        //console.log("MOVE", e, oge)
+    }
+    end = (e:any) => {
+        const n:number = e.newIndex
+        const o:number = e.oldIndex
+        const buffer = this.data.value.buffer.containers.splice(o, 1)
+        this.data.value.buffer.containers.splice(n, 0, ...buffer)
+        this.data.value.dirty = true
+    }
+    //#endregion
 }

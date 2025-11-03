@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron'
 import { Emitter } from 'mitt'
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
-import { AppConfig, 
+import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
+import {
     BusType, 
     DataType,
     DataTypeBase, 
@@ -22,6 +22,7 @@ import { v6 as uuidv6 } from 'uuid'
 import { BackendProxy } from '../../proxy'
 
 //#region Views
+import { VueDraggableNext } from 'vue-draggable-next'
 import DialogBase from '../dialog/DialogBase.vue'
 import DatabaseDialog from '../dialog/database/DatabaseDialog.vue'
 import DatabaseValueDialog from '../dialog/database/DatabaseValueDialog.vue'
@@ -41,15 +42,8 @@ const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<EmitType>()
-const fields:Ref<Array<any>> = ref([
-    { title: 'Name', align: 'center', key: 'name', width: "15%" },
-    { title: 'Type', align: 'center', key: 'type', width: "40px" },
-    { title: 'Hidden', align: 'center', key: 'hidden', width: "40px" },
-    { title: 'Runtime Only', align: 'center', key: 'runtimeOnly', width: "40px" },
-    { title: 'Value', align: 'center', key: 'value' },
-    { title: 'Detail', align: 'center', key: 'detail', width: "15%" },
-])
 const data:Ref<DATA> = ref({
+    fields: [],
     importModal: false,
     importData: [],
     selectTempModel: false,
@@ -87,7 +81,6 @@ const data:Ref<DATA> = ref({
     temps: [],
     object_temp: ''
 })
-const util:Util_Database = new Util_Database(backend.value, () => props.plugin, data, () => props.databases, () => props.select)
 //#endregion
 
 //#region Watch
@@ -142,15 +135,17 @@ const select_option = computed(() => {
         }
     })
 })
+const plugin = computed(() => props.plugin)
+const database = computed(() => props.databases)
+const select = computed(() => props.select)
+const util:Util_Database = new Util_Database(backend, data, emits, plugin, database, select)
 //#endregion
 
 //#region Methods
-const updateDatabase = () => util.updateDatabase()
 const selectDatabase = (uuid:string) => { emits('select', uuid) }
 const recoverDatabase = (p:Database) => { emits('added', p) }
 const createDatabase = () => util.createDatabase()
 const editDatabase = (oldname:string) => util.editDatabase(oldname)
-const saveDatabase = () => { emits('edit', data.value.buffer) }
 
 const setdirty = () => data.value.dirty = true
 const filterOpen = () => util.filterOpen()
@@ -182,9 +177,6 @@ const ImportConfirm = () => {
             }
         }).filter(x => x != undefined)
         a.forEach(aa => emits('added', aa))
-        nextTick(() => {
-            updateDatabase();
-        })
     })
 }
 
@@ -258,45 +250,6 @@ const databaseTemplateTranslate = (t:number):string => {
     return DatabaseTemplateText.hasOwnProperty(t) ? i18n.global.t(DatabaseTemplateText[t]) : ""
 }
 
-const updateTemps = () => {
-    data.value.temps = Object.keys(DatabaseTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
-        const text = databaseTemplateTranslate(IndexToValue(index))
-        return {
-            text: text.length > 0 ? text : x,
-            group: ValueToGroupName(IndexToValue(index)) ?? '',
-            value: IndexToValue(index)
-        }
-    })
-    let adder = 0
-    props.plugin.templates.forEach(x => {
-        x.database.forEach(y => {
-            const buffer:Temp = {
-                text: y.title ? y.title : "Null",
-                group: y.group,
-                value: 1000 + adder
-            }
-            adder += 1
-            data.value.temps.push(buffer)
-        })
-    })
-}
-const updateLocate = () => {
-    updateTemps()
-    data.value.options = Object.keys(DataType).filter(key => isNaN(Number(key))).map((x, index) => {
-        return {
-            title: DataTypeTranslate(index),
-            value: index
-        }
-    })
-    data.value.options.push({ title: "All", value: -1 })
-    data.value.options1 = Object.keys(DataTypeBase).filter(key => isNaN(Number(key))).map((x, index) => {
-        return {
-            title: DataTypeTranslate(index),
-            value: index
-        }
-    })
-}
-
 const import_database_feedback = (e:IpcRendererEvent, v:string) => {
     const d = JSON.parse(v)
     data.value.buffer = d
@@ -328,7 +281,7 @@ const specialPopupClose = () => {
 
 const confirmSpecialModify = () => {
     specialPopupClose()
-    saveDatabase()
+    data.value.dirty = true
 }
 
 const confirmSpecialModify_O = () => {
@@ -346,7 +299,7 @@ const confirmSpecialModify_O = () => {
         return
     }
     specialPopupClose()
-    saveDatabase()
+    data.value.dirty = true
 }
 
 const selectAdd = () => {
@@ -399,8 +352,6 @@ const modifyContent_L = (d:DatabaseContainer) => {
     data.value.listTarget = d
 }
 
-const moveup = (name:string) => util.moveup(name)
-const movedown = (name:string) => util.movedown(name)
 const isFirst = (name:string) => util.isFirst(name)
 const isLast = (name:string) => util.isLast(name)
 
@@ -414,9 +365,57 @@ const onHotkey = (value:string) => {
     }
     else if(value == 'database_save'){
         if(data.value.objectModal) confirmSpecialModify_O()
-        else saveDatabase()
-        
+        else util.save()
     }
+}
+const updateLocate = () => {
+    updateTemps()
+    updateFields()
+    data.value.options = Object.keys(DataType).filter(key => isNaN(Number(key))).map((x, index) => {
+        return {
+            title: DataTypeTranslate(index),
+            value: index
+        }
+    })
+    data.value.options.push({ title: "All", value: -1 })
+    data.value.options1 = Object.keys(DataTypeBase).filter(key => isNaN(Number(key))).map((x, index) => {
+        return {
+            title: DataTypeTranslate(index),
+            value: index
+        }
+    })
+}
+const updateTemps = () => {
+    data.value.temps = Object.keys(DatabaseTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
+        const text = databaseTemplateTranslate(IndexToValue(index))
+        return {
+            text: text.length > 0 ? text : x,
+            group: ValueToGroupName(IndexToValue(index)) ?? '',
+            value: IndexToValue(index)
+        }
+    })
+    let adder = 0
+    props.plugin.templates.forEach(x => {
+        x.database.forEach(y => {
+            const buffer:Temp = {
+                text: y.title ? y.title : "Null",
+                group: y.group,
+                value: 1000 + adder
+            }
+            adder += 1
+            data.value.temps.push(buffer)
+        })
+    })
+}
+const updateFields = () => {
+    data.value.fields = [
+        { title: $t('headers.title'), align: 'center', key: 'name', minWidth: "80px", sortable: false },
+        { title: $t('headers.type'), align: 'center', key: 'type', maxWidth: "60px", sortable: false },
+        { title: $t('headers.hidden'), align: 'center', key: 'hidden', maxWidth: "60px", sortable: false },
+        { title: $t('headers.runtime'), align: 'center', key: 'runtimeOnly', width: "40px", sortable: false },
+        { title: $t('headers.value'), align: 'center', key: 'value', sortable: false },
+        { title: $t('headers.detail'), align: 'center', key: 'detail', maxWidth: "80px", sortable: false },
+    ]
 }
 //#endregion
 
@@ -425,22 +424,20 @@ onMounted(() => {
     updateLocate()
     emitter.on('hotkey', onHotkey)
     emitter.on('updateLocate', updateLocate)
-    emitter.on('updateDatabase', updateDatabase)
     emitter.on('recoverDatabase', recoverDatabase)
     emitter.on('selectDatabase', selectDatabase)
-    if(config.value.isElectron){
-        window.electronAPI.eventOn("import_database_feedback", import_database_feedback)
+    if(config.value.haveBackend){
+        backend.value.eventOn("import_database_feedback", import_database_feedback)
     }
 })
 
 onUnmounted(() => {
     emitter.off('hotkey', onHotkey)
     emitter.off('updateLocate', updateLocate)
-    emitter.off('updateDatabase', updateDatabase)
     emitter.off('recoverDatabase', recoverDatabase)
     emitter.off('selectDatabase', selectDatabase)
-    if(config.value.isElectron){
-        window.electronAPI.eventOff("import_database_feedback", import_database_feedback)
+    if(config.value.haveBackend){
+        backend.value.eventOff("import_database_feedback", import_database_feedback)
     }
 })
 </script>
@@ -454,10 +451,13 @@ onUnmounted(() => {
                     {{ $t('database-select') }}
                 </v-chip>
                 <v-chip class="ml-3" v-else prepend-icon="mdi-paperclip" @click="paraSelect" color="success">
-                    {{ select.title }}
+                    {{ select.title }}: {{ data.buffer.uuid.slice(data.buffer.uuid.length - 12, data.buffer.uuid.length) }}
                 </v-chip>
                 <v-btn variant="text" density="comfortable" prepend-icon="mdi-database-plus" @click="paraCreate">
                     {{ $t('create') }}
+                </v-btn>
+                <v-btn prepend-icon="mdi-content-paste" v-bind="props" :disabled="select == undefined" @click="cloneSelect">
+                    {{ $t('clone') }}
                 </v-btn>
                 <v-btn variant="text" density="comfortable" :disabled="props.select == undefined" prepend-icon="mdi-pencil" @click="paraEdit">
                     {{ $t('edit') }}
@@ -466,7 +466,7 @@ onUnmounted(() => {
                 <v-btn prepend-icon="mdi-tag-plus" v-bind="props" @click="createDatabase" :disabled="select == undefined">
                     {{ $t('create') }}
                 </v-btn>
-                <v-btn prepend-icon="mdi-content-save" v-bind="props" color="success" @click="saveDatabase" :disabled="select == undefined || !data.dirty">
+                <v-btn prepend-icon="mdi-content-save" v-bind="props" color="success" @click="util.save" :disabled="select == undefined || !data.dirty">
                     {{ $t('save') }}
                 </v-btn>
                 <v-btn prepend-icon="mdi-import" v-bind="props" @click="importPara">
@@ -474,9 +474,6 @@ onUnmounted(() => {
                 </v-btn>
                 <v-btn prepend-icon="mdi-export" v-bind="props" :disabled="select == undefined" @click="exportPara">
                     {{ $t('export') }}
-                </v-btn>
-                <v-btn prepend-icon="mdi-content-paste" v-bind="props" :disabled="select == undefined" @click="cloneSelect">
-                    {{ $t('clone') }}
                 </v-btn>
                 <v-btn prepend-icon="mdi-delete" color='error' v-bind="props" @click="deleteSelect" :disabled="select == undefined">
                     {{ $t('delete') }}
@@ -659,48 +656,57 @@ onUnmounted(() => {
         </template>
         <v-card flat style="background: transparent">
             <v-card-text class="my-0 py-0">
-                {{ data.buffer.uuid.slice(data.buffer.uuid.length - 12, data.buffer.uuid.length) }}
                 <v-text-field v-model="data.search" class="mb-2" :style="{ 'fontSize': preference.font + 'px' }" :placeholder="$t('search')" clearable prepend-icon="mdi-magnify" hide-details single-line></v-text-field>
-                <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': preference.font + 'px' }">
-                    <template v-slot:item.detail="{ item }">
-                        <v-btn variant="text" icon @click="editDatabase(item.name)" size="small">
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-                        <v-btn variant="text" icon :disabled="isFirst(item.name)" @click="moveup(item.name)" size="small">
-                            <v-icon>mdi-arrow-up</v-icon>
-                        </v-btn>
-                        <v-btn variant="text" icon :disabled="isLast(item.name)" @click="movedown(item.name)" size="small">
-                            <v-icon>mdi-arrow-down</v-icon>
-                        </v-btn>
-                        <v-btn variant="text" icon @click="deleteitem(item.name)" size="small">
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                    </template>
-                    <template v-slot:item.value="{ item }">
-                        <v-checkbox density="compact" hide-details v-if="item.type == DataType.Boolean" v-model="item.value" @input="setdirty"></v-checkbox>
-                        <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Number" type="number" v-model.number="item.value" @input="setdirty"></v-text-field>
-                        <v-text-field density="compact" hide-details v-else-if="item.type == DataType.String" v-model="item.value" @input="setdirty"></v-text-field>
-                        <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Expression" v-model="item.meta" @input="setdirty"></v-text-field>
-                        <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Object" @click="modifyContent(item)">{{ $t("modify") }}</v-btn>
-                        <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Textarea" @click="modifyContent_T(item)">{{ $t("modify") }}</v-btn>
-                        <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.List" @click="modifyContent_L(item)">{{ $t("modify") }}</v-btn>
-                        <v-row v-else-if="item.type == DataType.Select">
-                            <v-col cols="4">
-                                <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details @click="modifyContent_S(item)">{{ $t("modify") }}</v-btn>
-                            </v-col>
-                            <v-col cols="8">
-                                <v-btn class="w-100" color="warning" variant="tonal" density="compact" hide-details @click="modifyContent_S1(item)">{{ $t("types.select") }}</v-btn>
-                            </v-col>
-                        </v-row>
-                    </template>
-                    <template v-slot:item.hidden="{ item }">
-                        <v-chip :color="item.hidden ? 'success' : 'error'">{{ item.hidden }}</v-chip>
-                    </template>
-                    <template v-slot:item.runtimeOnly="{ item }">
-                        <v-chip :color="item.runtimeOnly ? 'success' : 'error'">{{ item.runtimeOnly }}</v-chip>
-                    </template>
-                    <template v-slot:item.type="{ item }">
-                        <v-chip color="info">{{ DataTypeTranslate(item.type) }}</v-chip>
+                <v-data-table style="background: transparent" hide-default-footer :items-per-page="data.itemPrePage" :headers="data.fields" :items="items_final" item-value="name" :style="{ 'fontSize': preference.font + 'px' }">
+                    <template #body="props"></template>
+                    <template #tbody="props">
+                        <VueDraggableNext v-model="items_final" 
+                            tag="tbody"
+                            :move="util.move"
+                            @end="util.end"
+                        >
+                            <v-data-table-row v-for="(item, index) in props.internalItems"
+                                :key="index"
+                                :item="item"
+                                :index="index"
+                                :cell-props="props"
+                            >
+                                <template v-slot:item.detail="{ item }">
+                                    <v-btn variant="text" icon @click="editDatabase(item.name)" size="small">
+                                        <v-icon>mdi-pencil</v-icon>
+                                    </v-btn>
+                                    <v-btn variant="text" icon @click="deleteitem(item.name)" size="small">
+                                        <v-icon>mdi-delete</v-icon>
+                                    </v-btn>
+                                </template>
+                                <template v-slot:item.value="{ item }">
+                                    <v-checkbox density="compact" hide-details v-if="item.type == DataType.Boolean" v-model="item.value" @input="setdirty"></v-checkbox>
+                                    <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Number" type="number" v-model.number="item.value" @input="setdirty"></v-text-field>
+                                    <v-text-field density="compact" hide-details v-else-if="item.type == DataType.String" v-model="item.value" @input="setdirty"></v-text-field>
+                                    <v-text-field density="compact" hide-details v-else-if="item.type == DataType.Expression" v-model="item.meta" @input="setdirty"></v-text-field>
+                                    <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Object" @click="modifyContent(item)">{{ $t("modify") }}</v-btn>
+                                    <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.Textarea" @click="modifyContent_T(item)">{{ $t("modify") }}</v-btn>
+                                    <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details v-else-if="item.type == DataType.List" @click="modifyContent_L(item)">{{ $t("modify") }}</v-btn>
+                                    <v-row v-else-if="item.type == DataType.Select">
+                                        <v-col cols="4">
+                                            <v-btn class="w-100" color="primary" variant="tonal" density="compact" hide-details @click="modifyContent_S(item)">{{ $t("modify") }}</v-btn>
+                                        </v-col>
+                                        <v-col cols="8">
+                                            <v-btn class="w-100" color="warning" variant="tonal" density="compact" hide-details @click="modifyContent_S1(item)">{{ $t("types.select") }}</v-btn>
+                                        </v-col>
+                                    </v-row>
+                                </template>
+                                <template v-slot:item.hidden="{ item }">
+                                    <v-chip :color="item.hidden ? 'success' : 'error'">{{ item.hidden }}</v-chip>
+                                </template>
+                                <template v-slot:item.runtimeOnly="{ item }">
+                                    <v-chip :color="item.runtimeOnly ? 'success' : 'error'">{{ item.runtimeOnly }}</v-chip>
+                                </template>
+                                <template v-slot:item.type="{ item }">
+                                    <v-chip color="info">{{ DataTypeTranslate(item.type) }}</v-chip>
+                                </template>
+                            </v-data-table-row>
+                        </VueDraggableNext>
                     </template>
                 </v-data-table>
             </v-card-text>

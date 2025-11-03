@@ -218,6 +218,16 @@ const updateLocate = () => {
     })
 }
 
+const get_title = (uuid:string) => {
+    return props.jobs.find(x => x.uuid == uuid)?.title ?? 0
+}
+const get_category = (uuid:string) => {
+    return props.jobs.find(x => x.uuid == uuid)?.category ?? 0
+}
+const get_type = (uuid:string) => {
+    return props.jobs.find(x => x.uuid == uuid)?.type ?? 0
+}
+
 const goreturn = () => {
     emits('return')
 }
@@ -256,30 +266,12 @@ onUnmounted(() => {
                     {{ $t('task') }}: {{ props.select.title }}
                 </p>
                 <v-spacer></v-spacer>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="util.pcreateProperty()" :disabled="select == undefined">
-                            <v-icon>mdi-book-plus</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('create-property') }}
-                </v-tooltip>  
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" :disabled="!hasSelect || select == undefined">
-                            <v-icon>mdi-content-paste</v-icon>
-                        </v-btn>
-                    </template>
+                <v-btn prepend-icon="mdi-content-paste" v-bind="props" :disabled="!hasSelect || select == undefined">
                     {{ $t('clone') }}
-                </v-tooltip>         
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>
+                <v-btn prepend-icon="mdi-delete" color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
                     {{ $t('delete') }}
-                </v-tooltip> 
+                </v-btn>
             </v-toolbar>
         </template>
         <template #dialog>
@@ -321,13 +313,20 @@ onUnmounted(() => {
                     <v-btn variant="text" prepend-icon="mdi-delete" color="error" @click="">{{ $t('delete') }}</v-btn>
                 </template>
                 <template v-slot:prepend="{ item, depth, isFirst, isLast }">
-                    <span v-if="item.id.length > 0">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
+                    <span class="mx-1" v-if="item.id.length > 0">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
+                    <span class="mx-1" v-if="item.id.length > 0">{{ get_title(item.id) }}</span>
+                    <span class="mx-1" v-if="item.id.length > 0">{{ data.categorise[get_category(item.id)]?.text }}</span>
+                    <span class="mx-1" v-if="item.id.length > 0 && get_category(item.id) == 1">{{ data.types[get_type(item.id)]?.text }}</span>
+                    <span class="mx-1" v-if="item.id.length > 0 && get_category(item.id) == 0">{{ data.types2[get_type(item.id)]?.text }}</span>
                 </template>
             </v-treeview>
         </template>
         <!-- Property -->
         <template v-if="data.page == 1">
             <h2 class="text-info"> {{ $t('property') }} </h2>
+            <v-sheet class="mx-6 text-left">
+                <v-btn prepend-icon="mdi-plus" v-bind="props" @click="util.pcreateProperty()" :disabled="select == undefined">{{ $t('create') }}</v-btn>
+            </v-sheet>
             <div v-if="select != undefined" class="py-3 pb-5 mx-5">
                 <br />
                 <v-row v-for="(c, i) in properties" :key="i">

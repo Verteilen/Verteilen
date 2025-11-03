@@ -2,7 +2,7 @@
 //#region Modules
 import { Emitter } from 'mitt';
 import { BusType, Preference } from 'verteilen-core/src/interface';
-import { i18n } from 'verteilen-core/src/plugins/i18n';
+import { i18n } from './../../../plugins/i18n';
 import { inject, Ref } from 'vue';
 //#endregion
 
@@ -48,7 +48,7 @@ const click = () => {
                 <slot name="title">{{ title }}</slot>
             </v-app-bar-title>
             <template v-slot:append>
-                <v-menu location="left">
+                <v-menu location="bottom">
                     <template v-slot:activator="{ props }">
                         <v-btn v-bind="props" icon="mdi-dots-vertical"></v-btn>
                     </template>

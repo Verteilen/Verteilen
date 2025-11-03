@@ -64,7 +64,9 @@ export class Util_Server_Task {
         const selectp = this.data.value.tasks.findIndex(x => x.uuid == uuid)
         if(selectp == -1) return
         this.data.value.tasks[selectp] = v
-        this.save.save_task(v)
+        this.save.save_task(v).then(() => {
+            this.query.load_tasks(this.selectProject.value!.uuid)
+        })
     }
     
     deleteTask = (uuids:Array<string>) => {
