@@ -16,7 +16,7 @@ const emit = defineEmits<{
 }>()
 const themes = ref(["dark", "light"])
 const buffer:Ref<Preference | undefined> = ref(undefined)
-const lan:Ref<Array<string>> = ref(['en', 'zh_TW'])
+const lan:Ref<Array<string>> = ref(Object.values(i18n.global.availableLocales))
 const tag = ref(0)
 const tokenEdit = ref(false)
 const tokenModal = ref(false)
