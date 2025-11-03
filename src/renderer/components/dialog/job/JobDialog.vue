@@ -4,6 +4,7 @@ import { Emitter } from 'mitt'
 import { 
     BusType, 
     CreateDefaultJob, 
+    DatabaseTable, 
     Execute_PART, 
     Job, 
     JobCategory, 
@@ -14,7 +15,7 @@ import {
     JobType2Text,
     JobTypeText, 
 } from 'verteilen-core/src/interface'
-import { i18n } from 'verteilen-core/src/plugins/i18n'
+import { i18n } from '../../../plugins/i18n'
 import { inject, ref, Ref, watch } from 'vue'
 import { BackendProxy } from '../../../proxy'
 //#endregion
@@ -39,7 +40,7 @@ const data:Ref<DATA> = ref({
 
 //#region Watch
 watch(() => props.select, (v:Job) => {
-
+    data.value.buffer = JSON.parse(JSON.stringify(v))
 })
 //#endregion
 
@@ -48,8 +49,11 @@ const replaceString = (index:number):string => {
     if(props.select == undefined) return ""
     const copyJob:Job = JSON.parse(JSON.stringify(data.value.buffer))
     if(index >= copyJob.string_args.length || index < 0) return ""
-    if(props.database == undefined) return copyJob.string_args[index]
-    Execute_PART.ExecuteManager_Base.string_args_transform(props.task!, copyJob, (str) => console.log(str), props.database, data.value.ck)
+    let db:DatabaseTable | undefined = props.database
+    if(db == undefined) {
+        db = { uuid: "", title: "", canWrite: true, containers: [], s: false}
+    }
+    Execute_PART.ExecuteManager_Base.string_args_transform(props.task!, copyJob, (str) => console.log(str), db, data.value.ck)
     return copyJob.string_args[index]
 }
 const checkPatterm = (category:number, type:number, checker:string):boolean => {
@@ -74,17 +78,17 @@ const confirm = () => {
 
 }
 const cancel = () => {
-
+    modal.value = false
 }
 //#endregion
 </script>
 
 <template>
-    <DialogBase width="90vw" v-model="modal">
+    <DialogBase persistent width="90vw" v-model="modal">
         <template #title>
             <template v-if="edit">
                 <v-icon>mdi-pencil</v-icon>
-                {{ data.buffer.uuid }}
+                {{ data.buffer.uuid.slice(data.buffer.uuid.length - 12, data.buffer.uuid.length) }}
             </template>
             <template v-else>
                 <v-icon>mdi-hammer</v-icon>
@@ -96,14 +100,22 @@ const cancel = () => {
             <v-text-field v-model="data.buffer.title" :label="$t('modal.job-title')"></v-text-field>
             <v-textarea v-model="data.buffer.description" :label="$t('modal.job-description')"></v-textarea>
 
-            <v-select v-model.number="props.jobtype" disabled item-title="title" item-value="value" :items="[
-                { title: $t('enum.category.condition'), value: 0 },
-                { title: $t('enum.category.execution'), value: 1 }
-            ]"></v-select>
-            <v-select v-if="props.jobtype == JobCategory.Execution" v-model="data.buffer.type" :items="props.types" item-title="text" item-value="value"></v-select>
-            <v-select v-else-if="props.jobtype == JobCategory.Condition" v-model="data.buffer.type" :items="props.types2" item-title="text" item-value="value"></v-select>
-            
-            <hr class="mb-6" />
+            <v-row>
+                <v-col cols="6">
+                    <v-select v-model.number="props.jobtype" disabled item-title="title" item-value="value" :items="[
+                        { title: $t('enum.category.condition'), value: 0 },
+                        { title: $t('enum.category.execution'), value: 1 }
+                    ]"></v-select>
+                </v-col>
+                <v-col cols="6">
+                    <v-select v-if="props.jobtype == JobCategory.Execution" v-model="data.buffer.type" :items="props.types" item-title="text" item-value="value"></v-select>
+                    <v-select v-else-if="props.jobtype == JobCategory.Condition" v-model="data.buffer.type" :items="props.types2" item-title="text" item-value="value"></v-select>
+                </v-col>
+            </v-row>
+            <v-text-field v-model.number="data.ck" hide-details label="ck" :min="0" type="number"></v-text-field>
+
+            <br class="my-6" />
+            <h2 class="ml-2 mb-6"> {{ $t('modal.job_detail') }} </h2>
 
             <!-- Content -->
             <div v-if="checkPatterm(data.buffer.category, data.buffer.type, 'Javascript_n')">
@@ -171,3 +183,11 @@ const cancel = () => {
         </template>
     </DialogBase>
 </template>
+
+<style scoped>
+.hint {
+    opacity: 60%;
+    text-align: left;
+    margin-top: 10px;
+}
+</style>

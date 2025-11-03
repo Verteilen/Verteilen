@@ -8,7 +8,6 @@ export interface ViewTreeNode {
 }
 
 export interface DATA {
-    ck: number
     page: number
     createModal: boolean
     createType: JobCategory

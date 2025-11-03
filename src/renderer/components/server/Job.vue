@@ -39,7 +39,6 @@ const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
 const emits = defineEmits<EmitType>()
 const data:Ref<DATA> = ref({
-    ck: 0,
     page: 0,
     createModal: false,
     createType: 0,
@@ -123,6 +122,14 @@ const createJob = (type:JobCategory) => {
     data.value.createType = type
     data.value.createModal = true
     data.value.editMode = false
+}
+const editJob = (id:string) => {
+    const f = props.jobs.find(x => x.uuid == id)
+    if(f == undefined) return
+    data.value.createData = JSON.parse(JSON.stringify(f))
+    data.value.createType = f.category
+    data.value.createModal = true
+    data.value.editMode = true
 }
 
 const deleteSelect = () => {
@@ -308,9 +315,9 @@ onUnmounted(() => {
             <v-sheet class="mx-6 text-left">
                 <v-btn prepend-icon="mdi-plus" v-bind="props" @click="createJob(JobCategory.Execution)" :disabled="select == undefined">{{ $t('create') }}</v-btn>
             </v-sheet>
-            <v-treeview class="mx-6" v-model="data.selection" :items="treeData" item-value="id" :activatable="false" open-all @update:selected="e => console.log(e)">
+            <v-treeview class="mx-6" v-model="data.selection" :items="treeData" item-value="id" :activatable="false" open-all>
                 <template v-slot:append="{ item, depth, isFirst, isLast }">
-                    <v-btn variant="text" prepend-icon="mdi-pencil" :disabled="item.id.length == 0" @click="">{{ $t('edit') }}</v-btn>
+                    <v-btn variant="text" prepend-icon="mdi-pencil" :disabled="item.id.length == 0" @click="editJob(item.id)">{{ $t('edit') }}</v-btn>
                     <v-btn variant="text" prepend-icon="mdi-delete" color="error" @click="">{{ $t('delete') }}</v-btn>
                 </template>
                 <template v-slot:prepend="{ item, depth, isFirst, isLast }">
@@ -323,11 +330,6 @@ onUnmounted(() => {
             <h2 class="text-info"> {{ $t('property') }} </h2>
             <div v-if="select != undefined" class="py-3 pb-5 mx-5">
                 <br />
-                <v-row>
-                    <v-col>
-                        <v-text-field v-model.number="data.ck" label="ck" hide-details :min="0" type="number"></v-text-field>
-                    </v-col>
-                </v-row>
                 <v-row v-for="(c, i) in properties" :key="i">
                     <v-col cols="2" class="my-0 py-0">
                         <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
@@ -362,11 +364,3 @@ onUnmounted(() => {
         </template>
     </ContextFrame>
 </template>
-
-<style scoped>
-.hint {
-    opacity: 60%;
-    text-align: left;
-    margin-top: 10px;
-}
-</style>
