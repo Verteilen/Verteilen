@@ -1,6 +1,7 @@
+import { v6 as uuidv6 } from 'uuid'
 import { Emitter } from "mitt";
 import { Ref } from "vue";
-import { BusType, Project, ProjectTable, Task } from "../../interface";
+import { BusType, DatabaseTable, Project, ProjectTable, Task } from "../../interface";
 import { DATA, save_and_update, Util_Server } from ".";
 import { BackendProxy } from "../../proxy";
 import { ServerSave } from "./save";
@@ -41,13 +42,18 @@ export class Util_Server_Project {
      * @param v Array of project
      */
     addProject = (v:Array<ProjectTable>) => {
+        let dd = false
         const p = v.map(async x => {
-            if(x.database == undefined){
-                this.data.value.projects.push(x)
-            }else{
-                this.data.value.databases.push(x.database)
-                x.database_uuid = x.database.uuid
-                this.data.value.projects.push(x)
+            if(x.database != undefined){
+                const uu = uuidv6()
+                const b:DatabaseTable = {
+                    ...x.database,
+                    uuid: uu
+                }
+                await this.save.save_database(b)
+                x.database_uuid = uu
+                x.database = undefined
+                dd = true
             }
             await this.server.task.addTask(x.tasks.map(y => ({ ...y, jobCount: y.jobs.length })))
             return this.save.save_project({
@@ -57,6 +63,7 @@ export class Util_Server_Project {
             })
         })
         return Promise.all(p).then(() => {
+            if(dd) this.server.query.load_all_database()
             return this.server.query.load_all_project()
         })
     }

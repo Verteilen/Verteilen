@@ -8,12 +8,8 @@ import {
     Execute_PART, 
     Job, 
     JobCategory, 
-    JobCategoryText, 
-    JobResultText, 
     JobType, 
-    JobType2,
-    JobType2Text,
-    JobTypeText, 
+    JobType2, 
 } from 'verteilen-core/src/interface'
 import { i18n } from '../../../plugins/i18n'
 import { inject, ref, Ref, watch } from 'vue'

@@ -1,32 +1,42 @@
 <script setup lang="ts">
+//#region Modules
 import { computed, Ref, ref, watch } from 'vue'
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import { CreateField, DialogDATACreateSet, Temp } from '../server/Database';
-import DialogBase from '../dialog/DialogBase.vue'
+import { CreateField, DialogDATACreateSet, Temp } from '../../server/Database';
+//#endregion
 
+//#region Views
+import DialogBase from './../DialogBase.vue'
+import { i18n } from '../../../plugins/i18n';
+//#endregion
+
+//#region Data
+const $t = i18n.global.t
 const theme = useTheme()
 const data = defineModel<boolean>()
 const propss = defineProps<DialogDATACreateSet>()
 const emits = defineEmits<{
     (e: 'submit', d:CreateField): void
 }>()
-const buffer:Ref<CreateField> = ref({ name: "", temp: null })
+const buffer:Ref<CreateField> = ref({ name: "", temp: null, canWrite: true })
 const selectTempModel = ref(false)
 const selectTempIndex:Ref<Array<number | string>> = ref([])
 const search:Ref<string | null> = ref(null)
+//#endregion
 
+//#region Computed
 const isDark = computed(() => theme.global.name.value == "dark")
 const convert = computed(():CreateField => {
     return {
         name: buffer.value.name,
         temp: buffer.value.temp,
+        canWrite: buffer.value.canWrite
     }
 })
 const temp_name = computed(() => {
     if(typeof buffer.value.temp == 'number') return propss.temps.find(x => x.value == buffer.value.temp)?.text
     else return buffer.value.temp 
 })
-
 const groups = computed(() => {
     let v:Array<Array<Temp>> = []
     propss.temps.forEach(x => {
@@ -42,13 +52,20 @@ const groups = computed(() => {
     v = v.filter(x => x.length > 0)
     return v
 })
+//#endregion
 
+//#region Watch
 watch(() => data.value, () => {
     search.value = null
     selectTempModel.value = false
-    if(propss.isEdit) buffer.value = { name: propss.targetData.name, temp: propss.targetData.temp }
-    else buffer.value = { name: '', temp: null }
+    if(propss.isEdit) buffer.value = { 
+        name: propss.targetData.name, 
+        canWrite: propss.targetData.canWrite,
+        temp: propss.targetData.temp,  
+    }
+    else buffer.value = { name: '', temp: null, canWrite: true }
 })
+//#endregion
 
 const openSelectTemp = () => {
     selectTempModel.value = true
@@ -69,7 +86,7 @@ const confirm = () => {
 </script>
 
 <template>
-    <DialogBase width="500" v-model="data!" :preference="propss.preference">
+    <DialogBase width="500" v-model="data!">
         <template #title v-if="!propss.isEdit">
             <v-icon>mdi-hammer</v-icon>
             {{ $t('modal.new-database-set') }}
@@ -88,6 +105,7 @@ const confirm = () => {
                     {{ $t('useTemplate') }}
                 </span>
             </v-btn>
+            <v-checkbox class="pr-5" :label="$t('filter.canwrite')" v-model="buffer.canWrite" hide-details></v-checkbox>
 
             <DialogBase width="60vw" height="80vh" v-model="selectTempModel" :color="isDark ? 
                 'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 

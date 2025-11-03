@@ -4,6 +4,8 @@ import { DATA, save_and_update, Util_Server } from "."
 import { BackendProxy } from "../../proxy"
 import { Emitter } from "mitt"
 import { ServerSave } from "./save"
+import { ServerQuery } from "./query"
+import { ServerDelete } from "./delete"
 
 export class Util_Server_Database {
     server:Util_Server
@@ -21,6 +23,12 @@ export class Util_Server_Database {
     public get save() : ServerSave {
         return this.server.save
     }
+    public get query() : ServerQuery {
+        return this.server.query
+    }
+    public get del() : ServerDelete {
+        return this.server.del
+    }
     public get update() : save_and_update {
         return this.server.allUpdate
     }
@@ -32,40 +40,28 @@ export class Util_Server_Database {
     }
 
     addDatabase = (e:DatabaseTable) => {
-        this.data.value.page = 3
-        const b = JSON.parse(JSON.stringify(e))
-        this.data.value.databases.push(b)
-        this.data.value.selectDatabase = b
-        this.update()
+        const b:DatabaseTable = JSON.parse(JSON.stringify(e))
+        delete b.s
+        this.save.save_database(b).then(() => {
+            this.query.load_all_database()
+        })
     }
 
-    selectDatabase = (e:string) => {
-        const index = this.data.value.databases.findIndex(x => x.uuid == e)
-        if(index != -1){
-            this.data.value.selectDatabase = this.data.value.databases[index]
-        }
-        this.update()
+    selectDatabase = (uuid:string) => {
+        this.data.value.selectDatabaseID = uuid
     }
 
     editDatabase = (e:Database) => {
-        if(this.data.value.selectDatabase == undefined) return
-        this.data.value.selectDatabase = JSON.parse(JSON.stringify(e))
-        const index = this.data.value.databases.findIndex(x => x.uuid == e.uuid)
-        this.data.value.databases[index] = this.data.value.selectDatabase!
-        this.update()
+        const b:DatabaseTable = JSON.parse(JSON.stringify(e))
+        delete b.s
+        this.save.save_database(b).then(() => {
+            this.query.load_all_database()
+        })
     }
 
-    deleteDatabase = (e:string) => {
-        const index = this.data.value.databases.findIndex(x => x.uuid == e)
-        if(index != -1){
-            this.data.value.databases.splice(index, 1)
-        }
-        if(this.data.value.selectDatabase?.uuid == e){
-            this.data.value.selectDatabase = undefined
-        }
-        if(this.backend.value.config.isElectron){
-            window.electronAPI.send('delete_database', e)
-        }
-        this.update()
+    deleteDatabase = (uuid:string) => {
+        this.del.delete_database(uuid).then(() => {
+            this.query.load_all_database()
+        })
     }
 }

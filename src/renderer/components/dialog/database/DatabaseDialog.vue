@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { DialogDATACreate } from '../server/Database';
-import DialogBase from './DialogBase.vue';
+import { DialogDATACreate } from '../../server/Database';
+import { i18n } from '../../../plugins/i18n';
 
+//#region Views
+import DialogBase from './../DialogBase.vue';
+//#endregion
+
+const $t = i18n.global.t
 const data = defineModel<boolean>()
 const props = defineProps<DialogDATACreate>()
 const emits = defineEmits<{
@@ -22,7 +27,7 @@ const confirm = () => {
 </script>
 
 <template>
-    <DialogBase width="500" v-model="data!" class="text-white" :preference="props.preference">
+    <DialogBase width="500" v-model="data!" class="text-white">
         <template #title v-if="props.isEdit">
             <v-icon>mdi-pencil</v-icon>
             {{ $t('modal.edit-database') }}

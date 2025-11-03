@@ -1,6 +1,6 @@
 import { v6 as uuid6 } from 'uuid';
 import { Ref } from "vue";
-import { DataType, DataTypeBase, Database, DatabaseContainer, PluginPageData, Preference } from "../../interface";
+import { DataType, DataTypeBase, Database, DatabaseContainer, DatabaseTable, PluginPageData, Preference } from "../../interface";
 import { i18n } from "../../plugins/i18n";
 import { BuildIn_DatabaseTempGroup } from '../../template/projectTemplate';
 import { BackendProxy } from '../../proxy';
@@ -15,11 +15,9 @@ export interface Temp {
     value: number
 }
 
-export interface EDIT {
-    name: string
+export interface EDIT extends CreateField{
     type: number
     useTemp: boolean
-    temp: number | string | null
 }
 
 export interface FILTER {
@@ -30,6 +28,7 @@ export interface FILTER {
 
 export interface CreateField {
     name: string
+    canWrite: boolean
     temp: string | number | null
 }
 
@@ -54,6 +53,14 @@ export interface DialogDATACreateSet extends DialogDATA {
     targetData: EDIT
     temps: Array<Temp>
     preference?: Preference
+}
+
+export type EmitType = {
+    (e: 'added', data:DatabaseTable): void
+    (e: 'edit', data:DatabaseTable): void
+    (e: 'select', uuid:string): void
+    (e: 'delete', uuid:string): void
+    (e: 'return'): void
 }
 
 export interface DATA {
@@ -86,7 +93,7 @@ export interface DATA {
     options: Array<OPTION>
     options1: Array<OPTION>
     dirty: boolean
-    buffer: Database
+    buffer: DatabaseTable
     errorMessage: string
     titleError: boolean
     temps: Array<Temp>
@@ -214,7 +221,7 @@ export class Util_Database {
         const d:Database = {
             title: this.data.value.editData.name,
             uuid: uuid6(),
-            canWrite: true,
+            canWrite: this.data.value.editData.canWrite,
             containers: []
         }
         if(this.data.value.editData.temp != null){
@@ -255,7 +262,7 @@ export class Util_Database {
         const d:Database = {
             title: this.data.value.editData.name,
             uuid: this.database()!.uuid,
-            canWrite: this.database()!.canWrite,
+            canWrite: this.data.value.editData.canWrite,
             containers: this.database()!.containers
         }
         return d

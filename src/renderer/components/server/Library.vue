@@ -5,7 +5,7 @@ import { BusType, Libraries, Database, Preference, Library } from '../../interfa
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Lib } from './Library';
 import { BackendProxy } from '../../proxy';
-import DatabaseSelectionDialog from '../dialog/DatabaseSelectionDialog.vue';
+import DatabaseSelectionDialog from '../dialog/database/DatabaseSelectionDialog.vue';
 
 interface PROPS {
     databases: Array<Database>

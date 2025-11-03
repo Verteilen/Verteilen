@@ -3,7 +3,7 @@
 import { computed, Ref, ref, watch } from 'vue';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import { CreateField, DialogDATA, Temp } from '../../server/Project';
-import { i18n } from 'verteilen-core/src/plugins/i18n';
+import { i18n } from '../../../plugins/i18n';
 //#endregion
 
 //#region Views
@@ -99,8 +99,7 @@ const confirm = () => {
 <template>
     <DialogBase width="500" v-model="data" :color=" isDark ? 
         'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 
-        'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'"
-        :preference="propss.preference">
+        'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'">
         <template #title>
             <div v-if="propss.isEdit">
                 <v-icon>mdi-pencil</v-icon>
@@ -129,7 +128,6 @@ const confirm = () => {
                 <v-autocomplete v-if="buffer.usePara" :item-props="itemProps" v-model="buffer.database" clearable :items="paras" item-title="text" :label="$t('database')" hide-details></v-autocomplete>
             </div>
             <p v-if="propss.errorMessage.length > 0" class="mt-3 text-red">{{ propss.errorMessage }}</p>
-
 
             <DialogBase width="60vw" height="80vh" v-model="selectTempModel" :color="isDark ? 
                 'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 

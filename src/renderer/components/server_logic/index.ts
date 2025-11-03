@@ -152,7 +152,7 @@ export class Util_Server extends Server {
             case 0:
                 {
                     this.query.load_all_project()
-                    break;
+                    break
                 }
             case 1:
                 {
@@ -169,6 +169,11 @@ export class Util_Server extends Server {
                     }else{
                         this.data.value.jobs = []
                     }
+                }
+            case 3:
+                {
+                    this.query.load_all_database()
+                    break
                 }
         }
     }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { IpcRendererEvent } from 'electron'
 import { Emitter } from 'mitt'
-import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
 import { AppConfig, 
     BusType, 
     DataType,
@@ -9,6 +9,7 @@ import { AppConfig,
     DataTypeText, 
     Database, 
     DatabaseContainer, 
+    DatabaseTable, 
     DatabaseTemplate, 
     DatabaseTemplateText, 
     PluginPageData, 
@@ -16,21 +17,22 @@ import { AppConfig,
     ToastData 
 } from '../../interface'
 import { i18n } from '../../plugins/i18n'
-import { CreateField, DATA, IndexToValue, Temp, Util_Database, ValueToGroupName } from './Database'
+import { CreateField, DATA, EmitType, IndexToValue, Temp, Util_Database, ValueToGroupName } from './Database'
 import { v6 as uuidv6 } from 'uuid'
 import { BackendProxy } from '../../proxy'
 
 //#region Views
 import DialogBase from '../dialog/DialogBase.vue'
-import DatabaseDialog from '../dialog/DatabaseDialog.vue'
-import DatabaseSetDialog from '../dialog/DatabaseSetDialog.vue'
+import DatabaseDialog from '../dialog/database/DatabaseDialog.vue'
+import DatabaseValueDialog from '../dialog/database/DatabaseValueDialog.vue'
+import DatabaseSelectionDialog from '../dialog/database/DatabaseSelectionDialog.vue'
 import ContextFrame from '../components/layout/ContextFrame.vue'
 //#endregion
 
 //#region Data
 interface PROPS {
-    select: Database | undefined
-    databases: Array<Database>
+    select: DatabaseTable | undefined
+    databases: Array<DatabaseTable>
     plugin: PluginPageData
 }
 const $t = i18n.global.t
@@ -38,13 +40,7 @@ const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
 const props = defineProps<PROPS>()
-const emits = defineEmits<{
-    (e: 'added', data:Database): void
-    (e: 'edit', data:Database): void
-    (e: 'select', uuid:string): void
-    (e: 'delete', uuid:string): void
-    (e: 'return'): void
-}>()
+const emits = defineEmits<EmitType>()
 const fields:Ref<Array<any>> = ref([
     { title: 'Name', align: 'center', key: 'name', width: "15%" },
     { title: 'Type', align: 'center', key: 'type', width: "40px" },
@@ -77,7 +73,7 @@ const data:Ref<DATA> = ref({
     filterModal: false,
     deleteModal: false,
     createData: { name: '', value: 0, hidden: false, runtimeOnly: false, type: DataType.Number },
-    editData: { name: '', type: 0, useTemp: false, temp: null },
+    editData: { name: '', type: 0, useTemp: false, temp: null, canWrite: true },
     filter: { showhidden: false, showruntime: false, type: -1 },
     buffer_filter: { showhidden: false, showruntime: false, type: -1 },
     options: [],
@@ -92,6 +88,12 @@ const data:Ref<DATA> = ref({
     object_temp: ''
 })
 const util:Util_Database = new Util_Database(backend.value, () => props.plugin, data, () => props.databases, () => props.select)
+//#endregion
+
+//#region Watch
+watch(() => props.select, () => {
+    data.value.buffer = props.select != undefined ? JSON.parse(JSON.stringify(props.select)) : { uuid: '', title: '', canWrite: true, containers: [] }
+})
 //#endregion
 
 //#region Compute
@@ -150,9 +152,6 @@ const createDatabase = () => util.createDatabase()
 const editDatabase = (oldname:string) => util.editDatabase(oldname)
 const saveDatabase = () => { emits('edit', data.value.buffer) }
 
-const confirmFilter = () => util.confirmFilter()
-const confirmCreate = () => util.confirmCreate()
-const confirmEdit = () => util.confirmEdit()
 const setdirty = () => data.value.dirty = true
 const filterOpen = () => util.filterOpen()
 
@@ -457,65 +456,34 @@ onUnmounted(() => {
                 <v-chip class="ml-3" v-else prepend-icon="mdi-paperclip" @click="paraSelect" color="success">
                     {{ select.title }}
                 </v-chip>
-                <v-btn variant="text" density="comfortable" icon="mdi-plus" @click="paraCreate"></v-btn>
-                <v-btn variant="text" density="comfortable" :disabled="props.select == undefined" icon="mdi-pencil" @click="paraEdit"></v-btn>
-                <v-spacer></v-spacer>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="createDatabase" :disabled="select == undefined">
-                            <v-icon>mdi-tag-plus</v-icon>
-                        </v-btn>
-                    </template>
+                <v-btn variant="text" density="comfortable" prepend-icon="mdi-database-plus" @click="paraCreate">
                     {{ $t('create') }}
-                </v-tooltip>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" color="success" @click="saveDatabase" :disabled="select == undefined || !data.dirty">
-                            <v-icon>mdi-content-save</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>
+                <v-btn variant="text" density="comfortable" :disabled="props.select == undefined" prepend-icon="mdi-pencil" @click="paraEdit">
+                    {{ $t('edit') }}
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn prepend-icon="mdi-tag-plus" v-bind="props" @click="createDatabase" :disabled="select == undefined">
+                    {{ $t('create') }}
+                </v-btn>
+                <v-btn prepend-icon="mdi-content-save" v-bind="props" color="success" @click="saveDatabase" :disabled="select == undefined || !data.dirty">
                     {{ $t('save') }}
-                </v-tooltip>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="importPara">
-                            <v-icon>mdi-import</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>
+                <v-btn prepend-icon="mdi-import" v-bind="props" @click="importPara">
                     {{ $t('import') }}
-                </v-tooltip>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" :disabled="select == undefined" @click="exportPara">
-                            <v-icon>mdi-export</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>
+                <v-btn prepend-icon="mdi-export" v-bind="props" :disabled="select == undefined" @click="exportPara">
                     {{ $t('export') }}
-                </v-tooltip>  
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" :disabled="select == undefined" @click="cloneSelect">
-                            <v-icon>mdi-content-paste</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>
+                <v-btn prepend-icon="mdi-content-paste" v-bind="props" :disabled="select == undefined" @click="cloneSelect">
                     {{ $t('clone') }}
-                </v-tooltip>         
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="select == undefined">
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>
+                <v-btn prepend-icon="mdi-delete" color='error' v-bind="props" @click="deleteSelect" :disabled="select == undefined">
                     {{ $t('delete') }}
-                </v-tooltip> 
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="filterOpen">
-                            <v-icon>mdi-filter</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>   
+                <v-btn prepend-icon="mdi-filter" v-bind="props" @click="filterOpen">
                     {{ $t('filters') }}
-                </v-tooltip> 
+                </v-btn>      
             </v-toolbar>
         </template>
         <template #dialog>
@@ -526,19 +494,18 @@ onUnmounted(() => {
                 :target-data="data.createData"
                 :options="data.options"
                 :temps="data.temps"
-                :preference="preference"
-                @confirm-create="confirmCreate"
-                @confirm-edit="confirmEdit">
-            </DatabaseDialog>
-            <DatabaseSetDialog width="500" v-model="data.createDatabaseModal"
+                @confirm-create="util.confirmCreate"
+                @confirm-edit="util.confirmEdit" />
+            <DatabaseValueDialog width="500" v-model="data.createDatabaseModal"
                 :is-edit="data.editMode"
                 :error-message="data.errorMessage"
                 :title-error="data.titleError"
                 :target-data="data.editData"
                 :temps="data.temps"
-                :preference="preference"
-                @submit="confirmSubmitSet">
-            </DatabaseSetDialog>
+                @submit="confirmSubmitSet" />
+            <DatabaseSelectionDialog v-model="data.selectModal" 
+                :items="selectSearchF" 
+                @select_uuid="e => emits('select', e)" />
             <DialogBase width="500" v-model="data.cloneModal" :preference="preference">
                 <template #title>
                     <v-icon>mdi-content-paste</v-icon>
@@ -552,30 +519,6 @@ onUnmounted(() => {
                     <v-btn class="mt-3" color="primary" v-if="!data.editMode" @click="cloneSelectConfirm">{{ $t('create') }}</v-btn>
                 </template>
             </DialogBase>
-            <DialogBase width="500" v-model="data.selectModal" class="text-white" :preference="preference">
-                <template #title>
-                    <v-icon>mdi-pen</v-icon>
-                    {{ $t('database-select') }}
-                </template>
-                <template #text>
-                    <v-text-field :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.selectSearch">
-                    </v-text-field>
-                    <v-list>
-                        <v-list-item v-for="(p, i) in selectSearchF" :key="i">
-                            <v-list-item-title>
-                                {{ p.title }}
-                            </v-list-item-title>
-                            <v-list-item-subtitle>
-                                {{ p.uuid }}
-                            </v-list-item-subtitle>
-                            <template v-slot:append>
-                                <v-btn color="grey-lighten-1" icon="mdi-arrow-right" variant="text" @click="selectDatabase(p.uuid); data.selectModal = false"
-                                ></v-btn>
-                            </template>
-                        </v-list-item>
-                    </v-list>
-                </template>
-            </DialogBase>
             <DialogBase width="500" v-model="data.filterModal" class="text-white" :preference="preference">
                 <template #title>
                     <v-icon>mdi-pen</v-icon>
@@ -587,7 +530,7 @@ onUnmounted(() => {
                     <v-select class="pl-3" :label="$t('filter.type')" v-model="data.buffer_filter.type" :items="data.options" item-text="text" hide-details></v-select>
                 </template>
                 <template #action>
-                    <v-btn class="mt-3" color="primary" @click="confirmFilter">{{ $t('confirm') }}</v-btn>
+                    <v-btn class="mt-3" color="primary" @click="util.confirmFilter">{{ $t('confirm') }}</v-btn>
                 </template>
             </DialogBase>
             <DialogBase :persistent="true" width="800" v-model="data.objectModal" class="text-white" :preference="preference">
@@ -716,8 +659,8 @@ onUnmounted(() => {
         </template>
         <v-card flat style="background: transparent">
             <v-card-text class="my-0 py-0">
+                {{ data.buffer.uuid.slice(data.buffer.uuid.length - 12, data.buffer.uuid.length) }}
                 <v-text-field v-model="data.search" class="mb-2" :style="{ 'fontSize': preference.font + 'px' }" :placeholder="$t('search')" clearable prepend-icon="mdi-magnify" hide-details single-line></v-text-field>
-                <v-checkbox class="pr-5 text-info" :label="$t('filter.canwrite')" v-model="data.buffer.canWrite" @input="setdirty" hide-details></v-checkbox>
                 <v-data-table style="background: transparent" :items-per-page="data.itemPrePage" :headers="fields" :items="items_final" item-value="name" :style="{ 'fontSize': preference.font + 'px' }">
                     <template v-slot:item.detail="{ item }">
                         <v-btn variant="text" icon @click="editDatabase(item.name)" size="small">

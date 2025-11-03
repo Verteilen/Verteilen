@@ -90,9 +90,11 @@ const dataImport = () => {
 const dataExport = async (uuid:string) => {
     const p = props.projects.find(x => x.uuid == uuid)
     if(p == undefined) return
-    if(config.value.isElectron){
-        window.electronAPI.send('export_project', JSON.stringify(p))
-    }else if(config.value.isExpress){
+    if(config.value.haveBackend){
+        backend.value.invoke("project_module:populate_project", uuid).then(x => {
+            backend.value.send('export_project', JSON.stringify(x, null ,4))
+        })
+    }else{
         const handle = await window.showSaveFilePicker({ suggestedName: p.uuid + '.json' });
         const writer = await handle.createWritable();
         await writer.write(new Blob([JSON.stringify(p, null, 2)]))
@@ -239,46 +241,18 @@ onUnmounted(() => {
         <template #toolbar>
             <v-toolbar density="compact" class="px-3">
                 <v-spacer></v-spacer>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="util.createProject" :disabled="!permission?.create">
-                            <v-icon>mdi-plus</v-icon>
-                        </v-btn>
-                    </template>
+                <v-btn prepend-icon="mdi-plus" v-bind="props" @click="util.createProject" :disabled="!permission?.create">
                     {{ $t('create') }}
-                </v-tooltip>
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="dataImport" :disabled="!permission?.create">
-                            <v-icon>mdi-import</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>
+                <v-btn prepend-icon="mdi-import" v-bind="props" @click="dataImport" :disabled="!permission?.create">
                     {{ $t('import') }}
-                </v-tooltip>   
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="selectAll">
-                            <v-icon>mdi-check-all</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('selectall') }}
-                </v-tooltip>    
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="util.cloneSelect" :disabled="!hasSelect || !permission?.create">
-                            <v-icon>mdi-content-paste</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>
+                <v-btn prepend-icon="mdi-content-paste" v-bind="props" @click="util.cloneSelect" :disabled="!hasSelect || !permission?.create">
                     {{ $t('clone') }}
-                </v-tooltip>         
-                <v-tooltip location="bottom">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || !permission?.delete">
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                    </template>
+                </v-btn>
+                <v-btn prepend-icon="mdi-delete" color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || !permission?.delete">
                     {{ $t('delete') }}
-                </v-tooltip> 
+                </v-btn> 
             </v-toolbar>
         </template>
         <template #dialog>

@@ -10,7 +10,7 @@ import { CreateField, DATA, EmitType, PROPS, Util_Task } from './Task';
 //#region Views
 import { VueDraggableNext } from 'vue-draggable-next'
 import TaskDialog from '../dialog/task/TaskDialog.vue';
-import DatabaseSelectionDialog from '../dialog/DatabaseSelectionDialog.vue';
+import DatabaseSelectionDialog from '../dialog/database/DatabaseSelectionDialog.vue';
 import ContextFrame from '../components/layout/ContextFrame.vue';
 import DeleteDialog from '../dialog/DeleteDialog.vue';
 //#endregion
@@ -177,7 +177,9 @@ onUnmounted(() => {
                 <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-paperclip" @click="detailOpen" color="success">
                     {{ $t('database-setting') }}: {{ para_title }}
                 </v-chip>
-                <v-btn v-if="hasPara && props.select != undefined" variant="text" icon="mdi-select" @click="detailSelect"></v-btn>
+                <v-btn v-if="hasPara && props.select != undefined" variant="text" prepend-icon="mdi-select" @click="detailSelect">
+                    {{ $t('select') }}
+                </v-btn>
                 <v-chip v-if="!hasPara && props.select != undefined" prepend-icon="mdi-paperclip" @click="detailSelect" color="warning">
                     {{ $t('database-select') }}
                 </v-chip>
