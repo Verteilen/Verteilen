@@ -1,5 +1,5 @@
 import { nextTick, Ref } from "vue"
-import { BusType, Task, TaskTable } from "../../interface"
+import { BusType, ProjectTable, Task, TaskTable } from "../../interface"
 import { DATA, save_and_update, Util_Server } from "."
 import { Emitter } from "mitt"
 import { BackendProxy } from "../../proxy"
@@ -96,11 +96,11 @@ export class Util_Server_Task {
     bindingTask = (uuid:string) => {
         if(this.selectProject.value == undefined) return
         this.selectProject.value.database_uuid = uuid
-        const index = this.data.value.projects.findIndex(x => x.uuid == uuid)
-        if(index != -1) {
-            this.data.value.projects[index].database_uuid = uuid
-        }
-        this.update()
+        const buffer:ProjectTable = JSON.parse(JSON.stringify(this.selectProject.value, null, 4))
+        delete buffer.s
+        this.save.save_project(buffer).then(() => {
+            this.query.load_project(buffer.uuid)
+        })
     }
     
     reorderTask = (uuids:Array<string>) => {

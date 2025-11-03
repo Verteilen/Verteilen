@@ -93,7 +93,7 @@
     "tcp-port-used": "^1.0.2",
     "tree-kill": "^1.2.2",
     "uuid": "^11.0.5",
-    "verteilen-core": "^1.3.20",
+    "verteilen-core": "^1.3.22",
     "vue": "^3.3.8",
     "vue-codemirror": "^6.1.1",
     "vue-draggable-next": "^2.3.0",

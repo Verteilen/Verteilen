@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { BusType, Job, Property } from "../../interface"
+import { BusType, Job, JobTable, Property } from "../../interface"
 import { DATA, save_and_update, Util_Server } from "."
 import { Emitter } from "mitt"
 import { BackendProxy } from "../../proxy"
@@ -32,7 +32,7 @@ export class Util_Server_Job {
     }
 
     //#region Job CRUD
-    addJob = (v:Array<Job>) => {
+    addJob = (v:JobTable) => {
         const ps = v.map(x => this.save.save_job(x))
         return Promise.all(ps)
     }
@@ -42,7 +42,7 @@ export class Util_Server_Job {
         this.save.clone_jobs(s)
     }
 
-    editJob = (v:Array<Job>, v2:Array<Property>) => {
+    editJob = (v:JobTable) => {
         if(this.data.value.selectTask == undefined) return
         this.data.value.selectTask.jobs = v
         this.data.value.selectTask.properties = v2

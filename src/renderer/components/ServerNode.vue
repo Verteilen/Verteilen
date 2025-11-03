@@ -657,7 +657,7 @@ onUnmounted(() => {
           :libs="data.libs"
           :database="projectbind"
           @added="e => util.job.addJob(e)" 
-          @edit="(e, e2) => util.job.editJob(e, e2)" 
+          @edit="e => util.job.editJob(e)" 
           @delete="e => util.job.deleteJob(e)"
           @return="data.page = 1"/>
       </v-tabs-window-item>
