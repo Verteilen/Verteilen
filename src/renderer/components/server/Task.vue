@@ -227,7 +227,7 @@ onUnmounted(() => {
         >
             <template #body="props"></template>
             <template #tbody="props">
-                <VueDraggableNext v-model="items_final" 
+                <VueDraggableNext :list="items_final" 
                     tag="tbody"
                     :move="util.move"
                     @end="util.end"

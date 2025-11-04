@@ -4,6 +4,7 @@ import { DATA, save_and_update, Util_Server } from "."
 import { Emitter } from "mitt"
 import { BackendProxy } from "../../proxy"
 import { ServerSave } from "./save"
+import { ServerDelete } from "./delete"
 
 export class Util_Server_Job {
     server:Util_Server
@@ -21,6 +22,9 @@ export class Util_Server_Job {
     public get save() : ServerSave {
         return this.server.save
     }
+    public get del() : ServerDelete {
+        return this.server.del
+    }
     public get update() : save_and_update {
         return this.server.allUpdate
     }
@@ -33,8 +37,7 @@ export class Util_Server_Job {
 
     //#region Job CRUD
     addJob = (v:JobTable) => {
-        const ps = v.map(x => this.save.save_job(x))
-        return Promise.all(ps)
+        return this.save.save_job(v)
     }
 
     cloneJob = (v:Array<string>) => {
@@ -43,22 +46,12 @@ export class Util_Server_Job {
     }
 
     editJob = (v:JobTable) => {
-        if(this.data.value.selectTask == undefined) return
-        this.data.value.selectTask.jobs = v
-        this.data.value.selectTask.properties = v2
-        this.update()
+        return this.save.save_job(v)
     }
     
     deleteJob = (uuids:Array<string>) => {
-        uuids.forEach(id => {
-            if(this.data.value.selectTask == undefined) return
-            const index = this.data.value.selectTask.jobs.findIndex(x => x.uuid == id)
-            if(index != -1) this.data.value.selectTask.jobs.splice(index, 1)
-            if(this.data.value.selectTask?.uuid == id){
-                this.data.value.selectTask = undefined
-            }
-        })
-        this.update()
+        const ps = uuids.map(x => this.del.delete_job(x))
+        return Promise.all(ps)
     }
     //#endregion
 }

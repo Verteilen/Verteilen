@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, PluginList, PluginPageData, PluginPageTemplate } from '../../interface';
+import { BusType, PluginPageData, PluginPageTemplate } from '../../interface';
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
 import { Emitter } from 'mitt';
@@ -37,10 +37,7 @@ const data:Ref<DATA> = ref({
     loading_template: false,
     buildIn_plugin: undefined,
     buildIn_template: undefined,
-    buildin_url: {
-        plugin: "https://raw.githubusercontent.com/Verteilen/Buildin-Assets/refs/heads/main/default_plugin.json",
-        template: "https://raw.githubusercontent.com/Verteilen/Buildin-Assets/refs/heads/main/default_template.json"
-    }
+    buildin_url: "https://raw.githubusercontent.com/Verteilen/Buildin-Assets/refs/heads/main/default_plugin.json"
 })
 
 watch(() => propss.plugin.plugins, () => {
@@ -160,7 +157,7 @@ const onHotkey = (value:string) => {
 }
 
 const pull_buildin = () => {
-    const f1 = fetch(data.value.buildin_url.template).then(x => {
+    const f1 = fetch(data.value.buildin_url).then(x => {
         x.text().then(x2 => {
             data.value.buildIn_template = JSON.parse(x2)
             console.log("Update buildin template", data.value.buildIn_template)

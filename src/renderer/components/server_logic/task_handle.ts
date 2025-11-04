@@ -46,8 +46,8 @@ export class Util_Server_Task {
      */
     addTask = (v:Array<TaskTable>) => {
         const ps = v.map(async x => {
-            const t = await this.server.job.addJob(x.jobs)
-            await Promise.all(t)
+            const jobsCreate = x.jobs.map(y => this.server.job.addJob(y))
+            await Promise.all(jobsCreate)
             return this.save.save_task({
                 ...x,
                 jobs_uuid: x.jobs.map(y => y.uuid),

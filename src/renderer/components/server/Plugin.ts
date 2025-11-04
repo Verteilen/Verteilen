@@ -1,6 +1,6 @@
 import { BuildinAssets } from "../../interface"
 
-
+//#region Data
 export interface DATA {
     pluginBuildinModal: boolean
     templateBuildinModal: boolean
@@ -19,8 +19,10 @@ export interface DATA {
     loading_template: boolean
     buildIn_plugin: BuildinAssets | undefined
     buildIn_template: BuildinAssets | undefined
-    buildin_url: {
-        plugin: string
-        template: string
-    }
+    buildin_url: string
+}
+//#endregion
+
+export class Util_Plugin {
+
 }

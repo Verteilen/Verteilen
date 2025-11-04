@@ -25,7 +25,6 @@ import {
     JobCategory, 
     JobType, 
     Database, 
-    PluginList, 
     Preference, 
     Project, 
     RecordIOLoader, 
@@ -41,6 +40,7 @@ import {
     CreateEventObserver,
     RecordType,
     CreateDefaultJob,
+    PluginNode,
 } from "./interface";
 
 const Loader = (loader:RecordIOLoader, key:string) => {
@@ -54,14 +54,12 @@ const Loader = (loader:RecordIOLoader, key:string) => {
     ipcMain.handle(`load_${key}`, (e, uuid:string) => loader.load(uuid, false))
 }
 const PluginInit = (loader:PluginLoader) => {
-    loader.get_plugin()
-    ipcMain.handle('get_plugin', async (e) => loader.get_plugin())
-    ipcMain.handle('import_template', async (event, name:string, url:string, token:string) => loader.import_template(name, url, token))
+    loader.get_plugins()
+    ipcMain.handle('get_plugin', async (e) => loader.get_plugins())
     ipcMain.handle('import_plugin', async (event, name:string, url:string, token:string) => loader.import_plugin(name, url, token))
-    ipcMain.handle('delete_template', async (event, name:string) => loader.delete_template(name))
     ipcMain.handle('delete_plugin', async (event, name:string) => loader.delete_plugin(name))
-    ipcMain.handle('get_project', async (event, group:string, filename:string) => loader.get_project(group, filename))
-    ipcMain.handle('get_database', async (event, group:string, filename:string) => loader.get_database(group, filename))
+    ipcMain.handle('get_project', async (event, name:string, group:string, filename:string) => loader.get_project(name, group, filename))
+    ipcMain.handle('get_database', async (event, name:string, group:string, filename:string) => loader.get_database(name, group, filename))
     ipcMain.on('plugin_download', (event, uuid:string, plugin:string, tokens:string) => loader.plugin_download(uuid, plugin, tokens))
     ipcMain.on('plugin_remove', (event, uuid:string, plugin:string) => loader.plugin_remove(uuid, plugin))
 }
@@ -198,7 +196,7 @@ export class BackendEvent extends Server implements BackendAction {
                 type: JobType.JAVASCRIPT,
                 script: content
             }
-            const p:PluginList = { plugins: [] }
+            const p:PluginNode = { plugins: [] }
             const worker = new ClientJobExecute.ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
             worker.database = database ? JSON.parse(database) : undefined
             worker.execute().then(x => {
