@@ -79,6 +79,10 @@ const deletePluginConfirm = (name:string) => {
     emits('delete-plugin', data.value.pluginDeleteData);
 }
 
+const checkPlugin = (pl:PluginContainer) => {
+
+}
+
 const updatePlugin = (pl:PluginContainer) => {
     data.value.loading_plugin.push(pl.title)
     emits('added-plugin', pl.title!, pl.url!);
@@ -197,10 +201,10 @@ onUnmounted(() => {
                         <p v-if="container.updateDate">update date: {{ new Date(container.updateDate).toISOString().slice(0, 10) }}</p>
                     </v-card-text>
                     <v-card-actions>
-                        <v-btn icon="mdi-book" color="info" @click="checkPlugin(container.title!)"></v-btn>
-                        <v-btn icon="mdi-update" color="warning" @click="deletePlugin(container.title!)"></v-btn>
+                        <v-btn icon="mdi-book" color="info" @click="checkPlugin(container)"></v-btn>
+                        <v-btn icon="mdi-update" color="warning" @click="updatePlugin(container)"></v-btn>
                         <v-spacer />
-                        <v-btn icon="mdi-delete" color="error" @click="updatePlugin(container)"></v-btn>
+                        <v-btn icon="mdi-delete" color="error" @click="deletePlugin(container.title!)"></v-btn>
                     </v-card-actions>
                 </v-card>
             </v-col>
