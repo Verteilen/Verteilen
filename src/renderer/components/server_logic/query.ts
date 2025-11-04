@@ -283,4 +283,11 @@ export class ServerQuery {
             if (process.env.NODE_ENV == 'development') console.log("Log", this.data.value.logs)
         })
     }
+
+    load_all_plugin = async () => {
+        if(!this.backend.value.config.haveBackend) return
+        this.backend.value.invoke('get_plugin').then(x => {
+            this.data.value.plugin = x
+        })
+    }
 }

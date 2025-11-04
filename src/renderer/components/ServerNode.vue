@@ -272,36 +272,14 @@ const msgClean = () => util.self.clearMessage()
 //#region Plugin
 const pluginAdded = (name:string, url:string) => {
   backend.value.invoke("import_plugin", name, url, preference.value.plugin_token.map(x => x.token).join(' ')).then(x => {
-    if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
-    nextTick(() => {
-      data.value.plugin = { plugins: [], templates: [] }
-      nextTick(() => {
-        data.value.plugin = JSON.parse(x)
-      })
-    })
-  })
-}
-const templateAdded = (name:string, url:string) => {
-  backend.value.invoke("import_template", name, url, preference.value.plugin_token.map(x => x.token).join(' ')).then(x => {
-    if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
-    nextTick(() => {
-      data.value.plugin = { plugins: [], templates: [] }
-      nextTick(() => {
-        data.value.plugin = JSON.parse(x)
-      })
-    })
+    if (process.env.NODE_ENV == 'development') console.log("plugin result", x)
+    data.value.plugin = x
   })
 }
 const pluginDelete = (name:string) => {
   backend.value.invoke("import_plugin_delete", name).then(x => {
-    if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
-    data.value.plugin = JSON.parse(x)
-  })
-}
-const templateDelete = (name:string) => {
-  backend.value.invoke("import_template_delete", name).then(x => {
-    if (process.env.NODE_ENV == 'development') console.log("plugin result", JSON.parse(x))
-    data.value.plugin = JSON.parse(x)
+    if (process.env.NODE_ENV == 'development') console.log("plugin result", x)
+    data.value.plugin = x
   })
 }
 //#endregion
@@ -477,7 +455,7 @@ const repull = (u:FrontendUpdate) => {
 
 const makeToastFromBackend = (e:any) => {
     if (process.env.NODE_ENV == 'development') console.log("makeToastFromBackend", e)
-    emitter?.emit('makeToast', e)
+    emitter?.emit('makeToast', JSON.parse(e))
 }
 
 const logUpdate = (e:string) => {
@@ -744,9 +722,7 @@ onUnmounted(() => {
         <PluginPage :plugin="data.plugin"
           v-if="data.page == 11"
           @added-plugin="pluginAdded"
-          @added-template="templateAdded"
-          @delete-plugin="pluginDelete"
-          @delete-template="templateDelete" />
+          @delete-plugin="pluginDelete" />
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.isExpress" :value="100">
         <ProfilePage 

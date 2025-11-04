@@ -1,28 +1,52 @@
-import { BuildinAssets } from "../../interface"
+import { Ref } from "vue"
+import { BuildinAssets, PluginPageData } from "../../interface"
 
 //#region Data
 export interface DATA {
     pluginBuildinModal: boolean
-    templateBuildinModal: boolean
     pluginModal: boolean
-    templateModal: boolean
     pluginDeleteModal: boolean
-    templateDeleteModal: boolean
     pluginDeleteData: string
-    templateDeleteData: string
     buildin_select_plugin: number
-    buildin_select_template: number
     pluginData: { name: string, url: string }
-    templateData: { name: string, url: string }
     errorMessage: string
-    loading_plugin: boolean
-    loading_template: boolean
+    loading_plugin: Array<string>
     buildIn_plugin: BuildinAssets | undefined
-    buildIn_template: BuildinAssets | undefined
     buildin_url: string
+    default_plugin_thumbnail: string
+}
+
+export interface PROP {
+    plugin: PluginPageData
+}
+
+export type EmitType = {
+    (e: 'added-plugin', name:string, url:string): void
+    (e: 'delete-plugin', name:string): void
 }
 //#endregion
 
 export class Util_Plugin {
+    data: Ref<DATA>
+    emits: EmitType
 
+    constructor(
+        data: Ref<DATA>,
+        emits: EmitType
+    ) {
+        this.data = data    
+        this.emits = emits
+    }
+
+    importPlugin = () => {
+        this.data.value.pluginModal = true
+        this.data.value.errorMessage = ''
+        this.data.value.pluginData = { name: '', url: '' }
+    }
+
+    importPluginBuildin = () => {
+        this.data.value.pluginBuildinModal = true
+        this.data.value.errorMessage = ''
+        this.data.value.pluginData = { name: '', url: '' }
+    }
 }
