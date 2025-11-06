@@ -84,7 +84,7 @@ const checkPlugin = (pl:PluginContainer) => {
 }
 
 const updatePlugin = (pl:PluginContainer) => {
-    data.value.loading_plugin.push(pl.title)
+    data.value.loading_plugin.push(pl.title!)
     emits('added-plugin', pl.title!, pl.url!);
 }
 
@@ -105,7 +105,6 @@ const pull_buildin = () => {
 
 onMounted(() => {
     pull_buildin()
-    console.log("Plugin Mounted")
     emitter?.on('hotkey', onHotkey)
 })
 

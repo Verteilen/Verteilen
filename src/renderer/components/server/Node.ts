@@ -20,6 +20,7 @@ export interface DATA {
     search: string
     isquery: boolean
     selection: Array<string>
+    fields: Array<any>
 }
 /**
  * **Node Page Property**

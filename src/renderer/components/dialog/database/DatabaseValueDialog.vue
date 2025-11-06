@@ -2,12 +2,13 @@
 //#region Modules
 import { computed, Ref, ref, watch } from 'vue'
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import { CreateField, DialogDATACreateSet, Temp } from '../../server/Database';
+import { CreateField, DialogDATACreateSet } from '../../server/Database';
 //#endregion
 
 //#region Views
 import DialogBase from './../DialogBase.vue'
 import { i18n } from '../../../plugins/i18n';
+import { TemplateData_Database } from 'verteilen-core/src/interface';
 //#endregion
 
 //#region Data
@@ -18,35 +19,34 @@ const propss = defineProps<DialogDATACreateSet>()
 const emits = defineEmits<{
     (e: 'submit', d:CreateField): void
 }>()
-const buffer:Ref<CreateField> = ref({ name: "", temp: null, canWrite: true })
+const buffer:Ref<CreateField> = ref({ name: "", temp: null, canWrite: true, useTemp: false })
 const selectTempModel = ref(false)
-const selectTempIndex:Ref<Array<number | string>> = ref([])
+const selectTemp:Ref<string | null> = ref(null)
 const search:Ref<string | null> = ref(null)
 //#endregion
 
 //#region Computed
 const isDark = computed(() => theme.global.name.value == "dark")
-const convert = computed(():CreateField => {
+const convert = computed(() => {
     return {
         name: buffer.value.name,
         temp: buffer.value.temp,
-        canWrite: buffer.value.canWrite
+        canWrite: buffer.value.canWrite,
+        useTemp: buffer.value.temp != null
     }
 })
-const temp_name = computed(() => {
-    if(typeof buffer.value.temp == 'number') return propss.temps.find(x => x.value == buffer.value.temp)?.text
-    else return buffer.value.temp 
-})
 const groups = computed(() => {
-    let v:Array<Array<Temp>> = []
-    propss.temps.forEach(x => {
-        const index = v.findIndex(y => y[0].group === x.group)
-        if(index == -1) v.push([x])
-        else v[index].push(x)
+    let v:Array<Array<TemplateData_Database>> = []
+    propss.plugin.plugins.forEach(x => {
+        x.databases.forEach(y => {
+            const index = v.findIndex(z => z[0].group === y.group)
+            if(index == -1) v.push([y])
+            else v[index].push(y)
+        })
     })
     if(search.value != null){
         for(let i = 0; i < v.length; i++){
-            v[i] = v[i].filter(p => p.text.includes(search.value!))
+            v[i] = v[i].filter(p => p.title.includes(search.value!))
         }
     }
     v = v.filter(x => x.length > 0)
@@ -58,12 +58,14 @@ const groups = computed(() => {
 watch(() => data.value, () => {
     search.value = null
     selectTempModel.value = false
+    selectTemp.value = null
     if(propss.isEdit) buffer.value = { 
         name: propss.targetData.name, 
         canWrite: propss.targetData.canWrite,
         temp: propss.targetData.temp,  
+        useTemp: propss.targetData.temp != null
     }
-    else buffer.value = { name: '', temp: null, canWrite: true }
+    else buffer.value = { name: '', temp: null, canWrite: true, useTemp: false }
 })
 //#endregion
 
@@ -71,12 +73,14 @@ const openSelectTemp = () => {
     selectTempModel.value = true
 }
 
-const onSelectTemp = (d:Temp) => {
-    selectTempIndex.value = d.value >= 1000 ? [d.text] : [d.value]
+const onSelectTemp = (d:TemplateData_Database) => {
+    const str = `${d.group}/${d.filename}`
+    if(selectTemp.value == str) selectTemp.value = null
+    else selectTemp.value = str
 }
 
 const confirm_temp = () => {
-    buffer.value.temp = selectTempIndex.value[0]
+    buffer.value.temp = selectTemp.value
     selectTempModel.value = false
 }
 
@@ -98,8 +102,8 @@ const confirm = () => {
         <template #text>
             <v-text-field :error="propss.titleError" v-model="buffer.name" required :label="$t('modal.enter-database-set-name')" hide-details></v-text-field>
             <v-btn v-if="!propss.isEdit" class="mt-3 w-100" color="primary" variant="outlined" @click="openSelectTemp">
-                <span v-if="temp_name">
-                    {{ temp_name }}
+                <span v-if="buffer.temp != null">
+                    {{ buffer.temp }}
                 </span>
                 <span v-else>
                     {{ $t('useTemplate') }}
@@ -109,8 +113,7 @@ const confirm = () => {
 
             <DialogBase width="60vw" height="80vh" v-model="selectTempModel" :color="isDark ? 
                 'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 
-                'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'"
-                :preference="propss.preference">
+                'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'">
                 <template #title>
                     <v-icon>mdi-select</v-icon>
                     {{ $t('modal.database-template-select') }}
@@ -123,13 +126,13 @@ const confirm = () => {
                                 <v-list-item v-bind="props" :title="group[0].group">
                                 </v-list-item>
                             </template>
-                            <v-list-item v-for="(g, j) in group" :key="g.text + String(j)" :title="g.text" :value="g.value" @click="onSelectTemp(g)">
+                            <v-list-item v-for="(g, j) in group" :key="g.title + String(j)" :title="g.title" :value="g.value" @click="onSelectTemp(g)">
                             </v-list-item>
                         </v-list-group>
                     </v-list>
                 </template>
                 <template #action>
-                    <v-btn class="mt-3" color="primary" :disabled="selectTempIndex.length == 0" @click="confirm_temp">{{ $t('confirm') }}</v-btn>
+                    <v-btn class="mt-3" color="primary" :disabled="selectTemp == null" @click="confirm_temp">{{ $t('confirm') }}</v-btn>
                 </template>
             </DialogBase>
 

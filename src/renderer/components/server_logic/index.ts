@@ -89,7 +89,7 @@ export class Util_Server extends Server {
     database:Util_Server_Database
     console:Util_Server_Console
     lib:Util_Server_Lib
-    plugin: Util_Server_Plugin
+    plugins: Util_Server_Plugin
     self:Util_Server_Self
 
     selectProject:ComputedRef<ProjectTable | undefined>
@@ -122,7 +122,7 @@ export class Util_Server extends Server {
         this.database = new Util_Server_Database(this)
         this.console = new Util_Server_Console()
         this.lib = new Util_Server_Lib(this.data, this.update)
-        this.plugin = new Util_Server_Plugin(this)
+        this.plugins = new Util_Server_Plugin(this)
         this.self = new Util_Server_Self(this.data)
         this.selectProject = selectProject
         this.selectTask = selectTask
@@ -150,6 +150,7 @@ export class Util_Server extends Server {
             case 0:
                 {
                     this.query.load_all_project()
+                    this.query.load_all_plugin()
                     break
                 }
             case 1:

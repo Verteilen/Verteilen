@@ -34,10 +34,6 @@ export class ServerSave {
         const project:any = JSON.parse(JSON.stringify(v))
         delete project.s
         delete project.taskCount
-        delete project.owner
-        delete project.database
-        delete project.acl
-        delete project.permission
         const p = !this.backend.value.config.haveBackend ?
         new Promise<void>((resolve) => {
             if(this.static_server.value == undefined) return
@@ -74,8 +70,6 @@ export class ServerSave {
         const task:any = JSON.parse(JSON.stringify(v))
         delete task.s
         delete task.jobCount
-        delete task.acl
-        delete task.permission
         const p = !this.backend.value.config.haveBackend ?
         new Promise<void>((resolve) => {
             if(this.static_server.value == undefined) {
@@ -124,8 +118,6 @@ export class ServerSave {
     save_job = async (v:JobTable):Promise<void> => {
         const job:any = JSON.parse(JSON.stringify(v))
         delete job.s
-        delete job.acl
-        delete job.permission
         const p = !this.backend.value.config.haveBackend ?
         new Promise<void>((resolve) => {
             if(this.static_server.value == undefined) {
@@ -175,8 +167,6 @@ export class ServerSave {
     save_database = async (v:DatabaseTable):Promise<void> => {
         const database:any = JSON.parse(JSON.stringify(v))
         delete database.s
-        delete database.acl
-        delete database.permission
         const p = !this.backend.value.config.haveBackend ?
         new Promise<void>((resolve) => {
             if(this.static_server.value == undefined) {

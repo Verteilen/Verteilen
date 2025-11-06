@@ -1,16 +1,19 @@
 <script setup lang="ts">
 //#region Modules
 import { Emitter } from 'mitt';
-import { v6 as uuid6 } from 'uuid';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ConnectionText, Execute_SocketManager, Header, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from '../../interface';
+import { BusType, ConnectionText, Header, Plugin, Preference } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import NodeInfoDialog from '../dialog/NodeInfoDialog.vue';
-import NodeShellDialog from '../dialog/NodeShellDialog.vue';
-import NodePluginDialog from '../dialog/NodePluginDialog.vue';
 import { BackendProxy } from '../../proxy';
-import DialogBase from '../dialog/DialogBase.vue';
 import { DATA, Util_Node, PROPS } from './Node';
+//#endregion
+
+//#region Views
+import DialogBase from '../dialog/DialogBase.vue';
+import ContextFrame from '../components/layout/ContextFrame.vue';
+import NodeInfoDialog from '../dialog/node/NodeInfoDialog.vue';
+import NodeShellDialog from '../dialog/node/NodeShellDialog.vue';
+import NodePluginDialog from '../dialog/node/NodePluginDialog.vue';
 //#endregion
 
 //#region Data
@@ -33,15 +36,8 @@ const data:Ref<DATA> = ref({
     search: "",
     isquery: false,
     selection: [],
+    fields: []
 })
-const fields:Ref<Array<any>> = ref([
-    { title: 'ID', align: 'center', key: 'ID' },
-    { title: 'cluster', align: 'center', key: 'cluster' },
-    { title: 'URL', align: 'center', key: 'url' },
-    { title: 'State', align: 'center', key: 'state' },
-    { title: 'Delay', align: 'center', key: 'delay' },
-    { title: 'Detail', align: 'center', key: 'detail' }
-])
 //#endregion
 
 //#region Computed
@@ -105,6 +101,11 @@ watch(() => data.value.pluginModal, () => {
 //#endregion
 
 //#region Methods
+const url_clean = (s:string) => {
+    let u = s.replace('wss://', '').replace('ws://', '').trimEnd().trimStart()
+    u = u.endsWith('/') ? u.slice(0, u.length - 1) : u
+    return u
+}
 const serverUpdate = () => {
     if(backend.value.config.haveBackend){
         if(data.value.isquery) return
@@ -123,17 +124,27 @@ const serverUpdate = () => {
 const selectall = () => {
     data.value.selection = props.nodes.map(x => x.uuid)
 }
-const translate_state = (state:number):string => {
-    return i18n.global.t(ConnectionText[state])
+const translate_state = (state:number | undefined):string => {
+    return i18n.global.t(ConnectionText[state ?? 0])
 }
-const translate_state_color = (state:number):string => {
+const translate_state_color = (state:number | undefined):string => {
     switch(state){
+        default:
         case 0: return 'white'
         case 1: return 'success'
         case 2: return 'warning'
         case 3: return 'danger'
     }
-    return 'white'
+}
+const updateFields = () => {
+    data.value.fields = [
+        { title: 'ID', align: 'center', key: 'ID' },
+        { title: $t('cluster'), align: 'center', key: 'cluster' },
+        { title: 'URL', align: 'center', key: 'url' },
+        { title: $t('state'), align: 'center', key: 'state' },
+        { title: $t('delay'), align: 'center', key: 'delay' },
+        { title: $t('action'), align: 'center', key: 'detail' }
+    ]
 }
 const onHotkey = (value:string) => {
     if(value == 'create_node'){
@@ -143,7 +154,7 @@ const onHotkey = (value:string) => {
 //#endregion
 
 onMounted(() => {
-    console.log("Node Mounted")
+    updateFields()
     emitter.on('updateHandle', serverUpdate)
     emitter.on('hotkey', onHotkey)
 })
@@ -155,8 +166,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div>
-        <div class="py-3">
+    <ContextFrame>
+        <template #toolbar>
             <v-toolbar density="compact" class="pr-3">
                 <v-text-field max-width="400px" class="pl-5" :placeholder="$t('search')" clearable density="compact" prepend-icon="mdi-magnify" hide-details single-line v-model="data.search"></v-text-field>
                 <v-spacer></v-spacer>
@@ -185,8 +196,55 @@ onUnmounted(() => {
                     {{ $t('delete') }}
                 </v-tooltip> 
             </v-toolbar>
-        </div>
-        <v-data-table :style="{ 'fontSize': preference.font + 'px' }" style="background: transparent" :headers="fields" :items="items_final" show-select v-model="data.selection" item-value="ID">
+        </template>
+        <template #dialog>
+            <NodeInfoDialog v-model="data.infoModal" :item="infoTarget"/>
+            <NodeShellDialog v-model="data.consoleModal" :item="consoleTarget" :manager="props.manager" />
+            <NodePluginDialog v-model="data.pluginModal" 
+                :item="pluginTarget" 
+                :plugin="props.plugin"
+                @download="util.plugin_download" @remove="util.plugin_remove" />
+            <DialogBase width="500" v-model="data.connectionModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-web</v-icon>
+                    {{ $t('modal.new-node') }}
+                </template>
+                <template #text>
+                    <v-text-field v-model="data.connectionData.url" :autofocus="true" required :label="$t('modal.enter-node-address')"></v-text-field>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="util.confirmConnection">{{ $t('create') }}</v-btn>
+                </template>
+            </DialogBase>
+            <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
+                <template #title>
+                    <v-icon>mdi-pencil</v-icon>
+                    {{ $t('modal.delete-node') }}
+                </template>
+                <template #text>
+                    <p>{{ $t('modal.delete-node-confirm') }}</p>
+                    <br />
+                    <p v-for="(p, i) in data.deleteData">
+                        {{ i }}. {{ p }}
+                    </p>
+                </template>
+                <template #action>
+                    <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
+                    <v-btn class="mt-3" color="error" @click="util.deleteConfirm">{{ $t('delete') }}</v-btn>
+                </template>
+            </DialogBase>
+        </template>
+        <v-data-table v-model="data.selection" class="px-6" show-select hide-default-footer
+            :style="{ 'fontSize': preference.font + 'px' }" 
+            style="background: transparent" 
+            :headers="data.fields" 
+            :items="items_final" item-value="uuid">
+            <template v-slot:item.ID="{ item }">
+                <span>{{ item.uuid.slice(item.uuid.length - 12, item.uuid.length) }}</span>
+            </template>
+            <template v-slot:item.url="{ item }">
+                <span>{{ url_clean(item.url) }}</span>
+            </template>
             <template v-slot:item.state="{ item }">
                 <v-chip :color="translate_state_color(item.state)">{{ translate_state(item.state) }}</v-chip>
             </template>
@@ -194,7 +252,7 @@ onUnmounted(() => {
                 <v-chip :color="item.cluster ? 'info' : 'success'">{{ item.cluster ? $t('cluster') : $t('node') }}</v-chip>
             </template>
             <template v-slot:item.delay="{ item }">
-                {{ item.connection_rate }}
+                {{ item.connection_rate }} ms
             </template>
             <template v-slot:item.detail="{ item }">
                 <v-btn variant="text" icon @click="util.showplugin(item.uuid)">
@@ -208,42 +266,7 @@ onUnmounted(() => {
                 </v-btn>
             </template>
         </v-data-table>
-        <NodeInfoDialog v-model="data.infoModal" :item="infoTarget"/>
-        <NodeShellDialog v-model="data.consoleModal" :item="consoleTarget" :manager="props.manager" />
-        <NodePluginDialog v-model="data.pluginModal" 
-            :item="pluginTarget" 
-            :plugin="props.plugin"
-            @download="util.plugin_download" @remove="util.plugin_remove" />
-        <DialogBase width="500" v-model="data.connectionModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-web</v-icon>
-                {{ $t('modal.new-node') }}
-            </template>
-            <template #text>
-                <v-text-field v-model="data.connectionData.url" :autofocus="true" required :label="$t('modal.enter-node-address')"></v-text-field>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="util.confirmConnection">{{ $t('create') }}</v-btn>
-            </template>
-        </DialogBase>
-        <DialogBase width="500" v-model="data.deleteModal" class="text-white" :preference="preference">
-            <template #title>
-                <v-icon>mdi-pencil</v-icon>
-                {{ $t('modal.delete-node') }}
-            </template>
-            <template #text>
-                <p>{{ $t('modal.delete-node-confirm') }}</p>
-                <br />
-                <p v-for="(p, i) in data.deleteData">
-                    {{ i }}. {{ p }}
-                </p>
-            </template>
-            <template #action>
-                <v-btn class="mt-3" color="primary" @click="data.deleteModal = false">{{ $t('cancel') }}</v-btn>
-                <v-btn class="mt-3" color="error" @click="util.deleteConfirm">{{ $t('delete') }}</v-btn>
-            </template>
-        </DialogBase>
-    </div>
+    </ContextFrame>
 </template>
 
 <style scoped>

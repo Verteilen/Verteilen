@@ -2,7 +2,6 @@ import { v6 as uuidv6 } from 'uuid';
 import { ComputedRef, Ref } from "vue";
 import { Database, DatabaseTable, PluginPageData, Preference, ProjectTable } from "../../interface";
 import { i18n } from '../../plugins/i18n';
-import { BuildIn_ProjectTempGroup } from '../../template/projectTemplate';
 import { BackendProxy } from '../../proxy';
 
 /**
@@ -14,7 +13,7 @@ export interface CreateField {
     useTemp: boolean
     usePara: boolean
     database: string | null
-    temp: number | string | null
+    temp: string | null
 }
 /**
  * **Create Dialog Data**
@@ -25,16 +24,8 @@ export interface DialogDATA {
     editData: CreateField
     errorMessage: string
     titleError: boolean
-    temps:Array<Temp>
+    plugin: PluginPageData
     preference?: Preference
-}
-/**
- * **Project Template Data**
- */
-export interface Temp {
-    text: string
-    group: string
-    value: number
 }
 /**
  * **Page Properties**
@@ -65,7 +56,6 @@ export interface DATA {
     importData: File[]
     isEdit: boolean
     editData:CreateField
-    temps:Array<Temp>
     editUUID:string
     deleteModal:boolean
     deleteBind: boolean
@@ -77,9 +67,6 @@ export interface DATA {
     sort: string | undefined
     order: string | undefined
 }
-
-export const ValueToGroupName = (v:number) => BuildIn_ProjectTempGroup.find(x => x.value == v)?.group
-export const IndexToValue = (v:number) => BuildIn_ProjectTempGroup[v].value
 
 export class Util_Project {
     data:Ref<DATA>
@@ -119,7 +106,7 @@ export class Util_Project {
         this.data.value.isEdit = true
         const selectp = this.projects.value.find(x => x.uuid == uuid)
         if(selectp == undefined) return;
-        this.data.value.editData = {title: selectp.title, usePara: false, description: selectp.description, useTemp: false, temp: 0, database: null};
+        this.data.value.editData = {title: selectp.title, usePara: false, description: selectp.description, useTemp: false, temp: null, database: null};
         this.data.value.dialogModal = true;
         this.data.value.editUUID = uuid;
         this.data.value.errorMessage = ''
@@ -138,7 +125,7 @@ export class Util_Project {
      */
     createProject = () => {
         this.data.value.isEdit = false
-        this.data.value.editData = {title: "", description: "", usePara: false, useTemp: false, temp: 0, database: null};
+        this.data.value.editData = {title: "", description: "", usePara: false, useTemp: false, temp: null, database: null};
         this.data.value.dialogModal = true
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
@@ -175,35 +162,19 @@ export class Util_Project {
             taskCount: 0,
         }
         if (this.data.value.editData.useTemp){ // Referencing template data
-            const index = this.data.value.editData.temp
-            const p = BuildIn_ProjectTempGroup.find(x => x.value === index)
-            if(p != undefined) {
-                // It's buildin template
-                // Which we can get from import in the vue space
-                // Thank god, i don't have to go backend fetch the data
-                const t = p.template!(buffer)
-                buffer = Object.assign(buffer, { tasks: t.tasks })
-            }else{
-                // crap... the template data is in the backend
-                const select = this.data.value.editData.temp as string
-                let find = false
-                let mfilename: string | undefined = undefined
-                let mGruop: string = ""
-                for(var x of this.plugin.value.templates){
-                    for(var y of x.project){
-                        if(y.title == select){
-                            find = true
-                            mfilename = y.filename
-                            mGruop = y.group
-                            break
-                        }
+            const select:string = this.data.value.editData.temp as string
+            const tempSelect:Array<string> = select.split('/')
+            if(tempSelect.length == 2){
+                for(let x of this.plugin.value.plugins){
+                    const p_temp = x.projects.find(y => y.group == tempSelect[0] && y.filename == tempSelect[1])
+                    if(p_temp != undefined){
+                        const templateData = await this.backend.value.invoke('get_project', x.title, p_temp.group, p_temp.filename + ".json")
+                        const p:any = JSON.parse(templateData)
+                        buffer = Object.assign(buffer, { tasks: p.tasks, database: p.database })
+                        break
                     }
-                    if(find) break
                 }
-                const templateData = await this.backend.value.invoke('get_template', mGruop, mfilename)
-                const p:any = JSON.parse(templateData)
-                buffer = Object.assign(buffer, { tasks: p.tasks })
-            }
+            }            
         }
         if(this.data.value.editData.usePara){ // Referencing database
             const target = this.databases.value.find(x => x.uuid == this.data.value.editData.database)

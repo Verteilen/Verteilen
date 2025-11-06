@@ -2,13 +2,13 @@
 //#region Modules
 import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
-import { BusType, NodeTable, Preference, ShellFolder, Single, Execute_SocketManager } from '../../interface'
-import { BackendProxy } from '../../proxy'
+import { BusType, NodeTable, Preference, ShellFolder, Single, Execute_SocketManager } from '../../../interface'
+import { BackendProxy } from '../../../proxy'
 import { i18n } from 'verteilen-core/src/plugins/i18n'
 //#region 
 
 //#region Views
-import DialogBase from './DialogBase.vue'
+import DialogBase from './../DialogBase.vue'
 //#endregion
 
 //#region Data

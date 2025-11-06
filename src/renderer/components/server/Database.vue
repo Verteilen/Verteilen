@@ -10,14 +10,13 @@ import {
     Database, 
     DatabaseContainer, 
     DatabaseTable, 
-    DatabaseTemplate, 
     DatabaseTemplateText, 
     PluginPageData, 
     Preference, 
     ToastData 
 } from '../../interface'
 import { i18n } from '../../plugins/i18n'
-import { CreateField, DATA, EmitType, IndexToValue, Temp, Util_Database, ValueToGroupName } from './Database'
+import { CreateField, DATA, EmitType, Util_Database } from './Database'
 import { v6 as uuidv6 } from 'uuid'
 import { BackendProxy } from '../../proxy'
 
@@ -108,10 +107,6 @@ const items_final = computed(() => data.value.buffer.containers
         return data.value.filter.type == x.type
     })
 )
-const temp_name = computed(() => {
-    if(data.value.editData.temp == undefined) return ''
-    return data.value.temps.find(x => x.value == data.value.editData.temp)?.text
-})
 const select_option = computed(() => {
     if(data.value.selecterTarget == undefined) return []
     const a:Array<any> = data.value.selecterTarget.meta
@@ -150,10 +145,6 @@ const editDatabase = (oldname:string) => util.editDatabase(oldname)
 const setdirty = () => data.value.dirty = true
 const filterOpen = () => util.filterOpen()
 
-const openSelectTemp = () => {
-    data.value.selectTempModel = true
-}
-
 const selectSearchF = computed(() => {
     if(data.value.selectSearch == undefined || data.value.selectSearch.length == 0) return props.databases
     return props.databases.filter(x => x.title.includes(data.value.selectSearch!) || x.uuid.includes(data.value.selectSearch!))
@@ -191,25 +182,27 @@ const exportPara = async () => {
     }
 }
 
+const confirmSubmitSet = (v:CreateField) => {
+    data.value.editData.name = v.name
+    data.value.editData.temp = v.temp
+    data.value.editData.useTemp = v.temp != null
+    if(!data.value.editMode) confirmCreateSet(v);
+    else confirmEditSet(v);
+}
 const confirmCreateSet = async (v:CreateField) => {
     const d = await util.confirmCreateSet()
     if(d == undefined) return
     emits('added', d)
     data.value.createDatabaseModal = false
+    setTimeout(() => {
+        selectDatabase(d.uuid)
+    }, 500);
 }
-
 const confirmEditSet = async (v:CreateField) => {
     const d = await util.confirmEditSet()
     if(d == undefined) return
     emits('edit', d)
     data.value.createDatabaseModal = false
-}
-
-const confirmSubmitSet = (v:CreateField) => {
-    data.value.editData.name = v.name
-    data.value.editData.temp = v.temp
-    if(!data.value.editMode) confirmCreateSet(v);
-    else confirmEditSet(v);
 }
 
 const deleteSelect = () => {
@@ -244,10 +237,6 @@ const deleteitem = (name:string) => {
 
 const DataTypeTranslate = (t:number):string => {
     return i18n.global.t(DataTypeText[t])
-}
-
-const databaseTemplateTranslate = (t:number):string => {
-    return DatabaseTemplateText.hasOwnProperty(t) ? i18n.global.t(DatabaseTemplateText[t]) : ""
 }
 
 const import_database_feedback = (e:IpcRendererEvent, v:string) => {
@@ -352,9 +341,6 @@ const modifyContent_L = (d:DatabaseContainer) => {
     data.value.listTarget = d
 }
 
-const isFirst = (name:string) => util.isFirst(name)
-const isLast = (name:string) => util.isLast(name)
-
 const goreturn = () => {
     emits('return')
 }
@@ -386,6 +372,7 @@ const updateLocate = () => {
     })
 }
 const updateTemps = () => {
+    /**
     data.value.temps = Object.keys(DatabaseTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
         const text = databaseTemplateTranslate(IndexToValue(index))
         return {
@@ -395,6 +382,7 @@ const updateTemps = () => {
         }
     })
     let adder = 0
+    
     props.plugin.templates.forEach(x => {
         x.database.forEach(y => {
             const buffer:Temp = {
@@ -406,6 +394,7 @@ const updateTemps = () => {
             data.value.temps.push(buffer)
         })
     })
+     */
 }
 const updateFields = () => {
     data.value.fields = [
@@ -420,7 +409,6 @@ const updateFields = () => {
 //#endregion
 
 onMounted(() => {
-    console.log("Database Mounted")
     updateLocate()
     emitter.on('hotkey', onHotkey)
     emitter.on('updateLocate', updateLocate)
@@ -490,7 +478,7 @@ onUnmounted(() => {
                 :title-error="data.titleError"
                 :target-data="data.createData"
                 :options="data.options"
-                :temps="data.temps"
+                :plugin="props.plugin"
                 @confirm-create="util.confirmCreate"
                 @confirm-edit="util.confirmEdit" />
             <DatabaseValueDialog width="500" v-model="data.createDatabaseModal"
@@ -498,7 +486,7 @@ onUnmounted(() => {
                 :error-message="data.errorMessage"
                 :title-error="data.titleError"
                 :target-data="data.editData"
-                :temps="data.temps"
+                :plugin="props.plugin"
                 @submit="confirmSubmitSet" />
             <DatabaseSelectionDialog v-model="data.selectModal" 
                 :items="selectSearchF" 

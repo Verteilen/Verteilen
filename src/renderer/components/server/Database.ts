@@ -2,16 +2,9 @@ import { v6 as uuid6 } from 'uuid';
 import { ComputedRef, Ref } from "vue";
 import { DataType, DataTypeBase, Database, DatabaseContainer, DatabaseTable, PluginPageData, Preference } from "../../interface";
 import { i18n } from "../../plugins/i18n";
-import { BuildIn_DatabaseTempGroup } from '../../template/projectTemplate';
 import { BackendProxy } from '../../proxy';
 
 //#region Data
-export interface Temp {
-    text: string
-    group: string
-    value: number
-}
-
 export interface EDIT extends CreateField{
     type: number
     useTemp: boolean
@@ -27,6 +20,7 @@ export interface CreateField {
     name: string
     canWrite: boolean
     temp: string | number | null
+    useTemp: boolean
 }
 
 export interface OPTION {
@@ -43,13 +37,11 @@ export interface DialogDATA {
 export interface DialogDATACreate extends DialogDATA{
     targetData: DatabaseContainer
     options: Array<OPTION>
-    preference?: Preference
 }
 
 export interface DialogDATACreateSet extends DialogDATA {
     targetData: EDIT
-    temps: Array<Temp>
-    preference?: Preference
+    plugin: PluginPageData
 }
 
 export type EmitType = {
@@ -94,15 +86,11 @@ export interface DATA {
     buffer: DatabaseTable
     errorMessage: string
     titleError: boolean
-    temps: Array<Temp>
     search: string | undefined
     search_para: string | undefined
     object_temp: string
 }
 //#endregion
-
-export const ValueToGroupName = (v:number) => BuildIn_DatabaseTempGroup.find(x => x.value == v)?.group
-export const IndexToValue = (v:number) => BuildIn_DatabaseTempGroup[v].value
 
 export class Util_Database {
     backend: Ref<BackendProxy>
@@ -219,38 +207,28 @@ export class Util_Database {
                 return
             }
         }
-        const d:Database = {
+        let buffer:Database = {
             title: this.data.value.editData.name,
             uuid: uuid6(),
             canWrite: this.data.value.editData.canWrite,
             containers: []
         }
-        if(this.data.value.editData.temp != null){
-            const index = this.data.value.editData.temp
-            const p = BuildIn_DatabaseTempGroup.find(x => x.value === index)
-            if(p != undefined){
-                d.containers = p.template!()
-            }else{
-                const select = this.data.value.editData.temp as string
-                let mfilename: string = ""
-                let mGruop: string = ""
-                this.plugin.value.templates.forEach(x => {
-                    x.database.forEach(y => {
-                        if(y.title == select){
-                            mfilename = y.filename!
-                            mGruop = y.group
-                        }
-                    })
-                })
-                let p = await this.backend.value.invoke('get_database', mGruop, mfilename)
-                try{
-                    d.containers = JSON.parse(p)
-                }catch(e){
-                    console.error("Failed to parse database template", p, mGruop, mfilename, e)
+        if(this.data.value.editData.useTemp){ // Referencing template data
+            const select:string = this.data.value.editData.temp as string
+            const tempSelect:Array<string> = select.split('/')
+            if(tempSelect.length == 2){
+                for(let x of this.plugin.value.plugins){
+                    const p_temp = x.databases.find(y => y.group == tempSelect[0] && y.filename == tempSelect[1])
+                    if(p_temp != undefined){
+                        const templateData = await this.backend.value.invoke('get_database', x.title, p_temp.group, p_temp.filename + ".json")
+                        const p:any = JSON.parse(templateData)
+                        buffer = Object.assign(buffer, { containers: p })
+                        break
+                    }
                 }
-            }
+            }  
         }
-        return d
+        return buffer
     }
 
     confirmEditSet = async () => {

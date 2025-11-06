@@ -41,26 +41,29 @@ export class Util_Server_Project {
      * Add project through the dialog UI
      * @param v Array of project
      */
-    addProject = (v:Array<ProjectTable>) => {
+    addProject = async (v:Array<ProjectTable>) => {
         let dd = false
         const p = v.map(async x => {
+            let database_uuid = ""
             if(x.database != undefined){
-                const uu = uuidv6()
+                database_uuid = uuidv6()
                 const b:DatabaseTable = {
                     ...x.database,
-                    uuid: uu
+                    uuid: database_uuid
                 }
                 await this.save.save_database(b)
-                x.database_uuid = uu
+                x.database_uuid = database_uuid
                 x.database = undefined
                 dd = true
             }
             await this.server.task.addTask(x.tasks.map(y => ({ ...y, jobCount: y.jobs.length })))
-            return this.save.save_project({
+            const p = {
                 ...x,
                 tasks: [],
-                tasks_uuid: x.tasks.map(y => y.uuid)
-            })
+                tasks_uuid: x.tasks.map(y => y.uuid),
+                database_uuid: database_uuid
+            }
+            return this.save.save_project(p)
         })
         return Promise.all(p).then(() => {
             if(dd) this.server.query.load_all_database()

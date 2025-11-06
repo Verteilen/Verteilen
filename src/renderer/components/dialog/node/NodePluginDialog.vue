@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, inject, Ref, ref } from 'vue';
-import { BusType, NodeTable, Plugin, PluginList, PluginPageData, Preference } from '../../interface';
-import { BackendProxy } from '../../proxy';
-import DialogBase from './DialogBase.vue';
+import { BusType, NodeTable, Plugin, PluginList, PluginPageData, Preference } from '../../../interface';
+import { BackendProxy } from '../../../proxy';
+import DialogBase from './../DialogBase.vue';
 import { i18n } from 'verteilen-core/src/plugins/i18n';
 import { Emitter } from 'mitt';
 
@@ -64,7 +64,7 @@ const remove = (k:Plugin) => {
     <DialogBase persistent width="75vw" v-model="modal" class="text-white" :preference="preference">
         <template #title>
             <v-icon>mdi-console</v-icon>
-            {{ item?.uuid }} 
+            <span class="mx-3" v-if="item">{{ item.uuid.slice(item.uuid.length - 12, item.uuid.length) }} </span>
             <v-chip :color="props.item?.state == 1 ? 'success' : 'error'">({{ nodeType }})</v-chip>
         </template>
         <template #text>

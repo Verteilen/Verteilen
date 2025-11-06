@@ -2,12 +2,13 @@
 //#region Modules
 import { computed, Ref, ref, watch } from 'vue';
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import { CreateField, DialogDATA, Temp } from '../../server/Project';
+import { CreateField, DialogDATA } from '../../server/Project';
 import { i18n } from '../../../plugins/i18n';
 //#endregion
 
 //#region Views
 import DialogBase from './../DialogBase.vue';
+import { TemplateData_Project } from 'verteilen-core/src/interface';
 //#endregion
 
 //#region Data
@@ -20,7 +21,7 @@ const emits = defineEmits<{
 }>()
 const buffer:Ref<CreateField> = ref({title: "", description: "", usePara: false, useTemp: false, temp: null, database: null})
 const selectTempModel = ref(false)
-const selectTempIndex:Ref<Array<number | string>> = ref([])
+const selectTemp:Ref<string | null> = ref(null)
 const search:Ref<string | null> = ref(null)
 //#endregion
 
@@ -28,6 +29,7 @@ const search:Ref<string | null> = ref(null)
 watch(() => data.value, () => {
     search.value = null
     selectTempModel.value = false
+    selectTemp.value = null
     if(propss.isEdit) buffer.value = propss.editData
     else buffer.value = {title: "", description: "", useTemp: false, usePara: false, temp: null, database: null}
 })
@@ -45,15 +47,17 @@ const paras = computed(() => {
     })
 })
 const groups = computed(() => {
-    let v:Array<Array<Temp>> = []
-    propss.temps.forEach(x => {
-        const index = v.findIndex(y => y[0].group === x.group)
-        if(index == -1) v.push([x])
-        else v[index].push(x)
+    let v:Array<Array<TemplateData_Project>> = []
+    propss.plugin.plugins.forEach(x => {
+        x.projects.forEach(y => {
+            const index = v.findIndex(z => z[0].group === y.group)
+            if(index == -1) v.push([y])
+            else v[index].push(y)
+        })
     })
     if(search.value != null){
         for(let i = 0; i < v.length; i++){
-            v[i] = v[i].filter(p => p.text.includes(search.value!))
+            v[i] = v[i].filter(p => p.title.includes(search.value!))
         }
     }
     v = v.filter(x => x.length > 0)
@@ -65,11 +69,6 @@ const convert = computed(() => {
         useTemp: buffer.value.temp != null,
         usePara: buffer.value.database != null
     }
-})
-const temp_name = computed(() => {
-    if(buffer.value.temp == undefined) return ''
-    if(typeof buffer.value.temp == 'number') return propss.temps.find(x => x.value == buffer.value.temp)?.text
-    else return propss.temps.find(x => x.text == buffer.value.temp)?.text
 })
 //#endregion
 
@@ -83,11 +82,13 @@ const itemProps = (item:any) => {
 const openSelectTemp = () => {
     selectTempModel.value = true
 }
-const onSelectTemp = (d:Temp) => {
-    selectTempIndex.value = d.value >= 1000 ? [d.text] : [d.value]
+const onSelectTemp = (d:TemplateData_Project) => {
+    const str = `${d.group}/${d.filename}`
+    if(selectTemp.value == str) selectTemp.value = null
+    else selectTemp.value = str
 }
 const confirm_temp = () => {
-    buffer.value.temp = selectTempIndex.value[0]
+    buffer.value.temp = selectTemp.value
     selectTempModel.value = false
 }
 const confirm = () => {
@@ -116,8 +117,8 @@ const confirm = () => {
             <div v-if="!propss.isEdit">
                 <br />
                 <v-btn class="w-100" color="primary" variant="outlined" @click="openSelectTemp">
-                    <span v-if="temp_name">
-                        {{ temp_name }}
+                    <span v-if="buffer.temp != null">
+                        {{ buffer.temp }}
                     </span>
                     <span v-else>
                         {{ $t('useTemplate') }}
@@ -145,13 +146,13 @@ const confirm = () => {
                                 <v-list-item v-bind="props" :title="group[0].group">
                                 </v-list-item>
                             </template>
-                            <v-list-item v-for="(g, j) in group" :key="g.text + String(j)" :title="g.text" :value="g.value" @click="onSelectTemp(g)">
+                            <v-list-item v-for="(g, j) in group" :key="g.title + String(j)" :title="g.title" :value="`item-${i}-${j}`" @click="onSelectTemp(g)">
                             </v-list-item>
                         </v-list-group>
                     </v-list>
                 </template>
                 <template #action>
-                    <v-btn class="mt-3" color="primary" :disabled="selectTempIndex.length == 0" @click="confirm_temp">{{ $t('confirm') }}</v-btn>
+                    <v-btn class="mt-3" color="primary" :disabled="selectTemp == null" @click="confirm_temp">{{ $t('confirm') }}</v-btn>
                 </template>
             </DialogBase>
         </template>

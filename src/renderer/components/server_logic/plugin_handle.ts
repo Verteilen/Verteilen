@@ -6,8 +6,6 @@ import { BackendProxy } from "../../proxy"
 import { ServerDelete } from "./delete"
 import { ServerSave } from "./save"
 
-
-
 export class Util_Server_Plugin {
     server:Util_Server
 

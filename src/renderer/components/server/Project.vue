@@ -3,9 +3,9 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, Preference, ProjectTemplate, ProjectTemplateText, ProjectTable, CreateRootLocalPermission } from '../../interface';
+import { BusType, Preference, ProjectTemplateText, ProjectTable, CreateRootLocalPermission } from '../../interface';
 import { i18n } from '../../plugins/i18n';
-import { CreateField, DATA, EmitType, IndexToValue, PROPS, Temp, Util_Project, ValueToGroupName } from './Project';
+import { CreateField, DATA, EmitType, PROPS, Util_Project } from './Project';
 import { BackendProxy } from '../../proxy';
 //#endregion
 
@@ -30,8 +30,7 @@ const data:Ref<DATA> = ref({
     importData: [],
     dialogModal: false,
     isEdit: false,
-    editData: {title: "", description: "", useTemp: false, temp: 0, database: null, usePara: false},
-    temps: [],
+    editData: {title: "", description: "", useTemp: false, temp: null, database: null, usePara: false},
     editUUID: '',
     deleteModal: false,
     deleteBind: false,
@@ -77,7 +76,7 @@ const util:Util_Project = new Util_Project(data, backend, emits, plugin, project
 
 //#region Watch
 watch(() => props.plugin, () => {
-    updateTemps()
+    //updateTemps()
 })
 //#endregion
 
@@ -174,31 +173,8 @@ const selectAll = () => {
 const ProjectTemplateTranslate = (t:number):string => {
     return ProjectTemplateText.hasOwnProperty(t) ? i18n.global.t(ProjectTemplateText[t]) : ""
 }
-const updateTemps = () => {
-    data.value.temps = Object.keys(ProjectTemplate).filter(key => isNaN(Number(key))).map((x, index) => {
-        const text = ProjectTemplateTranslate(IndexToValue(index))
-        return {
-            text: text.length > 0 ? text : x,
-            group: ValueToGroupName(IndexToValue(index)) ?? '',
-            value: IndexToValue(index)
-        }
-    })
-    let adder = 0
-    props.plugin.templates.forEach(x => {
-        x.project.forEach(y => {
-            const buffer:Temp = {
-                text: y.title ? y.title : "Null",
-                group: y.group,
-                value: 1000 + adder
-            }
-            adder += 1
-            data.value.temps.push(buffer)
-        })
-    })
-}
 
 const updateLocate = () => {
-    updateTemps()
     updateFields()
 }
 const updateFields = () => {
@@ -257,7 +233,6 @@ onUnmounted(() => {
         </template>
         <template #dialog>
             <ProjectDialog v-model="data.dialogModal" 
-                :temps="data.temps"
                 :preference="preference"
                 :plugin="props.plugin"
                 :databases="props.databases"
