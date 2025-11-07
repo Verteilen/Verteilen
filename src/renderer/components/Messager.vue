@@ -111,6 +111,6 @@ onUnmounted(() => {
     left: 10px;
     display: grid;
     grid-gap: 0.5em;
-    z-index: 99;
+    z-index: 30000;
 }
 </style>

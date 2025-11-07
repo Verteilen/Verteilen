@@ -60,6 +60,7 @@ const data:Ref<DATA> = ref({
 
 //#region Watch
 watch(() => props.select, () => {
+    console.log("task selected update")
     make_instance()
 })
 //#endregion
@@ -97,12 +98,9 @@ const convert2 = (uuid:string):ViewTreeNode => {
     }
 }
 const rules = {
-    required: (value:any) => !!value || 'Required.',
-    deep: (value:any) => (typeof value == 'number' && value >= 1) || 'Number must bigger than 0'
-}
-
-const setdirty = () => {
-    data.value.dirty = true
+    required: (value:string) => (value.toString().length > 0) || 'Required.',
+    nospace: (value:string) => new RegExp(/\s+/g).exec(value) == null || 'No Space !!',
+    deep: (value:string) => (typeof value == 'number' && value >= 1) || 'Number must bigger than 0'
 }
 
 const logic_modify = (add:boolean) => {
@@ -263,7 +261,7 @@ onUnmounted(() => {
                 <v-btn prepend-icon="mdi-content-paste" :disabled="!hasSelect || select == undefined">
                     {{ $t('clone') }}
                 </v-btn>
-                <v-btn prepend-icon="mdi-content-save" color='success' @click="util.save()" :disabled="!hasSelect || select == undefined || !data.dirty">
+                <v-btn prepend-icon="mdi-content-save" color='success' @click="util.save()" :disabled="select == undefined || !data.dirty">
                     {{ $t('save') }}
                 </v-btn>
                 <v-btn prepend-icon="mdi-delete" color='error' @click="deleteSelect" :disabled="!hasSelect || select == undefined">
@@ -354,13 +352,13 @@ onUnmounted(() => {
                                     :cell-props="props"
                                 >
                                     <template v-slot:item.name="{ item }">
-                                        <v-text-field v-model="item.name" hide-details density="compact" :error="expressionNameCheck(item.name)" @input="setdirty"></v-text-field>
+                                        <v-text-field v-model="item.name" hide-details="auto" density="compact" :rules="[rules.nospace]" :error="expressionNameCheck(item.name)" @input="util.dirty()"></v-text-field>
                                     </template>
                                     <template v-slot:item.expression="{ item }">
-                                        <v-text-field v-model="item.expression" hide-details density="compact" @input="setdirty"></v-text-field>
+                                        <v-text-field v-model="item.expression" hide-details="auto" density="compact" @input="util.dirty()"></v-text-field>
                                     </template>
                                     <template v-slot:item.deep="{ item }">
-                                        <v-text-field v-model.number="item.deep" hide-details density="compact" type="number" :rules="[rules.required, rules.deep]" :min="1" @input="setdirty"></v-text-field>
+                                        <v-text-field v-model.number="item.deep" hide-details="auto" density="compact" type="number" :rules="[rules.required, rules.deep]" :min="1" @input="util.dirty()"></v-text-field>
                                     </template>
                                     <template v-slot:item.detail="{ item }">
                                         <v-btn variant="outlined" prepend-icon="mdi-delete" color="error" @click="util.pdelete(item.name)">

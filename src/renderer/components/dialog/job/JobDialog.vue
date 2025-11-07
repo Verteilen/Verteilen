@@ -9,7 +9,8 @@ import {
     Job, 
     JobCategory, 
     JobType, 
-    JobType2, 
+    JobType2,
+    ToastData, 
 } from 'verteilen-core/src/interface'
 import { i18n } from '../../../plugins/i18n'
 import { inject, ref, Ref, watch } from 'vue'
@@ -49,8 +50,18 @@ const replaceString = (index:number):string => {
     if(db == undefined) {
         db = { uuid: "", title: "", canWrite: true, containers: [], s: false}
     }
-    Execute_PART.ExecuteManager_Base.string_args_transform(props.task!, copyJob, (str) => console.log(str), db, data.value.ck)
-    return copyJob.string_args[index]
+    try{
+        Execute_PART.ExecuteManager_Base.string_args_transform(props.task!, copyJob, (str) => console.log(str), db, data.value.ck)
+        return copyJob.string_args[index]
+    }catch(e:any){
+        const t:ToastData = {
+            type: "error",
+            title: "Expression Error",
+            message: e.message
+        }
+        emitter.emit('makeToast', t)
+        return ""
+    }
 }
 const checkPatterm = (category:number, type:number, checker:string):boolean => {
     const e = category == JobCategory.Execution && ( 
@@ -111,7 +122,7 @@ const cancel = () => {
             <v-text-field v-model.number="data.ck" hide-details label="ck" :min="0" type="number"></v-text-field>
 
             <br class="my-6" />
-            <h2 class="ml-2 mb-6"> {{ $t('modal.job_detail') }} </h2>
+            <h2 class="ml-2 mb-6"> {{ $t('headers.detail') }} </h2>
 
             <!-- Content -->
             <div v-if="checkPatterm(data.buffer.category, data.buffer.type, 'Javascript_n')">

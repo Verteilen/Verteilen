@@ -72,8 +72,12 @@ export class Util_Job {
         this.emits('movedown', uuid)
     }
 
+    dirty = () => {
+        this.data.value.dirty = true
+    }
     save = () => {
-
+        this.p_submit()
+        this.data.value.dirty = false
     }
     move = (e:any, oge:any) => {
         //console.log("MOVE", e, oge)

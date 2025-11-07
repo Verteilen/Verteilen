@@ -123,13 +123,14 @@ export class Util_Server_Task {
     addProperty = () => {
         if(this.selectTask.value == undefined) return
         const p:Property = {
-            name: "Default Property",
-            expression: ""
+            name: "Default_Property",
+            expression: "1 + 1",
+            deep: 1
         }
         let count:number = 0
         while(this.selectTask.value.properties.find(x => x.name == p.name)){
             count = count + 1
-            p.name = `Default Property ${count}`
+            p.name = `Default_Property_${count}`
         }
         this.selectTask.value.properties.push(p)
         this.save.save_task(this.selectTask.value).then(() => {
