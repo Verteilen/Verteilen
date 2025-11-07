@@ -196,6 +196,7 @@ const consoleAdded = (name:string, record:Record) => {
       }
     })
   }else{
+    //util.server.value?.detail?.console_add(undefined, name, record, undefined)
     let r:boolean = false
     const em:Execute_ExecuteManager.ExecuteManager = new Execute_ExecuteManager.ExecuteManager(
       name,
@@ -223,8 +224,8 @@ const consoleAdded = (name:string, record:Record) => {
     }
     em.libs = { libs: data.value.libs }
     const p:ExecutePair = {manager: em, record: er}
-    const uscp:UtilServer_Console.Util_Server_Console_Proxy = new UtilServer_Console.Util_Server_Console_Proxy(p)
-    const uslp:UtilServer_Log.Util_Server_Log_Proxy = new UtilServer_Log.Util_Server_Log_Proxy(p, { logs: data.value.logs }, preference.value)
+    const uscp:UtilServer_Console.Console_Proxy = new UtilServer_Console.Console_Proxy(p)
+    const uslp:UtilServer_Log.Log_Proxy = new UtilServer_Log.Log_Proxy(p, { logs: data.value.logs }, preference.value)
     em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
     r = util.console.receivedPack(p, record)
     if(r){
@@ -637,7 +638,9 @@ onUnmounted(() => {
           @added="e => util.job.addJob(e)" 
           @edit="e => util.job.editJob(e)" 
           @delete="e => util.job.deleteJob(e)"
-          @return="data.page = 1"/>
+          @return="data.page = 1"
+          @padded="util.task.addProperty()"
+          @preorder="e => util.task.reorderProperty(e)"/>
       </v-tabs-window-item>
       <v-tabs-window-item :value="3">
         <DatabasePage

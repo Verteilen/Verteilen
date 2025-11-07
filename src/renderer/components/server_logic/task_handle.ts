@@ -1,5 +1,5 @@
 import { nextTick, Ref } from "vue"
-import { BusType, ProjectTable, Task, TaskTable } from "../../interface"
+import { BusType, ProjectTable, Property, Task, TaskTable } from "../../interface"
 import { DATA, save_and_update, Util_Server } from "."
 import { Emitter } from "mitt"
 import { BackendProxy } from "../../proxy"
@@ -38,6 +38,11 @@ export class Util_Server_Task {
     public get selectProject() {
         return this.server.selectProject
     }
+    public get selectTask() {
+        return this.server.selectTask
+    }
+
+    //#region Task Page
 
     //#region Task CRUD
     /**
@@ -112,24 +117,32 @@ export class Util_Server_Task {
             })
         })
     }
+    //#endregion
 
-    moveupTask = (uuid:string) => {
-        if(this.selectProject.value == undefined) return
-        const index = this.selectProject.value.tasks.findIndex(x => x.uuid == uuid)
-        if(index == -1) return
-        const b = this.selectProject.value.tasks[index - 1]
-        this.selectProject.value.tasks[index - 1] = this.selectProject.value.tasks[index]
-        this.selectProject.value.tasks[index] = b
-        this.update()
+    //#region Job Page
+    addProperty = () => {
+        if(this.selectTask.value == undefined) return
+        const p:Property = {
+            name: "Default Property",
+            expression: ""
+        }
+        let count:number = 0
+        while(this.selectTask.value.properties.find(x => x.name == p.name)){
+            count = count + 1
+            p.name = `Default Property ${count}`
+        }
+        this.selectTask.value.properties.push(p)
+        this.save.save_task(this.selectTask.value).then(() => {
+            this.query.load_task(this.selectTask.value!.uuid)
+        })
     }
-    
-    movedownTask = (uuid:string) => {
-        if(this.selectProject.value == undefined) return
-        const index = this.selectProject.value.tasks.findIndex(x => x.uuid == uuid)
-        if(index == -1) return
-        const b = this.selectProject.value.tasks[index + 1]
-        this.selectProject.value.tasks[index + 1] = this.selectProject.value.tasks[index]
-        this.selectProject.value.tasks[index] = b
-        this.update()
+
+    reorderProperty = (data:Array<Property>) => {
+        if(this.selectTask.value == undefined) return
+        this.selectTask.value.properties = JSON.parse(JSON.stringify(data))
+        this.save.save_task(this.selectTask.value).then(() => {
+            this.query.load_task(this.selectTask.value!.uuid)
+        })
     }
+    //#endregion
 }

@@ -53,7 +53,7 @@ const items_final = computed(() => {
 })
 const hasSelect = computed(() => data.value.selection.length > 0)
 const selected_task_ids = computed(() => props.tasks.filter(x => data.value.selection.includes(x.uuid)).map(x => x.uuid))
-const para_title = computed(() => props.databases.find(x => x.uuid == props.select?.database_uuid)?.title)
+const para_selected = computed(() => props.databases.find(x => x.uuid == props.select?.database_uuid))
 const para_keys:ComputedRef<Array<{ title:string, subtitle: string, value: string }>> = computed(() => {
     if(props.select == undefined) return []
     const p = props.databases.find(x => x.uuid == props.select!.database_uuid)
@@ -175,7 +175,7 @@ onUnmounted(() => {
                     {{ $t('project') }}: {{ props.select.title }}
                 </p>
                 <v-chip v-if="hasPara && props.select != undefined" prepend-icon="mdi-paperclip" @click="detailOpen" color="success">
-                    {{ $t('database-setting') }}: {{ para_title }}
+                    {{ $t('database-setting') }}: {{ para_selected?.title }} {{ para_selected?.uuid.slice(para_selected.uuid.length - 12, para_selected.uuid.length) }}
                 </v-chip>
                 <v-btn v-if="hasPara && props.select != undefined" variant="text" prepend-icon="mdi-select" @click="detailSelect">
                     {{ $t('select') }}

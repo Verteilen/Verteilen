@@ -10,6 +10,7 @@ export const ImportProject = () => {
         properties: ['openFile', 'multiSelections'],
         filters: [
             { name: 'JSON', extensions: ['json'] },
+            { name: 'All Files', extensions: ['*'] }
         ]
     }).then(v => {
         if (v.canceled) return
@@ -26,10 +27,7 @@ export const ExportProject = (value:Project) => {
     if(mainWindow == undefined) return;
     dialog.showSaveDialog(mainWindow, {
         filters: [
-            {
-                name: "JSON",
-                extensions: ['json']
-            }
+            { name: "JSON", extensions: ['json'] }
         ]
     }).then(v => {
         if (v.canceled || v.filePath.length == 0) return
@@ -59,6 +57,7 @@ export const ImportDatabase = () => {
         properties: ['openFile', 'multiSelections'],
         filters: [
             { name: 'JSON', extensions: ['json'] },
+            { name: 'All Files', extensions: ['*'] }
         ]
     }).then(v => {
         if (v.canceled) return
@@ -73,10 +72,7 @@ export const ExportDatabase = (value:Database) => {
     if(mainWindow == undefined) return;
     dialog.showSaveDialog(mainWindow, {
         filters: [
-            {
-                name: "JSON",
-                extensions: ['json']
-            }
+            { name: "JSON", extensions: ['json'] }
         ]
     }).then(v => {
         if (v.canceled || v.filePath.length == 0) return

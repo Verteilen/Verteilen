@@ -22,6 +22,7 @@ export interface DATA {
     result: Array<any>
     categorise: Array<any>
     dirty: boolean
+    pfields: Array<any>
 }
 
 export interface PROPS {
@@ -45,8 +46,7 @@ export type EmitType = {
 
     (e: 'padded'): void
     (e: 'pdelete', name:string): void
-    (e: 'pmoveup', index:number): void
-    (e: 'pmovedown', index:number): void
+    (e: 'preorder', data:Array<Property>): void
     (e: 'return'): void
 }
 
@@ -72,33 +72,44 @@ export class Util_Job {
         this.emits('movedown', uuid)
     }
 
+    save = () => {
+
+    }
+    move = (e:any, oge:any) => {
+        //console.log("MOVE", e, oge)
+    }
+    end = (e:any) => {
+        //const uuids = this.tasks.value.map(x => x.uuid)
+        const n:number = e.newIndex
+        const o:number = e.oldIndex
+        //const buffer = uuids.splice(o, 1)
+        //uuids.splice(n, 0, ...buffer)
+        //this.emits('reorder', uuids)
+    }
 
     pcreateProperty = () => {
         this.emits('padded')
     }
-    pmoveUp = (index:number) => {
-        this.emits('pmoveup', index)
-    }
-    pmoveDown = (index:number) => {
-        this.emits('pmovedown', index)
+    p_submit = () => {
+        if(this.data.value.buffer == undefined) return
+        this.emits('preorder', this.data.value.buffer.properties)
     }
     pdelete = (name:string) => {
-
+        if(this.data.value.buffer == undefined) return
+        const index = this.data.value.buffer.properties.findIndex(x => x.name == name)
+        if(index == -1) return
+        this.data.value.buffer.properties.splice(index, 1)
+        this.p_submit()
     }
-
-    /**
-     * Check select task uuid is first in order
-     * @param uuid Task UUID
-     */
-    pisFirst = (index:number):boolean => {
-        return index == 0
+    pmove = (e:any, oge:any) => {
+        //console.log("MOVE", e, oge)
     }
-    /**
-     * Check select task uuid is last in order
-     * @param uuid Task UUID
-     */
-    pisLast = (index: number):boolean => {
-        if(this.properties.value == undefined) return false
-        return this.properties.value.length - 1 == index
+    pend = (e:any) => {
+        if(this.data.value.buffer == undefined) return
+        const n:number = e.newIndex
+        const o:number = e.oldIndex
+        const buffer = this.data.value.buffer.properties.splice(o, 1)
+        this.data.value.buffer.properties.splice(n, 0, ...buffer)
+        this.p_submit()
     }
 }

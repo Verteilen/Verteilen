@@ -472,7 +472,7 @@ onUnmounted(() => {
             </v-toolbar>
         </template>
         <template #dialog>
-            <DatabaseDialog width="500" v-model="data.createModal"
+            <DatabaseValueDialog width="500" v-model="data.createModal"
                 :is-edit="data.editMode"
                 :error-message="data.errorMessage"
                 :title-error="data.titleError"
@@ -481,7 +481,7 @@ onUnmounted(() => {
                 :plugin="props.plugin"
                 @confirm-create="util.confirmCreate"
                 @confirm-edit="util.confirmEdit" />
-            <DatabaseValueDialog width="500" v-model="data.createDatabaseModal"
+            <DatabaseDialog width="500" v-model="data.createDatabaseModal"
                 :is-edit="data.editMode"
                 :error-message="data.errorMessage"
                 :title-error="data.titleError"

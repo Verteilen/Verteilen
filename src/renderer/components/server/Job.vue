@@ -26,6 +26,7 @@ import { DATA, EmitType, PROPS, Util_Job, ViewTreeNode } from './Job'
 //#endregion
 
 //#region Views
+import { VueDraggableNext } from 'vue-draggable-next'
 import ContextFrame from '../components/layout/ContextFrame.vue'
 import DeleteDialog from '../dialog/DeleteDialog.vue'
 import JobDialog from '../dialog/job/JobDialog.vue';
@@ -53,12 +54,13 @@ const data:Ref<DATA> = ref({
     result: [],
     categorise: [],
     dirty: false,
+    pfields: [],
 })
 //#endregion
 
 //#region Watch
 watch(() => props.select, () => {
-    data.value.buffer = props.select == undefined ? undefined : JSON.parse(JSON.stringify(props.select))
+    make_instance()
 })
 //#endregion
 
@@ -78,6 +80,9 @@ const treeData = computed(() => {
 const util = new Util_Job(data, emits, properties)
 //#endregion
 
+const make_instance = () => {
+    data.value.buffer = props.select == undefined ? undefined : JSON.parse(JSON.stringify(props.select))
+}
 const convert = (unit:TaskLogicUnit):ViewTreeNode => {
     return {
         id: unit.job_uuid ?? "",
@@ -98,6 +103,10 @@ const rules = {
 
 const setdirty = () => {
     data.value.dirty = true
+}
+
+const logic_modify = (add:boolean) => {
+
 }
 
 const expressionNameCheck = (x:string) => {
@@ -145,28 +154,6 @@ const deleteConfirm = () => {
 
 const dialogConfirm = (job:JobTable) => {
 
-}
-const confirmEdit = (job:JobTable) => {
-    data.value.createModal = false
-    emits('edit', job)
-}
-const confirmCreate = (job:JobTable) => {
-    data.value.createModal = false
-    emits('added', 
-        [{ 
-            uuid: uuidv6(),
-            category: data.value.createData.category,
-            type: data.value.createData.type,
-            script: "",
-            string_args: [],
-            number_args: [0],
-            boolean_args: [],
-            id_args: [],
-        }]
-    )
-    nextTick(() => {
-        data.value.dirty = true
-    })
 }
 
 const libRename = (d:Rename) => {
@@ -216,6 +203,12 @@ const updateLocate = () => {
             value: index
         }
     })
+    data.value.pfields = [
+        { title: $t('expression.title'), align: 'center', key: 'name', maxWidth: '100px', sortable: false },
+        { title: $t('expression.value'), align: 'center', key: 'expression', sortable: false },
+        { title: $t('expression.deep'), align: 'center', key: 'deep', maxWidth: '50px', sortable: false },
+        { title: $t('headers.detail'), align: 'center', key: 'detail', maxWidth: "50px", sortable: false },
+    ]
 }
 
 const get_title = (uuid:string) => {
@@ -243,6 +236,7 @@ const onHotkey = (value:string) => {
 
 onMounted(() => {
     updateLocate()
+    make_instance()
     emitter.on('hotkey', onHotkey)
     emitter.on('updateLocate', updateLocate)
     emitter.on('renameScript', libRename)
@@ -266,10 +260,13 @@ onUnmounted(() => {
                     {{ $t('task') }}: {{ props.select.title }}
                 </p>
                 <v-spacer></v-spacer>
-                <v-btn prepend-icon="mdi-content-paste" v-bind="props" :disabled="!hasSelect || select == undefined">
+                <v-btn prepend-icon="mdi-content-paste" :disabled="!hasSelect || select == undefined">
                     {{ $t('clone') }}
                 </v-btn>
-                <v-btn prepend-icon="mdi-delete" color='error' v-bind="props" @click="deleteSelect" :disabled="!hasSelect || select == undefined">
+                <v-btn prepend-icon="mdi-content-save" color='success' @click="util.save()" :disabled="!hasSelect || select == undefined || !data.dirty">
+                    {{ $t('save') }}
+                </v-btn>
+                <v-btn prepend-icon="mdi-delete" color='error' @click="deleteSelect" :disabled="!hasSelect || select == undefined">
                     {{ $t('delete') }}
                 </v-btn>
             </v-toolbar>
@@ -294,72 +291,98 @@ onUnmounted(() => {
                 @cancel="data.deleteModal = false"
                 @delete="deleteConfirm"/>
         </template>
-        <div class="text-left px-6">
-            <v-btn class="mx-1" variant="outlined" color="primary" @click="data.page = 0" :disabled="data.page == 0">{{ $t(logic != undefined ? 'logic' : 'job') }}</v-btn>
-            <v-btn class="mx-1" variant="outlined" color="primary" @click="data.page = 1" :disabled="data.page == 1">{{ $t('property') }}</v-btn>
+        <div class="px-6">
+            <div class="text-left">
+                <v-btn class="mx-1" variant="outlined" color="primary" @click="data.page = 0" :disabled="data.page == 0">{{ $t(logic != undefined ? 'logic' : 'job') }}</v-btn>
+                <v-btn class="mx-1" variant="outlined" color="primary" @click="data.page = 1" :disabled="data.page == 1">{{ $t('property') }}</v-btn>
 
-            <v-btn class="mx-1" variant="outlined" color="success" v-if="logic == undefined && props.select != undefined">{{ $t('use_logic') }}</v-btn>
-            <v-btn class="mx-1" variant="outlined" color="error" v-if="logic != undefined && props.select != undefined">{{ $t('remove_logic') }}</v-btn>
-        </div>
-        <!-- Job List -->
-        <template v-if="data.page == 0">
-            <h2 class="text-info"> {{ $t(logic != undefined ? 'logic' : 'job')}} </h2>
-            <v-sheet class="mx-6 text-left">
-                <v-btn prepend-icon="mdi-plus" v-bind="props" @click="createJob(JobCategory.Execution)" :disabled="select == undefined">{{ $t('create') }}</v-btn>
-            </v-sheet>
-            <v-treeview class="mx-6" v-model="data.selection" :items="treeData" item-value="id" :activatable="false" open-all>
-                <template v-slot:append="{ item, depth, isFirst, isLast }">
-                    <v-btn variant="text" prepend-icon="mdi-pencil" :disabled="item.id.length == 0" @click="editJob(item.id)">{{ $t('edit') }}</v-btn>
-                    <v-btn variant="text" prepend-icon="mdi-delete" color="error" @click="">{{ $t('delete') }}</v-btn>
-                </template>
-                <template v-slot:prepend="{ item, depth, isFirst, isLast }">
-                    <span class="mx-1" v-if="item.id.length > 0">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
-                    <span class="mx-1" v-if="item.id.length > 0">{{ get_title(item.id) }}</span>
-                    <span class="mx-1" v-if="item.id.length > 0">{{ data.categorise[get_category(item.id)]?.text }}</span>
-                    <span class="mx-1" v-if="item.id.length > 0 && get_category(item.id) == 1">{{ data.types[get_type(item.id)]?.text }}</span>
-                    <span class="mx-1" v-if="item.id.length > 0 && get_category(item.id) == 0">{{ data.types2[get_type(item.id)]?.text }}</span>
-                </template>
-            </v-treeview>
-        </template>
-        <!-- Property -->
-        <template v-if="data.page == 1">
-            <h2 class="text-info"> {{ $t('property') }} </h2>
-            <v-sheet class="mx-6 text-left">
-                <v-btn prepend-icon="mdi-plus" v-bind="props" @click="util.pcreateProperty()" :disabled="select == undefined">{{ $t('create') }}</v-btn>
-            </v-sheet>
-            <div v-if="select != undefined" class="py-3 pb-5 mx-5">
-                <br />
-                <v-row v-for="(c, i) in properties" :key="i">
-                    <v-col cols="2" class="my-0 py-0">
-                        <v-text-field :error="expressionNameCheck(c.name)" hide-detail v-model="c.name" :label="$t('expression.title')" @input="setdirty"></v-text-field>
-                    </v-col>
-                    <v-col cols="6" class="my-0 py-0">
-                        <v-text-field hide-detail v-model="c.expression" :label="$t('expression.value')" @input="setdirty"></v-text-field>
-                    </v-col>
-                    <v-col cols="2" class="my-0 py-0">
-                        <v-text-field type="number" :rules="[rules.required, rules.deep]" :min="1" hide-detail v-model.number="c.deep" :label="$t('expression.deep')" @input="setdirty"></v-text-field>
-                    </v-col>
-                    <v-col cols="2" class="my-0 py-0">
-                        <v-row>
-                            <v-col cols="4">
-                                <v-btn flat icon @click="util.pmoveUp(i)" :disabled="util.pisFirst(i)">
-                                    <v-icon>mdi-arrow-up</v-icon>
-                                </v-btn>
-                            </v-col>
-                            <v-col cols="4">
-                                <v-btn flat icon @click="util.pmoveDown(i)" :disabled="util.pisLast(i)">
-                                    <v-icon>mdi-arrow-down</v-icon>
-                                </v-btn>
-                            </v-col>
-                            <v-col cols="4">
-                                <v-btn flat icon @click="util.pdelete(c.name)">
-                                    <v-icon>mdi-delete</v-icon>
-                                </v-btn>
-                            </v-col>
-                        </v-row>
-                    </v-col>
-                </v-row>
+                <v-btn class="mx-1" variant="outlined" color="success" @click="logic_modify(true)" v-if="logic == undefined && props.select != undefined">{{ $t('use_logic') }}</v-btn>
+                <v-btn class="mx-1" variant="outlined" color="error" @click="logic_modify(false)" v-if="logic != undefined && props.select != undefined">{{ $t('remove_logic') }}</v-btn>
             </div>
-        </template>
+            <!-- Job List -->
+            <template v-if="data.page == 0">
+                <h2 class="text-info"> {{ $t(logic != undefined ? 'logic' : 'job')}} </h2>
+                <v-sheet class="text-left">
+                    <v-btn prepend-icon="mdi-plus" v-bind="props" @click="createJob(JobCategory.Execution)" :disabled="select == undefined">{{ $t('create') }}</v-btn>
+                </v-sheet>
+                <v-treeview v-model="data.selection" item-value="id">
+                    <VueDraggableNext :list="treeData"
+                        :move="util.move"
+                        @end="util.end">
+                        <v-treeview-item v-for="(item, i) in treeData" :key="i" :value="item.id" @click="nextTick(() => { data.selection = [] })">
+                            <template v-slot:append>
+                                <v-btn variant="text" prepend-icon="mdi-pencil" :disabled="item.id.length == 0" @click="editJob(item.id)">{{ $t('edit') }}</v-btn>
+                                <v-btn variant="text" prepend-icon="mdi-delete" color="error" @click="">{{ $t('delete') }}</v-btn>
+                            </template>
+                            <template v-slot:prepend>
+                                <span class="mx-1" v-if="item.id.length > 0">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
+                                <span class="mx-1" v-if="item.id.length > 0">{{ get_title(item.id) }}</span>
+                                <span class="mx-1" v-if="item.id.length > 0">{{ data.categorise[get_category(item.id)]?.text }}</span>
+                                <span class="mx-1" v-if="item.id.length > 0 && get_category(item.id) == 1">{{ data.types[get_type(item.id)]?.text }}</span>
+                                <span class="mx-1" v-if="item.id.length > 0 && get_category(item.id) == 0">{{ data.types2[get_type(item.id)]?.text }}</span>
+                            </template>
+                        </v-treeview-item>
+                    </VueDraggableNext>
+                </v-treeview>
+            </template>
+            <!-- Property -->
+            <template v-if="data.page == 1">
+                <h2 class="text-info"> {{ $t('property') }} </h2>
+                <v-sheet class="text-left">
+                    <v-btn prepend-icon="mdi-plus" v-bind="props" @click="util.pcreateProperty()" :disabled="select == undefined">{{ $t('create') }}</v-btn>
+                </v-sheet>
+                <div v-if="data.buffer != undefined" class="py-3 pb-5 mx-5">
+                    <v-data-table v-model="data.selection"
+                        style="background: transparent" 
+                        :style="{ 'fontSize': preference.font + 'px' }"
+                        :headers="data.pfields"
+                        item-value="name"
+                        hide-default-footer
+                        :items="data.buffer.properties" 
+                    >
+                        <template #body="props"></template>
+                        <template #tbody="props">
+                            <VueDraggableNext :list="data.buffer.properties" 
+                                tag="tbody"
+                                :move="util.pmove"
+                                @end="util.pend"
+                            >
+                                <v-data-table-row v-for="(item, index) in props.internalItems"
+                                    :key="index"
+                                    :item="item"
+                                    :index="index"
+                                    :cell-props="props"
+                                >
+                                    <template v-slot:item.name="{ item }">
+                                        <v-text-field v-model="item.name" hide-details density="compact" :error="expressionNameCheck(item.name)" @input="setdirty"></v-text-field>
+                                    </template>
+                                    <template v-slot:item.expression="{ item }">
+                                        <v-text-field v-model="item.expression" hide-details density="compact" @input="setdirty"></v-text-field>
+                                    </template>
+                                    <template v-slot:item.deep="{ item }">
+                                        <v-text-field v-model.number="item.deep" hide-details density="compact" type="number" :rules="[rules.required, rules.deep]" :min="1" @input="setdirty"></v-text-field>
+                                    </template>
+                                    <template v-slot:item.detail="{ item }">
+                                        <v-btn variant="outlined" prepend-icon="mdi-delete" color="error" @click="util.pdelete(item.name)">
+                                            {{ $t('delete') }}
+                                        </v-btn>
+                                    </template>
+                                </v-data-table-row>
+                            </VueDraggableNext>
+                        </template>
+                    </v-data-table>
+                </div>
+            </template>
+        </div>
     </ContextFrame>
 </template>
+
+<style scoped lang="scss">
+.v-treeview-node__root.v-treeview-node--active {
+    pointer-events: none;
+}
+
+.v-treeview-node__toggle {
+    pointer-events: all;
+}
+</style>

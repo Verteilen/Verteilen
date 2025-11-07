@@ -110,6 +110,36 @@ export class ServerQuery {
         })
     }
 
+    load_task = async (uuid:string):Promise<void> => {
+        const bi = this.data.value.tasks.findIndex(b => b.uuid == uuid)
+        const p:Promise<void> = !this.backend.value.config.haveBackend ? 
+        new Promise((resolve) => {
+            const buffer:Task | undefined = this.static_server.value?.memory.tasks.find(x => x.uuid == uuid)
+            if(buffer != undefined){
+                if(bi != -1) this.data.value.tasks.splice(bi, 1)
+                this.data.value.tasks.push({
+                    ...buffer,
+                    s: false,
+                    jobCount: buffer.jobs_uuid.length
+                })
+            }
+            resolve()
+        }) : this.backend.value.invoke('load_task', uuid).then((text:string) => {
+            const buffer:Task | undefined = JSON.parse(text)
+            if(buffer != undefined){
+                if(bi != -1) this.data.value.tasks.splice(bi, 1)
+                this.data.value.tasks.push({
+                    ...buffer,
+                    s: false,
+                    jobCount: buffer.jobs_uuid.length
+                })
+            }
+        })
+        return p.then(() => {
+            if (process.env.NODE_ENV == 'development') console.log("Task", this.selectTask)
+        })
+    }
+
     load_all_task = async ():Promise<void> => {
         const p:Promise<void> = !this.backend.value.config.haveBackend ? 
         new Promise((resolve) => {
