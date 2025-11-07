@@ -640,7 +640,7 @@ onUnmounted(() => {
           @delete="e => util.job.deleteJob(e)"
           @return="data.page = 1"
           @padded="util.task.addProperty()"
-          @preorder="e => util.task.reorderProperty(e)"/>
+          @taskSubmit="e => util.task.baseModify(e)"/>
       </v-tabs-window-item>
       <v-tabs-window-item :value="3">
         <DatabasePage

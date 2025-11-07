@@ -13,6 +13,7 @@ export interface DATA {
     createType: JobCategory
     createData: JobTable
     editMode: boolean
+    conditionModal: boolean
     deleteModal: boolean
     deleteData: Array<string>
     selection: Array<string>
@@ -46,7 +47,7 @@ export type EmitType = {
 
     (e: 'padded'): void
     (e: 'pdelete', name:string): void
-    (e: 'preorder', data:Array<Property>): void
+    (e: 'taskSubmit', data:TaskBase): void
     (e: 'return'): void
 }
 
@@ -96,7 +97,7 @@ export class Util_Job {
     }
     p_submit = () => {
         if(this.data.value.buffer == undefined) return
-        this.emits('preorder', this.data.value.buffer.properties)
+        this.emits('taskSubmit', this.data.value.buffer)
     }
     pdelete = (name:string) => {
         if(this.data.value.buffer == undefined) return

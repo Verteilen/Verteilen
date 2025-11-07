@@ -1,5 +1,5 @@
 import { nextTick, Ref } from "vue"
-import { BusType, ProjectTable, Property, Task, TaskTable } from "../../interface"
+import { BusType, ProjectTable, Property, Task, TaskBase, TaskTable } from "../../interface"
 import { DATA, save_and_update, Util_Server } from "."
 import { Emitter } from "mitt"
 import { BackendProxy } from "../../proxy"
@@ -138,9 +138,9 @@ export class Util_Server_Task {
         })
     }
 
-    reorderProperty = (data:Array<Property>) => {
+    baseModify = (data:TaskBase) => {
         if(this.selectTask.value == undefined) return
-        this.selectTask.value.properties = JSON.parse(JSON.stringify(data))
+        Object.assign(this.selectTask.value, data)
         this.save.save_task(this.selectTask.value).then(() => {
             this.query.load_task(this.selectTask.value!.uuid)
         })

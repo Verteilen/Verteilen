@@ -18,7 +18,8 @@ import {
     TaskLogicUnit,
     CreateDefaultJob,
     Job,
-    JobTable, 
+    JobTable,
+    TaskLogicType, 
 } from '../../interface';
 import { i18n } from './../../plugins/i18n';
 import { BackendProxy } from '../../proxy'
@@ -30,6 +31,7 @@ import { VueDraggableNext } from 'vue-draggable-next'
 import ContextFrame from '../components/layout/ContextFrame.vue'
 import DeleteDialog from '../dialog/DeleteDialog.vue'
 import JobDialog from '../dialog/job/JobDialog.vue';
+import ConditionDialog from '../dialog/job/ConditionDialog.vue';
 //#endregion
 
 //#region Data
@@ -45,6 +47,7 @@ const data:Ref<DATA> = ref({
     createType: 0,
     createData: CreateDefaultJob(),
     editMode: false,
+    conditionModal: false,
     deleteModal: false,
     deleteData: [],
     selection: [],
@@ -103,8 +106,23 @@ const rules = {
     deep: (value:string) => (typeof value == 'number' && value >= 1) || 'Number must bigger than 0'
 }
 
-const logic_modify = (add:boolean) => {
-
+const logic_modify = () => {
+    if(data.value.buffer == undefined) return
+    if(data.value.buffer.logic != undefined){
+        data.value.buffer.logic = undefined
+    }else{
+        data.value.buffer.logic = {
+            group: data.value.buffer.jobs_uuid.map((x):TaskLogicUnit => {
+                return {
+                    type: TaskLogicType.Single,
+                    job_uuid: x,
+                    children: [],
+                    children2: []
+                }
+            })
+        }
+    }
+    util.save()
 }
 
 const expressionNameCheck = (x:string) => {
@@ -123,7 +141,9 @@ const JobType2Translate = (t:number):string => {
 const JobResultTranslate = (t:number):string => {
     return i18n.global.t(JobResultText[t])
 }
-
+const createCondition = () => {
+    data.value.conditionModal = true
+}
 const createJob = (type:JobCategory) => {
     data.value.createData = CreateDefaultJob()
     data.value.createType = type
@@ -137,11 +157,6 @@ const editJob = (id:string) => {
     data.value.createType = f.category
     data.value.createModal = true
     data.value.editMode = true
-}
-
-const deleteSelect = () => {
-    data.value.deleteData = items.value!.filter(x => x.s == true).map(x => x.uuid)
-    data.value.deleteModal = true
 }
 
 const deleteConfirm = () => {
@@ -258,15 +273,6 @@ onUnmounted(() => {
                     {{ $t('task') }}: {{ props.select.title }}
                 </p>
                 <v-spacer></v-spacer>
-                <v-btn prepend-icon="mdi-content-paste" :disabled="!hasSelect || select == undefined">
-                    {{ $t('clone') }}
-                </v-btn>
-                <v-btn prepend-icon="mdi-content-save" color='success' @click="util.save()" :disabled="select == undefined || !data.dirty">
-                    {{ $t('save') }}
-                </v-btn>
-                <v-btn prepend-icon="mdi-delete" color='error' @click="deleteSelect" :disabled="!hasSelect || select == undefined">
-                    {{ $t('delete') }}
-                </v-btn>
             </v-toolbar>
         </template>
         <template #dialog>
@@ -282,6 +288,7 @@ onUnmounted(() => {
                 :database="props.database"
                 @confirm="dialogConfirm">
             </JobDialog>
+            <ConditionDialog v-model="data.conditionModal" />
             <DeleteDialog v-model="data.deleteModal"
                 :title="$t('modal.delete-job')"
                 :text="$t('modal.delete-job-confirm')"
@@ -294,14 +301,15 @@ onUnmounted(() => {
                 <v-btn class="mx-1" variant="outlined" color="primary" @click="data.page = 0" :disabled="data.page == 0">{{ $t(logic != undefined ? 'logic' : 'job') }}</v-btn>
                 <v-btn class="mx-1" variant="outlined" color="primary" @click="data.page = 1" :disabled="data.page == 1">{{ $t('property') }}</v-btn>
 
-                <v-btn class="mx-1" variant="outlined" color="success" @click="logic_modify(true)" v-if="logic == undefined && props.select != undefined">{{ $t('use_logic') }}</v-btn>
-                <v-btn class="mx-1" variant="outlined" color="error" @click="logic_modify(false)" v-if="logic != undefined && props.select != undefined">{{ $t('remove_logic') }}</v-btn>
+                <v-btn class="mx-1" variant="outlined" color="success" @click="logic_modify()" v-if="logic == undefined && props.select != undefined">{{ $t('use_logic') }}</v-btn>
+                <v-btn class="mx-1" variant="outlined" color="error" @click="logic_modify()" v-if="logic != undefined && props.select != undefined">{{ $t('remove_logic') }}</v-btn>
             </div>
             <!-- Job List -->
             <template v-if="data.page == 0">
                 <h2 class="text-info"> {{ $t(logic != undefined ? 'logic' : 'job')}} </h2>
                 <v-sheet class="text-left">
                     <v-btn prepend-icon="mdi-plus" v-bind="props" @click="createJob(JobCategory.Execution)" :disabled="select == undefined">{{ $t('create') }}</v-btn>
+                    <v-btn v-if="data.buffer?.logic != undefined" prepend-icon="mdi-tag-plus" v-bind="props" @click="createCondition()" :disabled="select == undefined">{{ $t('create') }}</v-btn>
                 </v-sheet>
                 <v-treeview v-model="data.selection" item-value="id">
                     <VueDraggableNext :list="treeData"
@@ -328,6 +336,9 @@ onUnmounted(() => {
                 <h2 class="text-info"> {{ $t('property') }} </h2>
                 <v-sheet class="text-left">
                     <v-btn prepend-icon="mdi-plus" v-bind="props" @click="util.pcreateProperty()" :disabled="select == undefined">{{ $t('create') }}</v-btn>
+                    <v-btn prepend-icon="mdi-content-save" variant="text" color='success' @click="util.save()" :disabled="select == undefined || !data.dirty">
+                        {{ $t('save') }}
+                    </v-btn>
                 </v-sheet>
                 <div v-if="data.buffer != undefined" class="py-3 pb-5 mx-5">
                     <v-data-table v-model="data.selection"

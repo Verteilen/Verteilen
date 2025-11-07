@@ -82,7 +82,7 @@ const scriptExist = (name:string) => {
     return props.libs!.findIndex(x => x.name == name) != -1
 }
 const confirm = () => {
-
+    emits('confirm', data.value.buffer)
 }
 const cancel = () => {
     modal.value = false
