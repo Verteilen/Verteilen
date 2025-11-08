@@ -14,6 +14,14 @@ export async function Build_Electron(){
     return electron.main()
 }
 
+export async function Move_Cert(){
+    const keyFile = Path.join(__dirname, '..', 'key.pem')
+    const de = Path.join(__dirname, '..', 'build', 'renderer', 'key.pem')
+    const certFile = Path.join(__dirname, '..', 'cert.pem')
+    const de2 = Path.join(__dirname, '..', 'build', 'renderer', 'cert.pem')
+    return Promise.all([copyFile(keyFile, de), copyFile(certFile, de2)])
+}
+
 export async function Build_Program(){
     const programPath = Path.join(__dirname, '..', 'src', 'program');
     return compileTs(programPath);

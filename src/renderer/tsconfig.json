@@ -9,7 +9,7 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "types": ["@types/wicg-file-system-access"],
+    "types": ["@types/wicg-file-system-access", "vite-plugin-pwa/client", "vite-plugin-pwa/vue"],
     "lib": ["esnext", "dom"]
   },
   "include": ["./**/*.scss", "./**/*.ts", "./**/*.d.ts", "./**/*.tsx", "./**/*.vue", "./**/*.json", "components/components/code/Linter.js"],

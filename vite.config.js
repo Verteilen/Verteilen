@@ -26,12 +26,24 @@ const config = defineConfig({
     plugins: [
         VitePWA(
             { 
-                includeAssets: ['assets/icon.ico'],
+                includeAssets: ['icon/icon.ico', 'icon/icon.jpg', 'icon/icon.png'],
                 registerType: 'autoUpdate',
-                injectRegister: 'auto',
+                injectRegister: false,
                 manifest: {
                     name: "Verteilen Compute Server",
-                    short_name: "Verteilen"
+                    short_name: "Verteilen",
+                    display: "standalone",
+                    description: 'Compute tool for multi computer',
+                    background_color: "#000000",
+                    theme_color: '#ffffff',
+                    start_url: '.',
+                    icons: [
+                        {
+                            src: 'icon/icon.png',
+                            sizes: '494x493',
+                            type: 'image'
+                        }
+                    ]
                 }
             }
         ),
