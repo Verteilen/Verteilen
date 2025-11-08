@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { autocompletion } from '@codemirror/autocomplete'
+// @ts-ignore
 import { json } from '@codemirror/lang-json'
+// @ts-ignore
 import { oneDark } from '@codemirror/theme-one-dark'
+// @ts-ignore
 import { basicSetup } from 'codemirror'
 import { computed } from 'vue'
 import { Codemirror } from 'vue-codemirror'

@@ -31,12 +31,14 @@ const props = defineProps<PROPS>()
 const emits = defineEmits<EmitType>()
 const data:Ref<DATA> = ref({
     ck: 0,
+    zoom: false,
     buffer: CreateDefaultJob()
 })
 //#endregion
 
 //#region Watch
 watch(() => props.select, (v:Job) => {
+    data.value.zoom = false
     data.value.buffer = JSON.parse(JSON.stringify(v))
 })
 //#endregion
@@ -91,7 +93,7 @@ const cancel = () => {
 </script>
 
 <template>
-    <DialogBase persistent width="90vw" v-model="modal">
+    <DialogBase persistent :width="data.zoom ? '100vw' : '90vw'" :height="data.zoom ? '100vh' : undefined" v-model="modal">
         <template #title>
             <template v-if="edit">
                 <v-icon>mdi-pencil</v-icon>
@@ -102,7 +104,7 @@ const cancel = () => {
                 {{ $t("modal.new-job") }}
             </template>
         </template>
-        <template #text>
+        <template v-if="!data.zoom" #text>
             <!-- Header -->
             <v-text-field v-model="data.buffer.title" :label="$t('modal.job-title')"></v-text-field>
             <v-textarea v-model="data.buffer.description" :label="$t('modal.job-description')"></v-textarea>
@@ -127,6 +129,7 @@ const cancel = () => {
             <!-- Content -->
             <div v-if="checkPatterm(data.buffer.category, data.buffer.type, 'Javascript_n')">
                 <v-select v-model="data.buffer.number_args[0]" :items="props.result" item-title="text" :label="$t('jobpage.if-error')" hide-details></v-select>
+                <v-btn prepend-icon="mdi-magnify-plus" variant="outlined" color="warning" @click="data.zoom = true">{{ $t('zoom') }}</v-btn>
                 <codemirror-js v-model="data.buffer.script" 
                     style="text-align:left;"
                     :style="{ height: '40vh' }"/>
@@ -173,6 +176,7 @@ const cancel = () => {
                 <v-text-field class="my-2" v-model="data.buffer.string_args[1]" :label="$t('jobpage.databases')" hide-details></v-text-field>
             </div>
             <div v-else-if="checkPatterm(data.buffer.category, data.buffer.type, 'Javascript')">
+                <v-btn prepend-icon="mdi-magnify-plus" variant="outlined" color="warning" @click="data.zoom = true">{{ $t('zoom') }}</v-btn>
                 <codemirror-js v-model="data.buffer.script"
                     style="text-align:left;"
                     :style="{ height: '40vh' }"/>
@@ -183,6 +187,12 @@ const cancel = () => {
                     </template>
                 </v-select>
             </div>
+        </template>
+        <template v-else #text>
+            <v-btn prepend-icon="mdi-magnify-minus" variant="outlined" color="warning" @click="data.zoom = false">{{ $t('unzoom') }}</v-btn>
+            <codemirror-js v-model="data.buffer.script"
+                style="text-align:left;"
+                :style="{ height: 'calc(100vh - 250px)' }"/>
         </template>
         <template #action>
             <v-btn class="mt-3" color="primary" @click="confirm">{{ $t(props.edit ? 'modify' : 'create') }}</v-btn>

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { hoverTooltip, keymap, tooltips } from '@codemirror/view'
+import { keymap } from '@codemirror/view'
 import { autocompletion, Completion, CompletionContext, CompletionResult } from '@codemirror/autocomplete'
 import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap } from "@codemirror/commands"
+// @ts-ignore
 import { oneDark } from '@codemirror/theme-one-dark'
+// @ts-ignore
 import { basicSetup } from 'codemirror'
 import { computed } from 'vue'
 import { Codemirror } from 'vue-codemirror'

@@ -15,6 +15,7 @@ export interface PROPS extends BasePROPS {
 
 export interface DATA {
     ck: number
+    zoom: boolean
     buffer: Job
 }
 
