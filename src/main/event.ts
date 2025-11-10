@@ -3,7 +3,6 @@ import * as path from "path";
 import * as fs from "fs";
 import * as fsp from "fs/promises";
 import * as os from "os";
-import * as Chokidar from 'chokidar'
 import { messager, messager_log } from "./debugger";
 import { 
     ExportProjects, 
@@ -17,7 +16,6 @@ import {
     Client,
     ClientJobExecute,
     CreatePreference,
-    CreateRecordIOLoader,
     CreatePluginLoader, 
     PluginLoader,
     DATA_FOLDER, 
@@ -27,8 +25,6 @@ import {
     Database, 
     Preference, 
     Project, 
-    RecordIOLoader, 
-    Server,
     RecordIOBase,
     ServerDetail,
     PluginFeedback,
@@ -37,21 +33,21 @@ import {
     ServerDetailEvent,
     ExecuteState,
     Project_Module,
-    CreateEventObserver,
-    RecordType,
     CreateDefaultJob,
     PluginNode,
+    RecordIOLoader,
 } from "./interface";
+import { Server } from "verteilen-core/dist/server/server2";
+import { CreateRecordIOLoader } from "verteilen-core/dist/server/io2";
 
 const Loader = (loader:RecordIOLoader, key:string) => {
-    ipcMain.handle(`load_all_${key}`, (e) => loader.load_all())
-    ipcMain.on(`delete_all_${key}`, (e) => loader.delete_all())
-    ipcMain.handle(`list_all_${key}`, (e) => loader.list_all())
-    ipcMain.on(`save_${key}`, (e, uuid:string, data:string) => loader.save(uuid, data))
-    ipcMain.on(`rename_${key}`, (e, name:string, newname:string) => loader.rename(name, newname))
-    ipcMain.on(`delete_${key}`, (e, uuid:string) => loader.delete(uuid))
-    ipcMain.on(`delete_all_${key}`, (e) => loader.delete_all())
-    ipcMain.handle(`load_${key}`, (e, uuid:string) => loader.load(uuid, false))
+    ipcMain.handle(`load_all_${key}`, (e, token?:string) => loader.load_all(token))
+    ipcMain.on(`delete_all_${key}`, (e, token?:string) => loader.delete_all(token))
+    ipcMain.handle(`list_all_${key}`, (e, token?:string) => loader.list_all(token))
+    ipcMain.on(`save_${key}`, (e, uuid:string, data:string, token?:string) => loader.save(uuid, data, token))
+    ipcMain.on(`delete_${key}`, (e, uuid:string, token?:string) => loader.delete(uuid, token))
+    ipcMain.on(`delete_all_${key}`, (e, token?:string) => loader.delete_all(token))
+    ipcMain.handle(`load_${key}`, (e, uuid:string, token?:string) => loader.load(uuid, token))
 }
 const PluginInit = (loader:PluginLoader) => {
     loader.get_plugins()
@@ -136,10 +132,6 @@ export class BackendEvent extends Server implements BackendAction {
          */
         this.io = CreateIO()
         this.loader = CreateRecordIOLoader(this.io, this.memory)
-        this.loader = CreateEventObserver(this.loader, {
-            changed: this.RecordChanged,
-            loaded: this.RecordLoaded
-        })
         const feedback:PluginFeedback = {
             electron: () => mainWindow?.webContents,
             socket: undefined
@@ -275,14 +267,6 @@ export class BackendEvent extends Server implements BackendAction {
             this.preference = JSON.parse(file.toString())
             return this.preference
         }
-    }
-
-    RecordChanged = (type: RecordType) => {
-
-    }
-
-    RecordLoaded = (type: RecordType) => {
-        
     }
 }
 

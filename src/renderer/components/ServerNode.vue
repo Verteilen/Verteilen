@@ -50,7 +50,7 @@ import ProfilePage from './server/Profile.vue';
 import PluginPage from './server/Plugin.vue';
 import Layout from './components/layout/Layout.vue'
 import AppBar from './components/layout/AppBar.vue'
-import { Server } from 'verteilen-core/src/server'
+import { ServerBase } from 'verteilen-core/src/server'
 //#endregion
 
 //#region Data
@@ -58,7 +58,7 @@ const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
-const server:Ref<Server | undefined> = ref(undefined)
+const server:Ref<ServerBase | undefined> = ref(undefined)
 const tabs:Ref<Array<[string, string, number]>> = ref([])
 const data:Ref<DATA> = ref({
     websocket_manager: undefined,
@@ -478,7 +478,7 @@ const dataset_init = () => {
   data.value.title = tabs.value.find(x => x[2] == 0)![1]
   const x = config.value
   if(!x.haveBackend){
-    server.value = new Server()
+    server.value = new ServerBase()
     const nodeproxy:NodeProxy = {
       shellReply: data => { emitter?.emit('shellReply', data) },
       folderReply: data => { emitter?.emit('folderReply', data) },

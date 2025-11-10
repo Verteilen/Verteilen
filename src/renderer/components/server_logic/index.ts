@@ -26,7 +26,7 @@ import {
     FrontendUpdate
 } from '../../interface'
 import {
-    Server
+    ServerBase
 } from 'verteilen-core/src/server'
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
@@ -72,12 +72,12 @@ export interface DATA {
  * This worker have deep binding with data\
  * And also have deep connection with the views display logic
  */
-export class Util_Server extends Server {
+export class Util_Server extends ServerBase {
     data:Ref<DATA>
     emitter:Emitter<BusType>
     backend:Ref<BackendProxy>
     preference:Ref<Preference>
-    server:Ref<Server | undefined>
+    server:Ref<ServerBase | undefined>
 
     query:ServerQuery
     save:ServerSave
@@ -100,7 +100,7 @@ export class Util_Server extends Server {
         emitter:Emitter<BusType>,
         backend:Ref<BackendProxy>,
         preference:Ref<Preference>,
-        server:Ref<Server | undefined>,
+        server:Ref<ServerBase | undefined>,
         selectProject:ComputedRef<ProjectTable | undefined>,
         selectTask:ComputedRef<TaskTable | undefined>,
         selectDatabase:ComputedRef<DatabaseTable | undefined>
