@@ -1,4 +1,4 @@
-import { UserProfileClient } from "./interface";
+import { BackendType, UserProfileClient } from "./interface";
 
 export const checkifElectron = ():boolean => {
     // Renderer process
@@ -38,7 +38,7 @@ const _checkExpressType = async ():Promise<any> => {
     return t
 }
 
-export const checkExpressType = async ():Promise<number | undefined> => {
+export const checkExpressType = async ():Promise<BackendType | undefined> => {
     return new Promise<number | undefined>((resolve) => {
         _checkExpressType().then(x => resolve(x))
         .catch(err => resolve(undefined))

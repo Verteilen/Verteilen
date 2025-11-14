@@ -109,7 +109,7 @@ const projectbind = computed(() => {
   if(selectProject.value == undefined) return undefined
   return data.value.databases.find(x => x.uuid == selectProject.value?.database_uuid) 
 })
-const util:Util_Server = new Util_Server(data, emitter, backend, preference, server, selectProject, selectTask, selectDatabase)
+const util:Util_Server = new Util_Server(data, emitter, backend, preference, server, config, selectProject, selectTask, selectDatabase)
 //#endregion
 
 //#region Methods
@@ -295,61 +295,7 @@ const updateHandleCall = () => {
 }
 
 const updateTab = () => {
-  if(config.value.isExpress){
-    tabs.value = [
-      ["", "toolbar.editor", -1],
-      ["mdi-cube", "toolbar.project", 0],
-    ]
-    if(backend.value.user.permission?.task.view){
-      tabs.value.push(["mdi-calendar", "toolbar.task", 1])
-    }
-    if(backend.value.user.permission?.job.view){
-      tabs.value.push(["mdi-hammer", "toolbar.job", 2])
-    }
-    if(backend.value.user.permission?.database.view){
-      tabs.value.push(["mdi-database", "toolbar.database", 3])
-    }
-    tabs.value.push(["", "toolbar.compute", -1])
-    if(backend.value.user.permission?.node.view){
-      tabs.value.push(["mdi-network", "toolbar.node", 4])
-    }
-    if(backend.value.user.permission?.execute_job){
-      tabs.value.push(["mdi-console-line", "toolbar.console", 5])
-    }
-  }else{
-    tabs.value = [
-      ["", "toolbar.editor", -1],
-      ["mdi-cube", "toolbar.project", 0],
-      ["mdi-calendar", "toolbar.task", 1],
-      ["mdi-hammer", "toolbar.job", 2],
-      ["mdi-database", "toolbar.database", 3],
-      ["", "toolbar.compute", -1],
-      ["mdi-network", "toolbar.node", 4],
-      ["mdi-console-line", "toolbar.console", 5],
-    ]
-  }
-  
-  if(config.value.haveBackend){
-    if((config.value.isExpress && backend.value.user.permission?.plugin.view) || !config.value.isExpress){
-      tabs.value.push(["mdi-puzzle", "toolbar.plugin", 11])
-    }
-    tabs.value.push(["", "toolbar.backend", -1])
-    if((config.value.isExpress && backend.value.user.permission?.log.view) || !config.value.isExpress){
-      tabs.value.push(["mdi-text-box-outline", "toolbar.log", 6])
-    }
-    if((config.value.isExpress && backend.value.user.permission?.lib.view) || !config.value.isExpress){
-      tabs.value.push(["mdi-xml", "toolbar.library", 7])
-    }
-  }
-  if((config.value.isExpress && config.value.isAdmin) || config.value.isElectron){
-    tabs.value.push(["mdi-nodejs", "toolbar.client", 8])
-  }
-
-  if(config.value.isExpress && config.value.isAdmin){
-    tabs.value.push(["", "toolbar.server", -1])
-    tabs.value.push(["mdi-lock", "toolbar.role", 9])
-    tabs.value.push(["mdi-cog-play", "toolbar.service", 10])
-  }
+  tabs.value = util.GetTab()
 }
 
 const menuCreateProject = () => {

@@ -3,6 +3,7 @@ import { Emitter } from "mitt"
 import { ComputedRef, nextTick, Ref } from "vue"
 import { BackendProxy } from "../../proxy";
 import { 
+    AppConfig,
     Execute_SocketManager,
     BusType, 
     ClientLog, 
@@ -92,6 +93,7 @@ export class Util_Server extends ServerBase {
     plugins: Util_Server_Plugin
     self:Util_Server_Self
 
+    config: ComputedRef<AppConfig>
     selectProject:ComputedRef<ProjectTable | undefined>
     selectTask:ComputedRef<TaskTable | undefined>
     selectDatabase:ComputedRef<DatabaseTable | undefined>
@@ -101,6 +103,7 @@ export class Util_Server extends ServerBase {
         backend:Ref<BackendProxy>,
         preference:Ref<Preference>,
         server:Ref<ServerBase | undefined>,
+        config: ComputedRef<AppConfig>,
         selectProject:ComputedRef<ProjectTable | undefined>,
         selectTask:ComputedRef<TaskTable | undefined>,
         selectDatabase:ComputedRef<DatabaseTable | undefined>
@@ -124,6 +127,7 @@ export class Util_Server extends ServerBase {
         this.lib = new Util_Server_Lib(this.data, this.update)
         this.plugins = new Util_Server_Plugin(this)
         this.self = new Util_Server_Self(this.data)
+        this.config = config
         this.selectProject = selectProject
         this.selectTask = selectTask
         this.selectDatabase = selectDatabase
@@ -147,13 +151,13 @@ export class Util_Server extends ServerBase {
         if(!this.backend.value.config.haveBackend) return
         this.backend.value.send("server_page", v)
         switch(v){
-            case 0:
+            case 0: // project
                 {
                     this.query.load_all_project()
                     this.query.load_all_plugin()
                     break
                 }
-            case 1:
+            case 1: // task
                 {
                     if(this.selectProject.value != undefined){
                         this.query.load_tasks(this.selectProject.value.uuid)
@@ -161,7 +165,7 @@ export class Util_Server extends ServerBase {
                         this.data.value.tasks = []
                     }
                 }
-            case 2:
+            case 2: // job
                 {
                     if(this.selectTask.value != undefined){
                         this.query.load_jobs(this.selectTask.value.uuid)
@@ -169,12 +173,13 @@ export class Util_Server extends ServerBase {
                         this.data.value.jobs = []
                     }
                 }
-            case 3:
+            case 3: // database
                 {
                     this.query.load_all_database()
+                    this.query.load_all_plugin()
                     break
                 }
-            case 11:
+            case 11: // plugin
                 {
                     this.query.load_all_plugin()
                     break
@@ -211,6 +216,52 @@ export class Util_Server extends ServerBase {
                 this.backend.value.send('save_database', x.uuid, text)
             }
         }
+    }
+
+    GetTab = ():Array<[string, string, number]> => {
+        let tabs:Array<[string, string, number]> = []
+        if(this.config.value.isExpress){
+            // In express mode, we will need to check permission first
+            tabs = [
+                ["", "toolbar.editor", -1],
+                ["mdi-cube", "toolbar.project", 0],
+            ]
+            if(this.backend.value.user.permission?.task.view) tabs.push(["mdi-calendar", "toolbar.task", 1])
+            if(this.backend.value.user.permission?.job.view) tabs.push(["mdi-hammer", "toolbar.job", 2])
+            if(this.backend.value.user.permission?.database.view) tabs.push(["mdi-database", "toolbar.database", 3])
+            tabs.push(["", "toolbar.compute", -1])
+            if(this.backend.value.user.permission?.service.view) tabs.push(["mdi-play-network", "toolbar.service", 10])
+            if(this.backend.value.user.permission?.node.view) tabs.push(["mdi-network", "toolbar.node", 4])
+            if(this.backend.value.user.permission?.execute_job) tabs.push(["mdi-console-line", "toolbar.console", 5])
+        }else{
+            // If electron or browser
+            tabs = [
+                ["", "toolbar.editor", -1],
+                ["mdi-cube", "toolbar.project", 0],
+                ["mdi-calendar", "toolbar.task", 1],
+                ["mdi-hammer", "toolbar.job", 2],
+                ["mdi-database", "toolbar.database", 3],
+                ["", "toolbar.compute", -1],
+                ["mdi-play-network", 'toolbar-service', 10],
+                ["mdi-network", "toolbar.node", 4],
+                ["mdi-console-line", "toolbar.console", 5],
+            ]
+        }
+        
+        if(this.config.value.haveBackend){
+            if((this.config.value.isExpress && this.backend.value.user.permission?.plugin.view) || !this.config.value.isExpress) tabs.push(["mdi-puzzle", "toolbar.plugin", 11])
+            tabs.push(["", "toolbar.backend", -1])
+            if((this.config.value.isExpress && this.backend.value.user.permission?.log.view) || !this.config.value.isExpress) tabs.push(["mdi-text-box-outline", "toolbar.log", 6])
+            if((this.config.value.isExpress && this.backend.value.user.permission?.lib.view) || !this.config.value.isExpress) tabs.push(["mdi-xml", "toolbar.library", 7])
+        }
+        // Only admin or electron user can access self client
+        if((this.config.value.isExpress && this.config.value.isAdmin) || this.config.value.isElectron) tabs.push(["mdi-nodejs", "toolbar.client", 8])
+        if(this.config.value.isExpress && this.config.value.isAdmin){
+            // Some admin tool to view
+            tabs.push(["", "toolbar.server", -1])
+            tabs.push(["mdi-lock", "toolbar.role", 9])
+        }
+        return tabs
     }
 
     CombineProxy = (eps:Array<ExecuteProxy>) => {

@@ -56,7 +56,7 @@ export class BackendProxy {
             this.config.isAdmin = e ? (e.type == UserType.ADMIN || e.type == UserType.ROOT) : false
             this.is_init = true
             this.config.haveBackend = this.config.isElectron || this.config.isExpress
-            this.config.backendType = (await checkExpressType()) as BackendType ?? BackendType.NONE
+            this.config.backendType = (await checkExpressType()) ?? BackendType.NONE
             if(this.user != undefined){
                 fetch('/pic').then(x => {
                     this.user!.picture_url = x.ok
