@@ -128,6 +128,10 @@ const dialogSubmit = (p:CreateField) => {
         else confirmCreate()
     }) 
 }
+const cleanError = () => {
+    data.value.titleError = false
+    data.value.errorMessage = ""
+}
 const confirmCreate = async () => {
     const buffer = await util.confirmCreate()
     if(buffer == undefined) return
@@ -240,7 +244,8 @@ onUnmounted(() => {
                 :error-message="data.errorMessage"
                 :title-error="data.titleError"
                 :edit-data="data.editData" 
-                @submit="dialogSubmit" />
+                @submit="dialogSubmit" 
+                @changed="cleanError"/>
             <ProjectImportDialog v-model="data.importModal"
                 v-model:files="data.importData"
                 @confirm="importConfirm"/>

@@ -18,6 +18,7 @@ const data = defineModel<boolean>({ required: true })
 const propss = defineProps<DialogDATA>()
 const emits = defineEmits<{
     (e: 'submit', d:CreateField): void
+    (e: 'changed'):void
 }>()
 const buffer:Ref<CreateField> = ref({title: "", description: "", useTemp: false, genPara: false, usePara: false, temp: null, database: null, database_title: null})
 const selectTempModel = ref(false)
@@ -113,8 +114,8 @@ const confirm = () => {
             </div>
         </template>
         <template #text>
-            <v-text-field v-model="buffer.title" :autofocus="true" :error="propss.titleError" required :label="$t('modal.enter-project-name')" hide-details></v-text-field>
-            <v-text-field class="mt-3" v-model="buffer.description" :label="$t('modal.enter-project-description')" hide-details></v-text-field>
+            <v-text-field v-model="buffer.title" :autofocus="true" :error="propss.titleError" required :label="$t('modal.enter-project-name')" hide-details @update:model-value="emits('changed')"></v-text-field>
+            <v-text-field class="mt-3" v-model="buffer.description" :label="$t('modal.enter-project-description')" hide-details @update:model-value="emits('changed')"></v-text-field>
             <div v-if="!propss.isEdit">
                 <br />
                 <v-btn class="w-100" color="primary" variant="outlined" @click="openSelectTemp">
@@ -124,13 +125,13 @@ const confirm = () => {
                 <br />
                 <v-row>
                     <v-col cols="6">
-                        <v-checkbox v-if="!buffer.genPara" v-model="buffer.usePara" :label="$t('useExistDatabase')" hide-details></v-checkbox>
+                        <v-checkbox v-if="!buffer.genPara" v-model="buffer.usePara" :label="$t('useExistDatabase')" hide-details @update:model-value="emits('changed')"></v-checkbox>
                     </v-col>
                     <v-col cols="6">
-                        <v-checkbox v-if="!buffer.usePara && buffer.temp != null" v-model="buffer.genPara" :label="$t('modal.generate-database')" hide-details></v-checkbox>
+                        <v-checkbox v-if="!buffer.usePara && buffer.temp != null" v-model="buffer.genPara" :label="$t('modal.generate-database')" hide-details @update:model-value="emits('changed')"></v-checkbox>
                     </v-col>
                 </v-row>
-                <v-text-field v-if="buffer.genPara" clearable v-model="buffer.database_title" :label="$t('modal.enter-database-set-name')"></v-text-field>
+                <v-text-field v-if="buffer.genPara" clearable v-model="buffer.database_title" :label="$t('modal.enter-database-set-name')" @update:model-value="emits('changed')"></v-text-field>
                 <v-autocomplete v-if="buffer.usePara" :item-props="itemProps" v-model="buffer.database" clearable :items="paras" item-title="text" :label="$t('database')" hide-details></v-autocomplete>
             </div>
             <p v-if="propss.errorMessage.length > 0" class="mt-3 text-red">{{ propss.errorMessage }}</p>
