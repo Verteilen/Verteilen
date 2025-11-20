@@ -1,9 +1,12 @@
-import { app, BrowserWindow, globalShortcut, powerSaveBlocker, session } from 'electron';
+import { app, autoUpdater, BrowserWindow, dialog, globalShortcut, powerSaveBlocker, session } from 'electron';
 import { join } from 'path';
 import { backendEvent } from './event';
 
 export let mainWindow:BrowserWindow | undefined = undefined
 
+const updateServer = 'https://updater-vdwc-i9298s6m1-elly2018s-projects.vercel.app/'
+const version = app.getVersion()
+const updateUrl = `${updateServer}/update/${process.platform}/${version}`
 const id1 = powerSaveBlocker.start('prevent-display-sleep')
 const id2 = powerSaveBlocker.start('prevent-app-suspension')
 console.log("prevent-display-sleep: ", powerSaveBlocker.isStarted(id1))
@@ -13,6 +16,28 @@ app.commandLine.appendSwitch('--no-sandbox')
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+console.log(`Application info: ${process.platform}/${version}`)
+autoUpdater.setFeedURL({ url: updateUrl })
+
+autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+    const dialogOpts:Electron.MessageBoxOptions = {
+        type: 'info',
+        buttons: ['Restart', 'Later'],
+        title: 'Application Update',
+        message: process.platform === 'win32' ? releaseNotes : releaseName,
+        detail:
+        'A new version has been downloaded. Restart the application to apply the updates.'
+    }
+    
+    dialog.showMessageBox(mainWindow!, dialogOpts).then((returnValue) => {
+        if (returnValue.response === 0) autoUpdater.quitAndInstall()
+        }
+    )
+})
+autoUpdater.on('error', (message) => {
+    console.error('There was a problem updating the application')
+    console.error(message)
+})
 
 function createWindow () {
     mainWindow = new BrowserWindow({
@@ -29,7 +54,6 @@ function createWindow () {
             backgroundThrottling: false
         }
     });
-
     
     mainWindow.on('minimize', () => {
         mainWindow?.webContents.setBackgroundThrottling(false)
@@ -70,6 +94,11 @@ function createWindow () {
 }
 
 export function RUN(){
+
+    setInterval(() => {
+        autoUpdater.checkForUpdates()
+    }, 60000);
+
     const call = app.whenReady().then(() => {
         globalShortcut.register('Shift+CommandOrControl+I', () => {
             mainWindow?.webContents.openDevTools();
