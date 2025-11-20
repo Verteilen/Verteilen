@@ -58,11 +58,6 @@ const util = new Util_App(data, theme, emitter, backend, preference, token)
 //#endregion
 
 //#region Methods
-const setting = () => { data.value.settingModal = true }
-const message = (e:string) => console.log(e)
-const guide = () => {
-  backend.value.send('open', 'https://verteilen.github.io/wiki/')
-}
 const relogin = () => {
   config.value.login = false
   backend.value.removeCookie('token')
@@ -93,27 +88,27 @@ onMounted(() => {
     backend.value.send('message', 'Welcome Compute Tool')
   })
   data.value.defaultTransition = vuetify.defaults.value?.global
-  emitter.on('guide', guide)
+  emitter.on('guide', util.guide)
   emitter.on('relogin', relogin)
   emitter.on('loginGuest', loginGuest)
   emitter.on('login', trylogin)
   emitter.on('savePreference', util.save_preference)
-  emitter.on('setting', setting)
+  emitter.on('setting', util.setting)
   backend.value.wait_init().then(() => {
     if(backend.value.config.haveBackend){
       backend.value.eventOn('locate', util.locate)
-      backend.value.eventOn('message', message)
+      backend.value.eventOn('message', util.message)
       backend.value.invoke('load_preference', true, token.value).then(x => util.load_preference(x)).then(() => console.log(i18n.global.t('project')))
     }
   })
 })
 
 onUnmounted(() => {
-  emitter.off('guide', guide)
+  emitter.off('guide', util.guide)
   emitter.off('savePreference', util.save_preference)
-  emitter.off('setting', setting)
+  emitter.off('setting', util.setting)
   backend.value.eventOff('locate', util.locate)
-  backend.value.eventOff('message', message)
+  backend.value.eventOff('message', util.message)
 })
 </script>
 

@@ -55,4 +55,8 @@ export class Util_App {
         this.emitter.emit('updateLocate')
         this.save_preference(this.preference.value)
     }
+
+    setting = () => { this.data.value.settingModal = true }
+    message = (e:string) => console.log(e)
+    guide = () => { this.backend.value.send('open', 'https://verteilen.github.io/wiki/') }
 }

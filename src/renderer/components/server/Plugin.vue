@@ -7,10 +7,11 @@ import { i18n } from '../../plugins/i18n';
 import { Emitter } from 'mitt';
 import { DATA, EmitType, PROP, Util_Plugin } from './Plugin';
 import ContextFrame from '../components/layout/ContextFrame.vue';
+import PluginBuildInDialog from '../dialog/plugin/PluginBuildInDialog.vue';
 //#endregion
 
 //#region Data
-const emitter:Emitter<BusType> | undefined = inject('emitter');
+const emitter:Emitter<BusType> = inject('emitter')!
 const $t = i18n.global.t
 const propss = defineProps<PROP>()
 const emits = defineEmits<EmitType>()
@@ -23,7 +24,6 @@ const data:Ref<DATA> = ref({
     templateDeleteModal: false,
     pluginDeleteData: '',
     templateDeleteData: '',
-    buildin_select_plugin: -1,
     buildin_select_template: -1,
     pluginData: { name: '', url: '' },
     templateData: { name: '', url: '' },
@@ -46,14 +46,15 @@ const is_loading = (str:string) => {
     return data.value.loading_plugin.includes(str)
 }
 
-const importPluginBuildinConfirm = () => {
-    const index = data.value.buildin_select_plugin
-    if(index < 0 || data.value.buildIn_plugin == undefined) return
-    const target = data.value.buildIn_plugin.data[index]
-    data.value.pluginData.name = target.name
-    data.value.pluginData.url = target.url
-    importPluginConfirm()
+const importPluginBuildinConfirm = (select:Array<number>) => {
     data.value.pluginBuildinModal = false
+    select.forEach(index => {
+        if(index < 0 || data.value.buildIn_plugin == undefined) return
+        const target = data.value.buildIn_plugin.data[index]
+        data.value.pluginData.name = target.name
+        data.value.pluginData.url = target.url
+        importPluginConfirm()
+    })
 }
 
 const importPluginConfirm = () => {
@@ -88,28 +89,25 @@ const updatePlugin = (pl:PluginContainer) => {
     emits('added-plugin', pl.title!, pl.url!);
 }
 
+const updateLocate = () => {
+    util.pull_buildin()
+}
+
 const onHotkey = (value:string) => {
     if(value == 'create_plugin'){
         util.importPlugin()
     }
 }
 
-const pull_buildin = () => {
-    fetch(data.value.buildin_url).then(x => {
-        x.text().then(x2 => {
-            data.value.buildIn_plugin = JSON.parse(x2)
-            console.log("Update buildin plugin", data.value.buildIn_plugin)
-        })
-    })
-}
-
 onMounted(() => {
-    pull_buildin()
-    emitter?.on('hotkey', onHotkey)
+    util.pull_buildin()
+    emitter.on('updateLocate', updateLocate)
+    emitter.on('hotkey', onHotkey)
 })
 
 onUnmounted(() => {
-    emitter?.off('hotkey', onHotkey)
+    emitter.off('updateLocate', updateLocate)
+    emitter.off('hotkey', onHotkey)
 })
 </script>
 
@@ -127,23 +125,9 @@ onUnmounted(() => {
             </v-toolbar>
         </template>
         <template #dialog>        
-            <DialogBase v-model="data.pluginBuildinModal">
-                <template #title>
-                    <v-icon>mdi-import</v-icon>
-                    {{ $t('import-plugin') }}
-                </template>
-                <template #text>
-                    <v-list v-model="data.buildin_select_plugin" style="background-color: transparent;">
-                        <v-list-item v-for="(item, index) in data.buildIn_plugin?.data" :key="index" :value="index" @click="data.buildin_select_plugin = index">
-                            <v-list-item-title>{{ item.name }}</v-list-item-title>
-                            <v-list-item-subtitle>{{ item.description }}</v-list-item-subtitle>
-                        </v-list-item>
-                    </v-list>
-                </template>
-                <template #action>
-                    <v-btn color="primary" @click="importPluginBuildinConfirm">{{ $t('confirm') }}</v-btn>
-                </template>
-            </DialogBase>
+            <PluginBuildInDialog v-model="data.pluginBuildinModal" 
+                :build-in_plugin="data.buildIn_plugin" 
+                @confirm="importPluginBuildinConfirm"/>
             <DialogBase v-model="data.pluginModal">
                 <template #title>
                     <v-icon>mdi-import</v-icon>

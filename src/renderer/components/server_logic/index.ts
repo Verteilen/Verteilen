@@ -179,6 +179,10 @@ export class Util_Server extends ServerBase {
                     this.query.load_all_plugin()
                     break
                 }
+            case 4: //
+                {
+                    this.query.load_all_node()
+                }
             case 11: // plugin
                 {
                     this.query.load_all_plugin()
@@ -242,7 +246,7 @@ export class Util_Server extends ServerBase {
                 ["mdi-hammer", "toolbar.job", 2],
                 ["mdi-database", "toolbar.database", 3],
                 ["", "toolbar.compute", -1],
-                ["mdi-play-network", 'toolbar-service', 10],
+                ["mdi-play-network", 'toolbar.service', 10],
                 ["mdi-network", "toolbar.node", 4],
                 ["mdi-console-line", "toolbar.console", 5],
             ]

@@ -19,7 +19,7 @@ const propss = defineProps<DialogDATA>()
 const emits = defineEmits<{
     (e: 'submit', d:CreateField): void
 }>()
-const buffer:Ref<CreateField> = ref({title: "", description: "", usePara: false, useTemp: false, temp: null, database: null})
+const buffer:Ref<CreateField> = ref({title: "", description: "", useTemp: false, genPara: false, usePara: false, temp: null, database: null, database_title: null})
 const selectTempModel = ref(false)
 const selectTemp:Ref<string | null> = ref(null)
 const search:Ref<string | null> = ref(null)
@@ -31,7 +31,7 @@ watch(() => data.value, () => {
     selectTempModel.value = false
     selectTemp.value = null
     if(propss.isEdit) buffer.value = propss.editData
-    else buffer.value = {title: "", description: "", useTemp: false, usePara: false, temp: null, database: null}
+    else buffer.value = {title: "", description: "", useTemp: false, genPara: false, usePara: false, temp: null, database: null, database_title: null}
 })
 //#endregion
 
@@ -67,7 +67,7 @@ const convert = computed(() => {
     return {
         ...buffer.value,
         useTemp: buffer.value.temp != null,
-        usePara: buffer.value.database != null
+        usePara: buffer.value.database != null,
     }
 })
 //#endregion
@@ -89,6 +89,7 @@ const onSelectTemp = (d:TemplateData_Project) => {
 }
 const confirm_temp = () => {
     buffer.value.temp = selectTemp.value
+    buffer.value.database_title = `${$t('enum.database.default')} ${buffer.value.temp}`
     selectTempModel.value = false
 }
 const confirm = () => {
@@ -117,19 +118,24 @@ const confirm = () => {
             <div v-if="!propss.isEdit">
                 <br />
                 <v-btn class="w-100" color="primary" variant="outlined" @click="openSelectTemp">
-                    <span v-if="buffer.temp != null">
-                        {{ buffer.temp }}
-                    </span>
-                    <span v-else>
-                        {{ $t('useTemplate') }}
-                    </span>
+                    <span v-if="buffer.temp != null"> {{ buffer.temp }} </span>
+                    <span v-else> {{ $t('useTemplate') }} </span>
                 </v-btn>
                 <br />
-                <v-checkbox v-model="buffer.usePara" :label="$t('useExistDatabase')" hide-details></v-checkbox>
+                <v-row>
+                    <v-col cols="6">
+                        <v-checkbox v-if="!buffer.genPara" v-model="buffer.usePara" :label="$t('useExistDatabase')" hide-details></v-checkbox>
+                    </v-col>
+                    <v-col cols="6">
+                        <v-checkbox v-if="!buffer.usePara && buffer.temp != null" v-model="buffer.genPara" :label="$t('modal.generate-database')" hide-details></v-checkbox>
+                    </v-col>
+                </v-row>
+                <v-text-field v-if="buffer.genPara" clearable v-model="buffer.database_title" :label="$t('modal.enter-database-set-name')"></v-text-field>
                 <v-autocomplete v-if="buffer.usePara" :item-props="itemProps" v-model="buffer.database" clearable :items="paras" item-title="text" :label="$t('database')" hide-details></v-autocomplete>
             </div>
             <p v-if="propss.errorMessage.length > 0" class="mt-3 text-red">{{ propss.errorMessage }}</p>
 
+            <!-- Popup template selection -->
             <DialogBase width="60vw" height="80vh" v-model="selectTempModel" :color="isDark ? 
                 'linear-gradient(to left, rgb(33, 33, 33), rgb(33, 40, 42))' : 
                 'linear-gradient(to left, rgb(235, 235, 235), rgb(235, 242, 255))'"

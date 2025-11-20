@@ -2,7 +2,8 @@ import { Database, DatabaseTable, ExecutionLog, Job, JobTable, Library, Node, No
 import { Ref } from "vue"
 import { DATA, Util_Server } from "."
 import { BackendProxy } from "../../proxy"
-import { Server } from "verteilen-core/src/server"
+import { ServerBase } from "verteilen-core/src/server"
+import { Util_Server_Plugin } from "./plugin_handle"
 
 export class ServerQuery {
     server:Util_Server
@@ -11,7 +12,7 @@ export class ServerQuery {
         this.server = server
     }
 
-    public get static_server () : Ref<Server | undefined> {
+    public get static_server () : Ref<ServerBase | undefined> {
         return this.server.server
     }
     public get data () : Ref<DATA> {
@@ -28,6 +29,9 @@ export class ServerQuery {
     }
     public get selectTask () {
         return this.server.selectTask
+    }
+    public get plugins () : Util_Server_Plugin {
+        return this.server.plugins
     }
 
     load_all_project = async ():Promise<void> => {
@@ -318,6 +322,7 @@ export class ServerQuery {
         if(!this.backend.value.config.haveBackend) return
         this.backend.value.invoke('get_plugin').then(x => {
             this.data.value.plugin = x
+            this.plugins.translate_helper()
         })
     }
 }

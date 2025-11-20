@@ -30,7 +30,7 @@ const data:Ref<DATA> = ref({
     importData: [],
     dialogModal: false,
     isEdit: false,
-    editData: {title: "", description: "", useTemp: false, temp: null, database: null, usePara: false},
+    editData: {title: "", description: "", useTemp: false, temp: null, database: null, usePara: false, genPara: false, database_title: null},
     editUUID: '',
     deleteModal: false,
     deleteBind: false,

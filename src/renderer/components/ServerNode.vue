@@ -286,6 +286,7 @@ const pluginDelete = (name:string) => {
 //#endregion
 
 const updateLocate = () => {
+  if(data.value.page == 11) util.query.load_all_plugin()
   updateTab()
 }
 
@@ -652,9 +653,7 @@ onUnmounted(() => {
       <v-tabs-window-item v-show="config.haveBackend" :value="8">
         <SelfPage
           v-if="data.page == 8"
-          :backend="backend"
           :messages="data.messages"
-          :preference="preference"
           @clean="msgClean"/>
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.isExpress" :value="9">

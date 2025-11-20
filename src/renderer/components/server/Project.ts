@@ -12,7 +12,9 @@ export interface CreateField {
     description?: string
     useTemp: boolean
     usePara: boolean
+    genPara: boolean
     database: string | null
+    database_title: string | null
     temp: string | null
 }
 /**
@@ -106,7 +108,7 @@ export class Util_Project {
         this.data.value.isEdit = true
         const selectp = this.projects.value.find(x => x.uuid == uuid)
         if(selectp == undefined) return;
-        this.data.value.editData = {title: selectp.title, usePara: false, description: selectp.description, useTemp: false, temp: null, database: null};
+        this.data.value.editData = {title: selectp.title, usePara: false, description: selectp.description, genPara: false, useTemp: false, temp: null, database: null, database_title: null}
         this.data.value.dialogModal = true;
         this.data.value.editUUID = uuid;
         this.data.value.errorMessage = ''
@@ -125,7 +127,7 @@ export class Util_Project {
      */
     createProject = () => {
         this.data.value.isEdit = false
-        this.data.value.editData = {title: "", description: "", usePara: false, useTemp: false, temp: null, database: null};
+        this.data.value.editData = {title: "", description: "", useTemp: false, genPara: false, usePara: false, temp: null, database: null, database_title: null}
         this.data.value.dialogModal = true
         this.data.value.errorMessage = ''
         this.data.value.titleError = false
@@ -171,6 +173,15 @@ export class Util_Project {
                         const templateData = await this.backend.value.invoke('get_project', x.title, p_temp.group, p_temp.filename + ".json")
                         const p:any = JSON.parse(templateData)
                         buffer = Object.assign(buffer, { tasks: p.tasks, database: p.database })
+
+                        if(this.data.value.editData.genPara){
+                            buffer.title = (this.data.value.editData.database_title && this.data.value.editData.database_title.length > 0) ? 
+                            this.data.value.editData.database_title : buffer.title
+                        }else{
+                            buffer.database = undefined
+                            buffer.database_uuid = ""
+                        }
+
                         break
                     }
                 }

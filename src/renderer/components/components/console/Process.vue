@@ -162,7 +162,3 @@ const load = async (o:any) => {
         </div>
     </v-container>
 </template>
-
-<style scoped>
-
-</style>
