@@ -5,10 +5,10 @@ import { v6 as uuidv6 } from 'uuid'
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
 import { messager_log, set_feedback } from '../debugger'
 import { 
-  Execute_ExecuteManager,
-  Execute_SocketManager,
-  UtilServer_Console,
-  UtilServer_Log,
+  ExecuteManager,
+  WebsocketManager,
+  Console_Proxy,
+  Log_Proxy,
   BusAnalysis, 
   BusType, 
   ExecuteRecord, 
@@ -198,7 +198,7 @@ const consoleAdded = (name:string, record:Record) => {
   }else{
     //util.server.value?.detail?.console_add(undefined, name, record, undefined)
     let r:boolean = false
-    const em:Execute_ExecuteManager.ExecuteManager = new Execute_ExecuteManager.ExecuteManager(
+    const em:ExecuteManager = new ExecuteManager(
       name,
       data.value.websocket_manager!, 
       messager_log, 
@@ -224,8 +224,8 @@ const consoleAdded = (name:string, record:Record) => {
     }
     em.libs = { libs: data.value.libs }
     const p:ExecutePair = {manager: em, record: er}
-    const uscp:UtilServer_Console.Console_Proxy = new UtilServer_Console.Console_Proxy(p)
-    const uslp:UtilServer_Log.Log_Proxy = new UtilServer_Log.Log_Proxy(p, { logs: data.value.logs }, preference.value)
+    const uscp:Console_Proxy = new Console_Proxy(p)
+    const uslp:Log_Proxy = new Log_Proxy(p, { logs: data.value.logs }, preference.value)
     em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
     r = util.console.receivedPack(p, record)
     if(r){
@@ -430,7 +430,7 @@ const dataset_init = () => {
       shellReply: data => { emitter?.emit('shellReply', data) },
       folderReply: data => { emitter?.emit('folderReply', data) },
     }
-    data.value.websocket_manager = new Execute_SocketManager.WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
+    data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
     return
   }
   backend.value.eventOn('shellReply', (data:any) => emitter?.emit('shellReply', data) )

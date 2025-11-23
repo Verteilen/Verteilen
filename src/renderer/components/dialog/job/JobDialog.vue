@@ -5,7 +5,7 @@ import {
     BusType, 
     CreateDefaultJob, 
     DatabaseTable, 
-    Execute_PART, 
+    ExecuteManager_Base, 
     Job, 
     JobCategory, 
     JobType, 
@@ -53,7 +53,7 @@ const replaceString = (index:number):string => {
         db = { uuid: "", title: "", canWrite: true, containers: [], s: false}
     }
     try{
-        Execute_PART.ExecuteManager_Base.string_args_transform(props.task!, copyJob, (str) => console.log(str), db, data.value.ck)
+        ExecuteManager_Base.string_args_transform(props.task!, copyJob, (str) => console.log(str), db, data.value.ck)
         return copyJob.string_args[index]
     }catch(e:any){
         const t:ToastData = {

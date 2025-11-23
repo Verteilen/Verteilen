@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { Execute_ConsoleManager, AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType } from "./interface";
+import { ConsoleManager, Listener, AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType } from "./interface";
 import { checkExpressType, checkifElectron, checkIfExpress } from "./platform";
 import Cookies from 'js-cookie'
 import { messager_log } from "./debugger";
@@ -18,7 +18,7 @@ export class BackendProxy {
      * **Console Hoster**\
      * 
      */
-    consoleM: Execute_ConsoleManager.ConsoleManager | undefined
+    consoleM: ConsoleManager | undefined
     is_init: boolean
     user: UserProfileClient = reactive({
         picture_url: false,
@@ -73,7 +73,7 @@ export class BackendProxy {
     }
 
     Create_Console_Host = (_url: string, _emitter: EmitterProxy<BusType>) => {
-        this.consoleM = new Execute_ConsoleManager.ConsoleManager(_url, messager_log, _emitter)
+        this.consoleM = new ConsoleManager(_url, messager_log, _emitter)
     }
 
     /**
@@ -149,7 +149,7 @@ export class BackendProxy {
      * @param channel Header name
      * @param listener Feedback
      */
-    eventOn = (channel: string, listener: Execute_ConsoleManager.Listener) => {
+    eventOn = (channel: string, listener: Listener) => {
         if(!this.config.haveBackend) return
         if(this.config.isElectron){
             window.electronAPI.eventOn(channel, (e, ...aargs) => listener(...aargs))
@@ -164,7 +164,7 @@ export class BackendProxy {
      * @param channel Header name
      * @param listener Feedback
      */
-    eventOff = (channel: string, listener: Execute_ConsoleManager.Listener) => {
+    eventOff = (channel: string, listener: Listener) => {
         if(!this.config.haveBackend) return
         if(this.config.isElectron){
             window.electronAPI.eventOn(channel, (e, ...aargs) => listener(...aargs))

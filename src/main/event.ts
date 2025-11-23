@@ -37,7 +37,7 @@ import {
     PluginNode,
     RecordIOLoader,
 } from "./interface";
-import { Server } from "verteilen-core/dist/server/server2";
+import { Server } from "verteilen-core";
 import { CreateRecordIOLoader } from "verteilen-core/dist/server/io2";
 
 const Loader = (loader:RecordIOLoader, key:string) => {
@@ -114,7 +114,7 @@ const CreateIO = ():RecordIOBase => {
 }
 
 export class BackendEvent extends Server implements BackendAction {
-    client:Client.Client | undefined = undefined
+    client:Client | undefined = undefined
     /**
      * Memory preference config
      */
@@ -153,7 +153,7 @@ export class BackendEvent extends Server implements BackendAction {
          * * Local Client Setup
          */
         if(this.client != undefined) return
-        this.client = new Client.Client((...args:Array<string | undefined>) => {
+        this.client = new Client((...args:Array<string | undefined>) => {
             messager(...args)
             mainWindow?.webContents.send('debuglog', args.join(' '));
         }, (msg:string, tag?:string, meta?:string) => {
@@ -189,7 +189,7 @@ export class BackendEvent extends Server implements BackendAction {
                 script: content
             }
             const p:PluginNode = { plugins: [] }
-            const worker = new ClientJobExecute.ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
+            const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
             worker.database = database ? JSON.parse(database) : undefined
             worker.execute().then(x => {
                 javascript_messager_feedback(x, "Finish")

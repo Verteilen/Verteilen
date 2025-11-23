@@ -1,10 +1,15 @@
 import { app, autoUpdater, BrowserWindow, dialog, globalShortcut, powerSaveBlocker, session } from 'electron';
 import { join } from 'path';
 import { backendEvent } from './event';
+import { existsSync, mkdirSync } from 'fs';
+import { DATA_FOLDER } from 'verteilen-core';
+import { homedir } from 'os';
+import { CreateServer } from './event_http';
 
 export let mainWindow:BrowserWindow | undefined = undefined
+let updater:NodeJS.Timeout | undefined = undefined
 
-const updateServer = 'https://updater-vdwc-i9298s6m1-elly2018s-projects.vercel.app/'
+const updateServer = 'https://updater-vdwc.vercel.app/'
 const version = app.getVersion()
 const updateUrl = `${updateServer}/update/${process.platform}/${version}`
 const id1 = powerSaveBlocker.start('prevent-display-sleep')
@@ -94,15 +99,17 @@ function createWindow () {
 }
 
 export function RUN(){
-
-    setInterval(() => {
-        autoUpdater.checkForUpdates()
-    }, 60000);
-
     const call = app.whenReady().then(() => {
         globalShortcut.register('Shift+CommandOrControl+I', () => {
             mainWindow?.webContents.openDevTools();
         })
+        updater = setInterval(() => {
+            autoUpdater.checkForUpdates()
+        }, 60000);
+        CreateServer()
+
+        const tempPath = join(homedir(), DATA_FOLDER, "temp")
+        if(!existsSync(tempPath)) mkdirSync(tempPath)
     }).then(() => {
     createWindow();
     
@@ -130,6 +137,7 @@ export function RUN(){
 
     app.on('before-quit', (event) => {
         console.log('Before Quit Event')
+        if(updater != undefined) clearInterval(updater)
         mainWindow = undefined
         backendEvent.DestroyClient()
     })
