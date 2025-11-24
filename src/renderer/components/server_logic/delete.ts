@@ -1,8 +1,7 @@
-import { Preference } from "verteilen-core/src/interface"
+import { Preference, ServerBase } from "../../interface"
 import { Ref } from "vue"
 import { Util_Server, DATA } from "."
 import { BackendProxy } from "../../proxy"
-import { Server } from "verteilen-core/src/server"
 
 export class ServerDelete {
     server:Util_Server
@@ -11,7 +10,7 @@ export class ServerDelete {
         this.server = server
     }
 
-    public get static_server () : Ref<Server | undefined> {
+    public get static_server () : Ref<ServerBase | undefined> {
         return this.server.server
     }
     public get data () : Ref<DATA> {
