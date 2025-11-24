@@ -1,10 +1,10 @@
 //#region Methods
 import { Emitter } from "mitt"
-import { ComputedRef, nextTick, Ref } from "vue"
+import { ComputedRef, Ref } from "vue"
 import { BackendProxy } from "../../proxy";
 import { 
     AppConfig,
-    Execute_SocketManager,
+    WebsocketManager,
     BusType, 
     ClientLog, 
     ExecutePair, 
@@ -46,7 +46,7 @@ import { Util_Server_Plugin } from "./plugin_handle";
 export type save_and_update = () => void
 
 export interface DATA {
-    websocket_manager: Execute_SocketManager.WebsocketManager | undefined
+    websocket_manager: WebsocketManager | undefined
     execute_manager: Array<ExecutePair>
 
     drawer: boolean

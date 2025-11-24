@@ -174,8 +174,8 @@ export class Util_Project {
                         const p:any = JSON.parse(templateData)
                         buffer = Object.assign(buffer, { tasks: p.tasks, database: p.database })
 
-                        if(this.data.value.editData.genPara){
-                            buffer.title = (this.data.value.editData.database_title && this.data.value.editData.database_title.length > 0) ? 
+                        if(this.data.value.editData.genPara && buffer.database != undefined){
+                            buffer.database.title = (this.data.value.editData.database_title && this.data.value.editData.database_title.length > 0) ? 
                             this.data.value.editData.database_title : buffer.title
                         }else{
                             buffer.database = undefined

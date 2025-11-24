@@ -1,11 +1,10 @@
 import { v6 as uuidv6 } from 'uuid'
 import { Emitter } from "mitt";
 import { Ref } from "vue";
-import { BusType, DatabaseTable, Project, ProjectTable, Task } from "../../interface";
+import { BusType, DatabaseTable, Project, ProjectTable, ServerBase } from "../../interface";
 import { DATA, save_and_update, Util_Server } from ".";
 import { BackendProxy } from "../../proxy";
 import { ServerSave } from "./save";
-import { Server } from "verteilen-core/src/server";
 
 export class Util_Server_Project {
     server:Util_Server
@@ -14,7 +13,7 @@ export class Util_Server_Project {
         this.server = server
     }
 
-    public get static_server () : Ref<Server | undefined> {
+    public get static_server () : Ref<ServerBase | undefined> {
         return this.server.server
     }
     public get data() : Ref<DATA> {
