@@ -1,0 +1,28 @@
+name: verteilen
+adopt-info: my-app
+title: Verteilen
+version: 1.4.1
+summary: Compute tool for multi computer
+base: core24
+confinement: strict
+grade: stable
+
+apps: 
+  verteilen:
+    command: verteilen/verteilen --no-sandbox
+    plugs:
+    - browser-support
+    - network
+    - network-bind
+
+parts:
+  my-app:
+    plugin: nil
+    source: dist/
+    build-snaps:
+    - node/14/stable
+    build-packages:
+    - unzip
+    stage-packages:
+    - libnss3
+    - libnspr4
