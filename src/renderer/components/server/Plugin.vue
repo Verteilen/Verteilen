@@ -8,6 +8,7 @@ import { Emitter } from 'mitt';
 import { DATA, EmitType, PROP, Util_Plugin } from './Plugin';
 import ContextFrame from '../components/layout/ContextFrame.vue';
 import PluginBuildInDialog from '../dialog/plugin/PluginBuildInDialog.vue';
+import PluginInfoDialog from '../dialog/plugin/PluginInfoDialog.vue';
 //#endregion
 
 //#region Data
@@ -22,6 +23,7 @@ const data:Ref<DATA> = ref({
     templateModal: false,
     pluginDeleteModal: false,
     templateDeleteModal: false,
+    pluginInfoModal: false,
     pluginDeleteData: '',
     templateDeleteData: '',
     buildin_select_template: -1,
@@ -30,9 +32,10 @@ const data:Ref<DATA> = ref({
     errorMessage: '',
     loading_plugin: [],
     available_update: [],
-    buildIn_plugin: undefined,
+    buildIn_plugin: { data: [] },
     buildin_url: "https://raw.githubusercontent.com/Verteilen/Buildin-Assets/refs/heads/main/default_plugin.json",
     default_plugin_thumbnail: "https://picsum.photos/500/300?image=232",
+    selection: undefined,
 })
 const updateTick = ref()
 //#endregion
@@ -88,7 +91,8 @@ const deletePluginConfirm = (name:string) => {
 }
 
 const checkPlugin = (pl:PluginContainer) => {
-
+    data.value.pluginInfoModal = true
+    data.value.selection = pl
 }
 
 const updatePlugin = (pl:PluginContainer) => {
@@ -135,8 +139,12 @@ onUnmounted(() => {
         </template>
         <template #dialog>        
             <PluginBuildInDialog v-model="data.pluginBuildinModal" 
+                :current="plugins"
                 :build-in_plugin="data.buildIn_plugin" 
                 @confirm="importPluginBuildinConfirm"/>
+            <PluginInfoDialog v-model="data.pluginInfoModal" 
+                :default_plugin_thumbnail="data.default_plugin_thumbnail"
+                :plugin="data.selection"/>
             <DialogBase v-model="data.pluginModal">
                 <template #title>
                     <v-icon>mdi-import</v-icon>

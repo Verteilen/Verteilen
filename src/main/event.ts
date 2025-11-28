@@ -51,7 +51,7 @@ const Loader = (loader:RecordIOLoader, key:string) => {
 }
 const PluginInit = (loader:PluginLoader) => {
     loader.get_plugins()
-    ipcMain.handle('get_plugin', async (e) => loader.get_plugins())
+    ipcMain.handle('get_plugin', async (e, cache:boolean = true) => cache ? loader.get_plugins() : loader.load_all())
     ipcMain.handle('import_plugin', async (event, name:string, url:string, token:string) => loader.import_plugin(name, url, token))
     ipcMain.handle('delete_plugin', async (event, name:string) => loader.delete_plugin(name))
     ipcMain.handle('get_project', async (event, name:string, group:string, filename:string) => loader.get_project(name, group, filename))

@@ -320,7 +320,7 @@ export class ServerQuery {
 
     load_all_plugin = async () => {
         if(!this.backend.value.config.haveBackend) return
-        this.backend.value.invoke('get_plugin').then(x => {
+        this.backend.value.invoke('get_plugin', false).then(x => {
             this.data.value.plugin = x
             this.plugins.translate_helper()
         })

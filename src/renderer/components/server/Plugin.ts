@@ -7,14 +7,16 @@ export interface DATA {
     pluginBuildinModal: boolean
     pluginModal: boolean
     pluginDeleteModal: boolean
+    pluginInfoModal: boolean
     pluginDeleteData: string
     pluginData: { name: string, url: string }
     errorMessage: string
     loading_plugin: Array<string>
     available_update: Array<string>
-    buildIn_plugin: BuildinAssets | undefined
+    buildIn_plugin: BuildinAssets
     buildin_url: string
     default_plugin_thumbnail: string
+    selection: PluginContainer | undefined
 }
 
 export interface PROP {
