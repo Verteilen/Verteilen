@@ -279,7 +279,8 @@ const pluginAdded = (name:string, url:string) => {
 }
 const pluginDelete = (name:string) => {
   backend.value.invoke("delete_plugin", name).then(x => {
-    util.query.load_all_plugin()
+    if (process.env.NODE_ENV == 'development') console.log("plugin result", x)
+    data.value.plugin = x
   })
 }
 //#endregion

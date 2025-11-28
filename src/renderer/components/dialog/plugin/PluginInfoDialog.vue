@@ -17,7 +17,7 @@ const $t = i18n.global.t
 </script>
 
 <template>
-    <DialogBase v-model="modal" width="60vw">
+    <DialogBase v-model="modal" width="60vw" height="80vh">
         <v-img cover height="120" :src="props.plugin?.thumbnail ? props.plugin?.thumbnail : props.default_plugin_thumbnail">
             <template v-slot:error>
                 <v-img cover height="120"

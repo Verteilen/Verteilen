@@ -85,17 +85,17 @@ const DetailInit = (detail:ServerDetailEvent) => {
     ipcMain.handle('console_update', (event) => detail.console_update())
 }
 const ModuleInit = (project:Project_Module) => {
-    ipcMain.handle("project_module:reorder_project_tasks", (event, uuid:string, uuids:Array<string>) => project.ReOrderProjectTask(uuid, uuids))
-    ipcMain.handle("project_module:populate_project", (event, uuid:string) => project.PopulateProject(uuid))
-    ipcMain.handle("project_module:populate_task", (event, uuid:string) => project.PopulateTask(uuid))
-    ipcMain.handle("project_module:get_tasks", (event, uuid:string) => project.GetProjectRelatedTask(uuid))
-    ipcMain.handle("project_module:get_jobs", (event, uuid:string) => project.GetTaskRelatedJob(uuid))
-    ipcMain.handle("project_module:clone_projects", (event, ...uuid:Array<string>) => project.CloneProjects(uuid))
-    ipcMain.handle("project_module:clone_tasks", (event, ...uuid:Array<string>) => project.CloneTasks(uuid))
-    ipcMain.handle("project_module:clone_jobs", (event, ...uuid:Array<string>) => project.CloneJobs(uuid))
-    ipcMain.handle("project_module:cascade_project", (event, uuid:string, bind:boolean) => project.CascadeDeleteProject(uuid, bind))
-    ipcMain.handle("project_module:cascade_task", (event, uuid:string) => project.CascadeDeleteTask(uuid))
-    ipcMain.handle("project_module:cascade_job", (event, uuid:string) => project.CascadeDeleteJob(uuid))
+    ipcMain.handle("project_module:reorder_project_tasks", (event, uuid:string, uuids:Array<string>, token?:string | undefined) => project.ReOrderProjectTask(uuid, uuids, token))
+    ipcMain.handle("project_module:populate_project", (event, uuid:string, token?:string | undefined) => project.PopulateProject(uuid, token))
+    ipcMain.handle("project_module:populate_task", (event, uuid:string, token?:string | undefined) => project.PopulateTask(uuid, token))
+    ipcMain.handle("project_module:get_tasks", (event, uuid:string, token?:string | undefined) => project.GetProjectRelatedTask(uuid, token))
+    ipcMain.handle("project_module:get_jobs", (event, uuid:string, token?:string | undefined) => project.GetTaskRelatedJob(uuid, token))
+    ipcMain.handle("project_module:clone_projects", (event, token?:string | undefined, ...uuid:Array<string>) => project.CloneProjects(uuid, token))
+    ipcMain.handle("project_module:clone_tasks", (event, token?:string | undefined, ...uuid:Array<string>) => project.CloneTasks(uuid, token))
+    ipcMain.handle("project_module:clone_jobs", (event, token?:string | undefined, ...uuid:Array<string>) => project.CloneJobs(uuid, token))
+    ipcMain.handle("project_module:cascade_project", (event, uuid:string, bind:boolean, token?:string | undefined) => project.CascadeDeleteProject(uuid, bind, token))
+    ipcMain.handle("project_module:cascade_task", (event, uuid:string, token?:string | undefined) => project.CascadeDeleteTask(uuid, true, token))
+    ipcMain.handle("project_module:cascade_job", (event, uuid:string, token?:string | undefined) => project.CascadeDeleteJob(uuid, true, token))
 }
 const CreateIO = ():RecordIOBase => {
     return {
