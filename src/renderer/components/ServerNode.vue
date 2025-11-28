@@ -278,7 +278,7 @@ const pluginAdded = (name:string, url:string) => {
   })
 }
 const pluginDelete = (name:string) => {
-  backend.value.invoke("import_plugin_delete", name).then(x => {
+  backend.value.invoke("delete_plugin", name).then(x => {
     if (process.env.NODE_ENV == 'development') console.log("plugin result", x)
     data.value.plugin = x
   })

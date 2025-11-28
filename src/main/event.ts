@@ -82,7 +82,7 @@ const DetailInit = (detail:ServerDetailEvent) => {
     ipcMain.on('console_skip', (event, uuid:string, forward:boolean, type:number, state:ExecuteState) => detail.console_skip(undefined, uuid, forward, type, state))
     ipcMain.on('console_skip2', (event, uuid:string, type:number) => detail.console_skip2(undefined, uuid, type))
     ipcMain.handle('console_add', (event, name:string, record:Record) => detail.console_add(undefined, name, record, undefined))
-    ipcMain.handle('console_update', (event) => detail.console_update(undefined))
+    ipcMain.handle('console_update', (event) => detail.console_update())
 }
 const ModuleInit = (project:Project_Module) => {
     ipcMain.handle("project_module:reorder_project_tasks", (event, uuid:string, uuids:Array<string>) => project.ReOrderProjectTask(uuid, uuids))
@@ -188,8 +188,7 @@ export class BackendEvent extends Server implements BackendAction {
                 type: JobType.JAVASCRIPT,
                 script: content
             }
-            const p:PluginNode = { plugins: [] }
-            const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
+            const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined)
             worker.database = database ? JSON.parse(database) : undefined
             worker.execute().then(x => {
                 javascript_messager_feedback(x, "Finish")

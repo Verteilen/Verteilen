@@ -1,6 +1,6 @@
 <script setup lang="ts">
 //#region Modules
-import { inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { BusType, PluginContainer } from '../../interface';
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
@@ -29,17 +29,24 @@ const data:Ref<DATA> = ref({
     templateData: { name: '', url: '' },
     errorMessage: '',
     loading_plugin: [],
+    available_update: [],
     buildIn_plugin: undefined,
     buildin_url: "https://raw.githubusercontent.com/Verteilen/Buildin-Assets/refs/heads/main/default_plugin.json",
     default_plugin_thumbnail: "https://picsum.photos/500/300?image=232",
 })
+const updateTick = ref()
 //#endregion
 
-//#region 
+//#region Computed
+const plugins = computed(() => propss.plugin.plugins)
+const is_updating = computed(() => data.value.loading_plugin.length > 0)
+//#endregion
+
+//#region Watch
 watch(() => propss.plugin.plugins, () => {
     data.value.loading_plugin = []
 })
-const util = new Util_Plugin(data, emits)
+const util = new Util_Plugin(data, emits, plugins)
 //#endregion
 
 const is_loading = (str:string) => {
@@ -101,11 +108,13 @@ const onHotkey = (value:string) => {
 
 onMounted(() => {
     util.pull_buildin()
+    updateTick.value = setInterval(util.update_tick, 10000);
     emitter.on('updateLocate', updateLocate)
     emitter.on('hotkey', onHotkey)
 })
 
 onUnmounted(() => {
+    clearInterval(updateTick.value);
     emitter.off('updateLocate', updateLocate)
     emitter.off('hotkey', onHotkey)
 })
@@ -176,7 +185,10 @@ onUnmounted(() => {
                         </div>
                     </v-card-title>
                     <v-card-subtitle>
-                        {{ container.owner }}
+                        {{ container.owner }} {{ container.version }} 
+                        <span class="ml-1" v-if="!data.available_update.includes(container.title!)">
+                            <v-icon class="text-green">mdi-circle</v-icon>
+                        </span>
                     </v-card-subtitle>
                     <v-card-text>
                         <p>{{ container.description }}</p>
@@ -185,7 +197,7 @@ onUnmounted(() => {
                     </v-card-text>
                     <v-card-actions>
                         <v-btn icon="mdi-book" color="info" @click="checkPlugin(container)"></v-btn>
-                        <v-btn icon="mdi-update" color="warning" @click="updatePlugin(container)"></v-btn>
+                        <v-btn icon="mdi-update" color="warning" :disabled="is_updating || !data.available_update.includes(container.title!)" @click="updatePlugin(container)"></v-btn>
                         <v-spacer />
                         <v-btn icon="mdi-delete" color="error" @click="deletePlugin(container.title!)"></v-btn>
                     </v-card-actions>
