@@ -1,7 +1,7 @@
 import { Ref } from "vue"
 import { 
     Database, 
-    WebhookManager, 
+    WebsocketManager, 
     ExecutePair, 
     Library, 
     NodeTable, 
@@ -19,7 +19,7 @@ export interface DATA {
     queryWait: boolean
 }
 export interface PROPS {
-    socket: WebhookManager | undefined
+    socket: WebsocketManager | undefined
     execute: Array<ExecutePair>
     libs: Array<Library>
     projects: Array<Project>

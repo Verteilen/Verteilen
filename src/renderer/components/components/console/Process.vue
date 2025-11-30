@@ -6,7 +6,7 @@ import { i18n } from '../../../plugins/i18n';
 
 interface PROPS {
     preference: Preference
-    socket: WebsocketManager | undefined
+    socket?: WebsocketManager
 }
 
 const $t = i18n.global.t
