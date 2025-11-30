@@ -2,7 +2,7 @@ import { Database, DatabaseTable, Job, JobTable, Preference, Project, ProjectTab
 import { Ref } from "vue"
 import { Util_Server, DATA } from "."
 import { BackendProxy } from "../../proxy"
-import { Server } from "verteilen-core/src/server"
+import { ServerBase } from "verteilen-core/src/server"
 
 export class ServerSave {
     server:Util_Server
@@ -11,7 +11,7 @@ export class ServerSave {
         this.server = server
     }
 
-    public get static_server () : Ref<Server | undefined> {
+    public get static_server () : Ref<ServerBase | undefined> {
         return this.server.server
     }
     public get data () : Ref<DATA> {
@@ -72,6 +72,7 @@ export class ServerSave {
         delete task.jobCount
         const p = !this.backend.value.config.haveBackend ?
         new Promise<void>((resolve) => {
+            if (process.env.NODE_ENV == 'development') console.log("Save task in web space")
             if(this.static_server.value == undefined) {
                 resolve()
                 return
@@ -85,10 +86,11 @@ export class ServerSave {
             resolve()
         }) :
         new Promise<void>((resolve) => {
+            if (process.env.NODE_ENV == 'development') console.log("Save task in backend space")
             this.backend.value.send("save_task", task.uuid, JSON.stringify(task, null, 4))
             resolve()
         })
-        return p
+        return p.catch(err => console.error(err))
     }
 
     clone_tasks = (v:Array<TaskTable>) => {

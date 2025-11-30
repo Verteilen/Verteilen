@@ -49,17 +49,25 @@ export class Util_Server_Task {
      * Add task through the dialog UI
      * @param v Array of task
      */
-    addTask = (v:Array<TaskTable>) => {
+    addTask = async (v:Array<TaskTable>) => {
+        if(this.selectProject.value == undefined) return
+        if (process.env.NODE_ENV == 'development') console.log("Create task", v)
         const ps = v.map(async x => {
-            const jobsCreate = x.jobs.map(y => this.server.job.addJob(y))
-            await Promise.all(jobsCreate)
+            if(x.jobs.length > 0){
+                const jobsCreate = x.jobs.map(y => this.server.job.addJob(y))
+                await Promise.all(jobsCreate)
+            }
             return this.save.save_task({
                 ...x,
                 jobs_uuid: x.jobs.map(y => y.uuid),
                 jobs: [],
             })
         })
-        return Promise.all(ps)
+        await Promise.all(ps).catch(err => console.error(err))
+        this.selectProject.value.tasks_uuid.push(...v.map(x => x.uuid))
+        await this.save.save_project(this.selectProject.value)
+        await this.query.load_project(this.selectProject.value.uuid)
+        return this.query.load_tasks(this.selectProject.value.uuid)
     }
     cloneTask = (v:Array<string>) => {
         const s = this.data.value.tasks.filter(x => v.includes(x.uuid))
