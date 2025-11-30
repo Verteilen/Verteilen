@@ -109,7 +109,7 @@ const cancel = () => {
         </template>
         <template v-if="!data.zoom" #text>
             <!-- Header -->
-            <v-text-field v-model="data.buffer.title" :label="$t('modal.job-title')"></v-text-field>
+            <v-text-field class="mb-5" :error="titleError" :autofocus="true" required v-model="data.buffer.title" :label="$t('modal.job-title')" hide-details></v-text-field>
             <v-textarea v-model="data.buffer.description" :label="$t('modal.job-description')"></v-textarea>
 
             <v-row>

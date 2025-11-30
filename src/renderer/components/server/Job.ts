@@ -41,6 +41,7 @@ export interface PROPS {
 
 export type EmitType = {
     (e: 'added', job:JobTable): void
+    (e: 'save', job:JobTable): void
     (e: 'clone', job:JobTable): void
     (e: 'edit', job:JobTable): void
     (e: 'delete', uuids:Array<string>): void

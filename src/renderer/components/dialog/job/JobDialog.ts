@@ -11,6 +11,8 @@ export interface PROPS extends BasePROPS {
     result: Array<any>
     types: Array<any>
     types2: Array<any>
+    errorMessage: string
+    titleError: boolean
 }
 
 export interface DATA {

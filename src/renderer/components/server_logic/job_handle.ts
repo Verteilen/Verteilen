@@ -55,13 +55,17 @@ export class Util_Server_Job {
         return this.query.load_jobs(this.selectTask.value.uuid)
     }
 
-    cloneJob = (v:Array<string>) => {
+    cloneJob = async (v:Array<string>) => {
+        if(this.selectTask.value == undefined) return
         const s = this.data.value.jobs.filter(x => v.includes(x.uuid))
-        this.save.clone_jobs(s)
+        await this.save.clone_jobs(s)
+        return this.query.load_jobs(this.selectTask.value.uuid)
     }
 
-    editJob = (v:JobTable) => {
-        return this.save.save_job(v)
+    editJob = async (v:JobTable) => {
+        if(this.selectTask.value == undefined) return
+        await this.save.save_job(v)
+        return this.query.load_jobs(this.selectTask.value.uuid)
     }
     
     deleteJob = (uuids:Array<string>) => {

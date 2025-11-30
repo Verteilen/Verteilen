@@ -583,6 +583,7 @@ onUnmounted(() => {
           :libs="data.libs"
           :database="projectbind"
           @added="e => util.job.addJob(e)" 
+          @save="e => util.job.editJob(e)" 
           @edit="e => util.job.editJob(e)" 
           @delete="e => util.job.deleteJob(e)"
           @return="data.page = 1"

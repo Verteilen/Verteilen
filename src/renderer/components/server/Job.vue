@@ -159,6 +159,10 @@ const editJob = (id:string) => {
     data.value.createModal = true
     data.value.editMode = true
 }
+const deleteJob = (id:string) => {
+    data.value.deleteModal = true
+    data.value.deleteData = [id]
+}
 
 const deleteConfirm = () => {
     data.value.deleteModal = false
@@ -166,11 +170,21 @@ const deleteConfirm = () => {
     data.value.dirty = true
 }
 
-const dialogConfirm = (job:JobTable) => {
+const dialogCreateConfirm = (job:JobTable) => {
     const r = util.jobCreate(job)
     if(r == undefined) return
     data.value.createModal = false
     emits('added', JSON.parse(JSON.stringify(r)))
+}
+
+const dialogModifyConfirm = (job:JobTable) => {
+    data.value.createModal = false
+    emits('save', JSON.parse(JSON.stringify(job)))
+}
+
+const dialogConfirm = (job:JobTable) => {
+    if(!data.value.editMode) dialogCreateConfirm(job)
+    else dialogModifyConfirm(job)
 }
 
 const libRename = (d:Rename) => {
@@ -290,6 +304,8 @@ onUnmounted(() => {
                 :task="props.select"
                 :libs="props.libs"
                 :database="props.database"
+                :error-message="data.errorMessage"
+                :title-error="data.titleError"
                 @confirm="dialogConfirm">
             </JobDialog>
             <ConditionDialog v-model="data.conditionModal" />
@@ -322,7 +338,7 @@ onUnmounted(() => {
                         <v-treeview-item v-for="(item, i) in treeData" :key="i" :value="item.id" @click="nextTick(() => { data.selection = [] })">
                             <template v-slot:append>
                                 <v-btn variant="text" prepend-icon="mdi-pencil" :disabled="item.id.length == 0" @click="editJob(item.id)">{{ $t('edit') }}</v-btn>
-                                <v-btn variant="text" prepend-icon="mdi-delete" color="error" @click="">{{ $t('delete') }}</v-btn>
+                                <v-btn variant="text" prepend-icon="mdi-delete" color="error" @click="deleteJob(item.id)">{{ $t('delete') }}</v-btn>
                             </template>
                             <template v-slot:prepend>
                                 <span class="mx-1" v-if="item.id.length > 0">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
