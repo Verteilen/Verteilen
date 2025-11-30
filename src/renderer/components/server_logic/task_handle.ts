@@ -146,12 +146,11 @@ export class Util_Server_Task {
         })
     }
 
-    baseModify = (data:TaskBase) => {
+    baseModify = async (data:TaskBase) => {
         if(this.selectTask.value == undefined) return
         Object.assign(this.selectTask.value, data)
-        this.save.save_task(this.selectTask.value).then(() => {
-            this.query.load_task(this.selectTask.value!.uuid)
-        })
+        await this.save.save_task(this.selectTask.value)
+        return this.query.load_task(this.selectTask.value!.uuid)
     }
     //#endregion
 }

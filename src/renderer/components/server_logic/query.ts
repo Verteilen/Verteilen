@@ -140,7 +140,7 @@ export class ServerQuery {
             }
         })
         return p.then(() => {
-            if (process.env.NODE_ENV == 'development') console.log("Task", this.selectTask)
+            if (process.env.NODE_ENV == 'development') console.log("Task", this.selectTask.value)
         })
     }
 
