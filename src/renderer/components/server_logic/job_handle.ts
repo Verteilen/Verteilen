@@ -5,6 +5,7 @@ import { Emitter } from "mitt"
 import { BackendProxy } from "../../proxy"
 import { ServerSave } from "./save"
 import { ServerDelete } from "./delete"
+import { ServerQuery } from "./query"
 
 export class Util_Server_Job {
     server:Util_Server
@@ -22,6 +23,9 @@ export class Util_Server_Job {
     public get save() : ServerSave {
         return this.server.save
     }
+    public get query() : ServerQuery {
+        return this.server.query
+    }
     public get del() : ServerDelete {
         return this.server.del
     }
@@ -34,10 +38,21 @@ export class Util_Server_Job {
     public get emitter() : Emitter<BusType> {
         return this.server.emitter
     }
+    public get selectProject() {
+        return this.server.selectProject
+    }
+    public get selectTask() {
+        return this.server.selectTask
+    }
 
     //#region Job CRUD
-    addJob = (v:JobTable) => {
-        return this.save.save_job(v)
+    addJob = async (v:JobTable) => {
+        if(this.selectTask.value == undefined) return
+        await this.save.save_job(v)
+        this.selectTask.value.jobs_uuid.push(v.uuid)
+        await this.save.save_task(this.selectTask.value)
+        await this.query.load_task(this.selectTask.value.uuid)
+        return this.query.load_jobs(this.selectTask.value.uuid)
     }
 
     cloneJob = (v:Array<string>) => {

@@ -84,8 +84,10 @@ const scriptExist = (name:string) => {
     return props.libs!.findIndex(x => x.name == name) != -1
 }
 const confirm = () => {
-    emits('confirm', data.value.buffer)
-    modal.value = false
+    emits('confirm', {
+        ...data.value.buffer,
+        string_args: data.value.buffer.string_args.map((s) => (s == null || s == undefined) ? '' : s)
+    })
 }
 const cancel = () => {
     modal.value = false

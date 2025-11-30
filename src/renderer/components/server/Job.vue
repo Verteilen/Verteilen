@@ -58,6 +58,8 @@ const data:Ref<DATA> = ref({
     categorise: [],
     dirty: false,
     pfields: [],
+    errorMessage: "",
+    titleError: false,
 })
 //#endregion
 
@@ -165,7 +167,10 @@ const deleteConfirm = () => {
 }
 
 const dialogConfirm = (job:JobTable) => {
-
+    const r = util.jobCreate(job)
+    if(r == undefined) return
+    data.value.createModal = false
+    emits('added', JSON.parse(JSON.stringify(r)))
 }
 
 const libRename = (d:Rename) => {

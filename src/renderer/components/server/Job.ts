@@ -1,5 +1,7 @@
+import { v6 as uuidv6 } from 'uuid';
 import { JobTable, Property, ProjectTable, TaskTable, DatabaseTable, Library, TaskBase, JobCategory } from "verteilen-core/src/interface"
 import { ComputedRef, Ref } from "vue"
+import { i18n } from "../../plugins/i18n"
 
 export interface ViewTreeNode {
     id: string
@@ -24,6 +26,8 @@ export interface DATA {
     categorise: Array<any>
     dirty: boolean
     pfields: Array<any>
+    errorMessage: string
+    titleError: boolean
 }
 
 export interface PROPS {
@@ -64,6 +68,18 @@ export class Util_Job {
         this.data = data
         this.emits = emits
         this.properties = properties
+    }
+
+    jobCreate = (job:JobTable):JobTable | undefined => {
+        if(job.title.length == 0){
+            this.data.value.errorMessage = i18n.global.t('error.title-needed')
+            this.data.value.titleError = true
+            return undefined
+        }
+        return {
+            ...job,
+            uuid: uuidv6()
+        }
     }
 
     moveUp = (uuid:string) => {
