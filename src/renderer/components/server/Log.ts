@@ -1,4 +1,4 @@
-import { Log } from "../../interface"
+import { Log } from "verteilen-core/dist/interface"
 
 
 export interface DATA {

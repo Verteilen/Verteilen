@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { BusType, Job, JobTable, Property } from "../../interface"
+import { BusType, Job, JobTable, Property } from "verteilen-core/dist/interface"
 import { DATA, save_and_update, Util_Server } from "."
 import { Emitter } from "mitt"
 import { BackendProxy } from "../../proxy"

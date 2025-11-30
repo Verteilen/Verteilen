@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { i18n } from 'verteilen-core/src/plugins/i18n';
+import { i18n } from '../../plugins/i18n';
 import DialogBase from './DialogBase.vue';
 import { PROPS as BasePROPS } from './DialogBase.vue'
 

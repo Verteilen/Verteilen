@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { ConsoleManager, Listener, AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType } from "./interface";
+import { ConsoleManager, Listener, AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType } from "verteilen-core/dist/interface";
 import { checkExpressType, checkifElectron, checkIfExpress } from "./platform";
 import Cookies from 'js-cookie'
 import { messager_log } from "./debugger";

@@ -1,5 +1,20 @@
 import { v6 as uuid6 } from 'uuid'
-import { ConditionResult, ExecutePair, ExecuteProxy, ExecuteRecordTask, ExecuteState, ExecutionLog, FeedBack, Job, JobCategory, Log, Database, Preference, Project, Task } from "../../interface"
+import { 
+    ConditionResult, 
+    ExecutePair, 
+    ExecuteProxy, 
+    ExecuteRecordTask, 
+    ExecuteState, 
+    ExecutionLog, 
+    FeedBack, 
+    Job, 
+    JobCategory, 
+    Log, 
+    Database, 
+    Preference, 
+    Project, 
+    Task 
+} from "verteilen-core/dist/interface"
 import * as fs from 'fs'
 
 export class Util_Server_Log_Proxy {

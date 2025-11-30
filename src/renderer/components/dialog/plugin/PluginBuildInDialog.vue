@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { BuildinAssets, PluginContainer } from 'verteilen-core/src/interface';
+import { BuildinAssets, PluginContainer } from 'verteilen-core/dist/interface';
 import { i18n } from '../../../plugins/i18n';
 import DialogBase from '../DialogBase.vue';
 import { computed, Ref, ref, watch } from 'vue';

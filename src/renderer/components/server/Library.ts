@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { Library, Database } from "../../interface"
+import { Library, Database } from "verteilen-core/dist/interface"
 
 type Selection = () => Library | undefined
 

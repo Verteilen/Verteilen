@@ -3,7 +3,7 @@ import { inject, onMounted, onUnmounted, Ref, ref } from 'vue'
 import { i18n } from '../../plugins/i18n'
 import { DATA } from './role'
 import { Emitter } from 'mitt';
-import { Preference, BusType, UserProfile } from '../../interface';
+import { Preference, BusType, UserProfile } from 'verteilen-core/dist/interface';
 
 interface PROPS {
     preference: Preference

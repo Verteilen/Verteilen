@@ -1,6 +1,6 @@
 import { ComputedRef, DefineProps, Ref } from "vue"
 import { BackendProxy } from "../../proxy"
-import { Execute_SocketManager, Header, LooseRequired, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from "../../interface"
+import { WebsocketManager, Header, LooseRequired, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from "verteilen-core/dist/interface"
 import { v6 as uuid6 } from 'uuid';
 
 /**
@@ -27,7 +27,7 @@ export interface DATA {
  */
 export interface PROPS {
     nodes: Array<NodeTable>
-    manager: Execute_SocketManager.WebsocketManager | undefined
+    manager: WebsocketManager | undefined
     plugin: PluginPageData
 }
 

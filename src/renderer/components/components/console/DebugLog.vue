@@ -2,13 +2,15 @@
 //#region Modules
 import { Emitter } from 'mitt'
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue'
-import { BusType, MESSAGE_LIMIT, Preference } from 'verteilen-core/src/interface'
+import { BusType, MESSAGE_LIMIT, Preference } from 'verteilen-core/dist/interface'
+import { i18n } from '../../../plugins/i18n';
 //#endregion
 
 //#region Data
 interface PROPS {
     preference: Preference
 }
+const $t = i18n.global.t
 const emitter:Emitter<BusType> | undefined = inject('emitter');    
 const props = defineProps<PROPS>()
 const alllog:Ref<Array<string>> = ref([])

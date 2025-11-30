@@ -1,4 +1,4 @@
-import { Preference, ServerBase } from "../../interface"
+import { Preference, ServerBase } from "verteilen-core/dist/interface"
 import { Ref } from "vue"
 import { Util_Server, DATA } from "."
 import { BackendProxy } from "../../proxy"

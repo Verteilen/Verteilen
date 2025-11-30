@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 //#region Modules
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { ClientLog, Preference } from '../../../interface';
+import { ClientLog, Preference } from 'verteilen-core/dist/interface';
 import { i18n } from '../../../plugins/i18n';
 import { BackendProxy } from '../../../proxy';
 //#endregion

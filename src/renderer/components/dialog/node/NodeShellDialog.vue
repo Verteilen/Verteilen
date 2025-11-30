@@ -2,9 +2,9 @@
 //#region Modules
 import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
-import { BusType, NodeTable, Preference, ShellFolder, Single, WebsocketManager } from '../../../interface'
+import { BusType, NodeTable, Preference, ShellFolder, Single, WebsocketManager } from 'verteilen-core/dist/interface'
 import { BackendProxy } from '../../../proxy'
-import { i18n } from 'verteilen-core/src/plugins/i18n'
+import { i18n } from '../../../plugins/i18n';
 //#region 
 
 //#region Views
@@ -151,7 +151,7 @@ onUnmounted(() => {
         <template #text>
             <v-row>
                 <v-col cols="3">
-                    <v-row>
+                    <v-row no-gutters>
                         <v-col cols="1">
                             <v-btn class="w-100" variant="text" icon="mdi-arrow-left" @click="lastFolder">
                             </v-btn>

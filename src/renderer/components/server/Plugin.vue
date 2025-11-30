@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //#region Modules
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, PluginContainer } from '../../interface';
+import { BusType, PluginContainer } from 'verteilen-core/dist/interface';
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
 import { Emitter } from 'mitt';

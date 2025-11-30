@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch, watchEffect } from 'vue';
-import { BusType, Libraries, Database, Preference, Library } from '../../interface';
+import { BusType, Libraries, Database, Preference, Library } from 'verteilen-core/dist/interface';
 import { i18n } from '../../plugins/i18n';
 import { DATA, Util_Lib } from './Library';
 import { BackendProxy } from '../../proxy';

@@ -8,7 +8,7 @@ import {
   MESSAGE_LIMIT, 
   Preference, 
   RENDER_UPDATETICK 
-} from './../interface'
+} from 'verteilen-core/dist/interface'
 import { BackendProxy } from '../proxy'
 import { i18n } from '../plugins/i18n'
 import Layout from './components/layout/Layout.vue'

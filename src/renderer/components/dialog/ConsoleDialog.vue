@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ExecutePair, Node, Database, Preference, Project, Record } from '../../interface';
+import { BusType, ExecutePair, Node, Database, Preference, Project, Record } from 'verteilen-core/dist/interface';
 import { i18n } from '../../plugins/i18n'
 import DialogBase from './DialogBase.vue';
 import { BackendProxy } from '../../proxy';

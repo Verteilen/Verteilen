@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, Ref, ref, watch } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { AppConfig, ExecuteState, ExecutionLog, Preference, SCROLL_LIMIT } from '../../../interface';
+import { AppConfig, ExecuteState, ExecutionLog, Preference, SCROLL_LIMIT } from 'verteilen-core/dist/interface';
 
 interface PROPS {
     preference: Preference
@@ -55,9 +55,9 @@ const getStateColor = (state:number):string => {
 
 const page = (r:number):number => {
     if(getselect.value == undefined) return -1
-    const length = Math.ceil(getselect.value.project.task.length / props.totalLength)
+    const length = Math.ceil(getselect.value.project.tasks.length / props.totalLength)
     if(r != length) return props.totalLength
-    else return getselect.value.project.task.length % props.totalLength
+    else return getselect.value.project.tasks.length % props.totalLength
 }
 
 const getindex = (r:number, i:number):number => {
@@ -122,7 +122,7 @@ const load = async (o:any) => {
                 </v-card-subtitle>
             </v-card>
             <v-stepper style="background-color: transparent" class="my-1"
-                :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.task.length / totalLength)" :key="r" :mandatory="false" multiple>
+                :model-value="getEnable(r)" editable v-for="r in Math.ceil(getselect.project.tasks.length / totalLength)" :key="r" :mandatory="false" multiple>
                 <v-stepper-header>
                     <template v-for="i in page(r - 1)" :key="i">
                         <v-divider v-if="i - 1" />
@@ -132,7 +132,7 @@ const load = async (o:any) => {
                             style="background-color: transparent;"
                             :style="{ 'color': getStateColor(getselect.logs[getindex(r, i)]?.task_state.state ?? 0) }"
                             :value="getindex(r, i)"
-                            :title="getselect.project.task[getindex(r, i)]?.title ?? ''"
+                            :title="getselect.project.tasks[getindex(r, i)]?.title ?? ''"
                             :complete="(getselect.logs[getindex(r, i)]?.task_state.state ?? 0) == 2">
                         </v-stepper-item>
                     </template>

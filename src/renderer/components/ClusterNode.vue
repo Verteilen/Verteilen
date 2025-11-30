@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { inject, Ref } from 'vue';
-import { Preference } from '../interface';
+import { Preference } from 'verteilen-core/dist/interface';
 
 const preference:Ref<Preference> = inject("preference")!
 

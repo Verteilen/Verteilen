@@ -1,8 +1,7 @@
-import { Database, DatabaseTable, Job, JobTable, Preference, Project, ProjectTable, Task, TaskTable } from "verteilen-core/src/interface"
+import { Database, DatabaseTable, Job, JobTable, Preference, Project, ProjectTable, Task, TaskTable, ServerBase } from "verteilen-core/dist/interface"
 import { Ref } from "vue"
 import { Util_Server, DATA } from "."
 import { BackendProxy } from "../../proxy"
-import { ServerBase } from "verteilen-core/src/server"
 
 export class ServerSave {
     server:Util_Server

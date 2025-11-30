@@ -1,5 +1,5 @@
 import { v6 as uuidv6 } from 'uuid';
-import { JobTable, Property, ProjectTable, TaskTable, DatabaseTable, Library, TaskBase, JobCategory } from "verteilen-core/src/interface"
+import { JobTable, Property, ProjectTable, TaskTable, DatabaseTable, Library, TaskBase, JobCategory } from "verteilen-core/dist/interface"
 import { ComputedRef, Ref } from "vue"
 import { i18n } from "../../plugins/i18n"
 

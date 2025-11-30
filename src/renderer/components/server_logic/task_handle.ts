@@ -1,5 +1,5 @@
 import { nextTick, Ref } from "vue"
-import { BusType, ProjectTable, Property, Task, TaskBase, TaskTable } from "../../interface"
+import { BusType, ProjectTable, Property, Task, TaskBase, TaskTable } from "verteilen-core/dist/interface"
 import { DATA, save_and_update, Util_Server } from "."
 import { Emitter } from "mitt"
 import { BackendProxy } from "../../proxy"
@@ -148,9 +148,11 @@ export class Util_Server_Task {
 
     baseModify = async (data:TaskBase) => {
         if(this.selectTask.value == undefined) return
-        Object.assign(this.selectTask.value, data)
-        await this.save.save_task(this.selectTask.value)
-        return this.query.load_task(this.selectTask.value!.uuid)
+        const b = Object.assign(JSON.parse(JSON.stringify(this.selectTask.value)), data)
+        console.log("Y", b)
+        if(data.logic == undefined) delete b.logic
+        await this.save.save_task(b)
+        return this.query.load_task(b!.uuid)
     }
     //#endregion
 }

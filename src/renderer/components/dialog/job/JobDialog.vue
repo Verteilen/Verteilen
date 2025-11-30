@@ -11,7 +11,7 @@ import {
     JobType, 
     JobType2,
     ToastData, 
-} from 'verteilen-core/src/interface'
+} from 'verteilen-core/dist/interface'
 import { i18n } from '../../../plugins/i18n'
 import { inject, ref, Ref, watch } from 'vue'
 import { BackendProxy } from '../../../proxy'

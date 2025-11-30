@@ -14,7 +14,7 @@ import {
     PluginPageData, 
     Preference, 
     ToastData 
-} from '../../interface'
+} from 'verteilen-core/dist/interface'
 import { i18n } from '../../plugins/i18n'
 import { CreateField, DATA, EmitType, Util_Database } from './Database'
 import { v6 as uuidv6 } from 'uuid'

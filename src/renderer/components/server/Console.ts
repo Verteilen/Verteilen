@@ -1,13 +1,13 @@
 import { Ref } from "vue"
 import { 
     Database, 
-    Execute_WebhookManager, 
+    WebhookManager, 
     ExecutePair, 
     Library, 
     NodeTable, 
     Project, 
     Record
-} from "../../interface"
+} from "verteilen-core/dist/interface"
 
 export interface DATA {
     leftSize: number
@@ -19,7 +19,7 @@ export interface DATA {
     queryWait: boolean
 }
 export interface PROPS {
-    socket: Execute_WebhookManager.WebhookManager | undefined
+    socket: WebhookManager | undefined
     execute: Array<ExecutePair>
     libs: Array<Library>
     projects: Array<Project>

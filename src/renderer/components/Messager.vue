@@ -2,7 +2,7 @@
 //#region Modules
 import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, ref, Ref } from 'vue'
-import { BusType, IMessage, Preference, RENDER_UPDATETICK, ToastData } from './../interface'
+import { BusType, IMessage, Preference, RENDER_UPDATETICK, ToastData } from 'verteilen-core/dist/interface'
 import { GetColor } from '../plugins/vuetify'
 //#endregion
 

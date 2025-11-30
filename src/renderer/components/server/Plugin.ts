@@ -1,5 +1,5 @@
 import { ComputedRef, Ref } from "vue"
-import { BuildinAssets, PluginContainer, PluginPageData } from "../../interface"
+import { BuildinAssets, PluginContainer, PluginPageData } from "verteilen-core/dist/interface"
 import { i18n } from "../../plugins/i18n"
 
 //#region Data

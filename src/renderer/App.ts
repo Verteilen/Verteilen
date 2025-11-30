@@ -1,5 +1,5 @@
 import { ComputedRef, Ref } from "vue"
-import { BusType, Preference } from "./interface"
+import { BusType, Preference } from "verteilen-core/dist/interface"
 import { BackendProxy } from "./proxy"
 import { Emitter } from "mitt"
 import { i18n } from "./plugins/i18n"
@@ -26,6 +26,13 @@ export class Util_App {
         this.backend = backend
         this.preference = preference
         this.token = token
+
+        // @ts-ignore
+        window.dump = () => {
+            this.backend.value.invoke('debug:dump').then(x => {
+                console.log(JSON.parse(x))
+            })
+        }
     }
 
     save_preference = (v:Preference) => {

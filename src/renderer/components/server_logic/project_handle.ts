@@ -1,7 +1,7 @@
 import { v6 as uuidv6 } from 'uuid'
 import { Emitter } from "mitt";
 import { Ref } from "vue";
-import { BusType, DatabaseTable, Project, ProjectTable, ServerBase } from "../../interface";
+import { BusType, DatabaseTable, Project, ProjectTable, ServerBase } from "verteilen-core/dist/interface";
 import { DATA, save_and_update, Util_Server } from ".";
 import { BackendProxy } from "../../proxy";
 import { ServerSave } from "./save";

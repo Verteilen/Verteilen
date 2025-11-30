@@ -3,7 +3,7 @@
 import { Emitter } from 'mitt'
 import { 
     BusType, 
-} from 'verteilen-core/src/interface'
+} from 'verteilen-core/dist/interface'
 import { i18n } from '../../../plugins/i18n'
 import { inject, Ref } from 'vue'
 import { BackendProxy } from '../../../proxy'

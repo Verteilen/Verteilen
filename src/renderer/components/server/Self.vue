@@ -1,6 +1,6 @@
 <script setup lang="ts">
 //#region Modules
-import { ClientLog } from 'verteilen-core/src/interface';
+import { ClientLog } from 'verteilen-core/dist/interface'
 //#endregion
 
 //#region Views

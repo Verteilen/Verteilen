@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Emitter } from 'mitt';
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, DataTypeText, Database, Preference } from '../../../interface';
+import { BusType, DataType, DataTypeText, Database, Preference } from 'verteilen-core/dist/interface';
 import { i18n } from '../../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');

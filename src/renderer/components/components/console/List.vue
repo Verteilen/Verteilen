@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { ConnectionText, ExecutePair, ExecuteState, ExecuteStateText, NodeTable, Preference } from 'verteilen-core/src/interface'
+import { ConnectionText, ExecutePair, ExecuteState, ExecuteStateText, NodeTable, Preference } from 'verteilen-core/dist/interface'
 import { i18n } from '../../../plugins/i18n';
 
 interface PROPS {
@@ -82,7 +82,7 @@ onUnmounted(() => {
                 <span>{{ item.url }}</span>
             </template>
             <template v-slot:item.state="{ item }">
-                <v-chip :color="translate_state_color(item.ID)">{{ translate_state(item.ID) }}</v-chip>
+                <v-chip :color="translate_state_color(item.uuid)">{{ translate_state(item.uuid) }}</v-chip>
             </template>
         </v-data-table>
     </v-container>

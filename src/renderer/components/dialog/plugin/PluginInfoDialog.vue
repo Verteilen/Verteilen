@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { PluginContainer } from '../../../interface';
+import { PluginContainer } from 'verteilen-core/dist/interface';
 import { i18n } from '../../../plugins/i18n';
 import DialogBase from '../DialogBase.vue';
 

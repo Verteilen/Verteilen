@@ -20,7 +20,7 @@ import {
     Job,
     JobTable,
     TaskLogicType, 
-} from '../../interface';
+} from 'verteilen-core/dist/interface';
 import { i18n } from './../../plugins/i18n';
 import { BackendProxy } from '../../proxy'
 import { DATA, EmitType, PROPS, Util_Job, ViewTreeNode } from './Job'
@@ -111,7 +111,7 @@ const rules = {
 const logic_modify = () => {
     if(data.value.buffer == undefined) return
     if(data.value.buffer.logic != undefined){
-        data.value.buffer.logic = undefined
+        delete data.value.buffer.logic
     }else{
         data.value.buffer.logic = {
             group: data.value.buffer.jobs_uuid.map((x):TaskLogicUnit => {

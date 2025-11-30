@@ -1,6 +1,6 @@
 import { v6 as uuidv6 } from 'uuid';
 import { ComputedRef, Ref } from "vue";
-import { DatabaseTable, DataType, Preference, Project, ProjectTable, Task, TaskTable } from "../../interface";
+import { DatabaseTable, DataType, Preference, Project, ProjectTable, Task, TaskTable } from "verteilen-core/dist/interface";
 import { i18n } from '../../plugins/i18n';
 
 //#region Data

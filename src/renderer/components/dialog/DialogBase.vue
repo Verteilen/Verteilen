@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, Ref } from 'vue';
 import { useTheme } from 'vuetify/lib/framework.mjs';
-import { Preference } from '../../interface';
+import { Preference } from 'verteilen-core/dist/interface';
 
 export interface PROPS {
     width?: string

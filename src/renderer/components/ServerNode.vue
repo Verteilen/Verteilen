@@ -28,7 +28,8 @@ import {
   ExecutePair, 
   FrontendUpdate,
   ProjectTable,
-} from './../interface'
+  ServerBase,
+} from 'verteilen-core/dist/interface'
 import { BackendProxy } from '../proxy'
 import { DATA, Util_Server } from './server_logic'
 import { i18n } from './../plugins/i18n'
@@ -50,7 +51,6 @@ import ProfilePage from './server/Profile.vue';
 import PluginPage from './server/Plugin.vue';
 import Layout from './components/layout/Layout.vue'
 import AppBar from './components/layout/AppBar.vue'
-import { ServerBase } from 'verteilen-core/src/server'
 //#endregion
 
 //#region Data
@@ -291,8 +291,9 @@ const updateLocate = () => {
 }
 
 const updateHandleCall = () => {
-  if(backend.value.config.haveBackend){
-  }
+  data.value.nodes.map(x => {
+      backend.value.send("save_node", x.uuid, JSON.stringify(x, null, 4))
+  })
 }
 
 const updateTab = () => {

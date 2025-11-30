@@ -2,9 +2,9 @@
 import { computed, inject, onMounted, Ref, ref } from 'vue';
 import { BackendProxy } from '../../proxy';
 import { DATA } from './Profile';
-import { BusType, UserType } from '../../interface';
+import { BusType, UserType } from 'verteilen-core/dist/interface';
 import { Emitter } from 'mitt';
-import { i18n } from 'verteilen-core/src/plugins/i18n';
+import { i18n } from '../../plugins/i18n';
 
 const emitter:Emitter<BusType> | undefined = inject('emitter');
 

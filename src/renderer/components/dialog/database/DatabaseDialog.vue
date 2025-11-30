@@ -8,7 +8,7 @@ import { CreateField, DialogDATACreateSet } from '../../server/Database';
 //#region Views
 import DialogBase from './../DialogBase.vue'
 import { i18n } from '../../../plugins/i18n';
-import { TemplateData_Database } from 'verteilen-core/src/interface';
+import { TemplateData_Database } from 'verteilen-core/dist/interface';
 //#endregion
 
 //#region Data

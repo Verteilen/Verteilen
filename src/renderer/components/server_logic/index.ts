@@ -24,11 +24,9 @@ import {
     Preference,
     TaskTable,
     JobTable,
-    FrontendUpdate
-} from '../../interface'
-import {
-    ServerBase
-} from 'verteilen-core/src/server'
+    FrontendUpdate,
+    ServerBase,
+} from 'verteilen-core/dist/interface'
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Lib } from "./lib_handle";
@@ -150,6 +148,7 @@ export class Util_Server extends ServerBase {
     page_update = (v:number) => {
         if(!this.backend.value.config.haveBackend) return
         this.backend.value.send("server_page", v)
+        this.query.load_all_node()
         switch(v){
             case 0: // project
                 {
@@ -181,7 +180,7 @@ export class Util_Server extends ServerBase {
                 }
             case 4: //
                 {
-                    this.query.load_all_node()
+                    //this.query.load_all_node()
                 }
             case 11: // plugin
                 {

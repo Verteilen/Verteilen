@@ -37,7 +37,7 @@ import {
     PluginNode,
     RecordIOLoader,
 } from "./interface";
-import { Server } from "verteilen-core";
+import { MemoryData, Server } from "verteilen-core";
 import { CreateRecordIOLoader } from "verteilen-core/dist/server/io2";
 
 const Loader = (loader:RecordIOLoader, key:string) => {
@@ -84,7 +84,8 @@ const DetailInit = (detail:ServerDetailEvent) => {
     ipcMain.handle('console_add', (event, name:string, record:Record) => detail.console_add(undefined, name, record, undefined))
     ipcMain.handle('console_update', (event) => detail.console_update())
 }
-const ModuleInit = (project:Project_Module) => {
+const ModuleInit = (project:Project_Module, memory:()=>MemoryData) => {
+    // Project
     ipcMain.handle("project_module:reorder_project_tasks", (event, uuid:string, uuids:Array<string>, token?:string | undefined) => project.ReOrderProjectTask(uuid, uuids, token))
     ipcMain.handle("project_module:populate_project", (event, uuid:string, token?:string | undefined) => project.PopulateProject(uuid, token))
     ipcMain.handle("project_module:populate_task", (event, uuid:string, token?:string | undefined) => project.PopulateTask(uuid, token))
@@ -96,6 +97,8 @@ const ModuleInit = (project:Project_Module) => {
     ipcMain.handle("project_module:cascade_project", (event, uuid:string, bind:boolean, token?:string | undefined) => project.CascadeDeleteProject(uuid, bind, token))
     ipcMain.handle("project_module:cascade_task", (event, uuid:string, token?:string | undefined) => project.CascadeDeleteTask(uuid, true, token))
     ipcMain.handle("project_module:cascade_job", (event, uuid:string, token?:string | undefined) => project.CascadeDeleteJob(uuid, true, token))
+    // Debug
+    ipcMain.handle("debug:dump", (event) => JSON.stringify(memory()))
 }
 const CreateIO = ():RecordIOBase => {
     return {
@@ -144,7 +147,7 @@ export class BackendEvent extends Server implements BackendAction {
         PluginInit(this.plugin_loader)
         this.detail = new ServerDetail(this.io, this, feedback, messager, console.log)
         DetailInit(this.detail)
-        ModuleInit(this.module_project)
+        ModuleInit(this.module_project, () => this.memory)
         this.InitClient()
     }
 

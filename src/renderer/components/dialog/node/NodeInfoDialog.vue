@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import byteSize from 'byte-size';
 import { computed, inject, Ref } from 'vue';
-import { NodeTable, Preference } from '../../../interface';
+import { NodeTable, Preference } from 'verteilen-core/dist/interface';
 import DialogBase from './../DialogBase.vue';
 
 interface PROPS {

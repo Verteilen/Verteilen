@@ -2,7 +2,7 @@
 //#region Modules
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ConnectionText, Header, Plugin, Preference } from '../../interface';
+import { BusType, ConnectionText, Header, Node, Plugin, Preference } from 'verteilen-core/dist/interface';
 import { i18n } from '../../plugins/i18n';
 import { BackendProxy } from '../../proxy';
 import { DATA, Util_Node, PROPS } from './Node';
