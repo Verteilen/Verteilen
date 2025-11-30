@@ -114,10 +114,9 @@ const logic_modify = () => {
         data.value.buffer.logic = {
             group: data.value.buffer.jobs_uuid.map((x):TaskLogicUnit => {
                 return {
-                    type: TaskLogicType.Single,
+                    type: TaskLogicType.SINGLE,
                     job_uuid: x,
-                    children: [],
-                    children2: []
+                    children: []
                 }
             })
         }
