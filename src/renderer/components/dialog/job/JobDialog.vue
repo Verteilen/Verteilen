@@ -85,6 +85,7 @@ const scriptExist = (name:string) => {
 }
 const confirm = () => {
     emits('confirm', data.value.buffer)
+    modal.value = false
 }
 const cancel = () => {
     modal.value = false
@@ -167,13 +168,13 @@ const cancel = () => {
                 <p class="hint">{{ replaceString(1) }}</p>
                 <v-text-field class="my-2" v-model="data.buffer.string_args[1]" :label="$t('jobpage.command')" hide-details></v-text-field>
                 <p class="hint">{{ replaceString(2) }}</p>
-                <v-text-field class="my-2" v-model="data.buffer.string_args[2]" :label="$t('jobpage.databases')" hide-details></v-text-field>
+                <v-text-field class="my-2" v-model="data.buffer.string_args[2]" :label="$t('jobpage.variable')" hide-details></v-text-field>
             </div>
             <div v-else-if="checkPatterm(data.buffer.category, data.buffer.type, 'Lib_Command')">
                 <p class="hint">{{ replaceString(0) }}</p>
                 <v-text-field class="my-2" v-model="data.buffer.string_args[0]" :label="$t('jobpage.command')" hide-details></v-text-field>
                 <p class="hint">{{ replaceString(1) }}</p>
-                <v-text-field class="my-2" v-model="data.buffer.string_args[1]" :label="$t('jobpage.databases')" hide-details></v-text-field>
+                <v-text-field class="my-2" v-model="data.buffer.string_args[1]" :label="$t('jobpage.variable')" hide-details></v-text-field>
             </div>
             <div v-else-if="checkPatterm(data.buffer.category, data.buffer.type, 'Javascript')">
                 <v-btn prepend-icon="mdi-magnify-plus" variant="outlined" color="warning" @click="data.zoom = true">{{ $t('zoom') }}</v-btn>
