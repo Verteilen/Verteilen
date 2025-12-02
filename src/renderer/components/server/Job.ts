@@ -1,9 +1,11 @@
 import { v6 as uuidv6 } from 'uuid';
-import { JobTable, Property, ProjectTable, TaskTable, DatabaseTable, Library, TaskBase, JobCategory } from "verteilen-core/dist/interface"
+import { JobTable, Property, ProjectTable, TaskTable, DatabaseTable, Library, TaskBase, JobCategory, TaskLogicType, TaskLogic, TaskLogicUnit } from "verteilen-core/dist/interface"
 import { ComputedRef, Ref } from "vue"
 import { i18n } from "../../plugins/i18n"
 
 export interface ViewTreeNode {
+    open?: boolean
+    type: TaskLogicType
     id: string
     title: string
     children?: Array<ViewTreeNode>
@@ -22,12 +24,14 @@ export interface DATA {
     buffer: TaskBase | undefined
     types: Array<any>
     types2: Array<any>
-    result: Array<any>
     categorise: Array<any>
+    result: Array<any>
     dirty: boolean
     pfields: Array<any>
     errorMessage: string
     titleError: boolean
+    dragging: boolean
+    logicBuffer: Array<ViewTreeNode>
 }
 
 export interface PROPS {
@@ -47,11 +51,7 @@ export type EmitType = {
     (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
     (e: 'keychange', key:string): void
-    (e: 'moveup', uuids:string): void
-    (e: 'movedown', uuids:string): void
 
-    (e: 'padded'): void
-    (e: 'pdelete', name:string): void
     (e: 'taskSubmit', data:TaskBase): void
     (e: 'return'): void
 }
@@ -83,13 +83,6 @@ export class Util_Job {
         }
     }
 
-    moveUp = (uuid:string) => {
-        this.emits('moveup', uuid)
-    }
-    moveDown = (uuid:string) => {
-        this.emits('movedown', uuid)
-    }
-
     dirty = () => {
         this.data.value.dirty = true
     }
@@ -100,20 +93,56 @@ export class Util_Job {
     move = (e:any, oge:any) => {
         //console.log("MOVE", e, oge)
     }
+    start = (e:any) => {
+        this.data.value.dragging = true
+    }
     end = (e:any) => {
+        this.data.value.dragging = false
+        if(this.data.value.buffer == undefined) return
         //const uuids = this.tasks.value.map(x => x.uuid)
         const n:number = e.newIndex
         const o:number = e.oldIndex
-        //const buffer = uuids.splice(o, 1)
-        //uuids.splice(n, 0, ...buffer)
-        //this.emits('reorder', uuids)
+        const buffer = this.data.value.buffer.jobs_uuid.splice(o, 1)
+        this.data.value.buffer.jobs_uuid.splice(n, 0, ...buffer)
+        this.p_submit()
+    }
+    tmove = (e:any, oge:any) => {
+        console.log("MOVE", e, oge)
+    }
+    tstart = (e:any) => {
+        this.data.value.dragging = true
+        console.log("START", e)
+    }
+    tend = (e:any) => {
+        this.data.value.dragging = false
+        if(this.data.value.buffer == undefined) return
+        const n:number = e.newIndex
+        const o:number = e.oldIndex
+        //this.data.value.buffer.logic?.group
+        this.p_submit()
     }
 
     pcreateProperty = () => {
-        this.emits('padded')
+        const p:Property = {
+            name: "Default_Property",
+            expression: "1 + 1",
+            deep: 1
+        }
+        let count:number = 0
+        while(this.data.value.buffer?.properties.find(x => x.name == p.name)){
+            count = count + 1
+            p.name = `Default_Property_${count}`
+        }
+        this.data.value.buffer?.properties.push(p)
+        this.dirty()
     }
     p_submit = () => {
         if(this.data.value.buffer == undefined) return
+        if(this.data.value.buffer.logic != undefined){
+            this.data.value.buffer.logic.group = this.data.value.logicBuffer.map(x => {
+                return this.viewNodeToLogic(x)
+            })
+        }
         this.emits('taskSubmit', this.data.value.buffer)
     }
     pdelete = (name:string) => {
@@ -121,7 +150,7 @@ export class Util_Job {
         const index = this.data.value.buffer.properties.findIndex(x => x.name == name)
         if(index == -1) return
         this.data.value.buffer.properties.splice(index, 1)
-        this.p_submit()
+        this.dirty()
     }
     pmove = (e:any, oge:any) => {
         //console.log("MOVE", e, oge)
@@ -133,5 +162,14 @@ export class Util_Job {
         const buffer = this.data.value.buffer.properties.splice(o, 1)
         this.data.value.buffer.properties.splice(n, 0, ...buffer)
         this.p_submit()
+    }
+
+    //#region Logic
+    viewNodeToLogic = (node:ViewTreeNode):TaskLogicUnit => {
+        return {
+            type: node.type,
+            job_uuid: node.id,
+            children: node.children?.map(x => this.viewNodeToLogic(x)) ?? []
+        }
     }
 }

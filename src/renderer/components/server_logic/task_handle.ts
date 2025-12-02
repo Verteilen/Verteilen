@@ -149,10 +149,10 @@ export class Util_Server_Task {
     baseModify = async (data:TaskBase) => {
         if(this.selectTask.value == undefined) return
         const b = Object.assign(JSON.parse(JSON.stringify(this.selectTask.value)), data)
-        console.log("Y", b)
         if(data.logic == undefined) delete b.logic
         await this.save.save_task(b)
-        return this.query.load_task(b!.uuid)
+        await this.query.load_task(b!.uuid)
+        return this.query.load_jobs(b!.uuid)
     }
     //#endregion
 }

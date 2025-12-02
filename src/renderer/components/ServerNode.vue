@@ -404,7 +404,7 @@ const repull = (u:FrontendUpdate) => {
 
 const makeToastFromBackend = (e:any) => {
     if (process.env.NODE_ENV == 'development') console.log("makeToastFromBackend", e)
-    emitter?.emit('makeToast', JSON.parse(e))
+    emitter?.emit('makeToast', e)
 }
 
 const logUpdate = (e:string) => {

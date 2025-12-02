@@ -1,7 +1,11 @@
 import { ComputedRef, DefineProps, Ref } from "vue"
 import { BackendProxy } from "../../proxy"
-import { WebsocketManager, Header, LooseRequired, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from "verteilen-core/dist/interface"
+import { WebsocketManager, Header, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from "verteilen-core/dist/interface"
 import { v6 as uuid6 } from 'uuid';
+
+export type LooseRequired<T> = {
+    [P in keyof (T & Required<T>)]: T[P];
+}
 
 /**
  * **Node Page Data**
