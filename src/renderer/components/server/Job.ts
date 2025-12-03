@@ -3,14 +3,45 @@ import { JobTable, Property, ProjectTable, TaskTable, DatabaseTable, Library, Ta
 import { ComputedRef, Ref } from "vue"
 import { i18n } from "../../plugins/i18n"
 
+//#region Data Structure
+/**
+ * **Logic View Node**\
+ * The logic will transform into view node first\
+ * Then after finish editing, it will return to logic node.
+ */
 export interface ViewTreeNode {
-    open?: boolean
-    type: TaskLogicType
+    /**
+     * **Container id**
+     */
     id: string
+    /**
+     * **Title label**
+     */
     title: string
+    /**
+     * **Container Type**
+     */
+    type: TaskLogicType
+    /**
+     * **Job UUID**
+     */
+    job_uuid: string
+    /**
+     * **Is Fold Open**
+     */
+    open?: boolean
+    /**
+     * **Can be drag around**
+     */
+    disabled?: boolean
+    /**
+     * **Children Children View Node**
+     */
     children?: Array<ViewTreeNode>
 }
-
+/**
+ * ***Page Data**
+ */
 export interface DATA {
     page: number
     createModal: boolean
@@ -55,6 +86,7 @@ export type EmitType = {
     (e: 'taskSubmit', data:TaskBase): void
     (e: 'return'): void
 }
+//#endregion
 
 export class Util_Job {
     data: Ref<DATA>
@@ -71,6 +103,7 @@ export class Util_Job {
         this.properties = properties
     }
 
+    //#region Page Utility
     jobCreate = (job:JobTable):JobTable | undefined => {
         if(job.title.length == 0){
             this.data.value.errorMessage = i18n.global.t('error.title-needed')
@@ -87,25 +120,18 @@ export class Util_Job {
         this.data.value.dirty = true
     }
     save = () => {
-        this.p_submit()
+        if(this.data.value.buffer == undefined) return
+        if(this.data.value.buffer.logic != undefined){
+            this.data.value.buffer.logic.group = this.data.value.logicBuffer.map(x => {
+                return this.viewNodeToLogic(x)
+            })
+        }
+        this.emits('taskSubmit', this.data.value.buffer)
         this.data.value.dirty = false
     }
-    move = (e:any, oge:any) => {
-        //console.log("MOVE", e, oge)
-    }
-    start = (e:any) => {
-        this.data.value.dragging = true
-    }
-    end = (e:any) => {
-        this.data.value.dragging = false
-        if(this.data.value.buffer == undefined) return
-        //const uuids = this.tasks.value.map(x => x.uuid)
-        const n:number = e.newIndex
-        const o:number = e.oldIndex
-        const buffer = this.data.value.buffer.jobs_uuid.splice(o, 1)
-        this.data.value.buffer.jobs_uuid.splice(n, 0, ...buffer)
-        this.p_submit()
-    }
+    //#endregion
+
+    //#region Logic Drag Event
     tmove = (e:any, oge:any) => {
         console.log("MOVE", e, oge)
     }
@@ -119,9 +145,11 @@ export class Util_Job {
         const n:number = e.newIndex
         const o:number = e.oldIndex
         //this.data.value.buffer.logic?.group
-        this.p_submit()
+        this.save()
     }
+    //#endregion
 
+    //#region Property Event
     pcreateProperty = () => {
         const p:Property = {
             name: "Default_Property",
@@ -135,15 +163,6 @@ export class Util_Job {
         }
         this.data.value.buffer?.properties.push(p)
         this.dirty()
-    }
-    p_submit = () => {
-        if(this.data.value.buffer == undefined) return
-        if(this.data.value.buffer.logic != undefined){
-            this.data.value.buffer.logic.group = this.data.value.logicBuffer.map(x => {
-                return this.viewNodeToLogic(x)
-            })
-        }
-        this.emits('taskSubmit', this.data.value.buffer)
     }
     pdelete = (name:string) => {
         if(this.data.value.buffer == undefined) return
@@ -161,15 +180,71 @@ export class Util_Job {
         const o:number = e.oldIndex
         const buffer = this.data.value.buffer.properties.splice(o, 1)
         this.data.value.buffer.properties.splice(n, 0, ...buffer)
-        this.p_submit()
+        this.save()
     }
+    //#endregion
 
-    //#region Logic
+    
+    
+    
+
+    //#region Logic Utility Function
     viewNodeToLogic = (node:ViewTreeNode):TaskLogicUnit => {
         return {
+            uuid: uuidv6(),
             type: node.type,
             job_uuid: node.id,
             children: node.children?.map(x => this.viewNodeToLogic(x)) ?? []
         }
     }
+
+    createConditionNode = (type:TaskLogicType):TaskLogicUnit | undefined => {
+        if(type == TaskLogicType.GROUP){
+            return {
+                uuid: uuidv6(),
+                type: TaskLogicType.GROUP,
+                job_uuid: '',
+                children: [
+                    {
+                        uuid: uuidv6(),
+                        type: TaskLogicType.CONDITION,
+                        job_uuid: '',
+                        children: []
+                    },
+                    {
+                        uuid: uuidv6(),
+                        type: TaskLogicType.EXECUTION,
+                        job_uuid: '',
+                        children: []
+                    },
+                    {
+                        uuid: uuidv6(),
+                        type: TaskLogicType.FAILED,
+                        job_uuid: '',
+                        children: []
+                    }
+                ]
+            }
+        }
+        else if(type == TaskLogicType.AND || type == TaskLogicType.NOT || type == TaskLogicType.OR){
+            return {
+                uuid: uuidv6(),
+                type: type,
+                job_uuid: '',
+                children: []
+            }
+        }
+        else return undefined
+    }
+    conditionTypeDragEnable = (type:TaskLogicType):boolean => {
+        switch(type){
+            case TaskLogicType.CONDITION:
+            case TaskLogicType.EXECUTION:
+            case TaskLogicType.FAILED:
+                return false
+            default:
+                return true 
+        }
+    }
+    //#endregion
 }

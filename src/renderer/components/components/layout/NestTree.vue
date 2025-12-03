@@ -14,6 +14,7 @@ interface PROPS {
     types2: Array<any>
     categorise: Array<any>
     layer?: number
+    disabled?:boolean
 }
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
@@ -54,6 +55,19 @@ const group_display = (item:ViewTreeNode):boolean => {
     return item.open == true
 }
 
+const cannotDelete = (type:TaskLogicType):boolean => {
+    switch(type){
+        case TaskLogicType.SINGLE:
+        case TaskLogicType.GROUP:
+        case TaskLogicType.AND:
+        case TaskLogicType.OR:
+        case TaskLogicType.NOT:
+            return false
+        default:
+            return true
+    }
+}
+
 onMounted(() => {
     updateLocate()
     emitter.on('updateLocate', updateLocate)
@@ -67,7 +81,7 @@ onUnmounted(() => {
 <template>    
     <div>
         <VueDraggableNext class="dragArea" tag="ul" :list="props.items" :group="{ name: 'g1' }"
-            :move="() => emits('changed')">
+            :move="() => emits('changed')" :disabled="props.disabled">
             <li v-for="(item, index) in props.items" class="d-flex flex-wrap" :key="'nest'+index" style="min-height: 30px">
                 <!-- Toggle -->
                 <v-btn v-if="item.type != TaskLogicType.SINGLE" variant="text" 
@@ -83,7 +97,7 @@ onUnmounted(() => {
                 <div class="me-auto"></div>
                 <!-- Append -->
                 <v-btn class="pt-3" variant="text" prepend-icon="mdi-pencil" :disabled="item.id.length <= 1" @click="emits('edit', item.id)">{{ $t('edit') }}</v-btn>
-                <v-btn class="pt-3" variant="text" prepend-icon="mdi-delete" color="error" @click="emits('delete', item.id)">{{ $t('delete') }}</v-btn>
+                <v-btn class="pt-3" variant="text" prepend-icon="mdi-delete" :disabled="cannotDelete(item.type)" color="error" @click="emits('delete', item.id)">{{ $t('delete') }}</v-btn>
                 <div class="w-100"></div>
                 <!-- Children -->
                 <nest-tree v-if="group_display(item)" :layer="(props.layer ?? 0) + 1"
@@ -92,6 +106,7 @@ onUnmounted(() => {
                     :types="props.types" 
                     :types2="props.types2" 
                     :categorise="props.categorise"
+                    :disabled="item.disabled"
                     class="pl-5 mb-2 w-100"
                     @changed="emits('changed')"
                     @clean-selection="emits('clean-selection')"

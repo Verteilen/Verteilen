@@ -33,6 +33,15 @@ const updateLocate = () => {
             value: index
         }
     })
+
+    const i1 = items.value.findIndex(x => x.value == TaskLogicType.CONDITION)
+    items.value.splice(i1, 1)
+    const i2 = items.value.findIndex(x => x.value == TaskLogicType.EXECUTION)
+    items.value.splice(i2, 1)
+    const i3 = items.value.findIndex(x => x.value == TaskLogicType.FAILED)
+    items.value.splice(i3, 1)
+    const i4 = items.value.findIndex(x => x.value == TaskLogicType.SINGLE)
+    items.value.splice(i4, 1)
 }
 
 const confirm = () => {

@@ -93,15 +93,18 @@ const make_instance = () => {
 }
 const convert = (unit:TaskLogicUnit):ViewTreeNode => {
     return {
-        id: unit.job_uuid ?? "",
+        id: unit.uuid,
+        job_uuid: unit.job_uuid ?? "",
         type: unit.type,
         title: `${unit.type}`,
+        disabled: util.conditionTypeDragEnable(unit.type),
         children: unit.children.map(x => convert(x))
     }
 }
 const convert2 = (uuid:string):ViewTreeNode => {
     return {
-        id: uuid,
+        id: uuidv6(),
+        job_uuid: uuid,
         type: TaskLogicType.SINGLE,
         title: items.value?.find(x => x.uuid == uuid)?.title ?? ""
     }
@@ -119,27 +122,11 @@ const logic_modify = () => {
     }else{
         const g = data.value.buffer.jobs_uuid.map((x):TaskLogicUnit => {
             return {
+                uuid: uuidv6(),
                 type: TaskLogicType.SINGLE,
                 job_uuid: x,
                 children: []
             }
-        })
-        g.push({
-            type: TaskLogicType.GROUP,
-            job_uuid: '0',
-            children: [
-                {
-                    type: TaskLogicType.CONDITION,
-                    job_uuid: '1',
-                    children: [
-                        {
-                            type: TaskLogicType.AND,
-                            job_uuid: '5',
-                            children: []
-                        }
-                    ]
-                }
-            ]
         })
         data.value.buffer.logic = {
             group: g
@@ -211,12 +198,11 @@ const dialogConfirm = (job:JobTable) => {
 
 const dialogConfirmCondition = (index:number) => {
     if(data.value.buffer?.logic == undefined) return
-    data.value.buffer.logic.group.push({
-        type: index as TaskLogicType,
-        job_uuid: '',
-        children: []
-    })
-    util.p_submit()
+    const c = util.createConditionNode(index as TaskLogicType)
+    if(c == undefined) return
+    data.value.conditionModal = false
+    data.value.logicBuffer.push(convert(c))
+    util.save()
 }
 
 const libRename = (d:Rename) => {
@@ -364,7 +350,9 @@ onUnmounted(() => {
                         :types2="data.types2"
                         :categorise="data.categorise"
                         @clean-selection="nextTick(() => { data.selection = [] })"
-                        @changed="util.dirty()">
+                        @changed="util.dirty()"
+                        @edit="id => editJob(id)"
+                        @delete="id => deleteJob(id)">
                     </NestTree>
                 </div>
             </template>
