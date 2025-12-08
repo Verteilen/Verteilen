@@ -92,15 +92,18 @@ export class Util_Job {
     data: Ref<DATA>
     emits: EmitType
     properties: ComputedRef<Property[] | undefined>
+    items: ComputedRef<JobTable[]>
 
     constructor(
         data: Ref<DATA>,
         emits: EmitType,
-        properties: ComputedRef<Property[] | undefined>
+        properties: ComputedRef<Property[] | undefined>,
+        items: ComputedRef<JobTable[]>,
     ){
         this.data = data
         this.emits = emits
         this.properties = properties
+        this.items = items
     }
 
     //#region Page Utility
@@ -129,6 +132,7 @@ export class Util_Job {
         this.emits('taskSubmit', this.data.value.buffer)
         this.data.value.dirty = false
     }
+    
     //#endregion
 
     //#region Logic Drag Event
@@ -150,6 +154,9 @@ export class Util_Job {
     //#endregion
 
     //#region Property Event
+    /**
+     * **Property Create Blank Event**
+     */
     pcreateProperty = () => {
         const p:Property = {
             name: "Default_Property",
@@ -164,6 +171,10 @@ export class Util_Job {
         this.data.value.buffer?.properties.push(p)
         this.dirty()
     }
+    /**
+     * **Property Delete Event**
+     * @param name Porperty name
+     */
     pdelete = (name:string) => {
         if(this.data.value.buffer == undefined) return
         const index = this.data.value.buffer.properties.findIndex(x => x.name == name)
@@ -171,9 +182,17 @@ export class Util_Job {
         this.data.value.buffer.properties.splice(index, 1)
         this.dirty()
     }
+    /**
+     * **Property Drag Move Event**
+     * @param e Event
+     */
     pmove = (e:any, oge:any) => {
         //console.log("MOVE", e, oge)
     }
+    /**
+     * **Property Drag End Event**
+     * @param e Event
+     */
     pend = (e:any) => {
         if(this.data.value.buffer == undefined) return
         const n:number = e.newIndex
@@ -183,10 +202,6 @@ export class Util_Job {
         this.save()
     }
     //#endregion
-
-    
-    
-    
 
     //#region Logic Utility Function
     viewNodeToLogic = (node:ViewTreeNode):TaskLogicUnit => {
@@ -244,6 +259,34 @@ export class Util_Job {
                 return false
             default:
                 return true 
+        }
+    }
+    /**
+     * Logic tree convertsion => tree node
+     * @param unit Tree unit
+     * @returns Node structure
+     */
+    convert = (unit:TaskLogicUnit):ViewTreeNode => {
+        return {
+            id: unit.uuid,
+            job_uuid: unit.job_uuid ?? "",
+            type: unit.type,
+            title: `${unit.type}`,
+            disabled: this.conditionTypeDragEnable(unit.type),
+            children: unit.children.map(x => this.convert(x))
+        }
+    }
+    /**
+     * UUIDs convertsion => tree node
+     * @param uuid job_uuid
+     * @returns Node structure
+     */
+    convert2 = (uuid:string):ViewTreeNode => {
+        return {
+            id: uuidv6(),
+            job_uuid: uuid,
+            type: TaskLogicType.SINGLE,
+            title: this.items.value?.find(x => x.uuid == uuid)?.title ?? ""
         }
     }
     //#endregion

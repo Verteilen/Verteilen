@@ -267,7 +267,6 @@ const LogClean = () => {
 
 //#region Self
 const msgAppend = (d:Array<string | undefined>) => util.self.msgAppend(d)
-const msgClean = () => util.self.clearMessage()
 //#endregion
 
 //#region Plugin
@@ -656,7 +655,7 @@ onUnmounted(() => {
         <SelfPage
           v-if="data.page == 8"
           :messages="data.messages"
-          @clean="msgClean"/>
+          @clean="util.self.clearMessage()"/>
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.isExpress" :value="9">
         <RolePage 

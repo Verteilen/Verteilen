@@ -7,6 +7,9 @@ import { BackendProxy } from '../../../proxy';
 //#endregion
 
 interface PROPS {
+    /**
+     * **Extra message sources**
+     */
     messages: Array<ClientLog>
 }
 const $t = i18n.global.t
@@ -23,12 +26,18 @@ const autoScroll = ref(true)
 const msgAppend = () => {
     if(autoScroll.value) myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
 }
-
+/**
+ * Remove all display message on views
+ */
 const clearMessage = () => {
     emits('clean')
     panel.value = [0]
 }
-
+/**
+ * Toggle one of the message group
+ * @param e Event
+ * @param v ID
+ */
 const onToggle = (e:PointerEvent, v:number) => {
     e.preventDefault()
     const index = panel.value.findIndex(x => x == v)
@@ -46,7 +55,6 @@ onMounted(() => {
 onUnmounted(() => {
     backend.value.eventOff('msgAppend', msgAppend);
 })
-
 </script>
 
 <template>

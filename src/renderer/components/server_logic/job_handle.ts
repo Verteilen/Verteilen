@@ -68,9 +68,11 @@ export class Util_Server_Job {
         return this.query.load_jobs(this.selectTask.value.uuid)
     }
     
-    deleteJob = (uuids:Array<string>) => {
+    deleteJob = async (uuids:Array<string>) => {
+        if(this.selectTask.value == undefined) return
         const ps = uuids.map(x => this.del.delete_job(x))
-        return Promise.all(ps)
+        await Promise.all(ps)
+        return this.query.load_jobs(this.selectTask.value.uuid)
     }
     //#endregion
 }

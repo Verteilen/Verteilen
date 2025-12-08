@@ -67,7 +67,9 @@ const data:Ref<DATA> = ref({
 
 //#region Watch
 watch(() => props.select, () => {
-    console.log("task selected update")
+    make_instance()
+})
+watch(() => props.jobs, () => {
     make_instance()
 })
 //#endregion
@@ -79,35 +81,17 @@ const hasSelect = computed(() => items.value.filter(x => x.s).length > 0)
 const properties = computed(() => props.select?.properties ?? [])
 const treeData = computed<Array<ViewTreeNode>>(() => {
     if(logic.value == undefined) { // No Logic
-        return items.value.map(x => convert2(x.uuid))
+        return items.value.map(x => util.convert2(x.uuid))
     }
     // Logic
-    return logic.value.group.map(x => convert(x))
+    return logic.value.group.map(x => util.convert(x))
 })
-const util = new Util_Job(data, emits, properties)
+const util = new Util_Job(data, emits, properties, items)
 //#endregion
 
 const make_instance = () => {
     data.value.buffer = props.select == undefined ? undefined : JSON.parse(JSON.stringify(props.select))
     data.value.logicBuffer = props.select == undefined ? [] : treeData.value
-}
-const convert = (unit:TaskLogicUnit):ViewTreeNode => {
-    return {
-        id: unit.uuid,
-        job_uuid: unit.job_uuid ?? "",
-        type: unit.type,
-        title: `${unit.type}`,
-        disabled: util.conditionTypeDragEnable(unit.type),
-        children: unit.children.map(x => convert(x))
-    }
-}
-const convert2 = (uuid:string):ViewTreeNode => {
-    return {
-        id: uuidv6(),
-        job_uuid: uuid,
-        type: TaskLogicType.SINGLE,
-        title: items.value?.find(x => x.uuid == uuid)?.title ?? ""
-    }
 }
 const rules = {
     required: (value:string) => (value.toString().length > 0) || 'Required.',
@@ -174,9 +158,16 @@ const deleteJob = (id:string) => {
 }
 
 const deleteConfirm = () => {
+    if(data.value.buffer == undefined) return
     data.value.deleteModal = false
-    //data.value.items = items.value@.filter(x => !data.value.deleteData.includes(x.uuid))
-    data.value.dirty = true
+    emits('delete', data.value.deleteData)
+    data.value.deleteData.forEach(x => {
+        const index = data.value.buffer!.jobs_uuid.findIndex(y => y == x)
+        if(index != -1){
+            data.value.buffer!.jobs_uuid.splice(index)
+        }
+    })
+    util.save()
 }
 
 const dialogCreateConfirm = (job:JobTable) => {
@@ -201,7 +192,7 @@ const dialogConfirmCondition = (index:number) => {
     const c = util.createConditionNode(index as TaskLogicType)
     if(c == undefined) return
     data.value.conditionModal = false
-    data.value.logicBuffer.push(convert(c))
+    data.value.logicBuffer.push(util.convert(c))
     util.save()
 }
 

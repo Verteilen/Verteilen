@@ -168,6 +168,7 @@ export class Util_Server extends ServerBase {
                 {
                     if(this.selectTask.value != undefined){
                         this.query.load_jobs(this.selectTask.value.uuid)
+                        this.query.load_task(this.selectTask.value.uuid)
                     }else{
                         this.data.value.jobs = []
                     }
