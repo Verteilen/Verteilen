@@ -50,7 +50,7 @@ export interface DATA {
     editMode: boolean
     conditionModal: boolean
     deleteModal: boolean
-    deleteData: Array<string>
+    deleteData: string
     selection: Array<string>
     buffer: TaskBase | undefined
     types: Array<any>
@@ -132,7 +132,6 @@ export class Util_Job {
         this.emits('taskSubmit', this.data.value.buffer)
         this.data.value.dirty = false
     }
-    
     //#endregion
 
     //#region Logic Drag Event
@@ -150,6 +149,51 @@ export class Util_Job {
         const o:number = e.oldIndex
         //this.data.value.buffer.logic?.group
         this.save()
+    }
+    tree_delete_id = (id:string) => {
+        const deleteJobsUUID:Array<string> = []
+        const container = this.tree_find_id_target(id, this.data.value.logicBuffer)
+        if(container == undefined) {
+            console.warn(`Cannot find id from logic tree: ${id}`)
+            return
+        }
+        const r = container[1] == undefined ? this.data.value.logicBuffer : container[1]?.children!
+        const index = r.findIndex(x => x.id == id)
+        r.splice(index, 1)
+        this.tree_get_job_uuid(deleteJobsUUID, container[0])
+        this.emits('delete', deleteJobsUUID)
+        this.save()
+    }
+    /**
+     * Get the [container, container parent] object from the logic tree.
+     * @param id Search ID
+     * @param root Root list
+     * @param parent register parent object
+     * @returns [Container, Container Parent]\
+     * If containre parent is undefined, it means container is store at top layer
+     */
+    tree_find_id_target = (id:string, root:Array<ViewTreeNode>, parent?:ViewTreeNode):[ViewTreeNode, ViewTreeNode | undefined] | undefined=> {
+        for(let x of root){
+            if(x.id == id) return [x, parent]
+            if(x.children == undefined) continue
+            const a = this.tree_find_id_target(id, x.children, x)
+            if(a != undefined) return a
+        }
+    }
+    /**
+     * Accumulate all job uuid from a tree object
+     * @param list Accumulate list
+     * @param root Top node target
+     */
+    tree_get_job_uuid = (list:Array<string>, root:ViewTreeNode) => {
+        if(root.job_uuid.length > 1){
+            list.push(root.job_uuid)
+        }
+        if(root.children != undefined){
+            for(let x of root.children){
+                this.tree_get_job_uuid(list, x)
+            }
+        }
     }
     //#endregion
 
@@ -206,9 +250,9 @@ export class Util_Job {
     //#region Logic Utility Function
     viewNodeToLogic = (node:ViewTreeNode):TaskLogicUnit => {
         return {
-            uuid: uuidv6(),
+            uuid: node.id,
             type: node.type,
-            job_uuid: node.id,
+            job_uuid: node.job_uuid,
             children: node.children?.map(x => this.viewNodeToLogic(x)) ?? []
         }
     }
@@ -218,24 +262,24 @@ export class Util_Job {
             return {
                 uuid: uuidv6(),
                 type: TaskLogicType.GROUP,
-                job_uuid: '',
+                job_uuid: undefined,
                 children: [
                     {
                         uuid: uuidv6(),
                         type: TaskLogicType.CONDITION,
-                        job_uuid: '',
+                        job_uuid: undefined,
                         children: []
                     },
                     {
                         uuid: uuidv6(),
                         type: TaskLogicType.EXECUTION,
-                        job_uuid: '',
+                        job_uuid: undefined,
                         children: []
                     },
                     {
                         uuid: uuidv6(),
                         type: TaskLogicType.FAILED,
-                        job_uuid: '',
+                        job_uuid: undefined,
                         children: []
                     }
                 ]

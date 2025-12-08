@@ -70,6 +70,7 @@ export class Util_Server_Job {
     
     deleteJob = async (uuids:Array<string>) => {
         if(this.selectTask.value == undefined) return
+        console.log("Trying delete job: ", uuids)
         const ps = uuids.map(x => this.del.delete_job(x))
         await Promise.all(ps)
         return this.query.load_jobs(this.selectTask.value.uuid)

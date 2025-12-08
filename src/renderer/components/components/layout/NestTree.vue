@@ -37,16 +37,16 @@ const updateLocate = () => {
 }
 
 const get_title = (uuid:string) => {
-    return props.jobs.find(x => x.uuid == uuid)?.title ?? 0
+    return props.jobs.find(x => x.uuid == uuid)?.title ?? undefined
 }
 const get_category = (uuid:string) => {
-    return props.jobs.find(x => x.uuid == uuid)?.category ?? 0
+    return props.jobs.find(x => x.uuid == uuid)?.category ?? -1
 }
 const get_type = (uuid:string) => {
-    return props.jobs.find(x => x.uuid == uuid)?.type ?? 0
+    return props.jobs.find(x => x.uuid == uuid)?.type ?? -1
 }
 const get_group_name = (node:ViewTreeNode):string => {
-    if(node.title == '4') return ''
+    if(node.type == TaskLogicType.SINGLE) return ''
     return items.value.find(x => x.value == node.title)?.key ?? ''
 }
 
@@ -55,8 +55,8 @@ const group_display = (item:ViewTreeNode):boolean => {
     return item.open == true
 }
 
-const cannotDelete = (type:TaskLogicType):boolean => {
-    switch(type){
+const cannotDelete = (unit:ViewTreeNode):boolean => {
+    switch(unit.type){
         case TaskLogicType.SINGLE:
         case TaskLogicType.GROUP:
         case TaskLogicType.AND:
@@ -66,6 +66,9 @@ const cannotDelete = (type:TaskLogicType):boolean => {
         default:
             return true
     }
+}
+const cannotEdit = (unit:ViewTreeNode):boolean => {
+    return unit.job_uuid.length <= 1 || unit.type != TaskLogicType.SINGLE
 }
 
 onMounted(() => {
@@ -88,16 +91,16 @@ onUnmounted(() => {
                     :icon="!item.open ? 'mdi-chevron-right' : 'mdi-chevron-down'" @click="item.open = !item.open"></v-btn>
                 <div v-else class="ml-6"><v-icon class="pt-6 pr-6">mdi-circle-medium</v-icon></div>
                 <!-- Prepend -->
-                <span class="mx-1 pt-3" v-if="item.id.length > 1">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
-                <span class="mx-1 pt-3" v-if="item.id.length <= 1">{{ get_group_name(item) }}</span>
-                <span class="mx-1 pt-3" v-if="item.id.length > 0 && get_category(item.id) == 1">{{ props.types[get_type(item.id)]?.text }}</span>
-                <span class="mx-1 pt-3" v-if="item.id.length > 0 && get_category(item.id) == 0">{{ props.types2[get_type(item.id)]?.text }}</span>
-                <span class="mx-1 pt-3" v-if="item.id.length > 0">{{ props.categorise[get_category(item.id)]?.text }}</span>
-                <span class="mx-1 pt-3" v-if="item.id.length > 0">{{ get_title(item.id) }}</span>
+                <span class="mx-1 pt-3" v-if="item.job_uuid.length > 1">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
+                <span class="mx-1 pt-3" v-if="item.job_uuid.length <= 1">{{ get_group_name(item) }}</span>
+                <span class="mx-1 pt-3" v-if="item.id.length > 0 && get_category(item.job_uuid) == 1">{{ props.types[get_type(item.job_uuid)]?.text }}</span>
+                <span class="mx-1 pt-3" v-if="item.id.length > 0 && get_category(item.job_uuid) == 0">{{ props.types2[get_type(item.job_uuid)]?.text }}</span>
+                <span class="mx-1 pt-3" v-if="item.id.length > 0">{{ props.categorise[get_category(item.job_uuid)]?.text }}</span>
+                <span class="mx-1 pt-3" v-if="item.id.length > 0">{{ get_title(item.job_uuid) }}</span>
                 <div class="me-auto"></div>
                 <!-- Append -->
-                <v-btn class="pt-3" variant="text" prepend-icon="mdi-pencil" :disabled="item.id.length <= 1" @click="emits('edit', item.id)">{{ $t('edit') }}</v-btn>
-                <v-btn class="pt-3" variant="text" prepend-icon="mdi-delete" :disabled="cannotDelete(item.type)" color="error" @click="emits('delete', item.id)">{{ $t('delete') }}</v-btn>
+                <v-btn class="mt-3" variant="text" prepend-icon="mdi-pencil" v-if="!cannotEdit(item)" @click="emits('edit', item.job_uuid)">{{ $t('edit') }}</v-btn>
+                <v-btn class="mt-3" variant="text" prepend-icon="mdi-delete" v-if="!cannotDelete(item)" color="error" @click="emits('delete', item.id)">{{ $t('delete') }}</v-btn>
                 <div class="w-100"></div>
                 <!-- Children -->
                 <nest-tree v-if="group_display(item)" :layer="(props.layer ?? 0) + 1"

@@ -49,7 +49,7 @@ const data:Ref<DATA> = ref({
     editMode: false,
     conditionModal: false,
     deleteModal: false,
-    deleteData: [],
+    deleteData: "",
     selection: [],
     buffer: undefined,
     types: [],
@@ -146,7 +146,10 @@ const createJob = (type:JobCategory) => {
 }
 const editJob = (id:string) => {
     const f = props.jobs.find(x => x.uuid == id)
-    if(f == undefined) return
+    if(f == undefined) {
+        console.warn(`Cannot find job: ${id}`, props.jobs)
+        return
+    }
     data.value.createData = JSON.parse(JSON.stringify(f))
     data.value.createType = f.category
     data.value.createModal = true
@@ -154,20 +157,13 @@ const editJob = (id:string) => {
 }
 const deleteJob = (id:string) => {
     data.value.deleteModal = true
-    data.value.deleteData = [id]
+    data.value.deleteData = id
 }
 
-const deleteConfirm = () => {
+const deleteConfirm = (id:string) => {
     if(data.value.buffer == undefined) return
     data.value.deleteModal = false
-    emits('delete', data.value.deleteData)
-    data.value.deleteData.forEach(x => {
-        const index = data.value.buffer!.jobs_uuid.findIndex(y => y == x)
-        if(index != -1){
-            data.value.buffer!.jobs_uuid.splice(index)
-        }
-    })
-    util.save()
+    util.tree_delete_id(id)
 }
 
 const dialogCreateConfirm = (job:JobTable) => {
@@ -311,9 +307,9 @@ onUnmounted(() => {
             <DeleteDialog v-model="data.deleteModal"
                 :title="$t('modal.delete-job')"
                 :text="$t('modal.delete-job-confirm')"
-                :data="data.deleteData"
+                :data="[data.deleteData]"
                 @cancel="data.deleteModal = false"
-                @delete="deleteConfirm"/>
+                @delete="deleteConfirm(data.deleteData)"/>
         </template>
         <div class="px-6">
             <div class="text-left">
