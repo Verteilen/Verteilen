@@ -289,12 +289,6 @@ const updateLocate = () => {
   updateTab()
 }
 
-const updateHandleCall = () => {
-  data.value.nodes.map(x => {
-      backend.value.send("save_node", x.uuid, JSON.stringify(x, null, 4))
-  })
-}
-
 const updateTab = () => {
   tabs.value = util.GetTab()
 }
@@ -454,7 +448,6 @@ onMounted(() => {
   emitter.on('updateNode', server_clients_update)
   emitter.on('deleteScript', libDelete)
   emitter.on('updateLocate', updateLocate)
-  emitter.on('updateHandle', updateHandleCall)
   backend.value.wait_init().then(() => {
     backend.value.eventOn('debuglog', debug_feedback)
     if(backend.value.config.isExpress){
@@ -483,7 +476,6 @@ onUnmounted(() => {
   emitter.off('updateNode', server_clients_update)
   emitter.off('deleteScript', libDelete)
   emitter.off('updateLocate', updateLocate)
-  emitter.off('updateHandle', updateHandleCall)
   data.value.execute_manager = []
   if(!backend.value.config.haveBackend) return
   backend.value.eventOff('debuglog', debug_feedback)
@@ -582,10 +574,10 @@ onUnmounted(() => {
           :owner="selectProject"
           :libs="data.libs"
           :database="projectbind"
-          @added="e => util.job.addJob(e)" 
+          :added="util.job.addJob" 
+          :deleted="util.job.deleteJob"
           @save="e => util.job.editJob(e)" 
           @edit="e => util.job.editJob(e)" 
-          @delete="e => util.job.deleteJob(e)"
           @return="data.page = 1"
           @padded="util.task.addProperty()"
           @taskSubmit="e => util.task.baseModify(e)"/>

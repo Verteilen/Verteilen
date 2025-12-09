@@ -20,7 +20,7 @@ const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const props = defineProps<PROPS>()
 const emits = defineEmits<{
-    (e:'changed'):void
+    (e:'end'):void
     (e: 'edit', uuid:string):void
     (e: 'delete', uuid:string):void
     (e: 'clean-selection'):void
@@ -84,14 +84,15 @@ onUnmounted(() => {
 <template>    
     <div>
         <VueDraggableNext class="dragArea" tag="ul" :list="props.items" :group="{ name: 'g1' }"
-            :move="() => emits('changed')" :disabled="props.disabled">
+            @end="emits('end')" @change="emits('end')" :disabled="props.disabled">
             <li v-for="(item, index) in props.items" class="d-flex flex-wrap" :key="'nest'+index" style="min-height: 30px">
                 <!-- Toggle -->
                 <v-btn v-if="item.type != TaskLogicType.SINGLE" variant="text" 
                     :icon="!item.open ? 'mdi-chevron-right' : 'mdi-chevron-down'" @click="item.open = !item.open"></v-btn>
                 <div v-else class="ml-6"><v-icon class="pt-6 pr-6">mdi-circle-medium</v-icon></div>
                 <!-- Prepend -->
-                <span class="mx-1 pt-3" v-if="item.job_uuid.length > 1">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
+                <span class="mx-1 pt-3" v-if="item.job_uuid.length <= 1">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
+                <span class="mx-1 pt-3" v-if="item.job_uuid.length > 1">{{ item.job_uuid.slice(item.job_uuid.length - 12, item.job_uuid.length) }}</span>
                 <span class="mx-1 pt-3" v-if="item.job_uuid.length <= 1">{{ get_group_name(item) }}</span>
                 <span class="mx-1 pt-3" v-if="item.id.length > 0 && get_category(item.job_uuid) == 1">{{ props.types[get_type(item.job_uuid)]?.text }}</span>
                 <span class="mx-1 pt-3" v-if="item.id.length > 0 && get_category(item.job_uuid) == 0">{{ props.types2[get_type(item.job_uuid)]?.text }}</span>
@@ -111,7 +112,7 @@ onUnmounted(() => {
                     :categorise="props.categorise"
                     :disabled="item.disabled"
                     class="pl-5 mb-2 w-100"
-                    @changed="emits('changed')"
+                    @end="emits('end')"
                     @clean-selection="emits('clean-selection')"
                     @edit="id => emits('edit', id)"
                     @delete="id => emits('delete', id)">

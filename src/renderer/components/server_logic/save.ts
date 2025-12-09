@@ -35,6 +35,7 @@ export class ServerSave {
         delete project.taskCount
         const p = !this.backend.value.config.haveBackend ?
         new Promise<void>((resolve) => {
+            if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save project in web space")
             if(this.static_server.value == undefined) return
             const i = this.static_server.value.memory.projects.findIndex(x => x.uuid == project.uuid)
             if(i != -1){
@@ -44,7 +45,61 @@ export class ServerSave {
             }
             resolve()
         }) : new Promise<void>((resolve) => {
+            if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save project in backend space")
             this.backend.value.send("save_project", project.uuid, JSON.stringify(project, null, 4))
+            resolve()
+        })
+        return p
+    }
+
+    save_task = async (v:TaskTable):Promise<void> => {
+        const task:any = JSON.parse(JSON.stringify(v))
+        delete task.s
+        delete task.jobCount
+        const p = !this.backend.value.config.haveBackend ?
+        new Promise<void>((resolve) => {
+            if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save task in web space")
+            if(this.static_server.value == undefined) {
+                resolve()
+                return
+            }
+            const i = this.static_server.value.memory.tasks.findIndex(x => x.uuid == task.uuid)
+            if(i != -1){
+                this.static_server.value.memory.tasks[i] = task
+            }else{
+                this.static_server.value.memory.tasks.push(task)
+            }
+            resolve()
+        }) :
+        new Promise<void>((resolve) => {
+            if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save task in backend space")
+            this.backend.value.send("save_task", task.uuid, JSON.stringify(task, null, 4))
+            resolve()
+        })
+        return p.catch(err => console.error(err))
+    }
+
+    save_job = async (v:JobTable):Promise<void> => {
+        const job:any = JSON.parse(JSON.stringify(v))
+        delete job.s
+        const p = !this.backend.value.config.haveBackend ?
+        new Promise<void>((resolve) => {
+            if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save job in web space")
+            if(this.static_server.value == undefined) {
+                resolve()
+                return
+            }
+            const i = this.static_server.value.memory.jobs.findIndex(x => x.uuid == job.uuid)
+            if(i != -1){
+                this.static_server.value.memory.jobs[i] = job
+            }else{
+                this.static_server.value.memory.jobs.push(job)
+            }
+            resolve()
+        }) :
+        new Promise<void>((resolve) => {
+            if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save job in backend space")
+            this.backend.value.send("save_job", job.uuid, JSON.stringify(job, null, 4))
             resolve()
         })
         return p
@@ -63,33 +118,6 @@ export class ServerSave {
             resolve()
         })
         return p
-    }
-
-    save_task = async (v:TaskTable):Promise<void> => {
-        const task:any = JSON.parse(JSON.stringify(v))
-        delete task.s
-        delete task.jobCount
-        const p = !this.backend.value.config.haveBackend ?
-        new Promise<void>((resolve) => {
-            if (process.env.NODE_ENV == 'development') console.log("Save task in web space")
-            if(this.static_server.value == undefined) {
-                resolve()
-                return
-            }
-            const i = this.static_server.value.memory.tasks.findIndex(x => x.uuid == task.uuid)
-            if(i != -1){
-                this.static_server.value.memory.tasks[i] = task
-            }else{
-                this.static_server.value.memory.tasks.push(task)
-            }
-            resolve()
-        }) :
-        new Promise<void>((resolve) => {
-            if (process.env.NODE_ENV == 'development') console.log("Save task in backend space")
-            this.backend.value.send("save_task", task.uuid, JSON.stringify(task, null, 4))
-            resolve()
-        })
-        return p.catch(err => console.error(err))
     }
 
     clone_tasks = (v:Array<TaskTable>) => {
@@ -111,30 +139,6 @@ export class ServerSave {
                 await this.server.save.save_project(this.selectProject.value)
                 await this.server.query.load_tasks(this.selectProject.value.uuid)
             }
-            resolve()
-        })
-        return p
-    }
-
-    save_job = async (v:JobTable):Promise<void> => {
-        const job:any = JSON.parse(JSON.stringify(v))
-        delete job.s
-        const p = !this.backend.value.config.haveBackend ?
-        new Promise<void>((resolve) => {
-            if(this.static_server.value == undefined) {
-                resolve()
-                return
-            }
-            const i = this.static_server.value.memory.jobs.findIndex(x => x.uuid == job.uuid)
-            if(i != -1){
-                this.static_server.value.memory.jobs[i] = job
-            }else{
-                this.static_server.value.memory.jobs.push(job)
-            }
-            resolve()
-        }) :
-        new Promise<void>((resolve) => {
-            this.backend.value.send("save_job", job.uuid, JSON.stringify(job, null, 4))
             resolve()
         })
         return p

@@ -93,7 +93,6 @@ const completions:Array<Completion> = [
     {label: "message", type: "variable", info: i18n.global.t('codehint.v_message')},
     {label: "http", type: "variable", info: i18n.global.t('codehint.v_http')},
     {label: "setTimeout", apply: "setTimeout(() => {\n\n}, 1000)", type: "function", info: i18n.global.t('codehint.v_setTimeout')},
-    {label: "wait", apply: "wait()", type: "function", info: i18n.global.t('codehint.v_wait')},
     {label: "sleep", apply: "sleep()", type: "function", info: i18n.global.t('codehint.v_sleep')},
     {label: "console", type: "variable", info: i18n.global.t('codehint.v_console')},
     {label: "JSON", type: "variable", info: i18n.global.t('codehint.v_json')},
@@ -116,9 +115,7 @@ const completions_path:Array<Completion> = [
 
 const completions_os:Array<Completion> = [
     {label: "exec", apply: "exec(\"command\", \"arg\", \"cwd?\")", type: "function", section: "os.", info: i18n.global.t('codehint.os.exec')},
-    {label: "command", apply: "command(\"command\", \"arg\", \"cwd?\")", type: "function", section: "os.", info: i18n.global.t('codehint.os.command')},
     {label: "plugin_exec", apply: "plugin_exec(\"command\", \"arg\")", type: "function", section: "os.", info: i18n.global.t('codehint.os.plugin_exec')},
-    {label: "plugin_command", apply: "plugin_command(\"command\", \"arg\")", type: "function", section: "os.", info: i18n.global.t('codehint.os.plugin_command')},
     {label: "copyfile", apply: "copyfile(\"from\", \"to\")", type: "function", section: "os.", info: i18n.global.t('codehint.os.copyfile')},
     {label: "copydir", apply: "copydir(\"from\", \"to\")", type: "function", section: "os.", info: i18n.global.t('codehint.os.copydir')},
     {label: "deletefile", apply: "deletefile(\"path\")", type: "function", section: "os.", info: i18n.global.t('codehint.os.deletefile')},

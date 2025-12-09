@@ -49,15 +49,15 @@ export class ServerDelete {
         return p
     }
 
-    delete_job = async (uuid:string):Promise<void> => {
+    delete_job = async (uuid:string, task_changed?:boolean):Promise<void> => {
         console.log("delete_job", uuid)
         const p = !this.backend.value.config.haveBackend ?
         new Promise<void>(async (resolve) => {
             if(this.static_server.value == undefined) return
-            await this.static_server.value.module_project.CascadeDeleteJob(uuid)
+            await this.static_server.value.module_project.CascadeDeleteJob(uuid, task_changed)
             resolve()
         }) : new Promise<void>((resolve) => {
-            this.backend.value.send("project_module:cascade_job", uuid)
+            this.backend.value.invoke("project_module:cascade_job", uuid, task_changed)
             resolve()
         })
         return p

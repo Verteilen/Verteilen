@@ -57,12 +57,11 @@ export interface DATA {
     types2: Array<any>
     categorise: Array<any>
     result: Array<any>
-    dirty: boolean
     pfields: Array<any>
     errorMessage: string
     titleError: boolean
     dragging: boolean
-    logicBuffer: Array<ViewTreeNode>
+    logicBufferNode: Array<ViewTreeNode>
 }
 
 export interface PROPS {
@@ -72,14 +71,16 @@ export interface PROPS {
     owner: ProjectTable | undefined
     database: DatabaseTable | undefined
     libs: Array<Library>
+
+    added: (job:JobTable)=>Promise<void>
+    deleted: (uuid:string, task_changed?:boolean)=>Promise<void>
 }
 
 export type EmitType = {
-    (e: 'added', job:JobTable): void
     (e: 'save', job:JobTable): void
+    (e: 'reload'):void
     (e: 'clone', job:JobTable): void
     (e: 'edit', job:JobTable): void
-    (e: 'delete', uuids:Array<string>): void
     (e: 'select', uuids:string): void
     (e: 'keychange', key:string): void
 
@@ -93,17 +94,20 @@ export class Util_Job {
     emits: EmitType
     properties: ComputedRef<Property[] | undefined>
     items: ComputedRef<JobTable[]>
+    deleted: ComputedRef<(uuid:string, task_changed?:boolean)=>Promise<void>>
 
     constructor(
         data: Ref<DATA>,
         emits: EmitType,
         properties: ComputedRef<Property[] | undefined>,
         items: ComputedRef<JobTable[]>,
+        deleted: ComputedRef<(uuid:string, task_changed?:boolean)=>Promise<void>>,
     ){
         this.data = data
         this.emits = emits
         this.properties = properties
         this.items = items
+        this.deleted = deleted
     }
 
     //#region Page Utility
@@ -118,19 +122,14 @@ export class Util_Job {
             uuid: uuidv6()
         }
     }
-
-    dirty = () => {
-        this.data.value.dirty = true
-    }
     save = () => {
         if(this.data.value.buffer == undefined) return
         if(this.data.value.buffer.logic != undefined){
-            this.data.value.buffer.logic.group = this.data.value.logicBuffer.map(x => {
+            this.data.value.buffer.logic.group = this.data.value.logicBufferNode.map(x => {
                 return this.viewNodeToLogic(x)
             })
         }
         this.emits('taskSubmit', this.data.value.buffer)
-        this.data.value.dirty = false
     }
     //#endregion
 
@@ -152,17 +151,25 @@ export class Util_Job {
     }
     tree_delete_id = (id:string) => {
         const deleteJobsUUID:Array<string> = []
-        const container = this.tree_find_id_target(id, this.data.value.logicBuffer)
+        const container = this.tree_find_id_target(id, this.data.value.logicBufferNode)
         if(container == undefined) {
             console.warn(`Cannot find id from logic tree: ${id}`)
             return
         }
-        const r = container[1] == undefined ? this.data.value.logicBuffer : container[1]?.children!
+        const r = container[1] == undefined ? this.data.value.logicBufferNode : container[1]?.children!
         const index = r.findIndex(x => x.id == id)
         r.splice(index, 1)
         this.tree_get_job_uuid(deleteJobsUUID, container[0])
-        this.emits('delete', deleteJobsUUID)
-        this.save()
+        const ps = deleteJobsUUID.map(x => {
+            const job_index = this.data.value.buffer!.jobs_uuid.findIndex(y => y == x)
+            if(job_index != -1){
+                this.data.value.buffer!.jobs_uuid.splice(job_index, 1)
+            }
+            return this.deleted.value(x, false)
+        })
+        Promise.all(ps).then(() => {
+            this.save()
+        })
     }
     /**
      * Get the [container, container parent] object from the logic tree.
@@ -213,7 +220,7 @@ export class Util_Job {
             p.name = `Default_Property_${count}`
         }
         this.data.value.buffer?.properties.push(p)
-        this.dirty()
+        this.save()
     }
     /**
      * **Property Delete Event**
@@ -224,7 +231,7 @@ export class Util_Job {
         const index = this.data.value.buffer.properties.findIndex(x => x.name == name)
         if(index == -1) return
         this.data.value.buffer.properties.splice(index, 1)
-        this.dirty()
+        this.save()
     }
     /**
      * **Property Drag Move Event**
@@ -315,6 +322,7 @@ export class Util_Job {
             id: unit.uuid,
             job_uuid: unit.job_uuid ?? "",
             type: unit.type,
+            open: true,
             title: `${unit.type}`,
             disabled: this.conditionTypeDragEnable(unit.type),
             children: unit.children.map(x => this.convert(x))

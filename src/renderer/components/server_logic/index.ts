@@ -158,11 +158,13 @@ export class Util_Server extends ServerBase {
                 }
             case 1: // task
                 {
+                    this.query.load_all_database()
                     if(this.selectProject.value != undefined){
                         this.query.load_tasks(this.selectProject.value.uuid)
                     }else{
                         this.data.value.tasks = []
                     }
+                    break
                 }
             case 2: // job
                 {
@@ -172,6 +174,7 @@ export class Util_Server extends ServerBase {
                     }else{
                         this.data.value.jobs = []
                     }
+                    break
                 }
             case 3: // database
                 {

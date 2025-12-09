@@ -78,8 +78,6 @@ const detailSelect = () => {
     data.value.paraModal = true
 }
 
-const selectall = () => data.value.selection = props.tasks.map(x => x.uuid)
-
 const deleteSelect = () => {
     data.value.deleteData = selected_task_ids.value
     data.value.deleteModal = true
