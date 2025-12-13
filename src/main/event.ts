@@ -34,7 +34,6 @@ import {
     ExecuteState,
     Project_Module,
     CreateDefaultJob,
-    PluginNode,
     RecordIOLoader,
 } from "./interface";
 import { MemoryData, Server } from "verteilen-core";
@@ -163,6 +162,7 @@ export class BackendEvent extends Server implements BackendAction {
             messager_log(msg, tag, meta)
             mainWindow?.webContents.send('debuglog', tag == undefined ? msg : `[${tag}] ${msg}`);
         })
+        console.log("[Server Event] Init Client")
         this.client.Init()
     }
 
