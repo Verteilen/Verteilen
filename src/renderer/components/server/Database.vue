@@ -400,8 +400,8 @@ const updateFields = () => {
     data.value.fields = [
         { title: $t('headers.title'), align: 'center', key: 'name', minWidth: "80px", sortable: false },
         { title: $t('headers.type'), align: 'center', key: 'type', maxWidth: "60px", sortable: false },
-        { title: $t('headers.hidden'), align: 'center', key: 'hidden', maxWidth: "40px", sortable: false },
-        { title: $t('headers.runtime'), align: 'center', key: 'runtimeOnly', maxWidth: "40px", sortable: false },
+        { title: $t('headers.hidden'), align: 'center', key: 'hidden', maxWidth: "60px", sortable: false },
+        { title: $t('headers.runtime'), align: 'center', key: 'runtimeOnly', maxWidth: "60px", sortable: false },
         { title: $t('headers.value'), align: 'center', key: 'value', sortable: false },
         { title: $t('headers.detail'), align: 'center', key: 'detail', maxWidth: "80px", sortable: false },
     ]

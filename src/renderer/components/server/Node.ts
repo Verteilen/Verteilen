@@ -126,7 +126,7 @@ export class Util_Node {
             const p = this.props.manager?.targets.find(x => x.uuid == this.pluginTarget.value?.uuid)
             const p2:PluginWithToken = {...plugin, token: this.preference.value.plugin_token.map(x => x.token)}
             const h:Header = { name: 'plugin_download', data: plugin }
-            p?.websocket.send(JSON.stringify(h))
+            p?.socket.send(JSON.stringify(h))
         }
     }
     plugin_remove = (plugin:Plugin) => {
@@ -136,7 +136,7 @@ export class Util_Node {
         }else{
             const p = this.props.manager?.targets.find(x => x.uuid == this.pluginTarget.value?.uuid)
             const h:Header = { name: 'plugin_remove', data: plugin }
-            p?.websocket.send(JSON.stringify(h))
+            p?.socket.send(JSON.stringify(h))
         }
     }
     //#endregion
