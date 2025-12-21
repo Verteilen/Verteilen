@@ -96,6 +96,7 @@ function createWindow () {
         mainWindow.loadFile(join(app.getAppPath(), 'renderer', 'index.html'));
     }
     mainWindow.setMenu(null)
+    mainWindow.maximize();
 }
 
 export function RUN(){
