@@ -104,20 +104,21 @@ const load = async (o:any) => {
         <div ref="myDiv" style="max-height: calc(100vh - 150px); overflow-y: auto;">
             <v-card v-if="data.record!.project_index >= 0" style="background-color: transparent">
                 <v-card-title :style="{ 'fontSize': (props.preference.font + 6) + 'px' }" @click="console.log(data)">
-                    {{ $t('project') }}: {{ data.record!.projects[data.record!.project_index]?.title }}
+                    {{ $t('project') }}: {{ data.record!.projects[data.record!.project_index]?.title }} <br />
+                    {{ $t('parameter') }}: {{ data.record!.projects[data.record!.project_index].parameter?.title }}
                 </v-card-title>
                 <v-card-text>
-                    <p :style="{ 'fontSize': props.preference.font + 'px' }">{{ $t('is-running') }}: 
+                    <span :style="{ 'fontSize': props.preference.font + 'px' }">{{ $t('is-running') }}: 
                         <v-icon v-if="data.record!.running" color="success" icon="mdi-checkbox-marked-circle" end ></v-icon>
                         <v-icon v-else color="danger" icon="mdi-cancel" end ></v-icon>
-                    </p>
-                    <p :style="{ 'fontSize': props.preference.font + 'px' }">{{ $t('is-stop') }}:
+                    </span>
+                    <span :style="{ 'fontSize': props.preference.font + 'px' }">{{ $t('is-stop') }}:
                         <v-icon v-if="data.record!.stop" color="success" icon="mdi-checkbox-marked-circle" end ></v-icon>
                         <v-icon v-else color="danger" icon="mdi-cancel" end ></v-icon>
-                    </p>
-                    <p :style="{ 'fontSize': props.preference.font + 'px' }">
+                    </span>
+                    <span :style="{ 'fontSize': props.preference.font + 'px' }">
                         Step: {{ data.record?.task_state.findIndex(x => x.state == ExecuteState.FINISH) }}
-                    </p>
+                    </span>
                 </v-card-text>
             </v-card>
             <v-stepper style="background-color: transparent" class="my-1"
