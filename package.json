@@ -10,11 +10,7 @@
   "scripts": {
     "vite": "vite",
     "preview": "vite preview",
-    "dev": "ts-node scripts/web.ts && cd ./build && http-server -p 8080 -o -C cert.pem -S",
-    "node": "ts-node src/node/index.ts",
     "build": "ts-node scripts/build.ts",
-    "publish:node-pkg": "cd build/node-build && npm publish",
-    "pkg": "ts-node scripts/program_build.ts",
     "test": "jest --coverage"
   },
   "devDependencies": {
