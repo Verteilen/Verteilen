@@ -36,15 +36,15 @@ const data:Ref<DATA> = ref({
 const mode = computed(() => preference.value.mode)
 const config = computed(() => backend.value.config)
 const token = computed(() => backend.value.getCookie('token'))
+/**
+ * * 1: No login express
+ * * 2: Node
+ * * 3: Login express
+ * * 4: Cluster
+ * * 5: Pure Static-Site
+ */
 const route = computed(() => {
-  if(config.value.isElectron){
-    if(mode.value == -1) return 0
-    else if(mode.value == 0) return 2
-    else if(mode.value == 1) return 3
-    else if(mode.value == 2) return 4
-    else return 0
-  }
-  else if(config.value.isExpress){
+  if(config.value.haveBackend){
     if(config.value.backendType == BackendType.SERVER || config.value.backendType == BackendType.NONE){
       if(config.value.login) return 3
       else return 1
@@ -52,7 +52,7 @@ const route = computed(() => {
     else if(config.value.backendType == BackendType.NODE) return 2
     else if(config.value.backendType == BackendType.CLUSTER) return 4
   }
-  return 3
+  return 5
 })
 const util = new Util_App(data, theme, emitter, backend, preference, token)
 //#endregion
@@ -81,8 +81,8 @@ const UpdateSelection = (mode:number | undefined, url:string | undefined):void =
 
 onMounted(() => {
   backend.value.init().then(() => {
-    console.log("isElectron", config.value.isElectron)
-    console.log("isExpress", config.value.isExpress)
+    console.log("haveBackend", config.value.haveBackend)
+    console.log("backendType", config.value.backendType)
     console.log("isAdmin", config.value.isAdmin)
     console.log("env", process.env.NODE_ENV)
     backend.value.send('message', 'Welcome Compute Tool')
@@ -117,8 +117,7 @@ onUnmounted(() => {
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference?.font + 'px' }">
     <span style="z-index: 1; color: white; position: fixed;">{{ route }}: {{ mode }}</span>
     <!-- This is like router -->
-    <ServerClientSelectionPage v-if="route == 0" @selected="(e, e2) => UpdateSelection(e, e2)"/>
-    <LoginPage v-else-if="route == 1" :preference="preference" :config="config"/>
+    <LoginPage v-if="route == 1" :preference="preference" :config="config"/>
     <ClientNodePage v-else-if="route == 2"/>
     <ServerNodePage v-else-if="route == 3"/>
     <ClusterNodePage v-else-if="route == 4"/>
