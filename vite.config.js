@@ -11,7 +11,7 @@ import Components from 'unplugin-vue-components/vite';
  * https://vitejs.dev/config
  */
 const config = defineConfig({
-    root: Path.join(__dirname, 'src', 'renderer'),
+    root: Path.join(__dirname, 'src'),
     publicDir: 'public',
     server: {
         port: 8080,
@@ -19,7 +19,7 @@ const config = defineConfig({
     },
     open: false,
     build: {
-        outDir: Path.join(__dirname, 'build', 'renderer'),
+        outDir: Path.join(__dirname, 'build'),
         chunkSizeWarningLimit: 1600,
         emptyOutDir: true
     },
