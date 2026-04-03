@@ -10,8 +10,7 @@
   "scripts": {
     "vite": "vite",
     "preview": "vite preview",
-    "build": "ts-node scripts/build.ts",
-    "test": "jest --coverage"
+    "build": "ts-node scripts/build.ts"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.2.1",
