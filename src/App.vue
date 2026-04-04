@@ -12,7 +12,6 @@ import { vuetify } from './plugins/vuetify'
 //#region Views
 import ClientNodePage from './components/ClientNode.vue'
 import LoginPage from './components/Login.vue'
-import ServerClientSelectionPage from './components/ServerClientSelection.vue'
 import ServerNodePage from './components/ServerNode.vue'
 import ClusterNodePage from './components/ClusterNode.vue'
 import SettingDialog from './components/dialog/SettingDialog.vue'
@@ -21,7 +20,6 @@ import { DATA, Util_App } from './App'
 //#endregion
 
 //#region Data
-const $t = i18n.global.t
 const theme = useTheme()
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject("backend")!
@@ -42,6 +40,7 @@ const token = computed(() => backend.value.getCookie('token'))
  * * 3: Login express
  * * 4: Cluster
  * * 5: Pure Static-Site
+ * * 6: Login Pure Static-Site
  */
 const route = computed(() => {
   if(config.value.haveBackend){
@@ -52,6 +51,7 @@ const route = computed(() => {
     else if(config.value.backendType == BackendType.NODE) return 2
     else if(config.value.backendType == BackendType.CLUSTER) return 4
   }
+  if(config.value.login) return 6
   return 5
 })
 const util = new Util_App(data, theme, emitter, backend, preference, token)
@@ -117,9 +117,9 @@ onUnmounted(() => {
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference?.font + 'px' }">
     <span style="z-index: 1; color: white; position: fixed;">{{ route }}: {{ mode }}</span>
     <!-- This is like router -->
-    <LoginPage v-if="route == 1" :preference="preference" :config="config"/>
+    <LoginPage v-if="route == 1 || route == 5" :preference="preference" :config="config"/>
     <ClientNodePage v-else-if="route == 2"/>
-    <ServerNodePage v-else-if="route == 3"/>
+    <ServerNodePage v-else-if="route == 3 || route == 6"/>
     <ClusterNodePage v-else-if="route == 4"/>
     <span v-else>route: {{ route }} {{ JSON.stringify(config, null, 4) }}</span>
     <!-- Extra components -->
