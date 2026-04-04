@@ -1,6 +1,6 @@
 import { v6 as uuid6 } from 'uuid';
 import { ComputedRef, Ref } from "vue";
-import { DataType, DataTypeBase, Database, DatabaseContainer, DatabaseTable, PluginPageData, Preference } from "../../interface";
+import { DataType, DataTypeBase, Database, DatabaseContainer, DatabaseTable, PluginPageData, Preference } from "verteilen-core/dist/interface";
 import { i18n } from "../../plugins/i18n";
 import { BackendProxy } from '../../proxy';
 

@@ -1,7 +1,11 @@
 import { ComputedRef, DefineProps, Ref } from "vue"
 import { BackendProxy } from "../../proxy"
-import { Execute_SocketManager, Header, LooseRequired, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from "../../interface"
+import { WebsocketManager, Header, NodeTable, Plugin, PluginPageData, PluginWithToken, Preference } from "verteilen-core/dist/interface"
 import { v6 as uuid6 } from 'uuid';
+
+export type LooseRequired<T> = {
+    [P in keyof (T & Required<T>)]: T[P];
+}
 
 /**
  * **Node Page Data**
@@ -27,7 +31,7 @@ export interface DATA {
  */
 export interface PROPS {
     nodes: Array<NodeTable>
-    manager: Execute_SocketManager.WebsocketManager | undefined
+    manager: WebsocketManager | undefined
     plugin: PluginPageData
 }
 
@@ -122,7 +126,7 @@ export class Util_Node {
             const p = this.props.manager?.targets.find(x => x.uuid == this.pluginTarget.value?.uuid)
             const p2:PluginWithToken = {...plugin, token: this.preference.value.plugin_token.map(x => x.token)}
             const h:Header = { name: 'plugin_download', data: plugin }
-            p?.websocket.send(JSON.stringify(h))
+            p?.socket.send(JSON.stringify(h))
         }
     }
     plugin_remove = (plugin:Plugin) => {
@@ -132,7 +136,7 @@ export class Util_Node {
         }else{
             const p = this.props.manager?.targets.find(x => x.uuid == this.pluginTarget.value?.uuid)
             const h:Header = { name: 'plugin_remove', data: plugin }
-            p?.websocket.send(JSON.stringify(h))
+            p?.socket.send(JSON.stringify(h))
         }
     }
     //#endregion

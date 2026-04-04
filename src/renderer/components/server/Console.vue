@@ -6,10 +6,10 @@ import {
     BusType, 
     ExecutePair, 
     ExecuteState, 
-    Preference} from '../../interface';
+    Preference} from 'verteilen-core/dist/interface';
 import { DATA, EmitType, PROPS, Util_COnsole } from './Console';
 import { BackendProxy } from '../../proxy';
-import { i18n } from 'verteilen-core/src/plugins/i18n';
+import { i18n } from '../../plugins/i18n';
 //#endregion
 
 //#region Views

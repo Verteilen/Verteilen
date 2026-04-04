@@ -1,4 +1,4 @@
-import { BackendType, UserProfileClient } from "./interface";
+import { BackendType, UserProfileClient } from "verteilen-core/dist/interface";
 
 export const checkifElectron = ():boolean => {
     // Renderer process

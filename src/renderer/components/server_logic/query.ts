@@ -1,8 +1,7 @@
-import { Database, DatabaseTable, ExecutionLog, Job, JobTable, Library, Node, NodeTable, Preference, Project, ProjectTable, Task, TaskTable } from "verteilen-core/src/interface"
+import { Database, DatabaseTable, ExecutionLog, Job, JobTable, Library, Node, NodeTable, Preference, Project, ProjectTable, Task, TaskTable, ServerBase } from "verteilen-core/dist/interface"
 import { Ref } from "vue"
 import { DATA, Util_Server } from "."
 import { BackendProxy } from "../../proxy"
-import { ServerBase } from "verteilen-core/src/server"
 import { Util_Server_Plugin } from "./plugin_handle"
 
 export class ServerQuery {
@@ -140,7 +139,7 @@ export class ServerQuery {
             }
         })
         return p.then(() => {
-            if (process.env.NODE_ENV == 'development') console.log("Task", this.selectTask)
+            if (process.env.NODE_ENV == 'development') console.log("Task", this.selectTask.value)
         })
     }
 
@@ -320,7 +319,7 @@ export class ServerQuery {
 
     load_all_plugin = async () => {
         if(!this.backend.value.config.haveBackend) return
-        this.backend.value.invoke('get_plugin').then(x => {
+        this.backend.value.invoke('get_plugin', false).then(x => {
             this.data.value.plugin = x
             this.plugins.translate_helper()
         })

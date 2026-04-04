@@ -17,10 +17,9 @@ import {
     Rename,
     TaskLogicUnit,
     CreateDefaultJob,
-    Job,
     JobTable,
     TaskLogicType, 
-} from '../../interface';
+} from 'verteilen-core/dist/interface';
 import { i18n } from './../../plugins/i18n';
 import { BackendProxy } from '../../proxy'
 import { DATA, EmitType, PROPS, Util_Job, ViewTreeNode } from './Job'
@@ -32,6 +31,7 @@ import ContextFrame from '../components/layout/ContextFrame.vue'
 import DeleteDialog from '../dialog/DeleteDialog.vue'
 import JobDialog from '../dialog/job/JobDialog.vue';
 import ConditionDialog from '../dialog/job/ConditionDialog.vue';
+import NestTree from '../components/layout/NestTree.vue';
 //#endregion
 
 //#region Data
@@ -49,7 +49,7 @@ const data:Ref<DATA> = ref({
     editMode: false,
     conditionModal: false,
     deleteModal: false,
-    deleteData: [],
+    deleteData: "",
     selection: [],
     buffer: undefined,
     types: [],
@@ -58,47 +58,41 @@ const data:Ref<DATA> = ref({
     categorise: [],
     dirty: false,
     pfields: [],
+    errorMessage: "",
+    titleError: false,
+    dragging: false,
+    logicBufferNode: []
 })
 //#endregion
 
 //#region Watch
 watch(() => props.select, () => {
-    console.log("task selected update")
+    make_instance()
+})
+watch(() => props.jobs, () => {
     make_instance()
 })
 //#endregion
 
 //#region  Computed
+const deleted = computed(() => props.deleted)
 const items = computed(() => props.jobs)
 const logic = computed(() => data.value.buffer?.logic)
 const hasSelect = computed(() => items.value.filter(x => x.s).length > 0)
 const properties = computed(() => props.select?.properties ?? [])
-const treeData = computed(() => {
-    if(logic.value == undefined) {
-        return items.value.map(x => convert2(x.uuid))
+const treeData = computed<Array<ViewTreeNode>>(() => {
+    if(logic.value == undefined) { // No Logic
+        return items.value.map(x => util.convert2(x.uuid))
     }
-    return logic.value.group.map(x => {
-        return convert(x)
-    })
+    // Logic
+    return logic.value.group.map(x => util.convert(x))
 })
-const util = new Util_Job(data, emits, properties)
+const util = new Util_Job(data, emits, properties, items, deleted)
 //#endregion
 
 const make_instance = () => {
     data.value.buffer = props.select == undefined ? undefined : JSON.parse(JSON.stringify(props.select))
-}
-const convert = (unit:TaskLogicUnit):ViewTreeNode => {
-    return {
-        id: unit.job_uuid ?? "",
-        title: `${unit.type}`,
-        children: unit.children.map(x => convert(x))
-    }
-}
-const convert2 = (uuid:string):ViewTreeNode => {
-    return {
-        id: uuid,
-        title: items.value?.find(x => x.uuid == uuid)?.title ?? ""
-    }
+    data.value.logicBufferNode = props.select == undefined ? [] : treeData.value
 }
 const rules = {
     required: (value:string) => (value.toString().length > 0) || 'Required.',
@@ -109,17 +103,18 @@ const rules = {
 const logic_modify = () => {
     if(data.value.buffer == undefined) return
     if(data.value.buffer.logic != undefined){
-        data.value.buffer.logic = undefined
+        delete data.value.buffer.logic
     }else{
+        const g = data.value.buffer.jobs_uuid.map((x):TaskLogicUnit => {
+            return {
+                uuid: uuidv6(),
+                type: TaskLogicType.SINGLE,
+                job_uuid: x,
+                children: []
+            }
+        })
         data.value.buffer.logic = {
-            group: data.value.buffer.jobs_uuid.map((x):TaskLogicUnit => {
-                return {
-                    type: TaskLogicType.Single,
-                    job_uuid: x,
-                    children: [],
-                    children2: []
-                }
-            })
+            group: g
         }
     }
     util.save()
@@ -152,21 +147,54 @@ const createJob = (type:JobCategory) => {
 }
 const editJob = (id:string) => {
     const f = props.jobs.find(x => x.uuid == id)
-    if(f == undefined) return
+    if(f == undefined) {
+        console.warn(`Cannot find job: ${id}`, props.jobs)
+        return
+    }
     data.value.createData = JSON.parse(JSON.stringify(f))
     data.value.createType = f.category
     data.value.createModal = true
     data.value.editMode = true
 }
+const deleteJob = (id:string) => {
+    data.value.deleteModal = true
+    data.value.deleteData = id
+}
 
-const deleteConfirm = () => {
+const deleteConfirm = (id:string) => {
+    if(data.value.buffer == undefined) return
     data.value.deleteModal = false
-    //data.value.items = items.value@.filter(x => !data.value.deleteData.includes(x.uuid))
-    data.value.dirty = true
+    util.tree_delete_id(id)
+}
+
+const dialogCreateConfirm = (job:JobTable) => {
+    const r = util.jobCreate(job)
+    if(r == undefined) return
+    data.value.createModal = false
+    props.added(JSON.parse(JSON.stringify(r))).then(() => {
+        if(data.value.buffer?.logic == undefined) return
+        data.value.logicBufferNode.push(util.convert2(r.uuid))
+        util.save()
+    })
+}
+
+const dialogModifyConfirm = (job:JobTable) => {
+    data.value.createModal = false
+    emits('save', JSON.parse(JSON.stringify(job)))
 }
 
 const dialogConfirm = (job:JobTable) => {
+    if(!data.value.editMode) dialogCreateConfirm(job)
+    else dialogModifyConfirm(job)
+}
 
+const dialogConfirmCondition = (index:number) => {
+    if(data.value.buffer?.logic == undefined) return
+    const c = util.createConditionNode(index as TaskLogicType)
+    if(c == undefined) return
+    data.value.conditionModal = false
+    data.value.logicBufferNode.push(util.convert(c))
+    util.save()
 }
 
 const libRename = (d:Rename) => {
@@ -224,16 +252,6 @@ const updateLocate = () => {
     ]
 }
 
-const get_title = (uuid:string) => {
-    return props.jobs.find(x => x.uuid == uuid)?.title ?? 0
-}
-const get_category = (uuid:string) => {
-    return props.jobs.find(x => x.uuid == uuid)?.category ?? 0
-}
-const get_type = (uuid:string) => {
-    return props.jobs.find(x => x.uuid == uuid)?.type ?? 0
-}
-
 const goreturn = () => {
     emits('return')
 }
@@ -286,15 +304,17 @@ onUnmounted(() => {
                 :task="props.select"
                 :libs="props.libs"
                 :database="props.database"
+                :error-message="data.errorMessage"
+                :title-error="data.titleError"
                 @confirm="dialogConfirm">
             </JobDialog>
-            <ConditionDialog v-model="data.conditionModal" />
+            <ConditionDialog v-model="data.conditionModal" @confirm="dialogConfirmCondition" />
             <DeleteDialog v-model="data.deleteModal"
                 :title="$t('modal.delete-job')"
                 :text="$t('modal.delete-job-confirm')"
-                :data="data.deleteData"
+                :data="[data.deleteData]"
                 @cancel="data.deleteModal = false"
-                @delete="deleteConfirm"/>
+                @delete="deleteConfirm(data.deleteData)"/>
         </template>
         <div class="px-6">
             <div class="text-left">
@@ -311,34 +331,25 @@ onUnmounted(() => {
                     <v-btn prepend-icon="mdi-plus" v-bind="props" @click="createJob(JobCategory.Execution)" :disabled="select == undefined">{{ $t('create') }}</v-btn>
                     <v-btn v-if="data.buffer?.logic != undefined" prepend-icon="mdi-tag-plus" v-bind="props" @click="createCondition()" :disabled="select == undefined">{{ $t('create') }}</v-btn>
                 </v-sheet>
-                <v-treeview v-model="data.selection" item-value="id">
-                    <VueDraggableNext :list="treeData"
-                        :move="util.move"
-                        @end="util.end">
-                        <v-treeview-item v-for="(item, i) in treeData" :key="i" :value="item.id" @click="nextTick(() => { data.selection = [] })">
-                            <template v-slot:append>
-                                <v-btn variant="text" prepend-icon="mdi-pencil" :disabled="item.id.length == 0" @click="editJob(item.id)">{{ $t('edit') }}</v-btn>
-                                <v-btn variant="text" prepend-icon="mdi-delete" color="error" @click="">{{ $t('delete') }}</v-btn>
-                            </template>
-                            <template v-slot:prepend>
-                                <span class="mx-1" v-if="item.id.length > 0">{{ item.id.slice(item.id.length - 12, item.id.length) }}</span>
-                                <span class="mx-1" v-if="item.id.length > 0">{{ get_title(item.id) }}</span>
-                                <span class="mx-1" v-if="item.id.length > 0">{{ data.categorise[get_category(item.id)]?.text }}</span>
-                                <span class="mx-1" v-if="item.id.length > 0 && get_category(item.id) == 1">{{ data.types[get_type(item.id)]?.text }}</span>
-                                <span class="mx-1" v-if="item.id.length > 0 && get_category(item.id) == 0">{{ data.types2[get_type(item.id)]?.text }}</span>
-                            </template>
-                        </v-treeview-item>
-                    </VueDraggableNext>
-                </v-treeview>
+                <div class="pt-5">
+                    <NestTree
+                        :items="data.logicBufferNode" 
+                        :jobs="props.jobs" 
+                        :types="data.types"
+                        :types2="data.types2"
+                        :categorise="data.categorise"
+                        @end="util.save()"
+                        @clean-selection="nextTick(() => { data.selection = [] })"
+                        @edit="id => editJob(id)"
+                        @delete="id => deleteJob(id)">
+                    </NestTree>
+                </div>
             </template>
             <!-- Property -->
             <template v-if="data.page == 1">
                 <h2 class="text-info"> {{ $t('property') }} </h2>
                 <v-sheet class="text-left">
                     <v-btn prepend-icon="mdi-plus" v-bind="props" @click="util.pcreateProperty()" :disabled="select == undefined">{{ $t('create') }}</v-btn>
-                    <v-btn prepend-icon="mdi-content-save" variant="text" color='success' @click="util.save()" :disabled="select == undefined || !data.dirty">
-                        {{ $t('save') }}
-                    </v-btn>
                 </v-sheet>
                 <div v-if="data.buffer != undefined" class="py-3 pb-5 mx-5">
                     <v-data-table v-model="data.selection"
@@ -363,13 +374,13 @@ onUnmounted(() => {
                                     :cell-props="props"
                                 >
                                     <template v-slot:item.name="{ item }">
-                                        <v-text-field v-model="item.name" hide-details="auto" density="compact" :rules="[rules.nospace]" :error="expressionNameCheck(item.name)" @input="util.dirty()"></v-text-field>
+                                        <v-text-field v-model="item.name" hide-details="auto" density="compact" :rules="[rules.nospace]" :error="expressionNameCheck(item.name)" @change="util.save()"></v-text-field>
                                     </template>
                                     <template v-slot:item.expression="{ item }">
-                                        <v-text-field v-model="item.expression" hide-details="auto" density="compact" @input="util.dirty()"></v-text-field>
+                                        <v-text-field v-model="item.expression" hide-details="auto" density="compact" @change="util.save()"></v-text-field>
                                     </template>
                                     <template v-slot:item.deep="{ item }">
-                                        <v-text-field v-model.number="item.deep" hide-details="auto" density="compact" type="number" :rules="[rules.required, rules.deep]" :min="1" @input="util.dirty()"></v-text-field>
+                                        <v-text-field v-model.number="item.deep" hide-details="auto" density="compact" type="number" :rules="[rules.required, rules.deep]" :min="1" @change="util.save()"></v-text-field>
                                     </template>
                                     <template v-slot:item.detail="{ item }">
                                         <v-btn variant="outlined" prepend-icon="mdi-delete" color="error" @click="util.pdelete(item.name)">

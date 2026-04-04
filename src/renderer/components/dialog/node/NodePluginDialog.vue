@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, inject, Ref, ref } from 'vue';
-import { BusType, NodeTable, Plugin, PluginList, PluginPageData, Preference } from '../../../interface';
+import { BusType, NodeTable, Plugin, PluginList, PluginPageData, Preference } from 'verteilen-core/dist/interface';
 import { BackendProxy } from '../../../proxy';
 import DialogBase from './../DialogBase.vue';
-import { i18n } from 'verteilen-core/src/plugins/i18n';
+import { i18n } from '../../../plugins/i18n';
 import { Emitter } from 'mitt';
 
 interface PROPS {

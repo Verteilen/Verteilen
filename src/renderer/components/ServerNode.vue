@@ -28,7 +28,8 @@ import {
   ExecutePair, 
   FrontendUpdate,
   ProjectTable,
-} from './../interface'
+  ServerBase,
+} from 'verteilen-core/dist/interface'
 import { BackendProxy } from '../proxy'
 import { DATA, Util_Server } from './server_logic'
 import { i18n } from './../plugins/i18n'
@@ -50,7 +51,6 @@ import ProfilePage from './server/Profile.vue';
 import PluginPage from './server/Plugin.vue';
 import Layout from './components/layout/Layout.vue'
 import AppBar from './components/layout/AppBar.vue'
-import { ServerBase } from 'verteilen-core/src/server'
 //#endregion
 
 //#region Data
@@ -267,7 +267,6 @@ const LogClean = () => {
 
 //#region Self
 const msgAppend = (d:Array<string | undefined>) => util.self.msgAppend(d)
-const msgClean = () => util.self.clearMessage()
 //#endregion
 
 //#region Plugin
@@ -278,7 +277,7 @@ const pluginAdded = (name:string, url:string) => {
   })
 }
 const pluginDelete = (name:string) => {
-  backend.value.invoke("import_plugin_delete", name).then(x => {
+  backend.value.invoke("delete_plugin", name).then(x => {
     if (process.env.NODE_ENV == 'development') console.log("plugin result", x)
     data.value.plugin = x
   })
@@ -288,11 +287,6 @@ const pluginDelete = (name:string) => {
 const updateLocate = () => {
   if(data.value.page == 11) util.query.load_all_plugin()
   updateTab()
-}
-
-const updateHandleCall = () => {
-  if(backend.value.config.haveBackend){
-  }
 }
 
 const updateTab = () => {
@@ -403,7 +397,7 @@ const repull = (u:FrontendUpdate) => {
 
 const makeToastFromBackend = (e:any) => {
     if (process.env.NODE_ENV == 'development') console.log("makeToastFromBackend", e)
-    emitter?.emit('makeToast', JSON.parse(e))
+    emitter?.emit('makeToast', e)
 }
 
 const logUpdate = (e:string) => {
@@ -454,7 +448,6 @@ onMounted(() => {
   emitter.on('updateNode', server_clients_update)
   emitter.on('deleteScript', libDelete)
   emitter.on('updateLocate', updateLocate)
-  emitter.on('updateHandle', updateHandleCall)
   backend.value.wait_init().then(() => {
     backend.value.eventOn('debuglog', debug_feedback)
     if(backend.value.config.isExpress){
@@ -483,7 +476,6 @@ onUnmounted(() => {
   emitter.off('updateNode', server_clients_update)
   emitter.off('deleteScript', libDelete)
   emitter.off('updateLocate', updateLocate)
-  emitter.off('updateHandle', updateHandleCall)
   data.value.execute_manager = []
   if(!backend.value.config.haveBackend) return
   backend.value.eventOff('debuglog', debug_feedback)
@@ -582,9 +574,10 @@ onUnmounted(() => {
           :owner="selectProject"
           :libs="data.libs"
           :database="projectbind"
-          @added="e => util.job.addJob(e)" 
+          :added="util.job.addJob" 
+          :deleted="util.job.deleteJob"
+          @save="e => util.job.editJob(e)" 
           @edit="e => util.job.editJob(e)" 
-          @delete="e => util.job.deleteJob(e)"
           @return="data.page = 1"
           @padded="util.task.addProperty()"
           @taskSubmit="e => util.task.baseModify(e)"/>
@@ -654,7 +647,7 @@ onUnmounted(() => {
         <SelfPage
           v-if="data.page == 8"
           :messages="data.messages"
-          @clean="msgClean"/>
+          @clean="util.self.clearMessage()"/>
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.isExpress" :value="9">
         <RolePage 

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 //#region Modules
-import { inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, PluginContainer } from '../../interface';
+import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
+import { BusType, PluginContainer } from 'verteilen-core/dist/interface';
 import DialogBase from '../dialog/DialogBase.vue';
 import { i18n } from '../../plugins/i18n';
 import { Emitter } from 'mitt';
 import { DATA, EmitType, PROP, Util_Plugin } from './Plugin';
 import ContextFrame from '../components/layout/ContextFrame.vue';
 import PluginBuildInDialog from '../dialog/plugin/PluginBuildInDialog.vue';
+import PluginInfoDialog from '../dialog/plugin/PluginInfoDialog.vue';
 //#endregion
 
 //#region Data
@@ -22,6 +23,7 @@ const data:Ref<DATA> = ref({
     templateModal: false,
     pluginDeleteModal: false,
     templateDeleteModal: false,
+    pluginInfoModal: false,
     pluginDeleteData: '',
     templateDeleteData: '',
     buildin_select_template: -1,
@@ -29,17 +31,25 @@ const data:Ref<DATA> = ref({
     templateData: { name: '', url: '' },
     errorMessage: '',
     loading_plugin: [],
-    buildIn_plugin: undefined,
+    available_update: [],
+    buildIn_plugin: { data: [] },
     buildin_url: "https://raw.githubusercontent.com/Verteilen/Buildin-Assets/refs/heads/main/default_plugin.json",
     default_plugin_thumbnail: "https://picsum.photos/500/300?image=232",
+    selection: undefined,
 })
+const updateTick = ref()
 //#endregion
 
-//#region 
+//#region Computed
+const plugins = computed(() => propss.plugin.plugins)
+const is_updating = computed(() => data.value.loading_plugin.length > 0)
+//#endregion
+
+//#region Watch
 watch(() => propss.plugin.plugins, () => {
     data.value.loading_plugin = []
 })
-const util = new Util_Plugin(data, emits)
+const util = new Util_Plugin(data, emits, plugins)
 //#endregion
 
 const is_loading = (str:string) => {
@@ -81,7 +91,8 @@ const deletePluginConfirm = (name:string) => {
 }
 
 const checkPlugin = (pl:PluginContainer) => {
-
+    data.value.pluginInfoModal = true
+    data.value.selection = pl
 }
 
 const updatePlugin = (pl:PluginContainer) => {
@@ -101,11 +112,13 @@ const onHotkey = (value:string) => {
 
 onMounted(() => {
     util.pull_buildin()
+    updateTick.value = setInterval(util.update_tick, 10000);
     emitter.on('updateLocate', updateLocate)
     emitter.on('hotkey', onHotkey)
 })
 
 onUnmounted(() => {
+    clearInterval(updateTick.value);
     emitter.off('updateLocate', updateLocate)
     emitter.off('hotkey', onHotkey)
 })
@@ -126,8 +139,12 @@ onUnmounted(() => {
         </template>
         <template #dialog>        
             <PluginBuildInDialog v-model="data.pluginBuildinModal" 
+                :current="plugins"
                 :build-in_plugin="data.buildIn_plugin" 
                 @confirm="importPluginBuildinConfirm"/>
+            <PluginInfoDialog v-model="data.pluginInfoModal" 
+                :default_plugin_thumbnail="data.default_plugin_thumbnail"
+                :plugin="data.selection"/>
             <DialogBase v-model="data.pluginModal">
                 <template #title>
                     <v-icon>mdi-import</v-icon>
@@ -176,7 +193,10 @@ onUnmounted(() => {
                         </div>
                     </v-card-title>
                     <v-card-subtitle>
-                        {{ container.owner }}
+                        {{ container.owner }} {{ container.version }} 
+                        <span class="ml-1" v-if="!data.available_update.includes(container.title!)">
+                            <v-icon class="text-green">mdi-circle</v-icon>
+                        </span>
                     </v-card-subtitle>
                     <v-card-text>
                         <p>{{ container.description }}</p>
@@ -185,7 +205,7 @@ onUnmounted(() => {
                     </v-card-text>
                     <v-card-actions>
                         <v-btn icon="mdi-book" color="info" @click="checkPlugin(container)"></v-btn>
-                        <v-btn icon="mdi-update" color="warning" @click="updatePlugin(container)"></v-btn>
+                        <v-btn icon="mdi-update" color="warning" :disabled="is_updating || !data.available_update.includes(container.title!)" @click="updatePlugin(container)"></v-btn>
                         <v-spacer />
                         <v-btn icon="mdi-delete" color="error" @click="deletePlugin(container.title!)"></v-btn>
                     </v-card-actions>

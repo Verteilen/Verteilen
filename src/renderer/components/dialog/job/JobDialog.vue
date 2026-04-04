@@ -11,7 +11,7 @@ import {
     JobType, 
     JobType2,
     ToastData, 
-} from 'verteilen-core/src/interface'
+} from 'verteilen-core/dist/interface'
 import { i18n } from '../../../plugins/i18n'
 import { inject, ref, Ref, watch } from 'vue'
 import { BackendProxy } from '../../../proxy'
@@ -84,7 +84,10 @@ const scriptExist = (name:string) => {
     return props.libs!.findIndex(x => x.name == name) != -1
 }
 const confirm = () => {
-    emits('confirm', data.value.buffer)
+    emits('confirm', {
+        ...data.value.buffer,
+        string_args: data.value.buffer.string_args.map((s) => (s == null || s == undefined) ? '' : s)
+    })
 }
 const cancel = () => {
     modal.value = false
@@ -106,7 +109,7 @@ const cancel = () => {
         </template>
         <template v-if="!data.zoom" #text>
             <!-- Header -->
-            <v-text-field v-model="data.buffer.title" :label="$t('modal.job-title')"></v-text-field>
+            <v-text-field class="mb-5" :error="titleError" :autofocus="true" required v-model="data.buffer.title" :label="$t('modal.job-title')" hide-details></v-text-field>
             <v-textarea v-model="data.buffer.description" :label="$t('modal.job-description')"></v-textarea>
 
             <v-row>
@@ -167,13 +170,13 @@ const cancel = () => {
                 <p class="hint">{{ replaceString(1) }}</p>
                 <v-text-field class="my-2" v-model="data.buffer.string_args[1]" :label="$t('jobpage.command')" hide-details></v-text-field>
                 <p class="hint">{{ replaceString(2) }}</p>
-                <v-text-field class="my-2" v-model="data.buffer.string_args[2]" :label="$t('jobpage.databases')" hide-details></v-text-field>
+                <v-text-field class="my-2" v-model="data.buffer.string_args[2]" :label="$t('jobpage.variable')" hide-details></v-text-field>
             </div>
             <div v-else-if="checkPatterm(data.buffer.category, data.buffer.type, 'Lib_Command')">
                 <p class="hint">{{ replaceString(0) }}</p>
                 <v-text-field class="my-2" v-model="data.buffer.string_args[0]" :label="$t('jobpage.command')" hide-details></v-text-field>
                 <p class="hint">{{ replaceString(1) }}</p>
-                <v-text-field class="my-2" v-model="data.buffer.string_args[1]" :label="$t('jobpage.databases')" hide-details></v-text-field>
+                <v-text-field class="my-2" v-model="data.buffer.string_args[1]" :label="$t('jobpage.variable')" hide-details></v-text-field>
             </div>
             <div v-else-if="checkPatterm(data.buffer.category, data.buffer.type, 'Javascript')">
                 <v-btn prepend-icon="mdi-magnify-plus" variant="outlined" color="warning" @click="data.zoom = true">{{ $t('zoom') }}</v-btn>

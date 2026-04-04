@@ -2,9 +2,9 @@
 //#region Modules
 import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
-import { BusType, NodeTable, Preference, ShellFolder, Single, Execute_SocketManager } from '../../../interface'
+import { BusType, NodeTable, Preference, ShellFolder, Single, WebsocketManager } from 'verteilen-core/dist/interface'
 import { BackendProxy } from '../../../proxy'
-import { i18n } from 'verteilen-core/src/plugins/i18n'
+import { i18n } from '../../../plugins/i18n';
 //#region 
 
 //#region Views
@@ -14,7 +14,7 @@ import DialogBase from './../DialogBase.vue'
 //#region Data
 interface PROPS {
     item: NodeTable | undefined
-    manager: Execute_SocketManager.WebsocketManager | undefined
+    manager: WebsocketManager | undefined
 }
 const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
@@ -29,6 +29,8 @@ const path = ref('')
 const folders:Ref<ShellFolder | undefined> = ref(undefined)
 const histroy:Ref<Array<string>> = ref([])
 const cursor = ref(0)
+const init = ref(false)
+const currentFolder = ref('')
 //#endregion
 
 //#region Computed
@@ -92,7 +94,10 @@ const check_down = () => {
     consoleCommand.value = histroy.value[cursor.value]
 }
 const shellReply = (data:Single) => {
-    consoleMessages.value.push(data.data.toString())
+    let text = `<p>${data.data.toString()}</p>`
+    text = text.replace('\t', '&nbsp;&nbsp;&nbsp;&nbsp;')
+    text = text.replace(' ', '&nbsp;')
+    consoleMessages.value.push(text)
     setTimeout(() => {
         myDiv.value?.scrollTo(0, myDiv.value?.scrollHeight);
     }, 10);
@@ -100,6 +105,10 @@ const shellReply = (data:Single) => {
 const folderReply = (data:ShellFolder) => {
     folders.value = data
     path.value = data.path
+    if(!init.value) {
+        currentFolder.value = path.value
+        init.value = true
+    }
 }
 const enterPath = () => {
     if(props.item == undefined) return
@@ -141,8 +150,8 @@ onUnmounted(() => {
         </template>
         <template #text>
             <v-row>
-                <v-col cols="5">
-                    <v-row>
+                <v-col cols="3">
+                    <v-row no-gutters>
                         <v-col cols="1">
                             <v-btn class="w-100" variant="text" icon="mdi-arrow-left" @click="lastFolder">
                             </v-btn>
@@ -151,7 +160,7 @@ onUnmounted(() => {
                             <v-text-field class="mb-2" hide-details density="compact" v-model="path" @keydown.enter="enterPath"></v-text-field>        
                         </v-col>
                     </v-row>
-                    <v-list style="height: 50vh; overflow-y: scroll;" :items="folderContent">
+                    <v-list style="height: 50vh;" :items="folderContent">
                         <v-list-item
                             v-for="(item, i) in folderContent"
                             density="compact"
@@ -168,18 +177,21 @@ onUnmounted(() => {
                         </v-list-item>
                     </v-list>
                 </v-col>
-                <v-col cols="7" style="background-color: black; color:#00FF00">
-                    <div style="height: 50vh; overflow-y: scroll; font-size: 12px;" class="mb-1" ref="myDiv">
-                        <p v-for="(c, i) in consoleMessages" :key="i">{{ c }}</p>
+                <v-col cols="9" style="background-color: black; color:#00FF00">
+                    <div style="height: 50vh; overflow-y: auto; font-size: 12px;" class="mb-1" ref="myDiv">
+                        <div v-for="(c, i) in consoleMessages" :key="`line-${i}`" v-html="c">
+                        </div>
                     </div>
-                    <v-row>
-                        <v-col cols="10">
-                            <v-text-field @keydown.up="check_up" @keydown.down="check_down" hide-details density="compact" v-model="consoleCommand" @keydown.enter="sendCommand"></v-text-field>        
-                        </v-col>
-                        <v-col cols="2">
-                            <v-btn class="mt-2 w-100" @click="cleanConsole">{{ $t('clean') }}</v-btn>
-                        </v-col>
-                    </v-row>
+                    <div class="d-flex">
+                        <p class="mt-2 mr-1">{{ currentFolder }}> </p>
+                        <v-text-field v-model="consoleCommand" autofocus
+                            @keydown.up="check_up" 
+                            @keydown.down="check_down" 
+                            @keydown.enter="sendCommand"
+                            hide-details
+                            variant="plain"
+                            density="compact"></v-text-field>
+                    </div>
                 </v-col>
             </v-row>
         </template>

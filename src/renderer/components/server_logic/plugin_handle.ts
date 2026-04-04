@@ -1,5 +1,5 @@
 import { Emitter } from "mitt"
-import { BusType } from "verteilen-core/src/interface"
+import { BusType } from "verteilen-core/dist/interface"
 import { Ref } from "vue"
 import { Util_Server, DATA, save_and_update } from "."
 import { BackendProxy } from "../../proxy"

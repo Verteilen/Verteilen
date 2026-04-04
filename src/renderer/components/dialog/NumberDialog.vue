@@ -3,7 +3,7 @@
 import { inject, ref, watch } from 'vue';
 import { Preference } from '../../interface';
 import DialogBase from './DialogBase.vue';
-import { i18n } from 'verteilen-core/src/plugins/i18n';
+import { i18n } from '../../plugins/i18n';
 //#endregion
 
 //#region Data

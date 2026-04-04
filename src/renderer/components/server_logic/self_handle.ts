@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { MESSAGE_LIMIT } from "../../interface"
+import { MESSAGE_LIMIT } from "verteilen-core/dist/interface"
 import { DATA } from "."
 
 export class Util_Server_Self {

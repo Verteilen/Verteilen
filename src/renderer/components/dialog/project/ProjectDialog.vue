@@ -1,6 +1,7 @@
 <script setup lang="ts">
 //#region Modules
 import { computed, Ref, ref, watch } from 'vue';
+import { TemplateData_Project } from 'verteilen-core/dist/interface';
 import { useTheme } from 'vuetify/lib/framework.mjs';
 import { CreateField, DialogDATA } from '../../server/Project';
 import { i18n } from '../../../plugins/i18n';
@@ -8,7 +9,6 @@ import { i18n } from '../../../plugins/i18n';
 
 //#region Views
 import DialogBase from './../DialogBase.vue';
-import { TemplateData_Project } from 'verteilen-core/src/interface';
 //#endregion
 
 //#region Data

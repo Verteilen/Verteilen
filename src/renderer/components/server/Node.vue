@@ -2,7 +2,7 @@
 //#region Modules
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, ConnectionText, Header, Plugin, Preference } from '../../interface';
+import { BusType, ConnectionText, Header, Node, Plugin, Preference } from 'verteilen-core/dist/interface';
 import { i18n } from '../../plugins/i18n';
 import { BackendProxy } from '../../proxy';
 import { DATA, Util_Node, PROPS } from './Node';
@@ -61,7 +61,7 @@ watch(() => data.value.infoModal, () => {
         }else{
             const p = props.manager?.targets.find(x => x.uuid == data.value.infoUUID)
             const d:Header = { name: 'resource_start', data: 0 }
-            p?.websocket.send(JSON.stringify(d))
+            p?.socket.send(JSON.stringify(d))
         }
     }else{
         if(backend.value.config.haveBackend){
@@ -70,7 +70,7 @@ watch(() => data.value.infoModal, () => {
         }else{
             const p = props.manager?.targets.find(x => x.uuid == data.value.infoUUID)
             const d:Header = { name: 'resource_end', data: 0 }
-            p?.websocket.send(JSON.stringify(d))
+            p?.socket.send(JSON.stringify(d))
         }
     }
 })
@@ -84,8 +84,8 @@ watch(() => data.value.pluginModal, () => {
             const p = props.manager?.targets.find(x => x.uuid == data.value.pluginUUID)
             const d:Header = { name: 'resource_start', data: 0 }
             const d2:Header = { name: 'plugin_info', data: 0 }
-            p?.websocket.send(JSON.stringify(d))
-            p?.websocket.send(JSON.stringify(d2))
+            p?.socket.send(JSON.stringify(d))
+            p?.socket.send(JSON.stringify(d2))
         }
     }else{
         if(backend.value.config.haveBackend){
@@ -94,7 +94,7 @@ watch(() => data.value.pluginModal, () => {
         }else{
             const p = props.manager?.targets.find(x => x.uuid == data.value.pluginUUID)
             const d:Header = { name: 'resource_end', data: 0 }
-            p?.websocket.send(JSON.stringify(d))
+            p?.socket.send(JSON.stringify(d))
         }
     }
 })
@@ -124,11 +124,20 @@ const serverUpdate = () => {
 const selectall = () => {
     data.value.selection = props.nodes.map(x => x.uuid)
 }
-const translate_state = (state:number | undefined):string => {
-    return i18n.global.t(ConnectionText[state ?? 0])
+const get_index_from_state = (str:"closed" | "opening" | "open" | undefined):number => {
+    if(str == undefined) return -1
+    else if(str == 'opening') return 0
+    else if(str == 'open') return 1
+    else if(str == 'closed') return 3
+    else return 0
 }
-const translate_state_color = (state:number | undefined):string => {
-    switch(state){
+const translate_state = (state:"closed" | "opening" | "open" | undefined):string => {
+    const index = get_index_from_state(state);
+    return i18n.global.t(ConnectionText[index])
+}
+const translate_state_color = (state:"closed" | "opening" | "open" | undefined):string => {
+    const index = get_index_from_state(state);
+    switch(index){
         default:
         case 0: return 'white'
         case 1: return 'success'
@@ -261,7 +270,7 @@ onUnmounted(() => {
                 <v-btn variant="text" icon @click="util.showinfo(item.uuid)">
                     <v-icon>mdi-information-outline</v-icon>
                 </v-btn>
-                <v-btn variant="text" icon @click="util.showconsole(item.uuid)" :disabled="item.state != 1">
+                <v-btn variant="text" icon @click="util.showconsole(item.uuid)" :disabled="get_index_from_state(item.state) != 1">
                     <v-icon>mdi-console</v-icon>
                 </v-btn>
             </template>

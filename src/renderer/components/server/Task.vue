@@ -2,7 +2,7 @@
 //#region Modules
 import { Emitter } from 'mitt';
 import { computed, ComputedRef, inject, nextTick, onMounted, onUnmounted, Ref, ref } from 'vue';
-import { BusType, DataType, Preference, TaskTable } from '../../interface';
+import { BusType, DataType, Preference, TaskTable } from 'verteilen-core/dist/interface';
 import { i18n } from '../../plugins/i18n';
 import { CreateField, DATA, EmitType, PROPS, Util_Task } from './Task';
 //#endregion
@@ -77,8 +77,6 @@ const detailOpen = () => emits('database', props.select!.database_uuid)
 const detailSelect = () => {
     data.value.paraModal = true
 }
-
-const selectall = () => data.value.selection = props.tasks.map(x => x.uuid)
 
 const deleteSelect = () => {
     data.value.deleteData = selected_task_ids.value

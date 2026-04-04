@@ -1,6 +1,6 @@
 <script setup lang="ts">
 //#region Modules
-import { ClientLog } from 'verteilen-core/src/interface';
+import { ClientLog } from 'verteilen-core/dist/interface'
 //#endregion
 
 //#region Views
@@ -11,11 +11,14 @@ interface PROPS {
     messages: Array<ClientLog>
 }
 const props = defineProps<PROPS>()
+const emits = defineEmits<{
+    (e: 'clean'):void
+}>()
 </script>
 
 <template>
   <v-container fluid class="ma-0 pa-0 pt-4" style="height: 94vh">
-    <ClientView :messages="props.messages" />
+    <ClientView :messages="props.messages" @clean="emits('clean')" />
   </v-container>
 </template>
 

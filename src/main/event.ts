@@ -34,10 +34,9 @@ import {
     ExecuteState,
     Project_Module,
     CreateDefaultJob,
-    PluginNode,
     RecordIOLoader,
 } from "./interface";
-import { Server } from "verteilen-core";
+import { MemoryData, Server } from "verteilen-core";
 import { CreateRecordIOLoader } from "verteilen-core/dist/server/io2";
 
 const Loader = (loader:RecordIOLoader, key:string) => {
@@ -51,7 +50,7 @@ const Loader = (loader:RecordIOLoader, key:string) => {
 }
 const PluginInit = (loader:PluginLoader) => {
     loader.get_plugins()
-    ipcMain.handle('get_plugin', async (e) => loader.get_plugins())
+    ipcMain.handle('get_plugin', async (e, cache:boolean = true) => cache ? loader.get_plugins() : loader.load_all())
     ipcMain.handle('import_plugin', async (event, name:string, url:string, token:string) => loader.import_plugin(name, url, token))
     ipcMain.handle('delete_plugin', async (event, name:string) => loader.delete_plugin(name))
     ipcMain.handle('get_project', async (event, name:string, group:string, filename:string) => loader.get_project(name, group, filename))
@@ -82,20 +81,23 @@ const DetailInit = (detail:ServerDetailEvent) => {
     ipcMain.on('console_skip', (event, uuid:string, forward:boolean, type:number, state:ExecuteState) => detail.console_skip(undefined, uuid, forward, type, state))
     ipcMain.on('console_skip2', (event, uuid:string, type:number) => detail.console_skip2(undefined, uuid, type))
     ipcMain.handle('console_add', (event, name:string, record:Record) => detail.console_add(undefined, name, record, undefined))
-    ipcMain.handle('console_update', (event) => detail.console_update(undefined))
+    ipcMain.handle('console_update', (event) => detail.console_update())
 }
-const ModuleInit = (project:Project_Module) => {
-    ipcMain.handle("project_module:reorder_project_tasks", (event, uuid:string, uuids:Array<string>) => project.ReOrderProjectTask(uuid, uuids))
-    ipcMain.handle("project_module:populate_project", (event, uuid:string) => project.PopulateProject(uuid))
-    ipcMain.handle("project_module:populate_task", (event, uuid:string) => project.PopulateTask(uuid))
-    ipcMain.handle("project_module:get_tasks", (event, uuid:string) => project.GetProjectRelatedTask(uuid))
-    ipcMain.handle("project_module:get_jobs", (event, uuid:string) => project.GetTaskRelatedJob(uuid))
-    ipcMain.handle("project_module:clone_projects", (event, ...uuid:Array<string>) => project.CloneProjects(uuid))
-    ipcMain.handle("project_module:clone_tasks", (event, ...uuid:Array<string>) => project.CloneTasks(uuid))
-    ipcMain.handle("project_module:clone_jobs", (event, ...uuid:Array<string>) => project.CloneJobs(uuid))
-    ipcMain.handle("project_module:cascade_project", (event, uuid:string, bind:boolean) => project.CascadeDeleteProject(uuid, bind))
-    ipcMain.handle("project_module:cascade_task", (event, uuid:string) => project.CascadeDeleteTask(uuid))
-    ipcMain.handle("project_module:cascade_job", (event, uuid:string) => project.CascadeDeleteJob(uuid))
+const ModuleInit = (project:Project_Module, memory:()=>MemoryData) => {
+    // Project
+    ipcMain.handle("project_module:reorder_project_tasks", (event, uuid:string, uuids:Array<string>, token?:string | undefined) => project.ReOrderProjectTask(uuid, uuids, token))
+    ipcMain.handle("project_module:populate_project", (event, uuid:string, token?:string | undefined) => project.PopulateProject(uuid, token))
+    ipcMain.handle("project_module:populate_task", (event, uuid:string, token?:string | undefined) => project.PopulateTask(uuid, token))
+    ipcMain.handle("project_module:get_tasks", (event, uuid:string, token?:string | undefined) => project.GetProjectRelatedTask(uuid, token))
+    ipcMain.handle("project_module:get_jobs", (event, uuid:string, token?:string | undefined) => project.GetTaskRelatedJob(uuid, token))
+    ipcMain.handle("project_module:clone_projects", (event, token?:string | undefined, ...uuid:Array<string>) => project.CloneProjects(uuid, token))
+    ipcMain.handle("project_module:clone_tasks", (event, token?:string | undefined, ...uuid:Array<string>) => project.CloneTasks(uuid, token))
+    ipcMain.handle("project_module:clone_jobs", (event, token?:string | undefined, ...uuid:Array<string>) => project.CloneJobs(uuid, token))
+    ipcMain.handle("project_module:cascade_project", (event, uuid:string, bind:boolean, token?:string | undefined) => project.CascadeDeleteProject(uuid, bind, token))
+    ipcMain.handle("project_module:cascade_task", (event, uuid:string, token?:string | undefined) => project.CascadeDeleteTask(uuid, true, token))
+    ipcMain.handle("project_module:cascade_job", (event, uuid:string, token?:string | undefined) => project.CascadeDeleteJob(uuid, true, token))
+    // Debug
+    ipcMain.handle("debug:dump", (event) => JSON.stringify(memory()))
 }
 const CreateIO = ():RecordIOBase => {
     return {
@@ -144,7 +146,7 @@ export class BackendEvent extends Server implements BackendAction {
         PluginInit(this.plugin_loader)
         this.detail = new ServerDetail(this.io, this, feedback, messager, console.log)
         DetailInit(this.detail)
-        ModuleInit(this.module_project)
+        ModuleInit(this.module_project, () => this.memory)
         this.InitClient()
     }
 
@@ -160,6 +162,7 @@ export class BackendEvent extends Server implements BackendAction {
             messager_log(msg, tag, meta)
             mainWindow?.webContents.send('debuglog', tag == undefined ? msg : `[${tag}] ${msg}`);
         })
+        console.log("[Server Event] Init Client")
         this.client.Init()
     }
 
@@ -188,8 +191,7 @@ export class BackendEvent extends Server implements BackendAction {
                 type: JobType.JAVASCRIPT,
                 script: content
             }
-            const p:PluginNode = { plugins: [] }
-            const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined, p)
+            const worker = new ClientJobExecute(javascript_messager_feedback, javascript_messager_feedback, d, undefined)
             worker.database = database ? JSON.parse(database) : undefined
             worker.execute().then(x => {
                 javascript_messager_feedback(x, "Finish")

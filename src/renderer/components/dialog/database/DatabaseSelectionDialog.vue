@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //#endregion Modules
 import { computed, ref, watch } from 'vue';
-import { Database } from '../../../interface';
+import { Database } from 'verteilen-core/dist/interface';
 import { i18n } from '../../../plugins/i18n';
 //#endregion
 

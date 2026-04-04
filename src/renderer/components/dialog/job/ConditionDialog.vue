@@ -2,10 +2,12 @@
 //#region Modules
 import { Emitter } from 'mitt'
 import { 
-    BusType, 
-} from 'verteilen-core/src/interface'
+    BusType,
+    KeyValue,
+    TaskLogicType, 
+} from 'verteilen-core/dist/interface'
 import { i18n } from '../../../plugins/i18n'
-import { inject, Ref } from 'vue'
+import { inject, onMounted, ref, Ref } from 'vue'
 import { BackendProxy } from '../../../proxy'
 //#endregion
 
@@ -18,13 +20,40 @@ const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject('backend')!
 const modal = defineModel<boolean>({ required: true })
+const emits = defineEmits<{
+    (e: 'confirm', index:number):void
+}>()
+const items:Ref<Array<KeyValue>> = ref([])
+const selected = ref(0)
+
+const updateLocate = () => {
+    items.value = Object.keys(TaskLogicType).filter(key => isNaN(Number(key))).map((x, index):KeyValue => {
+        return {
+            key: $t(`condition.${x.toLowerCase()}`),
+            value: index
+        }
+    })
+
+    const i1 = items.value.findIndex(x => x.value == TaskLogicType.CONDITION)
+    items.value.splice(i1, 1)
+    const i2 = items.value.findIndex(x => x.value == TaskLogicType.EXECUTION)
+    items.value.splice(i2, 1)
+    const i3 = items.value.findIndex(x => x.value == TaskLogicType.FAILED)
+    items.value.splice(i3, 1)
+    const i4 = items.value.findIndex(x => x.value == TaskLogicType.SINGLE)
+    items.value.splice(i4, 1)
+}
 
 const confirm = () => {
-
+    emits('confirm', selected.value)
 }
 const cancel = () => {
     modal.value = false
 }
+
+onMounted(() => {
+    updateLocate()
+})
 </script>
 
 <template>
@@ -34,7 +63,9 @@ const cancel = () => {
             {{ $t('modal.new-condition') }}
         </template>
         <template #text>
-
+            <v-select v-model="selected" :items="items" item-title="key" item-value="value">
+                
+            </v-select>
         </template>
         <template #action>
             <v-btn class="mt-3" color="primary" @click="confirm">{{ $t('create') }}</v-btn>

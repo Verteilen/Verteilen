@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, Ref, ref, watch } from 'vue';
 import colors from 'vuetify/lib/util/colors.mjs';
-import { ExecutePair, ExecuteState, Preference, SCROLL_LIMIT } from '../../../interface';
-import { WebsocketManager } from '../../../script/socket_manager';
+import { ExecutePair, ExecuteState, Preference, SCROLL_LIMIT, WebsocketManager } from 'verteilen-core/dist/interface';
+import { i18n } from '../../../plugins/i18n';
 
 interface PROPS {
     preference: Preference
-    socket: WebsocketManager | undefined
+    socket?: WebsocketManager
 }
 
+const $t = i18n.global.t
 const data = defineModel<ExecutePair>()
 const props = defineProps<PROPS>()
 const totalLength = ref(4)
@@ -134,7 +135,7 @@ const load = async (o:any) => {
                             style="background-color: transparent"
                             :style="{ 'color': getStateColor(data.record!.task_state[getindex(r, i)]?.state ?? 0), 'fontSize': props.preference.font + 'px' }"
                             :value="getindex(r, i)"
-                            :title="data.record!.projects[data.record!.project_index]?.task[getindex(r, i)]?.title ?? ''"
+                            :title="data.record!.projects[data.record!.project_index]?.tasks[getindex(r, i)]?.title ?? ''"
                             :complete="data.record!.task_state[getindex(r, i)]?.state == 2">
                         </v-stepper-item>
                     </template>

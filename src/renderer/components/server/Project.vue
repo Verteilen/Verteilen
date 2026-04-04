@@ -3,10 +3,10 @@
 import { v6 as uuidv6 } from 'uuid';
 import { Emitter } from 'mitt';
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
-import { BusType, Preference, ProjectTemplateText, ProjectTable, CreateRootLocalPermission } from '../../interface';
-import { i18n } from '../../plugins/i18n';
+import { BusType, Preference, ProjectTemplateText, ProjectTable, CreateRootLocalPermission } from 'verteilen-core/dist/interface';
 import { CreateField, DATA, EmitType, PROPS, Util_Project } from './Project';
 import { BackendProxy } from '../../proxy';
+import { i18n } from '../../plugins/i18n';
 //#endregion
 
 //#region Views
