@@ -12,6 +12,7 @@ import { vuetify } from './plugins/vuetify'
 //#region Views
 import ClientNodePage from './components/ClientNode.vue'
 import LoginPage from './components/Login.vue'
+import SetupPage from './components/Setup.vue'
 import ServerNodePage from './components/ServerNode.vue'
 import ClusterNodePage from './components/ClusterNode.vue'
 import SettingDialog from './components/dialog/SettingDialog.vue'
@@ -123,6 +124,7 @@ onUnmounted(() => {
     <ClientNodePage v-else-if="route == 2"/>
     <ServerNodePage v-else-if="route == 3 || route == 6"/>
     <ClusterNodePage v-else-if="route == 4"/>
+    <SetupPage v-else-if="route == 7"/>
     <span v-else>route: {{ route }} {{ JSON.stringify(config, null, 4) }}</span>
     <!-- Extra components -->
     <Messager />
