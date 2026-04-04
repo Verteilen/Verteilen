@@ -1,6 +1,6 @@
 import { reactive } from "vue";
 import { ConsoleManager, Listener, AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType } from "verteilen-core/dist/interface";
-import { checkExpressType, checkifElectron, checkIfExpress } from "./platform";
+import { checkExpressType, checkIfExpress } from "./platform";
 import Cookies from 'js-cookie'
 import { messager_log } from "./debugger";
 
@@ -31,8 +31,7 @@ export class BackendProxy {
     constructor(){
         this.user = reactive(this.user)
         this.config = {
-            isElectron: checkifElectron(),
-            isExpress: false,
+            setup: false,
             isAdmin: false,
             haveBackend: false,
             login: false,
@@ -48,15 +47,14 @@ export class BackendProxy {
      */
     init = () => {
         this.is_init = false
-        const k = new Promise<void>(async (resolve) => {
+        return new Promise<void>(async (resolve) => {
             const e = await checkIfExpress()
             Object.assign(this.user, e)
             this.user.permission = e?.permission
-            this.config.isExpress = e != undefined
             this.config.isAdmin = e ? (e.type == UserType.ADMIN || e.type == UserType.ROOT) : false
             this.is_init = true
-            this.config.haveBackend = this.config.isElectron || this.config.isExpress
-            this.config.backendType = (await checkExpressType()) ?? BackendType.NONE
+            this.config.haveBackend = e != undefined
+            this.config.backendType = (await checkExpressType()) ?? BackendType.SERVER
             if(this.user != undefined){
                 fetch('/pic').then(x => {
                     this.user!.picture_url = x.ok
@@ -65,15 +63,34 @@ export class BackendProxy {
                     this.user!.picture_url = false
                     resolve()
                 })
-            }else{
-                resolve()
-            }
-        })  
-        return Promise.all([k])
+            } else resolve()
+        })
     }
-
-    Create_Console_Host = (_url: string, _emitter: EmitterProxy<BusType>) => {
-        this.consoleM = new ConsoleManager(_url, messager_log, _emitter)
+    /**
+     * 
+     * @param _url Http URL
+     * @param _emitter The value which require by the ConsoleManager class
+     * @returns 
+     */
+    create_console_host = (_url: string, _emitter: EmitterProxy<BusType>) => {
+        if(!_url.endsWith("/")) _url += "/"
+        _url += "test"
+        return new Promise<boolean>((resolve, reject) => {
+            fetch(_url).then(async x => {
+                if(x.status != 200){
+                    reject("test response is not 200")
+                }
+                let websocket_url = _url;
+                websocket_url = websocket_url.replace("http", "ws").replace("https", "wss")
+                this.config.http_url = _url
+                this.config.websocket_url = websocket_url
+                this.consoleM = new ConsoleManager(_url, messager_log, _emitter)
+                while(this.consoleM?.readyState != "opening") {}
+                resolve(this.consoleM.connected)
+            }).catch(err => {
+                reject(err)
+            })
+        })
     }
 
     /**
@@ -106,16 +123,11 @@ export class BackendProxy {
      */
     send = async (key:string, ...args:Array<any>) => {
         if(!this.config.haveBackend) return undefined
-        if(this.config.isElectron){
-            window.electronAPI.send(key, ...args)
+        const d:RawSend = {
+            name: key,
+            data: args
         }
-        if(this.config.isExpress){
-            const d:RawSend = {
-                name: key,
-                data: args
-            }
-            this.consoleM?.send(d)
-        }
+        this.consoleM?.send(d)
     }
 
     /**
@@ -126,22 +138,17 @@ export class BackendProxy {
      */
     invoke = async (key:string, ...args:Array<any>) => {
         if(!this.config.haveBackend) return undefined
-        if(this.config.isElectron){
-            return window.electronAPI.invoke(key, ...args)
+        const d:RawSend = {
+            name: key,
+            data: args
         }
-        if(this.config.isExpress){
-            const d:RawSend = {
-                name: key,
-                data: args
-            }
-            return new Promise<any>((resolve) => {
-                this.consoleM?.once(`${key}-feedback`, (...args:Array<any>) => {
-                    if(args.length == 1) resolve(args[0])
-                    else resolve(args)
-                })
-                this.consoleM?.send(d)
+        return new Promise<any>((resolve) => {
+            this.consoleM?.once(`${key}-feedback`, (...args:Array<any>) => {
+                if(args.length == 1) resolve(args[0])
+                else resolve(args)
             })
-        }
+            this.consoleM?.send(d)
+        })
     }
 
     /**
@@ -151,12 +158,7 @@ export class BackendProxy {
      */
     eventOn = (channel: string, listener: Listener) => {
         if(!this.config.haveBackend) return
-        if(this.config.isElectron){
-            window.electronAPI.eventOn(channel, (e, ...aargs) => listener(...aargs))
-        }
-        if(this.config.isExpress){
-            this.consoleM?.on(channel, listener)
-        }
+        this.consoleM?.on(channel, listener)
     }
 
     /**
@@ -166,11 +168,6 @@ export class BackendProxy {
      */
     eventOff = (channel: string, listener: Listener) => {
         if(!this.config.haveBackend) return
-        if(this.config.isElectron){
-            window.electronAPI.eventOn(channel, (e, ...aargs) => listener(...aargs))
-        }
-        if(this.config.isExpress){
-            this.consoleM?.off(channel, listener)
-        }
+        this.consoleM?.off(channel, listener)
     }
 }

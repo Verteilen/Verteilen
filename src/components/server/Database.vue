@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { IpcRendererEvent } from 'electron'
 import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
 import {
@@ -172,14 +171,10 @@ const ImportConfirm = () => {
 }
 
 const exportPara = async () => {
-    if(config.value.isElectron) {
-        backend.value.send("export_database", JSON.stringify(data.value.buffer))
-    }else if(config.value.isExpress){
-        const handle = await window.showSaveFilePicker({ suggestedName: data.value.buffer.uuid + '.json' });
-        const writer = await handle.createWritable();
-        await writer.write(new Blob([JSON.stringify(JSON.stringify(data.value.buffer), null, 2)]))
-        await writer.close()
-    }
+    const handle = await window.showSaveFilePicker({ suggestedName: data.value.buffer.uuid + '.json' });
+    const writer = await handle.createWritable();
+    await writer.write(new Blob([JSON.stringify(JSON.stringify(data.value.buffer), null, 2)]))
+    await writer.close()
 }
 
 const confirmSubmitSet = (v:CreateField) => {
@@ -239,7 +234,7 @@ const DataTypeTranslate = (t:number):string => {
     return i18n.global.t(DataTypeText[t])
 }
 
-const import_database_feedback = (e:IpcRendererEvent, v:string) => {
+const import_database_feedback = (e:any, v:string) => {
     const d = JSON.parse(v)
     data.value.buffer = d
     setdirty()

@@ -3,7 +3,6 @@ import { rmSync } from 'fs';
 import { cp, readdir } from 'fs/promises';
 import Path from 'path';
 import * as Vite from 'vite';
-import compileTs from './private/tsc';
 
 async function buildRenderer() {
     await Vite.build({
@@ -11,31 +10,21 @@ async function buildRenderer() {
         base: './',
         mode: 'production'
     });
-    const fff = await readdir(Path.join(__dirname, '..', 'src', 'renderer', 'assets'), {withFileTypes: true})
+    const fff = await readdir(Path.join(__dirname, '..', 'src', 'assets'), {withFileTypes: true})
     const alp:Array<Promise<void>> = []
     for(let i = 0; i < fff.length; i++){
         const x = fff[i]
         if(!x.isDirectory()) continue
         alp.push(cp(
-            Path.join(__dirname, '..', 'src', 'renderer', 'assets', x.name), 
-            Path.join(__dirname, '..', 'build', 'renderer', x.name), 
+            Path.join(__dirname, '..', 'src', 'assets', x.name), 
+            Path.join(__dirname, '..', 'build', x.name), 
             { recursive: true }))
     }
     await Promise.all(alp)
 }
 
-function buildMain() {
-    const mainPath = Path.join(__dirname, '..', 'src', 'main');
-    return compileTs(mainPath);
-}
-
 function RemoveFolders(){
-    rmSync(Path.join(__dirname, '..', 'build', 'main'), {
-        recursive: true,
-        force: true,
-    })
-    
-    rmSync(Path.join(__dirname, '..', 'build', 'renderer'), {
+    rmSync(Path.join(__dirname, '..', 'build'), {
         recursive: true,
         force: true,
     })
@@ -44,12 +33,11 @@ function RemoveFolders(){
 export async function main(){
     RemoveFolders()
     const w1 = buildRenderer()
-    const w2 = buildMain()
     
     return Promise.allSettled([
-        w1, w2
+        w1
     ]).then(() => {
-        console.log(Chalk.greenBright('Renderer & main successfully transpiled! (ready to be built with electron-builder)'));
+        console.log(Chalk.greenBright('Renderer successfully transpiled! (ready to be built with electron-builder)'));
     });
 }
 

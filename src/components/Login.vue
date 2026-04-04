@@ -2,7 +2,7 @@
 //#region Module
 import { Emitter } from 'mitt';
 import { computed, inject, Ref, ref } from 'vue';
-import { AppConfig, BusType, Preference } from 'verteilen-core/dist/interface';
+import { BusType, Preference } from 'verteilen-core/dist/interface';
 import { BackendProxy } from '../proxy';
 import { i18n } from '../plugins/i18n';
 import Layout from './components/layout/Layout.vue';
@@ -16,6 +16,8 @@ const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
 const account = ref("")
 const password = ref("")
+const login_message = ref("")
+const server = ref("http://")
 //#endregion
 
 //#region Computed
@@ -23,13 +25,26 @@ const config = computed(() => backend.value.config)
 //#endregion
 
 //#region Methods
-const loginClick = () => {
-    emitter?.emit('login', { username: account.value, password: password.value })
+const cleanFields = () => {
     account.value = ""
     password.value = ""
 }
+const tryConnect = () => {
+    return backend.value.create_console_host(server.value, emitter)
+}
+const loginClick = () => {
+    if(config.value.haveBackend){
+        emitter.emit('login', { username: account.value, password: password.value })
+    }else {
+        tryConnect();
+    }
+}
 const guestClick = () => {
-    emitter?.emit('loginGuest')
+    if(config.value.haveBackend){
+        emitter.emit('loginGuest')
+    }else{
+        tryConnect();
+    }
 }
 //#endregion
 </script>
@@ -40,6 +55,7 @@ const guestClick = () => {
         <AppBar :title="$t('login.title')" />
 
         <div style="height: 25vh;"></div>
+        <v-text-field v-if="!config.haveBackend" v-model="server" width="40vw" :label="$t('login.server')"></v-text-field>
         <v-text-field v-model="account" width="40vw" :label="$t('login.account')"></v-text-field>
         <v-text-field v-model="password" width="40vw" :label="$t('login.password')"></v-text-field>
         <v-row>
@@ -50,6 +66,8 @@ const guestClick = () => {
                 <v-btn @click="guestClick" width="150" color="success">{{ $t('login.guest') }}</v-btn>
             </v-col>
         </v-row>
+        <br />
+        <p>{{ login_message }}</p>
     </Layout>
 </template>
 

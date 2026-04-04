@@ -451,7 +451,7 @@ onMounted(() => {
   backend.value.wait_init().then(() => {
     backend.value.eventOn('debuglog', debug_feedback)
     if(backend.value.config.isExpress){
-      backend.value.Create_Console_Host(`wss://${window.location.hostname}:${WebPORT}`, {
+      backend.value.create_console_host(`wss://${window.location.hostname}:${WebPORT}`, {
         on: emitter!.on,
         off: emitter!.off,
         emit: emitter!.emit

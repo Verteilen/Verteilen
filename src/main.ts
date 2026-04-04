@@ -16,7 +16,7 @@ import './style.scss'
 
 const intervalMS = 60 * 60 * 1000
 
-const updateServiceWorker = useRegisterSW({
+useRegisterSW({
     onRegistered(r:any) {
         r && setInterval(() => {
             r.update()
