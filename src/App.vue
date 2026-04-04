@@ -41,10 +41,12 @@ const token = computed(() => backend.value.getCookie('token'))
  * * 4: Cluster
  * * 5: Pure Static-Site
  * * 6: Login Pure Static-Site
+ * * 7: No setup
  */
 const route = computed(() => {
   if(config.value.haveBackend){
     if(config.value.backendType == BackendType.SERVER || config.value.backendType == BackendType.NONE){
+      if(!config.value.setup) return 7
       if(config.value.login) return 3
       else return 1
     }

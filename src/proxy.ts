@@ -31,6 +31,7 @@ export class BackendProxy {
     constructor(){
         this.user = reactive(this.user)
         this.config = {
+            setup: false,
             isAdmin: false,
             haveBackend: false,
             login: false,
@@ -46,14 +47,14 @@ export class BackendProxy {
      */
     init = () => {
         this.is_init = false
-        const k = new Promise<void>(async (resolve) => {
+        return new Promise<void>(async (resolve) => {
             const e = await checkIfExpress()
             Object.assign(this.user, e)
             this.user.permission = e?.permission
             this.config.isAdmin = e ? (e.type == UserType.ADMIN || e.type == UserType.ROOT) : false
             this.is_init = true
             this.config.haveBackend = e != undefined
-            this.config.backendType = (await checkExpressType()) ?? BackendType.NONE
+            this.config.backendType = (await checkExpressType()) ?? BackendType.SERVER
             if(this.user != undefined){
                 fetch('/pic').then(x => {
                     this.user!.picture_url = x.ok
@@ -62,15 +63,34 @@ export class BackendProxy {
                     this.user!.picture_url = false
                     resolve()
                 })
-            }else{
-                resolve()
-            }
-        })  
-        return Promise.all([k])
+            } else resolve()
+        })
     }
-
-    Create_Console_Host = (_url: string, _emitter: EmitterProxy<BusType>) => {
-        this.consoleM = new ConsoleManager(_url, messager_log, _emitter)
+    /**
+     * 
+     * @param _url Http URL
+     * @param _emitter The value which require by the ConsoleManager class
+     * @returns 
+     */
+    create_console_host = (_url: string, _emitter: EmitterProxy<BusType>) => {
+        if(!_url.endsWith("/")) _url += "/"
+        _url += "test"
+        return new Promise<boolean>((resolve, reject) => {
+            fetch(_url).then(async x => {
+                if(x.status != 200){
+                    reject("test response is not 200")
+                }
+                let websocket_url = _url;
+                websocket_url = websocket_url.replace("http", "ws").replace("https", "wss")
+                this.config.http_url = _url
+                this.config.websocket_url = websocket_url
+                this.consoleM = new ConsoleManager(_url, messager_log, _emitter)
+                while(this.consoleM?.readyState != "opening") {}
+                resolve(this.consoleM.connected)
+            }).catch(err => {
+                reject(err)
+            })
+        })
     }
 
     /**
