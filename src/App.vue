@@ -3,7 +3,7 @@
 import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue'
 import { useTheme } from 'vuetify'
-import { BackendType, BusType, Login, Preference } from 'verteilen-core/dist/interface'
+import { BackendType, BusType, FrontendState, Login, Preference } from 'verteilen-core/dist/interface'
 import { i18n } from './plugins/i18n'
 import { BackendProxy } from './proxy'
 import { vuetify } from './plugins/vuetify'
@@ -35,28 +35,6 @@ const data:Ref<DATA> = ref({
 const mode = computed(() => preference.value.mode)
 const config = computed(() => backend.value.config)
 const token = computed(() => backend.value.getCookie('token'))
-/**
- * * 1: No login express
- * * 2: Node
- * * 3: Login express
- * * 4: Cluster
- * * 5: Pure Static-Site
- * * 6: Login Pure Static-Site
- * * 7: No setup
- */
-const route = computed(() => {
-  if(config.value.haveBackend){
-    if(config.value.backendType == BackendType.SERVER || config.value.backendType == BackendType.NONE){
-      if(!config.value.setup) return 7
-      if(config.value.login) return 3
-      else return 1
-    }
-    else if(config.value.backendType == BackendType.NODE) return 2
-    else if(config.value.backendType == BackendType.CLUSTER) return 4
-  }
-  if(config.value.login) return 6
-  return 5
-})
 const util = new Util_App(data, theme, emitter, backend, preference, token)
 //#endregion
 
@@ -118,14 +96,14 @@ onUnmounted(() => {
 <template>
   <!-- The top level component -->
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference?.font + 'px' }">
-    <span style="z-index: 1; color: white; position: fixed;">{{ route }}: {{ mode }}</span>
+    <span style="z-index: 1; color: white; position: fixed;">{{ backend.state }}: {{ mode }}</span>
     <!-- This is like router -->
-    <LoginPage v-if="route == 1 || route == 5" :preference="preference" :config="config"/>
-    <ClientNodePage v-else-if="route == 2"/>
-    <ServerNodePage v-else-if="route == 3 || route == 6"/>
-    <ClusterNodePage v-else-if="route == 4"/>
-    <SetupPage v-else-if="route == 7"/>
-    <span v-else>route: {{ route }} {{ JSON.stringify(config, null, 4) }}</span>
+    <LoginPage v-if="backend.state == FrontendState.LOGOUT_BACKEND || backend.state == FrontendState.LOGOUT_STATIC" :preference="preference" :config="config"/>
+    <ClientNodePage v-else-if="backend.state == FrontendState.NODE"/>
+    <ServerNodePage v-else-if="backend.state == FrontendState.LOGIN_BACKEND || backend.state == FrontendState.LOGIN_STATIC" />
+    <ClusterNodePage v-else-if="backend.state == FrontendState.CLUSTER"/>
+    <SetupPage v-else-if="backend.state == FrontendState.SETUP_BACKEND || backend.state == FrontendState.SETUP_STATIC"/>
+    <span v-else>route: {{ backend.state }} {{ JSON.stringify(config, null, 4) }}</span>
     <!-- Extra components -->
     <Messager />
     <SettingDialog v-model="data.settingModal" @update="e => util.update_preference(e)" />

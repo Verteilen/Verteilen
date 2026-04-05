@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //#region Module
 import { Emitter } from 'mitt';
-import { computed, inject, Ref, ref } from 'vue';
+import { computed, inject, onMounted, Ref, ref } from 'vue';
 import { BusType, Preference } from 'verteilen-core/dist/interface';
 import { BackendProxy } from '../proxy';
 import { i18n } from '../plugins/i18n';
@@ -17,11 +17,13 @@ const preference:Ref<Preference> = inject("preference")!
 const account = ref("")
 const password = ref("")
 const login_message = ref("")
-const server = ref("http://")
+const connected:Ref<boolean> = ref(false)
+const server = ref("https://localhost:11080")
 //#endregion
 
 //#region Computed
 const config = computed(() => backend.value.config)
+const haveBackend = computed(() => backend.value.config.haveBackend)
 //#endregion
 
 //#region Methods
@@ -30,13 +32,22 @@ const cleanFields = () => {
     password.value = ""
 }
 const tryConnect = () => {
-    backend.value.create_console_host(server.value, emitter).then(x => {
-        if(!x) login_message.value = $t("login.connect_failed")
-        else login_message.value = $t("login.connect_success")
-    }).catch(err => {
-        login_message.value = err
-        console.error(err)
-    })
+    if(backend.value.consoleM?.connected){
+        backend.value.consoleM.close();
+        backend.value.consoleM = undefined
+        login_message.value = ""
+        connected.value = false
+    }else{
+        backend.value.create_console_host(server.value, emitter).then(x => {
+            if(!x) login_message.value = $t("login.connect_failed")
+            else login_message.value = $t("login.connect_success")
+            connected.value = backend.value.consoleM?.connected ?? false
+        }).catch(err => {
+            login_message.value = err
+            console.error(err)
+            connected.value = false
+        })
+    }
 }
 const loginClick = () => {
     if(config.value.haveBackend){
@@ -52,6 +63,9 @@ const guestClick = () => {
         tryConnect();
     }
 }
+onMounted(() => {
+    cleanFields()
+})
 //#endregion
 </script>
 
@@ -61,20 +75,26 @@ const guestClick = () => {
         <AppBar :title="$t('login.title')" />
 
         <div style="height: 25vh;"></div>
-        <v-text-field v-if="!config.haveBackend" :disabled="config.haveBackend" v-model="server" width="40vw" :label="$t('login.server')"></v-text-field>
-        <v-btn @click="tryConnect" :disabled="config.haveBackend" width="150" color="success">{{ $t('login.connect') }}</v-btn>
-        <br />
-        <br />
-        <v-text-field v-model="account" :disabled="!config.haveBackend" width="40vw" :label="$t('login.account')"></v-text-field>
-        <v-text-field v-model="password" :disabled="!config.haveBackend" width="40vw" :label="$t('login.password')"></v-text-field>
-        <v-row>
-            <v-col>
-                <v-btn @click="loginClick" :disabled="!config.haveBackend" width="150" color="success">{{ $t('login.submit') }}</v-btn>
-            </v-col>
-            <v-col>
-                <v-btn @click="guestClick" :disabled="!config.haveBackend" width="150" color="success">{{ $t('login.guest') }}</v-btn>
-            </v-col>
-        </v-row>
+        <div v-if="!haveBackend">
+            <v-text-field :disabled="connected" v-model="server" width="40vw" :label="$t('login.server')"></v-text-field>
+            <v-btn class="w-100" @click="tryConnect" :disabled="haveBackend" width="150" color="success">
+                {{ $t(connected ? 'login.disconnect' : 'login.connect') }}
+            </v-btn>
+            <br />
+            <br />
+        </div>
+        <div v-if="connected">
+            <v-text-field v-model="account" width="40vw" :label="$t('login.account')"></v-text-field>
+            <v-text-field v-model="password" width="40vw" :label="$t('login.password')"></v-text-field>
+            <v-row class="w-100">
+                <v-col>
+                    <v-btn class="w-100" @click="loginClick" width="150" color="success">{{ $t('login.submit') }}</v-btn>
+                </v-col>
+                <v-col>
+                    <v-btn class="w-100" @click="guestClick" width="150" color="success">{{ $t('login.guest') }}</v-btn>
+                </v-col>
+            </v-row>
+        </div>
         <br />
         <p>{{ login_message }}</p>
     </Layout>

@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { ConsoleManager, Listener, AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType } from "verteilen-core/dist/interface";
+import { ConsoleManager, Listener, AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType, FrontendState } from "verteilen-core/dist/interface";
 import { checkExpressType, checkIfExpress } from "./platform";
 import Cookies from 'js-cookie'
 import { messager_log } from "./debugger";
@@ -39,6 +39,21 @@ export class BackendProxy {
         }
         this.is_init = false
         this.consoleM = undefined
+    }
+
+    public get state(): FrontendState {
+        if(this.config.haveBackend){
+            if(this.config.backendType == BackendType.SERVER || this.config.backendType == BackendType.NONE){
+            if(!this.config.setup) return FrontendState.SETUP_BACKEND
+            if(this.config.login) return FrontendState.LOGIN_BACKEND
+            else return FrontendState.LOGOUT_BACKEND
+            }
+            else if(this.config.backendType == BackendType.NODE) return FrontendState.NODE
+            else if(this.config.backendType == BackendType.CLUSTER) return FrontendState.CLUSTER
+        }
+        if(!this.config.setup) return FrontendState.SETUP_STATIC
+        if(this.config.login) return FrontendState.LOGIN_STATIC
+        return FrontendState.LOGOUT_STATIC
     }
 
     /**
@@ -81,16 +96,21 @@ export class BackendProxy {
                 if(x.status != 200){
                     reject("test response is not 200")
                 }
-                const res = JSON.parse(await x.json())
+                const res = JSON.parse(await x.text())
                 let websocket_url = _url;
                 websocket_url = websocket_url.replace("http", "ws").replace("https", "wss")
                 this.config.http_url = _url
                 this.config.websocket_url = websocket_url
                 this.consoleM = new ConsoleManager(_url, messager_log, _emitter)
-                while(this.consoleM?.readyState != "opening") {}
-                this.config.haveBackend = this.consoleM.connected
-                this.config.backendType = res.type ?? BackendType.NONE
-                resolve(this.consoleM.connected)
+                let timer:any = undefined
+                timer = setInterval(() => {
+                    if(this.consoleM!.readyState != "opening"){
+                        clearInterval(timer);
+                        this.config.backendType = res.type ?? BackendType.NONE
+                        this.config.setup = res.setup ?? true
+                        resolve(this.consoleM!.connected)
+                    }
+                }, 50);
             }).catch(err => {
                 reject(err)
             })

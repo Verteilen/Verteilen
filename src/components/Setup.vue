@@ -16,7 +16,7 @@ const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
 const account = ref("")
 const password = ref("")
-const login_message = ref("")
+const setup_message = ref("")
 const server = ref("http://")
 //#endregion
 
@@ -52,22 +52,9 @@ const guestClick = () => {
 <template>
     <Layout>
         <!-- Top Appbar -->
-        <AppBar :title="$t('login.title')" />
-
-        <div style="height: 25vh;"></div>
-        <v-text-field v-if="!config.haveBackend" v-model="server" width="40vw" :label="$t('login.server')"></v-text-field>
-        <v-text-field v-model="account" width="40vw" :label="$t('login.account')"></v-text-field>
-        <v-text-field v-model="password" width="40vw" :label="$t('login.password')"></v-text-field>
-        <v-row>
-            <v-col>
-                <v-btn @click="loginClick" width="150" color="success">{{ $t('login.submit') }}</v-btn>
-            </v-col>
-            <v-col>
-                <v-btn @click="guestClick" width="150" color="success">{{ $t('login.guest') }}</v-btn>
-            </v-col>
-        </v-row>
+        <AppBar :title="$t('setup.title')" />
         <br />
-        <p>{{ login_message }}</p>
+        <p>{{ setup_message }}</p>
     </Layout>
 </template>
 

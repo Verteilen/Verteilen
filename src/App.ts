@@ -5,6 +5,7 @@ import { Emitter } from "mitt"
 import { i18n } from "./plugins/i18n"
 import { ThemeInstance } from "vuetify"
 import { vuetify } from "./plugins/vuetify"
+import Cookies from "js-cookie"
 
 export interface DATA {
     settingModal: boolean
@@ -27,15 +28,23 @@ export class Util_App {
         this.preference = preference
         this.token = token
 
+        const lan = Cookies.get("lan")
+        if(lan != undefined) this.preference.value.lan = lan
+        const _theme = Cookies.get("theme")
+        if(_theme != undefined) this.preference.value.theme = _theme
+
         // @ts-ignore
         window.dump = () => {
             this.backend.value.invoke('debug:dump').then(x => {
                 console.log(JSON.parse(x))
             })
         }
+        this.update_preference(this.preference.value)
     }
 
     save_preference = (v:Preference) => {
+        Cookies.set("lan", v.lan)
+        Cookies.set("theme", v.theme)
         this.backend.value.send('save_preference', JSON.stringify(v, null, 4), this.token.value)
     }
 
@@ -49,6 +58,8 @@ export class Util_App {
     update_preference = (v:Preference) => {
         Object.assign(this.preference.value, v)
         this.locate(this.preference.value.lan)
+        Cookies.set("lan", v.lan)
+        Cookies.set("theme", v.theme)
         this.theme.change(v.theme)
         // @ts-ignore
         vuetify.defaults.value!.global = v.animation ? {} : this.data.value.defaultTransition
