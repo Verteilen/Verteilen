@@ -8,7 +8,7 @@
   "description": "Compute tool for multi computer",
   "main": "main/main.js",
   "scripts": {
-    "vite": "vite",
+    "dev": "vite",
     "preview": "vite preview",
     "build": "ts-node scripts/build.ts"
   },

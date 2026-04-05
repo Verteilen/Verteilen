@@ -30,7 +30,13 @@ const cleanFields = () => {
     password.value = ""
 }
 const tryConnect = () => {
-    return backend.value.create_console_host(server.value, emitter)
+    backend.value.create_console_host(server.value, emitter).then(x => {
+        if(!x) login_message.value = $t("login.connect_failed")
+        else login_message.value = $t("login.connect_success")
+    }).catch(err => {
+        login_message.value = err
+        console.error(err)
+    })
 }
 const loginClick = () => {
     if(config.value.haveBackend){
@@ -55,15 +61,18 @@ const guestClick = () => {
         <AppBar :title="$t('login.title')" />
 
         <div style="height: 25vh;"></div>
-        <v-text-field v-if="!config.haveBackend" v-model="server" width="40vw" :label="$t('login.server')"></v-text-field>
-        <v-text-field v-model="account" width="40vw" :label="$t('login.account')"></v-text-field>
-        <v-text-field v-model="password" width="40vw" :label="$t('login.password')"></v-text-field>
+        <v-text-field v-if="!config.haveBackend" :disabled="config.haveBackend" v-model="server" width="40vw" :label="$t('login.server')"></v-text-field>
+        <v-btn @click="tryConnect" :disabled="config.haveBackend" width="150" color="success">{{ $t('login.connect') }}</v-btn>
+        <br />
+        <br />
+        <v-text-field v-model="account" :disabled="!config.haveBackend" width="40vw" :label="$t('login.account')"></v-text-field>
+        <v-text-field v-model="password" :disabled="!config.haveBackend" width="40vw" :label="$t('login.password')"></v-text-field>
         <v-row>
             <v-col>
-                <v-btn @click="loginClick" width="150" color="success">{{ $t('login.submit') }}</v-btn>
+                <v-btn @click="loginClick" :disabled="!config.haveBackend" width="150" color="success">{{ $t('login.submit') }}</v-btn>
             </v-col>
             <v-col>
-                <v-btn @click="guestClick" width="150" color="success">{{ $t('login.guest') }}</v-btn>
+                <v-btn @click="guestClick" :disabled="!config.haveBackend" width="150" color="success">{{ $t('login.guest') }}</v-btn>
             </v-col>
         </v-row>
         <br />

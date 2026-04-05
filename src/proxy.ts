@@ -73,19 +73,23 @@ export class BackendProxy {
      * @returns 
      */
     create_console_host = (_url: string, _emitter: EmitterProxy<BusType>) => {
-        if(!_url.endsWith("/")) _url += "/"
-        _url += "test"
-        return new Promise<boolean>((resolve, reject) => {
-            fetch(_url).then(async x => {
+        let query_url = _url
+        if(!query_url.endsWith("/")) query_url += "/"
+        query_url += "test"
+        return new Promise<boolean>(async (resolve, reject) => {
+            fetch(query_url).then(async x => {
                 if(x.status != 200){
                     reject("test response is not 200")
                 }
+                const res = JSON.parse(await x.json())
                 let websocket_url = _url;
                 websocket_url = websocket_url.replace("http", "ws").replace("https", "wss")
                 this.config.http_url = _url
                 this.config.websocket_url = websocket_url
                 this.consoleM = new ConsoleManager(_url, messager_log, _emitter)
                 while(this.consoleM?.readyState != "opening") {}
+                this.config.haveBackend = this.consoleM.connected
+                this.config.backendType = res.type ?? BackendType.NONE
                 resolve(this.consoleM.connected)
             }).catch(err => {
                 reject(err)
