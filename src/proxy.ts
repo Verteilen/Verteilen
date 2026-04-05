@@ -51,7 +51,6 @@ export class BackendProxy {
             else if(this.config.backendType == BackendType.NODE) return FrontendState.NODE
             else if(this.config.backendType == BackendType.CLUSTER) return FrontendState.CLUSTER
         }
-        if(!this.config.setup) return FrontendState.SETUP_STATIC
         if(this.config.login) return FrontendState.LOGIN_STATIC
         return FrontendState.LOGOUT_STATIC
     }
