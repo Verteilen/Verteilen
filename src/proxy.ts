@@ -41,15 +41,16 @@ export class BackendProxy {
         this.consoleM = undefined
     }
 
-    public get state(): FrontendState {
+    state = (): FrontendState => {
         if(this.config.haveBackend){
             if(this.config.backendType == BackendType.SERVER || this.config.backendType == BackendType.NONE){
-            if(!this.config.setup) return FrontendState.SETUP_BACKEND
-            if(this.config.login) return FrontendState.LOGIN_BACKEND
-            else return FrontendState.LOGOUT_BACKEND
+                if(!this.config.setup) return FrontendState.SETUP_BACKEND
+                if(this.config.login) return FrontendState.LOGIN_BACKEND
+                else return FrontendState.LOGOUT_BACKEND
             }
             else if(this.config.backendType == BackendType.NODE) return FrontendState.NODE
             else if(this.config.backendType == BackendType.CLUSTER) return FrontendState.CLUSTER
+            return FrontendState.NONE
         }
         if(this.config.login) return FrontendState.LOGIN_STATIC
         return FrontendState.LOGOUT_STATIC
@@ -69,6 +70,12 @@ export class BackendProxy {
             this.is_init = true
             this.config.haveBackend = e != undefined
             this.config.backendType = (await checkExpressType()) ?? BackendType.SERVER
+            resolve()
+        })
+    }
+
+    fetch_pic = () => {
+        return new Promise<void>(async (resolve) => {
             if(this.user != undefined){
                 fetch('/pic').then(x => {
                     this.user!.picture_url = x.ok

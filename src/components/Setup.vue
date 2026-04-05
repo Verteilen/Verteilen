@@ -2,7 +2,7 @@
 //#region Module
 import { Emitter } from 'mitt';
 import { computed, inject, Ref, ref } from 'vue';
-import { BusType, Preference } from 'verteilen-core/dist/interface';
+import { AuthDB, AuthService, AuthType, BusType, Preference, ServerSetupRequire } from 'verteilen-core/dist/interface';
 import { BackendProxy } from '../proxy';
 import { i18n } from '../plugins/i18n';
 import Layout from './components/layout/Layout.vue';
@@ -14,8 +14,20 @@ const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
-const account = ref("")
-const password = ref("")
+const server_setting:Ref<ServerSetupRequire> = ref({
+    root: {
+        root_username: "",
+        root_password: "",
+    },
+    setting: {
+        open_guest: false,
+        auth: {
+            auth_type: AuthType.SELF,
+            auth_db: AuthDB.SQLITE3,
+            auth_service: AuthService.FIREBASE
+        }
+    }
+})
 const setup_message = ref("")
 const server = ref("http://")
 //#endregion
@@ -25,26 +37,8 @@ const config = computed(() => backend.value.config)
 //#endregion
 
 //#region Methods
-const cleanFields = () => {
-    account.value = ""
-    password.value = ""
-}
 const tryConnect = () => {
     return backend.value.create_console_host(server.value, emitter)
-}
-const loginClick = () => {
-    if(config.value.haveBackend){
-        emitter.emit('login', { username: account.value, password: password.value })
-    }else {
-        tryConnect();
-    }
-}
-const guestClick = () => {
-    if(config.value.haveBackend){
-        emitter.emit('loginGuest')
-    }else{
-        tryConnect();
-    }
 }
 //#endregion
 </script>
@@ -53,6 +47,20 @@ const guestClick = () => {
     <Layout>
         <!-- Top Appbar -->
         <AppBar :title="$t('setup.title')" />
+
+        <div style="height: 25vh;"></div>
+        <v-text-field v-model="server_setting.root!.root_username" width="40vw" :label="$t('setup.account')"></v-text-field>
+        <v-text-field v-model="server_setting.root!.root_password" width="40vw" :label="$t('setup.password')"></v-text-field>
+        <v-select :label="$t('setup.auth_type')" v-model="server_setting.setting!.auth.auth_db" width="40vw">
+
+        </v-select>
+        <v-select :label="$t('setup.auth_db')" width="40vw">
+
+        </v-select>
+        <v-select :label="$t('setup.auth_service')" width="40vw">
+
+        </v-select>
+        <v-checkbox :label="$t('setup.open_guest')" v-model="server_setting.setting!.open_guest"></v-checkbox>
         <br />
         <p>{{ setup_message }}</p>
     </Layout>

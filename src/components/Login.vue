@@ -17,13 +17,13 @@ const preference:Ref<Preference> = inject("preference")!
 const account = ref("")
 const password = ref("")
 const login_message = ref("")
-const connected:Ref<boolean> = ref(false)
 const server = ref("https://localhost:11080")
+const connected:Ref<boolean> = ref(false)
+const haveBackend:Ref<boolean> = ref(false)
 //#endregion
 
 //#region Computed
 const config = computed(() => backend.value.config)
-const haveBackend = computed(() => backend.value.config.haveBackend)
 //#endregion
 
 //#region Methods
@@ -65,6 +65,9 @@ const guestClick = () => {
 }
 onMounted(() => {
     cleanFields()
+    backend.value.wait_init().then(() => {
+        haveBackend.value = config.value.haveBackend
+    })
 })
 //#endregion
 </script>
@@ -83,7 +86,7 @@ onMounted(() => {
             <br />
             <br />
         </div>
-        <div v-if="connected">
+        <div v-if="connected || haveBackend">
             <v-text-field v-model="account" width="40vw" :label="$t('login.account')"></v-text-field>
             <v-text-field v-model="password" width="40vw" :label="$t('login.password')"></v-text-field>
             <v-row class="w-100">

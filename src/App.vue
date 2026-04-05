@@ -29,6 +29,8 @@ const data:Ref<DATA> = ref({
   settingModal: false,
   defaultTransition: undefined
 })
+const state:Ref<FrontendState> = ref(FrontendState.NONE)
+let state_updater:any = undefined
 //#endregion
 
 //#region Computed
@@ -58,16 +60,21 @@ const UpdateSelection = (mode:number | undefined, url:string | undefined):void =
   preference.value.url = url
   util.save_preference(preference.value)
 }
+const updateState = () => {
+  state.value = backend.value.state()
+}
 //#endregion
 
 onMounted(() => {
   backend.value.init().then(() => {
     console.log("haveBackend", config.value.haveBackend)
     console.log("backendType", config.value.backendType)
+    console.log("setup", config.value.setup)
     console.log("isAdmin", config.value.isAdmin)
     console.log("env", process.env.NODE_ENV)
     backend.value.send('message', 'Welcome Compute Tool')
   })
+  state_updater = setInterval(updateState, 50);
   data.value.defaultTransition = vuetify.defaults.value?.global
   emitter.on('guide', util.guide)
   emitter.on('relogin', relogin)
@@ -85,6 +92,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  clearImmediate(state_updater)
   emitter.off('guide', util.guide)
   emitter.off('savePreference', util.save_preference)
   emitter.off('setting', util.setting)
@@ -96,14 +104,13 @@ onUnmounted(() => {
 <template>
   <!-- The top level component -->
   <v-container fluid class="ma-0 pa-0" :style="{ 'fontSize': preference?.font + 'px' }">
-    <span style="z-index: 1; color: white; position: fixed;">{{ backend.state }}: {{ mode }}</span>
     <!-- This is like router -->
-    <LoginPage v-if="backend.state == FrontendState.LOGOUT_BACKEND || backend.state == FrontendState.LOGOUT_STATIC" :preference="preference" :config="config"/>
-    <ClientNodePage v-else-if="backend.state == FrontendState.NODE"/>
-    <ServerNodePage v-else-if="backend.state == FrontendState.LOGIN_BACKEND || backend.state == FrontendState.LOGIN_STATIC" />
-    <ClusterNodePage v-else-if="backend.state == FrontendState.CLUSTER"/>
-    <SetupPage v-else-if="backend.state == FrontendState.SETUP_BACKEND || backend.state == FrontendState.SETUP_STATIC"/>
-    <span v-else>route: {{ backend.state }} {{ JSON.stringify(config, null, 4) }}</span>
+    <LoginPage v-if="state == FrontendState.LOGOUT_BACKEND || state == FrontendState.LOGOUT_STATIC" :preference="preference" :config="config"/>
+    <ClientNodePage v-else-if="state == FrontendState.NODE"/>
+    <ServerNodePage v-else-if="state == FrontendState.LOGIN_BACKEND || state == FrontendState.LOGIN_STATIC" />
+    <ClusterNodePage v-else-if="state == FrontendState.CLUSTER"/>
+    <SetupPage v-else-if="state == FrontendState.SETUP_BACKEND || state == FrontendState.SETUP_STATIC"/>
+    <span v-else>route: {{ state }} {{ JSON.stringify(config, null, 4) }}</span>
     <!-- Extra components -->
     <Messager />
     <SettingDialog v-model="data.settingModal" @update="e => util.update_preference(e)" />
