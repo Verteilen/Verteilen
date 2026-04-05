@@ -1,9 +1,10 @@
 <script setup lang="ts">
 //#region Modules
 import { inject, ref, Ref, watch } from 'vue';
-import { Preference } from '../../interface';
 import DialogBase from './DialogBase.vue';
 import { i18n } from './../../plugins/i18n';
+import { Preference } from 'verteilen-core';
+import Cookies from 'js-cookie';
 //#endregion
 
 //#region Data
