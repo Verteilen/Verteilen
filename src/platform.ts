@@ -1,4 +1,4 @@
-import { BackendType, UserProfileClient } from "verteilen-core";
+import { BackendType, UserProfileClient } from "verteilen-core/dist/interface";
 
 const _checkIfExpress = async ():Promise<any> => {
     const p = await fetch('user')

@@ -1,5 +1,5 @@
 import { Ref } from "vue"
-import { BusType, Database, DatabaseTable } from "verteilen-core"
+import { BusType, Database, DatabaseTable } from "verteilen-core/dist/interface"
 import { DATA, save_and_update, Util_Server } from "."
 import { BackendProxy } from "../../proxy"
 import { Emitter } from "mitt"

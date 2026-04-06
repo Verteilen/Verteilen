@@ -4,7 +4,7 @@
 //                           
 // ========================
 import { formula, init } from "expressionparser";
-import { DataType, ENV_CHARACTER, IGNORE_CHARACTER, KeyValue, Database, DatabaseContainer } from "../../interface";
+import { DataType, ENV_CHARACTER, IGNORE_CHARACTER, KeyValue, Database, DatabaseContainer } from "verteilen-core/dist/interface";
 
 /**
  * The worker which helps parsing database variables into argument\

@@ -8,7 +8,7 @@
 //  ? This thing exist in admin client space
 //
 import { io, Socket } from "socket.io-client"
-import { BusType, EmitterProxy, Header, RawSend } from "../interface"
+import { BusType, EmitterProxy, Header, RawSend } from "verteilen-core/dist/interface"
 export type Listener = (...args: any[]) => void
 
 /**

@@ -24,7 +24,7 @@ import {
     JobTable,
     FrontendUpdate,
     MemoryData,
-} from 'verteilen-core'
+} from 'verteilen-core/dist/interface'
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Lib } from "./lib_handle";
@@ -42,6 +42,8 @@ import { Util_Server_Plugin } from "./plugin_handle";
 export type save_and_update = () => void
 
 export interface DATA {
+    execute_manager: Array<string>
+
     drawer: boolean
     title: string
     page:number

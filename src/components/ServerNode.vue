@@ -3,16 +3,14 @@
 import { Emitter } from 'mitt'
 import { v6 as uuidv6 } from 'uuid'
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
-import { messager_log, set_feedback } from '../debugger'
+import { set_feedback } from '../debugger'
 import { 
   BusAnalysis, 
   BusType, 
-  ExecuteRecord, 
   ExecutionLog, 
   JobCategory, 
   JobType, 
-  JobType2, 
-  NodeProxy, 
+  JobType2,  
   NodeTable, 
   Database, 
   Preference, 
@@ -272,32 +270,6 @@ const import_project_feedback = (text:string) => {
 
 const debug_feedback = (e:string) => emitter?.emit('debuglog', e)
 
-const newConnect = (x:SocketPack) => {
-  emitter?.emit('makeToast', {
-    title: i18n.global.t('toast.connection-create-title'),
-    type: 'success',
-    message: `${i18n.global.t('toast.connection-create-des')}: ${x.socket.id} \n${x.uuid}`
-  })
-  data.value.execute_manager.forEach(y => {
-    y.manager!.NewConnection(x)
-  })
-}
-
-const disconnect = (x:SocketPack) => {
-  emitter?.emit('makeToast', {
-    title: i18n.global.t('toast.connection-remove-title'),
-    type: 'danger',
-    message: `${i18n.global.t('toast.connection-remove-des')}: ${x.socket.id} \n${x.uuid}`
-  })
-  data.value.execute_manager.forEach(y => {
-    y.manager!.Disconnect(x)
-  })
-}
-
-const onAnalysis = (d:BusAnalysis) => {
-  data.value.execute_manager.forEach(x => x.manager!.Analysis(JSON.parse(JSON.stringify(d))))
-}
-
 const hotkey = (event:KeyboardEvent) => {
   if (event.altKey) {
     if(event.key == 'q') data.value.page = 0 // Project
@@ -419,7 +391,6 @@ onUnmounted(() => {
   emitter.off('updateNode', server_clients_update)
   emitter.off('deleteScript', libDelete)
   emitter.off('updateLocate', updateLocate)
-  data.value.execute_manager = []
   if(!backend.value.config.haveBackend) return
   backend.value.eventOff('debuglog', debug_feedback)
   backend.value.eventOff('console-delete', consoleDelete)
