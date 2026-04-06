@@ -1,4 +1,4 @@
-import { Database, DatabaseTable, Job, JobTable, Preference, Project, ProjectTable, Task, TaskTable, ServerBase } from "verteilen-core/dist/interface"
+import { DatabaseTable, JobTable, Preference, ProjectTable, TaskTable } from "verteilen-core/dist/interface"
 import { Ref } from "vue"
 import { Util_Server, DATA } from "."
 import { BackendProxy } from "../../proxy"
@@ -10,9 +10,6 @@ export class ServerSave {
         this.server = server
     }
 
-    public get static_server () : Ref<ServerBase | undefined> {
-        return this.server.server
-    }
     public get data () : Ref<DATA> {
         return this.server.data
     }
@@ -33,18 +30,7 @@ export class ServerSave {
         const project:any = JSON.parse(JSON.stringify(v))
         delete project.s
         delete project.taskCount
-        const p = !this.backend.value.config.haveBackend ?
-        new Promise<void>((resolve) => {
-            if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save project in web space")
-            if(this.static_server.value == undefined) return
-            const i = this.static_server.value.memory.projects.findIndex(x => x.uuid == project.uuid)
-            if(i != -1){
-                this.static_server.value.memory.projects[i] = project
-            }else{
-                this.static_server.value.memory.projects.push(project)
-            }
-            resolve()
-        }) : new Promise<void>((resolve) => {
+        const p = new Promise<void>((resolve) => {
             if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save project in backend space")
             this.backend.value.send("save_project", project.uuid, JSON.stringify(project, null, 4))
             resolve()
@@ -56,22 +42,7 @@ export class ServerSave {
         const task:any = JSON.parse(JSON.stringify(v))
         delete task.s
         delete task.jobCount
-        const p = !this.backend.value.config.haveBackend ?
-        new Promise<void>((resolve) => {
-            if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save task in web space")
-            if(this.static_server.value == undefined) {
-                resolve()
-                return
-            }
-            const i = this.static_server.value.memory.tasks.findIndex(x => x.uuid == task.uuid)
-            if(i != -1){
-                this.static_server.value.memory.tasks[i] = task
-            }else{
-                this.static_server.value.memory.tasks.push(task)
-            }
-            resolve()
-        }) :
-        new Promise<void>((resolve) => {
+        const p = new Promise<void>((resolve) => {
             if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save task in backend space")
             this.backend.value.send("save_task", task.uuid, JSON.stringify(task, null, 4))
             resolve()
@@ -82,22 +53,7 @@ export class ServerSave {
     save_job = async (v:JobTable):Promise<void> => {
         const job:any = JSON.parse(JSON.stringify(v))
         delete job.s
-        const p = !this.backend.value.config.haveBackend ?
-        new Promise<void>((resolve) => {
-            if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save job in web space")
-            if(this.static_server.value == undefined) {
-                resolve()
-                return
-            }
-            const i = this.static_server.value.memory.jobs.findIndex(x => x.uuid == job.uuid)
-            if(i != -1){
-                this.static_server.value.memory.jobs[i] = job
-            }else{
-                this.static_server.value.memory.jobs.push(job)
-            }
-            resolve()
-        }) :
-        new Promise<void>((resolve) => {
+        const p = new Promise<void>((resolve) => {
             if (process.env.NODE_ENV == 'development') console.log("[Server:Save] Save job in backend space")
             this.backend.value.send("save_job", job.uuid, JSON.stringify(job, null, 4))
             resolve()
@@ -106,13 +62,7 @@ export class ServerSave {
     }
 
     clone_projects = async (v:Array<ProjectTable>):Promise<void> => {
-        const p = !this.backend.value.config.haveBackend ?
-        new Promise<void>(async (resolve) => {
-            if(this.static_server.value == undefined) return
-            await this.static_server.value.module_project.CloneProjects(v.map(x => x.uuid))
-            await this.server.query.load_all_project()
-            resolve()
-        }) : new Promise<void>(async (resolve) => {
+        const p = new Promise<void>(async (resolve) => {
             await this.backend.value.invoke("project_module:clone_projects", ...v.map(x => x.uuid))
             await this.server.query.load_all_project()
             resolve()
@@ -121,17 +71,7 @@ export class ServerSave {
     }
 
     clone_tasks = (v:Array<TaskTable>) => {
-        const p = !this.backend.value.config.haveBackend ?
-        new Promise<void>(async (resolve) => {
-            if(this.static_server.value == undefined) return
-            const xs = await this.static_server.value.module_project.CloneTasks(v.map(x => x.uuid))
-            if(this.selectProject.value != undefined){
-                this.selectProject.value.tasks_uuid.push(...xs)
-                await this.server.save.save_project(this.selectProject.value)
-                await this.server.query.load_tasks(this.selectProject.value.uuid)
-            }
-            resolve()
-        }) : new Promise<void>(async (resolve) => {
+        const p = new Promise<void>(async (resolve) => {
             const xs = await this.backend.value.invoke("project_module:clone_tasks", ...v.map(x => x.uuid))
             if(this.selectProject.value != undefined){
                 this.selectProject.value.tasks_uuid.push(...xs)
@@ -145,18 +85,7 @@ export class ServerSave {
     }
 
     clone_jobs = (v:Array<JobTable>) => {
-        const p = !this.backend.value.config.haveBackend ?
-        new Promise<void>((resolve) => {
-            if(this.static_server.value == undefined) return
-            this.static_server.value.module_project.CloneJobs(v.map(x => x.uuid)).then(async xs => {
-                if(this.selectTask.value){
-                    this.selectTask.value.jobs_uuid.push(...xs)
-                    await this.server.save.save_task(this.selectTask.value)
-                    await this.server.query.load_jobs(this.selectTask.value.uuid)
-                }
-                resolve()
-            })
-        }) : new Promise<void>((resolve) => {
+        const p = new Promise<void>((resolve) => {
             this.backend.value.invoke("project_module:clone_jobs", v.map(x => x.uuid)).then(async (xs:Array<string>) => {
                 if(this.selectTask.value){
                     this.selectTask.value.jobs_uuid.push(...xs)
@@ -172,21 +101,7 @@ export class ServerSave {
     save_database = async (v:DatabaseTable):Promise<void> => {
         const database:any = JSON.parse(JSON.stringify(v))
         delete database.s
-        const p = !this.backend.value.config.haveBackend ?
-        new Promise<void>((resolve) => {
-            if(this.static_server.value == undefined) {
-                resolve()
-                return
-            }
-            const i = this.static_server.value.memory.database.findIndex(x => x.uuid == database.uuid)
-            if(i != -1){
-                this.static_server.value.memory.database[i] = database
-            }else{
-                this.static_server.value.memory.database.push(database)
-            }
-            resolve()
-        }) :
-        new Promise<void>((resolve) => {
+        const p = new Promise<void>((resolve) => {
             this.backend.value.send("save_database", database.uuid, JSON.stringify(database, null, 4))
             resolve()
         })

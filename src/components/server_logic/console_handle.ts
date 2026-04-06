@@ -12,7 +12,7 @@ import {
     Project, 
     Record, 
     Task 
-} from 'verteilen-core/dist/interface'
+} from 'verteilen-core'
 
 export class Util_Server_Console { 
 

@@ -1,4 +1,4 @@
-import { Database, DatabaseTable, ExecutionLog, Job, JobTable, Library, Node, NodeTable, Preference, Project, ProjectTable, Task, TaskTable } from "verteilen-core/dist/interface"
+import { Database, DatabaseTable, ExecutionLog, Job, JobTable, Library, Node, Preference, Project, ProjectTable, Task, TaskTable } from "verteilen-core/dist/interface"
 import { Ref } from "vue"
 import { DATA, Util_Server } from "."
 import { BackendProxy } from "../../proxy"
