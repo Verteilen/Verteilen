@@ -4,10 +4,8 @@ import { ComputedRef, Ref } from "vue"
 import { BackendProxy } from "../../proxy";
 import { 
     AppConfig,
-    WebsocketManager,
     BusType, 
     ClientLog, 
-    ExecutePair, 
     ExecuteProxy, 
     ExecuteState, 
     FeedBack, 
@@ -25,8 +23,8 @@ import {
     TaskTable,
     JobTable,
     FrontendUpdate,
-    ServerBase,
-} from 'verteilen-core/dist/interface'
+    MemoryData,
+} from 'verteilen-core'
 import { Util_Server_Console } from "./console_handle";
 import { Util_Server_Job } from "./job_handle";
 import { Util_Server_Lib } from "./lib_handle";
@@ -44,9 +42,6 @@ import { Util_Server_Plugin } from "./plugin_handle";
 export type save_and_update = () => void
 
 export interface DATA {
-    websocket_manager: WebsocketManager | undefined
-    execute_manager: Array<ExecutePair>
-
     drawer: boolean
     title: string
     page:number
@@ -71,12 +66,21 @@ export interface DATA {
  * This worker have deep binding with data\
  * And also have deep connection with the views display logic
  */
-export class Util_Server extends ServerBase {
+export class Util_Server {
     data:Ref<DATA>
     emitter:Emitter<BusType>
     backend:Ref<BackendProxy>
     preference:Ref<Preference>
-    server:Ref<ServerBase | undefined>
+    memory: MemoryData = {
+        projects: [],
+        tasks: [],
+        jobs: [],
+        database: [],
+        nodes: [],
+        logs: [],
+        libs: [],
+        user: [],
+    }
 
     query:ServerQuery
     save:ServerSave
@@ -100,19 +104,16 @@ export class Util_Server extends ServerBase {
         emitter:Emitter<BusType>,
         backend:Ref<BackendProxy>,
         preference:Ref<Preference>,
-        server:Ref<ServerBase | undefined>,
         config: ComputedRef<AppConfig>,
         selectProject:ComputedRef<ProjectTable | undefined>,
         selectTask:ComputedRef<TaskTable | undefined>,
         selectDatabase:ComputedRef<DatabaseTable | undefined>
         )
     {
-        super()
         this.data = data
         this.emitter = emitter
         this.backend = backend
         this.preference = preference
-        this.server = server
         this.query = new ServerQuery(this)
         this.save = new ServerSave(this)
         this.del = new ServerDelete(this)
@@ -227,7 +228,7 @@ export class Util_Server extends ServerBase {
 
     GetTab = ():Array<[string, string, number]> => {
         let tabs:Array<[string, string, number]> = []
-        if(this.config.value.isExpress){
+        if(this.config.value.haveBackend){
             // In express mode, we will need to check permission first
             tabs = [
                 ["", "toolbar.editor", -1],
@@ -256,14 +257,14 @@ export class Util_Server extends ServerBase {
         }
         
         if(this.config.value.haveBackend){
-            if((this.config.value.isExpress && this.backend.value.user.permission?.plugin.view) || !this.config.value.isExpress) tabs.push(["mdi-puzzle", "toolbar.plugin", 11])
+            if((this.config.value.haveBackend && this.backend.value.user.permission?.plugin.view) || !this.config.value.haveBackend) tabs.push(["mdi-puzzle", "toolbar.plugin", 11])
             tabs.push(["", "toolbar.backend", -1])
-            if((this.config.value.isExpress && this.backend.value.user.permission?.log.view) || !this.config.value.isExpress) tabs.push(["mdi-text-box-outline", "toolbar.log", 6])
-            if((this.config.value.isExpress && this.backend.value.user.permission?.lib.view) || !this.config.value.isExpress) tabs.push(["mdi-xml", "toolbar.library", 7])
+            if((this.config.value.haveBackend && this.backend.value.user.permission?.log.view) || !this.config.value.haveBackend) tabs.push(["mdi-text-box-outline", "toolbar.log", 6])
+            if((this.config.value.haveBackend && this.backend.value.user.permission?.lib.view) || !this.config.value.haveBackend) tabs.push(["mdi-xml", "toolbar.library", 7])
         }
         // Only admin or electron user can access self client
-        if((this.config.value.isExpress && this.config.value.isAdmin) || this.config.value.isElectron) tabs.push(["mdi-nodejs", "toolbar.client", 8])
-        if(this.config.value.isExpress && this.config.value.isAdmin){
+        if(this.config.value.haveBackend && this.config.value.isAdmin) tabs.push(["mdi-nodejs", "toolbar.client", 8])
+        if(this.config.value.haveBackend && this.config.value.isAdmin){
             // Some admin tool to view
             tabs.push(["", "toolbar.server", -1])
             tabs.push(["mdi-lock", "toolbar.role", 9])

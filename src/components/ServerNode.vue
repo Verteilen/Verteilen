@@ -5,10 +5,6 @@ import { v6 as uuidv6 } from 'uuid'
 import { computed, inject, nextTick, onMounted, onUnmounted, Ref, ref, watch } from 'vue'
 import { messager_log, set_feedback } from '../debugger'
 import { 
-  ExecuteManager,
-  WebsocketManager,
-  Console_Proxy,
-  Log_Proxy,
   BusAnalysis, 
   BusType, 
   ExecuteRecord, 
@@ -23,12 +19,10 @@ import {
   Record, 
   RENDER_FILE_UPDATETICK, 
   RENDER_UPDATETICK, 
-  WebsocketPack, 
   WebPORT, 
-  ExecutePair, 
   FrontendUpdate,
   ProjectTable,
-  ServerBase,
+  SocketPack
 } from 'verteilen-core/dist/interface'
 import { BackendProxy } from '../proxy'
 import { DATA, Util_Server } from './server_logic'
@@ -58,7 +52,6 @@ const $t = i18n.global.t
 const emitter:Emitter<BusType> = inject('emitter')!
 const backend:Ref<BackendProxy> = inject("backend")!
 const preference:Ref<Preference> = inject("preference")!
-const server:Ref<ServerBase | undefined> = ref(undefined)
 const tabs:Ref<Array<[string, string, number]>> = ref([])
 const data:Ref<DATA> = ref({
     websocket_manager: undefined,
@@ -109,7 +102,7 @@ const projectbind = computed(() => {
   if(selectProject.value == undefined) return undefined
   return data.value.databases.find(x => x.uuid == selectProject.value?.database_uuid) 
 })
-const util:Util_Server = new Util_Server(data, emitter, backend, preference, server, config, selectProject, selectTask, selectDatabase)
+const util:Util_Server = new Util_Server(data, emitter, backend, preference, config, selectProject, selectTask, selectDatabase)
 //#endregion
 
 //#region Methods
@@ -183,7 +176,7 @@ const libJs = (code:string, para:Database | undefined) => { backend.value.send('
 const consoleAdded = (name:string, record:Record) => {
   if(backend.value.config.haveBackend){
     // If we have backend, the instance should be place in the backend
-    backend.value.invoke('console_add', name, record, backend.value.config.isExpress ? preference : undefined).then(r => {
+    backend.value.invoke('console_add', name, record, backend.value.config.haveBackend ? preference : undefined).then(r => {
       if(r != undefined){
         data.value.execute_manager.push({ record: r })
         data.value.select_manager = data.value.execute_manager.length - 1
@@ -196,48 +189,7 @@ const consoleAdded = (name:string, record:Record) => {
       }
     })
   }else{
-    //util.server.value?.detail?.console_add(undefined, name, record, undefined)
-    let r:boolean = false
-    const em:ExecuteManager = new ExecuteManager(
-      name,
-      data.value.websocket_manager!, 
-      messager_log, 
-      JSON.parse(JSON.stringify(record))
-    )
-    const er:ExecuteRecord = {
-      ...record,
-      uuid: em.uuid,
-      name: name,
-      running: false,
-      stop: true,
-      process_type: -1,
-      useCron: false,
-      para: undefined,
-      command: [],
-      project: '',
-      task: '',
-      project_index: -1,
-      task_index: -1,
-      project_state: [],
-      task_state: [],
-      task_detail: [],
-    }
-    em.libs = { libs: data.value.libs }
-    const p:ExecutePair = {manager: em, record: er}
-    const uscp:Console_Proxy = new Console_Proxy(p)
-    const uslp:Log_Proxy = new Log_Proxy(p, { logs: data.value.logs }, preference.value)
-    em.proxy = util.CombineProxy([uscp.execute_proxy, uslp.execute_proxy])
-    r = util.console.receivedPack(p, record)
-    if(r){
-      data.value.execute_manager.push(p)
-      data.value.select_manager = data.value.execute_manager.length - 1
-    }else{
-      emitter?.emit('makeToast', {
-        title: 'Execute Failed',
-        message: 'Project execute failed !\nYou can see detail in Console/DebugLog',
-        type: 'warning'
-      })
-    }
+
   }
 }
 const consoleStop = () => {
@@ -320,22 +272,22 @@ const import_project_feedback = (text:string) => {
 
 const debug_feedback = (e:string) => emitter?.emit('debuglog', e)
 
-const newConnect = (x:WebsocketPack) => {
+const newConnect = (x:SocketPack) => {
   emitter?.emit('makeToast', {
     title: i18n.global.t('toast.connection-create-title'),
     type: 'success',
-    message: `${i18n.global.t('toast.connection-create-des')}: ${x.websocket.url} \n${x.uuid}`
+    message: `${i18n.global.t('toast.connection-create-des')}: ${x.socket.id} \n${x.uuid}`
   })
   data.value.execute_manager.forEach(y => {
     y.manager!.NewConnection(x)
   })
 }
 
-const disconnect = (x:WebsocketPack) => {
+const disconnect = (x:SocketPack) => {
   emitter?.emit('makeToast', {
     title: i18n.global.t('toast.connection-remove-title'),
     type: 'danger',
-    message: `${i18n.global.t('toast.connection-remove-des')}: ${x.websocket.url} \n${x.uuid}`
+    message: `${i18n.global.t('toast.connection-remove-des')}: ${x.socket.id} \n${x.uuid}`
   })
   data.value.execute_manager.forEach(y => {
     y.manager!.Disconnect(x)
@@ -418,15 +370,6 @@ const dataset_init = () => {
   updateTab()
   data.value.title = tabs.value.find(x => x[2] == 0)![1]
   const x = config.value
-  if(!x.haveBackend){
-    server.value = new ServerBase()
-    const nodeproxy:NodeProxy = {
-      shellReply: data => { emitter?.emit('shellReply', data) },
-      folderReply: data => { emitter?.emit('folderReply', data) },
-    }
-    data.value.websocket_manager = new WebsocketManager(newConnect, disconnect, onAnalysis, messager_log, nodeproxy)
-    return
-  }
   backend.value.eventOn('shellReply', (data:any) => emitter?.emit('shellReply', data) )
   backend.value.eventOn('folderReply', (data:any) => emitter?.emit('folderReply', data) )
   backend.value.eventOn('frontend_update', repull)
@@ -450,7 +393,7 @@ onMounted(() => {
   emitter.on('updateLocate', updateLocate)
   backend.value.wait_init().then(() => {
     backend.value.eventOn('debuglog', debug_feedback)
-    if(backend.value.config.isExpress){
+    if(backend.value.config.haveBackend){
       backend.value.create_console_host(`wss://${window.location.hostname}:${WebPORT}`, {
         on: emitter!.on,
         off: emitter!.off,
@@ -502,7 +445,7 @@ onUnmounted(() => {
 
       <v-navigation-drawer temporary v-model="data.drawer" :scrim="preference?.animation">
         <v-list density="compact" nav>
-          <v-list-item v-if="backend.config.isExpress"
+          <v-list-item v-if="backend.config.haveBackend"
             :title="backend.user?.name"
             :value="100" 
             @click="data.page = 100; data.title = 'toolbar.profile'"
@@ -649,14 +592,14 @@ onUnmounted(() => {
           :messages="data.messages"
           @clean="util.self.clearMessage()"/>
       </v-tabs-window-item>
-      <v-tabs-window-item v-show="config.isExpress" :value="9">
+      <v-tabs-window-item v-show="config.haveBackend" :value="9">
         <RolePage 
           v-if="data.page == 9"
           :preference="preference"
           :items="[]"
         />
       </v-tabs-window-item>
-      <v-tabs-window-item v-show="config.isExpress" :value="10">
+      <v-tabs-window-item v-show="config.haveBackend" :value="10">
         <ServicePage />
       </v-tabs-window-item>
       <v-tabs-window-item v-show="config.haveBackend" :value="11">
@@ -665,7 +608,7 @@ onUnmounted(() => {
           @added-plugin="pluginAdded"
           @delete-plugin="pluginDelete" />
       </v-tabs-window-item>
-      <v-tabs-window-item v-show="config.isExpress" :value="100">
+      <v-tabs-window-item v-show="config.haveBackend" :value="100">
         <ProfilePage 
           v-if="data.page == 100"
           :backend="backend" />
