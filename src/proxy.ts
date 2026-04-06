@@ -78,7 +78,7 @@ export class BackendProxy {
     fetch_pic = () => {
         return new Promise<void>(async (resolve) => {
             if(this.user != undefined){
-                fetch('/pic').then(x => {
+                fetch('/api/pic').then(x => {
                     this.user!.picture_url = x.ok
                     resolve()
                 }).catch(() => {
@@ -153,7 +153,7 @@ export class BackendProxy {
      * @param args Data 
      */
     send = async (key:string, ...args:Array<any>) => {
-        if(!this.config.haveBackend) return undefined
+        if(!this.config.haveBackend && !this.consoleM?.connected) return undefined
         const d:RawSend = {
             name: key,
             data: args
@@ -168,7 +168,7 @@ export class BackendProxy {
      * @returns Promise return
      */
     invoke = async (key:string, ...args:Array<any>) => {
-        if(!this.config.haveBackend) return undefined
+        if(!this.config.haveBackend && !this.consoleM?.connected) return undefined
         const d:RawSend = {
             name: key,
             data: args
@@ -188,7 +188,7 @@ export class BackendProxy {
      * @param listener Feedback
      */
     eventOn = (channel: string, listener: Listener) => {
-        if(!this.config.haveBackend) return
+        if(!this.config.haveBackend && !this.consoleM?.connected) return
         this.consoleM?.on(channel, listener)
     }
 
@@ -198,7 +198,7 @@ export class BackendProxy {
      * @param listener Feedback
      */
     eventOff = (channel: string, listener: Listener) => {
-        if(!this.config.haveBackend) return
+        if(!this.config.haveBackend && !this.consoleM?.connected) return
         this.consoleM?.off(channel, listener)
     }
 }

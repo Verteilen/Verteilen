@@ -63,7 +63,7 @@
     "nodejs-file-downloader": "^4.13.0",
     "systeminformation": "^5.25.11",
     "uuid": "^11.0.5",
-    "verteilen-core": "^1.4.85",
+    "verteilen-core": "^1.4.86",
     "vue": "^3.3.8",
     "vue-codemirror": "^6.1.1",
     "vue-draggable-next": "^2.3.0",
