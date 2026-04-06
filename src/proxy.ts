@@ -94,31 +94,34 @@ export class BackendProxy {
      * @param _emitter The value which require by the ConsoleManager class
      * @returns 
      */
-    create_console_host = (_url: string, _emitter: EmitterProxy<BusType>) => {
+    create_console_host = (_url: string, _emitter: EmitterProxy<BusType>):Promise<boolean> => {
         let query_url = _url
         if(!query_url.endsWith("/")) query_url += "/"
-        query_url += "test"
+        query_url += "api/test"
         return new Promise<boolean>(async (resolve, reject) => {
             fetch(query_url).then(async x => {
                 if(x.status != 200){
                     reject("test response is not 200")
                 }
                 const res = JSON.parse(await x.text())
-                let websocket_url = _url;
-                websocket_url = websocket_url.replace("http", "ws").replace("https", "wss")
-                this.config.http_url = _url
-                this.config.websocket_url = websocket_url
-                this.consoleM = new ConsoleManager(_url, messager_log, _emitter)
+                this.config.http_url = _url.replace("ws", "http").replace("wss", "https")
+                this.config.websocket_url = _url.replace("http", "ws").replace("https", "wss")
+                this.consoleM = new ConsoleManager(this.config.websocket_url, messager_log, _emitter)
                 let timer:any = undefined
                 timer = setInterval(() => {
                     if(this.consoleM!.readyState != "opening"){
                         clearInterval(timer);
                         this.config.backendType = res.type ?? BackendType.NONE
                         this.config.setup = res.setup ?? true
+                        console.debug("[Debug] this.consoleM!.connected", this.consoleM!.connected)
+                        if(this.consoleM!.connected){
+                            console.debug("[Debug] Id: ", this.consoleM!.Id)
+                        }
                         resolve(this.consoleM!.connected)
                     }
                 }, 50);
             }).catch(err => {
+                console.error(err)
                 reject(err)
             })
         })
@@ -154,11 +157,12 @@ export class BackendProxy {
      */
     send = async (key:string, ...args:Array<any>) => {
         if(!this.config.haveBackend && !this.consoleM?.connected) return undefined
+        if(this.consoleM == undefined) return
         const d:RawSend = {
             name: key,
             data: args
         }
-        this.consoleM?.send(d)
+        this.consoleM!.send(d)
     }
 
     /**
@@ -169,16 +173,24 @@ export class BackendProxy {
      */
     invoke = async (key:string, ...args:Array<any>) => {
         if(!this.config.haveBackend && !this.consoleM?.connected) return undefined
+        if(this.consoleM == undefined) return undefined
         const d:RawSend = {
             name: key,
-            data: args
+            data: args.length == 1 ? args[0] : args
         }
         return new Promise<any>((resolve) => {
-            this.consoleM?.once(`${key}-feedback`, (...args:Array<any>) => {
-                if(args.length == 1) resolve(args[0])
-                else resolve(args)
+            this.consoleM!.once(`${key}-feedback`, (...args2:Array<any>) => {
+                if(args2.length == 1) {
+                    console.debug(`[Debug Proxy Invoke Feedback] ${key}`, args2[0])
+                    resolve(args2[0])
+                }
+                else {
+                    console.debug(`[Debug Proxy Invoke Feedback] ${key}`, args2)
+                    resolve(args2)
+                }
             })
-            this.consoleM?.send(d)
+            this.consoleM!.send(d)
+            console.debug(`[Debug Proxy Invoke] ${key}`, args)
         })
     }
 
@@ -189,7 +201,8 @@ export class BackendProxy {
      */
     eventOn = (channel: string, listener: Listener) => {
         if(!this.config.haveBackend && !this.consoleM?.connected) return
-        this.consoleM?.on(channel, listener)
+        if(this.consoleM == undefined) return
+        this.consoleM!.on(channel, listener)
     }
 
     /**
@@ -197,8 +210,9 @@ export class BackendProxy {
      * @param channel Header name
      * @param listener Feedback
      */
-    eventOff = (channel: string, listener: Listener) => {
+    eventOff = (channel: string) => {
         if(!this.config.haveBackend && !this.consoleM?.connected) return
-        this.consoleM?.off(channel, listener)
+        if(this.consoleM == undefined) return
+        this.consoleM!.off(channel)
     }
 }

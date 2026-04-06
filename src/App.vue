@@ -4,7 +4,6 @@ import { Emitter } from 'mitt'
 import { computed, inject, onMounted, onUnmounted, Ref, ref } from 'vue'
 import { useTheme } from 'vuetify'
 import { BusType, FrontendState, Login, Preference } from 'verteilen-core/dist/interface'
-import { i18n } from './plugins/i18n'
 import { BackendProxy } from './proxy'
 import { vuetify } from './plugins/vuetify'
 //#endregion
@@ -73,6 +72,11 @@ onMounted(() => {
     console.log("isAdmin", config.value.isAdmin)
     console.log("env", process.env.NODE_ENV)
     backend.value.send('message', 'Welcome Compute Tool')
+    if(config.value.haveBackend){
+      backend.value.create_console_host(window.location.href, emitter).then(x => {
+        console.debug("[Debug] create_console_host", x)
+      }).catch(err => { console.error(err) })
+    }
   })
   state_updater = setInterval(updateState, 50);
   data.value.defaultTransition = vuetify.defaults.value?.global
@@ -85,8 +89,7 @@ onMounted(() => {
   backend.value.wait_init().then(() => {
     if(backend.value.config.haveBackend){
       backend.value.eventOn('locate', util.locate)
-      backend.value.eventOn('message', util.message)
-      backend.value.invoke('load_preference', true, token.value).then(x => util.load_preference(x)).then(() => console.log(i18n.global.t('project')))
+      backend.value.eventOn('message', util.message);
     }
   })
 })
@@ -96,8 +99,8 @@ onUnmounted(() => {
   emitter.off('guide', util.guide)
   emitter.off('savePreference', util.save_preference)
   emitter.off('setting', util.setting)
-  backend.value.eventOff('locate', util.locate)
-  backend.value.eventOff('message', util.message)
+  backend.value.eventOff('locate')
+  backend.value.eventOff('message')
 })
 </script>
 

@@ -47,12 +47,14 @@ export class Util_App {
         Cookies.set("theme", v.theme)
         this.backend.value.send('save_preference', JSON.stringify(v, null, 4), this.token.value)
     }
-
-    load_preference = (x:string) => {
-        this.preference.value = JSON.parse(x)
-        console.log(this.preference.value)
+    /**
+     * Recevied preference data from server
+     * @param x 
+     */
+    load_preference = (x:Preference) => {
+        this.preference.value = x
+        console.log("load_preference", this.preference.value)
         this.update_preference(this.preference.value)
-        this.backend.value.send('locate', this.preference.value.lan)  
     }
 
     update_preference = (v:Preference) => {

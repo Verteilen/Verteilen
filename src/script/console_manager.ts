@@ -19,8 +19,8 @@ export class ConsoleManager {
     socket:Socket
     emitter:EmitterProxy<BusType>
     messager_log:Function
-    events:Array<[string, Array<Listener>]>
-    events_once:Array<[string, Array<Listener>]>
+    events:Array<[string, Listener]>
+    events_once:Array<[string, Listener]>
     buffer:Array<Header> = []
 
     constructor(url:string, messager_log:Function, emitter:EmitterProxy<BusType>){
@@ -32,6 +32,7 @@ export class ConsoleManager {
         this.socket = io(this.url, {
             transports: ['websocket'],
             secure: true,
+            autoConnect: true,
             rejectUnauthorized: false,
         })
         this.socket.io.on('error', (err) => {
@@ -44,13 +45,20 @@ export class ConsoleManager {
         this.socket.io.on('open', () => {
             this.messager_log('[Connection] Express New Connection !')
             for(let i = 0; i < this.buffer.length; i++){
-                this.socket.send(JSON.stringify(this.buffer[i]))
+                this.socket.send(this.buffer[i].name, this.buffer[i])
+            }
+            for(let i = 0; i < this.events.length; i++){
+                this.socket.on(this.events[i][0], this.events[i][1])
+            }
+            for(let i = 0; i < this.events_once.length; i++){
+                this.socket.once(this.events_once[i][0], this.events_once[i][1])
             }
             this.buffer = []
         })
-        this.socket.io.on('packet', (packet) => {
-            this.received(packet.data)
-        })
+    }
+
+    public get Id() : string | undefined {
+        return this.socket.id
     }
 
     public get readyState() : string {
@@ -58,7 +66,7 @@ export class ConsoleManager {
     }
 
     public get connected() : boolean {
-        return this.readyState === 'open'
+        return this.readyState == 'open'
     }
 
     connect = () => {
@@ -68,28 +76,25 @@ export class ConsoleManager {
     on = (channel: string, listener: Listener) => {
         const index = this.events.findIndex(x => x[0] == channel)
         if(index == -1){
-            this.events.push([channel, [listener]])
-        }else{
-            this.events[index][1].push(listener)
+            this.events.push([channel, listener])
+            this.socket.on(channel, listener)
         }
     }
 
     once = (channel: string, listener: Listener) => {
         const index = this.events.findIndex(x => x[0] == channel)
         if(index == -1){
-            this.events_once.push([channel, [listener]])
-        }else{
-            this.events_once[index][1].push(listener)
+            this.events_once.push([channel, listener])
+            this.socket.once(channel, listener)
         }
     }
 
-    off = (channel: string, listener: Listener) => {
+    off = (channel: string) => {
         const index = this.events.findIndex(x => x[0] == channel)
         if(index == -1){
             return
         }else{
-            const index2 = this.events[index][1].findIndex(x => x == listener)
-            if(index2 != -1) this.events[index][1].splice(index2, 1)
+            this.events[index].splice(index, 1)
         }
     }
 
@@ -105,54 +110,11 @@ export class ConsoleManager {
             token: data.token,
             data: data.data
         }
-        if(this.socket.io._readyState !== 'open'){
+        if(!this.connected){
+            console.debug("[Debug Console_Manager] Send ! but socket is not connected", this.socket.io._readyState)
             this.buffer.push(d)
         }else{
-            this.socket.send(JSON.stringify(d))
-        }
-    }
-
-    received = (h:Header) => {
-        if (h == undefined){
-            this.messager_log('[Source Analysis] Analysis Failed, Value is undefined')
-            return;
-        }
-        if (h.message != undefined && h.message.length > 0){
-            this.messager_log(`[Source Analysis] ${h.message}`)
-        }
-        if (h.data == undefined) return
-        const index = this.events.findIndex(x => x[0] == h.name)
-        const index2 = this.events_once.findIndex(x => x[0] == h.name)
-        let p = false
-        if(index != -1){
-            const castingFunc = this.events[index][1]
-            castingFunc.forEach(x => {
-                if(h.data instanceof Array){
-                    if(h.data.length == 1) x(h.data[0])
-                    else x(...h.data)
-                }else{
-                    x(h.data)
-                }
-            })
-            p = true
-        }
-
-        if(index2 != -1){
-            const castingFunc = this.events_once[index2][1]
-            castingFunc.forEach(x => {
-                if(h.data instanceof Array){
-                    if(h.data.length == 1) x(h.data[0])
-                    else x(...h.data)
-                }else{
-                    x(h.data)
-                }
-            })
-            this.events_once.splice(index2, 1)
-            p = true
-        }
-
-        if(!p){
-            this.messager_log(`[Source Analysis] Analysis Failed, Unknowed header, name: ${h.name}, meta: ${h.meta}`)
+            this.socket.emit(d.name, d)
         }
     }
 }
