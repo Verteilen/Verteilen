@@ -23,7 +23,26 @@ const config = computed(() => backend.value.config)
 //#endregion
 
 //#region Methods
+const clean_message = () => {
+    setup_message.value = ""
+}
 const confirm = () => {
+    if(server_setting.value.root!.root_username.length == 0){
+        setup_message.value = $t("setup.message.username_empty")
+        return;
+    }
+    if(server_setting.value.root!.root_password.length == 0){
+        setup_message.value = $t("setup.message.password_empty")
+        return;
+    }
+    if(server_setting.value.root!.root_username.length == 8){
+        setup_message.value = $t("setup.message.username_limit")
+        return;
+    }
+    if(server_setting.value.root!.root_password.length == 8){
+        setup_message.value = $t("setup.message.password_limit")
+        return;
+    }
     backend.value.invoke("setup_server", server_setting.value)
 }
 //#endregion
@@ -35,10 +54,17 @@ const confirm = () => {
         <AppBar :title="$t('setup.title')" />
 
         <div style="height: 25vh;"></div>
-        <v-text-field v-model="server_setting.root!.root_username" width="40vw" :label="$t('setup.account')"></v-text-field>
-        <v-text-field v-model="server_setting.root!.root_password" width="40vw" :label="$t('setup.password')"></v-text-field>
+        <v-text-field v-model="server_setting.root!.root_username" 
+            @onchange="clean_message"
+            width="40vw" 
+            :label="$t('setup.account')"></v-text-field>
+        <v-text-field v-model="server_setting.root!.root_password" 
+            @onchange="clean_message"
+            width="40vw" 
+            :label="$t('setup.password')"></v-text-field>
         <h2>{{ $t("setup.auth") }}</h2>
         <v-select 
+            @onchange="clean_message"
             :label="$t('setup.auth_type')" 
             v-model="server_setting.setting!.auth.auth_type" 
             width="40vw" :items="[
@@ -48,6 +74,7 @@ const confirm = () => {
         ]">
         </v-select>
         <v-select v-if="server_setting.setting!.auth.auth_type == 1" 
+            @onchange="clean_message"
             v-model="server_setting.setting!.auth.auth_db" 
             :label="$t('setup.auth_db')" 
             width="40vw" 
@@ -57,6 +84,7 @@ const confirm = () => {
         ]">
         </v-select>
         <v-select v-if="server_setting.setting!.auth.auth_type == 2" 
+            @onchange="clean_message"
             v-model="server_setting.setting!.auth.auth_service" 
             :label="$t('setup.auth_service')" 
             width="40vw" 
@@ -70,6 +98,7 @@ const confirm = () => {
         </v-select>
         <h2>{{ $t("setup.content") }}</h2>
         <v-select 
+            @onchange="clean_message"
             :label="$t('setup.content_type')" 
             v-model="server_setting.setting!.content.content_type" 
             width="40vw" :items="[
@@ -79,6 +108,7 @@ const confirm = () => {
         ]">
         </v-select>
         <v-select v-if="server_setting.setting!.content.content_type == 1" 
+            @onchange="clean_message"
             v-model="server_setting.setting!.content.content_db" 
             :label="$t('setup.content_db')" 
             width="40vw" 
@@ -88,6 +118,7 @@ const confirm = () => {
         ]">
         </v-select>
         <v-select v-if="server_setting.setting!.content.content_type == 2" 
+            @onchange="clean_message"
             v-model="server_setting.setting!.content.content_service" 
             :label="$t('setup.content_service')" 
             width="40vw" 
@@ -99,7 +130,10 @@ const confirm = () => {
         ]">
         </v-select>
 
-        <v-checkbox :label="$t('setup.open_guest')" v-model="server_setting.setting!.open_guest"></v-checkbox>
+        <v-checkbox 
+            @onchange="clean_message"
+            :label="$t('setup.open_guest')" 
+            v-model="server_setting.setting!.open_guest"></v-checkbox>
 
         <v-btn @click="confirm" width="40vw" color="success">{{ $t('confirm') }}</v-btn>
 
