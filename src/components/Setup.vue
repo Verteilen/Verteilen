@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //#region Module
 import { Emitter } from 'mitt';
-import { computed, inject, Ref, ref } from 'vue';
+import { computed, inject, onMounted, Ref, ref } from 'vue';
 import { AuthDB, AuthService, AuthType, BusType, ContentDB, ContentService, ContentType, CreateServerSetupRequire, Preference, ServerSetupRequire } from 'verteilen-core/dist/interface';
 import { BackendProxy } from '../proxy';
 import { i18n } from '../plugins/i18n';
@@ -46,6 +46,10 @@ const confirm = () => {
     backend.value.invoke("setup_server", server_setting.value)
 }
 //#endregion
+
+onMounted(() => {
+    server_setting.value.root.root_username = "root";
+})
 </script>
 
 <template>
@@ -68,10 +72,16 @@ const confirm = () => {
             :label="$t('setup.auth_type')" 
             v-model="server_setting.setting!.auth.auth_type" 
             width="40vw" :items="[
-                { title: $t('setup.auth_types.self'), value: AuthType.SELF },
-                { title: $t('setup.auth_types.external'), value: AuthType.EXTERNAL },
-                { title: $t('setup.auth_types.service'), value: AuthType.SERVICE },
+                { title: $t('setup.auth_types.self'), value: AuthType.SELF, disabled: false },
+                { title: $t('setup.auth_types.external'), value: AuthType.EXTERNAL, disabled: true },
+                { title: $t('setup.auth_types.service'), value: AuthType.SERVICE, disabled: true },
         ]">
+            <template v-slot:item="{ props, item }">
+                <v-list-item
+                    v-bind="props"
+                    :disabled="item.raw.disabled">
+                </v-list-item>
+            </template>
         </v-select>
         <v-select v-if="server_setting.setting!.auth.auth_type == 1" 
             @onchange="clean_message"
@@ -79,9 +89,15 @@ const confirm = () => {
             :label="$t('setup.auth_db')" 
             width="40vw" 
             :items="[
-                { title: 'MongoDB', value: AuthDB.MONGODB },
-                { title: 'Sqlite3', value: AuthDB.SQLITE3 },
+                { title: 'MongoDB', value: AuthDB.MONGODB, disabled: false },
+                { title: 'Sqlite3', value: AuthDB.SQLITE3, disabled: true },
         ]">
+            <template v-slot:item="{ props, item }">
+                <v-list-item
+                    v-bind="props"
+                    :disabled="item.raw.disabled">
+                </v-list-item>
+            </template>
         </v-select>
         <v-select v-if="server_setting.setting!.auth.auth_type == 2" 
             @onchange="clean_message"
@@ -89,12 +105,17 @@ const confirm = () => {
             :label="$t('setup.auth_service')" 
             width="40vw" 
             :items="[
-                { title: 'Auth0', value: AuthService.AUTH0 },
-                { title: 'Clerk', value: AuthService.CLERK },
-                { title: 'Firebase', value: AuthService.FIREBASE },
-                { title: 'Supabase', value: AuthService.SUPABASE },
+                { title: 'Auth0', value: AuthService.AUTH0, disabled: true },
+                { title: 'Clerk', value: AuthService.CLERK, disabled: true },
+                { title: 'Firebase', value: AuthService.FIREBASE, disabled: false },
+                { title: 'Supabase', value: AuthService.SUPABASE, disabled: true },
         ]">
-
+            <template v-slot:item="{ props, item }">
+                <v-list-item
+                    v-bind="props"
+                    :disabled="item.raw.disabled">
+                </v-list-item>
+            </template>
         </v-select>
         <h2>{{ $t("setup.content") }}</h2>
         <v-select 
@@ -102,10 +123,16 @@ const confirm = () => {
             :label="$t('setup.content_type')" 
             v-model="server_setting.setting!.content.content_type" 
             width="40vw" :items="[
-                { title: $t('setup.content_types.local'), value: ContentType.LOCAL },
-                { title: $t('setup.content_types.external'), value: ContentType.EXTERNAL },
-                { title: $t('setup.content_types.service'), value: ContentType.SERVICE },
+                { title: $t('setup.content_types.local'), value: ContentType.LOCAL, disabled: false },
+                { title: $t('setup.content_types.external'), value: ContentType.EXTERNAL, disabled: true },
+                { title: $t('setup.content_types.service'), value: ContentType.SERVICE, disabled: true },
         ]">
+            <template v-slot:item="{ props, item }">
+                <v-list-item
+                    v-bind="props"
+                    :disabled="item.raw.disabled">
+                </v-list-item>
+            </template>
         </v-select>
         <v-select v-if="server_setting.setting!.content.content_type == 1" 
             @onchange="clean_message"
@@ -113,8 +140,8 @@ const confirm = () => {
             :label="$t('setup.content_db')" 
             width="40vw" 
             :items="[
-                { title: 'MongoDB', value: ContentDB.MONGODB },
-                { title: 'FTP', value: ContentDB.FTP },
+                { title: 'MongoDB', value: ContentDB.MONGODB, disabled: false },
+                { title: 'FTP', value: ContentDB.FTP, disabled: false },
         ]">
         </v-select>
         <v-select v-if="server_setting.setting!.content.content_type == 2" 
@@ -123,17 +150,27 @@ const confirm = () => {
             :label="$t('setup.content_service')" 
             width="40vw" 
             :items="[
-                { title: 'BigTable', value: ContentService.BIGTABLE },
-                { title: 'Cosmos', value: ContentService.COSMOS },
-                { title: 'DynamoDB', value: ContentService.DYNAMODB },
-                { title: 'MongoDB', value: ContentService.MONGODB },
+                { title: 'BigTable', value: ContentService.BIGTABLE, disabled: true },
+                { title: 'Cosmos', value: ContentService.COSMOS, disabled: true },
+                { title: 'DynamoDB', value: ContentService.DYNAMODB, disabled: true },
+                { title: 'MongoDB', value: ContentService.MONGODB, disabled: false },
         ]">
+            <template v-slot:item="{ props, item }">
+                <v-list-item
+                    v-bind="props"
+                    :disabled="item.raw.disabled">
+                </v-list-item>
+            </template>
         </v-select>
 
         <v-checkbox 
             @onchange="clean_message"
             :label="$t('setup.open_guest')" 
             v-model="server_setting.setting!.open_guest"></v-checkbox>
+        <v-checkbox 
+            @onchange="clean_message"
+            :label="$t('setup.open_register')" 
+            v-model="server_setting.setting!.open_register"></v-checkbox>
 
         <v-btn @click="confirm" width="40vw" color="success">{{ $t('confirm') }}</v-btn>
 

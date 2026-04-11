@@ -40,10 +40,6 @@ const util = new Util_App(data, theme, emitter, backend, preference, token)
 //#endregion
 
 //#region Methods
-const relogin = () => {
-  config.value.login = false
-  backend.value.removeCookie('token')
-}
 const loginGuest = () => {
   config.value.login = true
   backend.value.removeCookie('token')
@@ -54,11 +50,10 @@ const loginGuest = () => {
 const trylogin = (v:Login) => {
   backend.value.invoke('load_preference', token.value).then(x => util.load_preference(x))
 }
-const UpdateSelection = (mode:number | undefined, url:string | undefined):void => {
-  preference.value.mode = mode
-  preference.value.url = url
-  util.save_preference(preference.value)
-}
+/**
+ * Because object cannot trigger vue update cycle, so we create a interval get update the state in the page\
+ * This will decide the current showing page
+ */
 const updateState = () => {
   state.value = backend.value.state()
 }
@@ -81,7 +76,6 @@ onMounted(() => {
   state_updater = setInterval(updateState, 50);
   data.value.defaultTransition = vuetify.defaults.value?.global
   emitter.on('guide', util.guide)
-  emitter.on('relogin', relogin)
   emitter.on('loginGuest', loginGuest)
   emitter.on('login', trylogin)
   emitter.on('savePreference', util.save_preference)

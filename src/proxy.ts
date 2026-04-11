@@ -215,4 +215,9 @@ export class BackendProxy {
         if(this.consoleM == undefined) return
         this.consoleM!.off(channel)
     }
+
+    relogin = () => {
+        this.config.login = false
+        this.removeCookie('token')
+    }
 }
