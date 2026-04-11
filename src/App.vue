@@ -49,6 +49,7 @@ const loginGuest = () => {
 }
 const trylogin = (v:Login) => {
   backend.value.invoke('load_preference', token.value).then(x => util.load_preference(x))
+  backend.value.invoke('login')
 }
 /**
  * Because object cannot trigger vue update cycle, so we create a interval get update the state in the page\

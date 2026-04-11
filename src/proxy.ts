@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType, FrontendState } from "verteilen-core/dist/interface";
+import { AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType, FrontendState, ServerSetting } from "verteilen-core/dist/interface";
 import { checkExpressType, checkIfExpress } from "./platform";
 import Cookies from 'js-cookie'
 import { messager_log } from "./debugger";
@@ -21,6 +21,7 @@ export class BackendProxy {
      */
     consoleM: ConsoleManager | undefined
     is_init: boolean
+    setting: ServerSetting | undefined
     user: UserProfileClient = reactive({
         picture_url: false,
         name: "",
@@ -113,6 +114,7 @@ export class BackendProxy {
                         clearInterval(timer);
                         this.config.backendType = res.type ?? BackendType.NONE
                         this.config.setup = res.setup ?? true
+                        this.setting = res.setting ?? undefined
                         console.debug("[Debug] this.consoleM!.connected", this.consoleM!.connected)
                         if(this.consoleM!.connected){
                             console.debug("[Debug] Id: ", this.consoleM!.Id)

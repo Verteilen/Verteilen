@@ -43,7 +43,10 @@ const confirm = () => {
         setup_message.value = $t("setup.message.password_limit")
         return;
     }
-    backend.value.invoke("setup_server", server_setting.value)
+    backend.value.invoke("setup_server", server_setting.value).then(x => {
+        alert($t('setup.success'))
+        location.reload()
+    })
 }
 //#endregion
 

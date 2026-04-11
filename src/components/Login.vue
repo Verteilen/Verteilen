@@ -2,7 +2,7 @@
 //#region Module
 import { Emitter } from 'mitt';
 import { computed, inject, onMounted, Ref, ref } from 'vue';
-import { BusType, Preference } from 'verteilen-core/dist/interface';
+import { BusType, Preference, ServerSetting } from 'verteilen-core/dist/interface';
 import { BackendProxy } from '../proxy';
 import { i18n } from '../plugins/i18n';
 import Layout from './components/layout/Layout.vue';
@@ -20,6 +20,7 @@ const login_message = ref("")
 const server = ref("https://localhost:11080")
 const connected:Ref<boolean> = ref(false)
 const haveBackend:Ref<boolean> = ref(false)
+const server_setting:Ref<ServerSetting | undefined> = ref(undefined)
 //#endregion
 
 //#region Computed
@@ -67,6 +68,7 @@ onMounted(() => {
     cleanFields()
     backend.value.wait_init().then(() => {
         haveBackend.value = config.value.haveBackend
+        server_setting.value = backend.value.setting
     })
 })
 //#endregion
@@ -89,7 +91,7 @@ onMounted(() => {
         <div v-if="connected || haveBackend">
             <v-text-field v-model="account" width="40vw" :label="$t('login.account')"></v-text-field>
             <v-text-field v-model="password" width="40vw" :label="$t('login.password')"></v-text-field>
-            <v-row class="w-100">
+            <v-row class="w-100" v-if="server_setting?.open_guest">
                 <v-col>
                     <v-btn class="w-100" @click="loginClick" width="150" color="success">{{ $t('login.submit') }}</v-btn>
                 </v-col>
@@ -97,6 +99,7 @@ onMounted(() => {
                     <v-btn class="w-100" @click="guestClick" width="150" color="success">{{ $t('login.guest') }}</v-btn>
                 </v-col>
             </v-row>
+            <v-btn v-else class="w-100" @click="loginClick" width="150" color="success">{{ $t('login.submit') }}</v-btn>
         </div>
         <br />
         <p>{{ login_message }}</p>
