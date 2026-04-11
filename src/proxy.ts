@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType, FrontendState, ServerSetting } from "verteilen-core/dist/interface";
+import { AppConfig, RawSend, UserProfileClient, UserType, BackendType, EmitterProxy, BusType, FrontendState, ServerSetting, Login } from "verteilen-core/dist/interface";
 import { checkExpressType, checkIfExpress } from "./platform";
 import Cookies from 'js-cookie'
 import { messager_log } from "./debugger";
@@ -221,5 +221,13 @@ export class BackendProxy {
     relogin = () => {
         this.config.login = false
         this.removeCookie('token')
+    }
+
+    login = (login:Login) => {
+        let url = ""
+        if(this.config.haveBackend){
+        }
+        url += "/api/login"
+        fetch()
     }
 }

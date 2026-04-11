@@ -47,10 +47,6 @@ const loginGuest = () => {
     backend.value.invoke('load_preference', token.value).then(x => util.load_preference(x))
   })
 }
-const trylogin = (v:Login) => {
-  backend.value.invoke('load_preference', token.value).then(x => util.load_preference(x))
-  backend.value.invoke('login')
-}
 /**
  * Because object cannot trigger vue update cycle, so we create a interval get update the state in the page\
  * This will decide the current showing page
@@ -78,7 +74,6 @@ onMounted(() => {
   data.value.defaultTransition = vuetify.defaults.value?.global
   emitter.on('guide', util.guide)
   emitter.on('loginGuest', loginGuest)
-  emitter.on('login', trylogin)
   emitter.on('savePreference', util.save_preference)
   emitter.on('setting', util.setting)
   backend.value.wait_init().then(() => {

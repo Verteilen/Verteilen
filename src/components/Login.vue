@@ -32,29 +32,34 @@ const cleanFields = () => {
     account.value = ""
     password.value = ""
 }
-const tryConnect = () => {
+const tryConnect = (callback?:(success:boolean)=>void) => {
     if(backend.value.consoleM?.connected){
         backend.value.consoleM.close();
         backend.value.consoleM = undefined
         login_message.value = ""
         connected.value = false
+        if(callback) callback(false)
     }else{
         backend.value.create_console_host(server.value, emitter).then(x => {
             if(!x) login_message.value = $t("login.connect_failed")
             else login_message.value = $t("login.connect_success")
             connected.value = backend.value.consoleM?.connected ?? false
+            if(callback) callback(x)
         }).catch(err => {
             login_message.value = err
             console.error(err)
             connected.value = false
+            if(callback) callback(false)
         })
     }
 }
 const loginClick = () => {
     if(config.value.haveBackend){
-        emitter.emit('login', { username: account.value, password: password.value })
+        backend.value.login({ username: account.value, password: password.value })
     }else {
-        tryConnect();
+        tryConnect((a) => {
+            if(a) backend.value.login({ username: account.value, password: password.value })
+        });
     }
 }
 const guestClick = () => {
