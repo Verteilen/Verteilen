@@ -28,6 +28,7 @@ const data:Ref<DATA> = ref({
   settingModal: false,
   defaultTransition: undefined
 })
+const init = ref(false)
 const state:Ref<FrontendState> = ref(FrontendState.NONE)
 let state_updater:any = undefined
 //#endregion
@@ -52,7 +53,7 @@ const loginGuest = () => {
  * This will decide the current showing page
  */
 const updateState = () => {
-  state.value = backend.value.state()
+  state.value = init ? backend.value.state() : FrontendState.NONE
 }
 //#endregion
 
@@ -67,7 +68,10 @@ onMounted(() => {
     if(config.value.haveBackend){
       backend.value.create_console_host(window.location.href, emitter).then(x => {
         console.debug("[Debug] create_console_host", x)
+        init.value = true
       }).catch(err => { console.error(err) })
+    }else{
+      init.value = true
     }
   })
   state_updater = setInterval(updateState, 50);

@@ -33,7 +33,7 @@ export class BackendProxy {
     constructor(){
         this.user = reactive(this.user)
         this.config = {
-            setup: false,
+            setup: true,
             isAdmin: false,
             haveBackend: false,
             login: false,
@@ -96,8 +96,8 @@ export class BackendProxy {
      * @returns 
      */
     create_console_host = (_url: string, _emitter: EmitterProxy<BusType>):Promise<boolean> => {
+        if(!_url.endsWith("/")) _url += "/"
         let query_url = _url
-        if(!query_url.endsWith("/")) query_url += "/"
         query_url += "api/test"
         return new Promise<boolean>(async (resolve, reject) => {
             fetch(query_url).then(async x => {
@@ -116,6 +116,7 @@ export class BackendProxy {
                         this.config.setup = res.setup ?? true
                         this.setting = res.setting ?? undefined
                         console.debug("[Debug] this.consoleM!.connected", this.consoleM!.connected)
+                        console.debug("[Debug] this.config.setup", this.config.setup)
                         if(this.consoleM!.connected){
                             console.debug("[Debug] Id: ", this.consoleM!.Id)
                         }
@@ -225,9 +226,21 @@ export class BackendProxy {
 
     login = (login:Login) => {
         let url = ""
-        if(this.config.haveBackend){
+        if(!this.config.haveBackend && this.config.http_url != undefined){
+            url += this.config.http_url
         }
         url += "/api/login"
-        fetch()
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(login)
+        }).then(async x => {
+            const text = await x.text()
+            console.log("login", text)
+        }).catch(err => {
+            console.error(err)
+        })
     }
 }
