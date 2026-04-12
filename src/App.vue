@@ -58,6 +58,10 @@ const updateState = () => {
 //#endregion
 
 onMounted(() => {
+  /**
+   * Trying to init the proxy component first
+   * this will trying to figure out the current state
+   */
   backend.value.init().then(() => {
     console.log("haveBackend", config.value.haveBackend)
     console.log("backendType", config.value.backendType)
@@ -66,31 +70,45 @@ onMounted(() => {
     console.log("env", process.env.NODE_ENV)
     backend.value.send('message', 'Welcome Compute Tool')
     if(config.value.haveBackend){
+      /**
+       * This means this frontend is coming from server, it's not a static-website
+       * In this case we could just connect it with socket-io client
+       */
       backend.value.create_console_host(window.location.href, emitter).then(x => {
         console.debug("[Debug] create_console_host", x)
         init.value = true
+        /**
+         * After socket-io created
+         * We can bind events now
+         */
+        backend.value.eventOn('locate', util.locate)
+        backend.value.eventOn('message', util.message);
       }).catch(err => { console.error(err) })
+      // 
     }else{
       init.value = true
     }
   })
+  /**
+   * Since the proxy object is a pure typescript class
+   * This does not hook with vue computed easily
+   * So i made this setInterval to fetch the state
+   */
   state_updater = setInterval(updateState, 50);
   data.value.defaultTransition = vuetify.defaults.value?.global
+  /**
+   * Binding in vue eco-system events
+   */
   emitter.on('guide', util.guide)
   emitter.on('loginGuest', loginGuest)
   emitter.on('savePreference', util.save_preference)
   emitter.on('setting', util.setting)
-  backend.value.wait_init().then(() => {
-    if(backend.value.config.haveBackend){
-      backend.value.eventOn('locate', util.locate)
-      backend.value.eventOn('message', util.message);
-    }
-  })
 })
 
 onUnmounted(() => {
   clearImmediate(state_updater)
   emitter.off('guide', util.guide)
+  emitter.off('loginGuest', loginGuest)
   emitter.off('savePreference', util.save_preference)
   emitter.off('setting', util.setting)
   backend.value.eventOff('locate')
