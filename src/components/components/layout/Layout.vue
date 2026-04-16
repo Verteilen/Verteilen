@@ -6,7 +6,7 @@ const preference:Ref<Preference> = inject("preference")!
 </script>
 
 <template>
-    <div style="margin: 0; padding-top: 16px; width: 100vw; height: 100vh; place-items: center;"
+    <div style="margin: 0; padding-top: 16px; width: 100vw; height: 100vh;"
         :class="{ 'bg-dark': preference.theme == 'dark', 'bg-light': preference.theme == 'light' }">
         <slot></slot>
     </div>

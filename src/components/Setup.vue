@@ -63,15 +63,18 @@ onMounted(() => {
         <div style="height: 25vh;"></div>
         <v-text-field v-model="server_setting.root!.root_username" 
             @onchange="clean_message"
-            width="40vw" 
+            style="margin-left: 30vw"
+            width="40vw"
             :label="$t('setup.account')"></v-text-field>
         <v-text-field v-model="server_setting.root!.root_password" 
             @onchange="clean_message"
+            style="margin-left: 30vw"
             width="40vw" 
             :label="$t('setup.password')"></v-text-field>
         <h2>{{ $t("setup.auth") }}</h2>
         <v-select 
             @onchange="clean_message"
+            style="margin-left: 30vw"
             :label="$t('setup.auth_type')" 
             v-model="server_setting.setting!.auth.auth_type" 
             width="40vw" :items="[
@@ -88,6 +91,7 @@ onMounted(() => {
         </v-select>
         <v-select v-if="server_setting.setting!.auth.auth_type == 1" 
             @onchange="clean_message"
+            style="margin-left: 30vw"
             v-model="server_setting.setting!.auth.auth_db" 
             :label="$t('setup.auth_db')" 
             width="40vw" 
@@ -104,6 +108,7 @@ onMounted(() => {
         </v-select>
         <v-select v-if="server_setting.setting!.auth.auth_type == 2" 
             @onchange="clean_message"
+            style="margin-left: 30vw"
             v-model="server_setting.setting!.auth.auth_service" 
             :label="$t('setup.auth_service')" 
             width="40vw" 
@@ -123,6 +128,7 @@ onMounted(() => {
         <h2>{{ $t("setup.content") }}</h2>
         <v-select 
             @onchange="clean_message"
+            style="margin-left: 30vw"
             :label="$t('setup.content_type')" 
             v-model="server_setting.setting!.content.content_type" 
             width="40vw" :items="[
@@ -139,6 +145,7 @@ onMounted(() => {
         </v-select>
         <v-select v-if="server_setting.setting!.content.content_type == 1" 
             @onchange="clean_message"
+            style="margin-left: 30vw"
             v-model="server_setting.setting!.content.content_db" 
             :label="$t('setup.content_db')" 
             width="40vw" 
@@ -149,6 +156,7 @@ onMounted(() => {
         </v-select>
         <v-select v-if="server_setting.setting!.content.content_type == 2" 
             @onchange="clean_message"
+            style="margin-left: 30vw"
             v-model="server_setting.setting!.content.content_service" 
             :label="$t('setup.content_service')" 
             width="40vw" 
@@ -168,10 +176,12 @@ onMounted(() => {
 
         <v-checkbox 
             @onchange="clean_message"
+            style="margin-left: 30vw"
             :label="$t('setup.open_guest')" 
             v-model="server_setting.setting!.open_guest"></v-checkbox>
         <v-checkbox 
             @onchange="clean_message"
+            style="margin-left: 30vw"
             :label="$t('setup.open_register')" 
             v-model="server_setting.setting!.open_register"></v-checkbox>
 
