@@ -359,22 +359,6 @@ onUnmounted(() => {
                 </v-tooltip>
                 <v-tooltip location="bottom" v-if="model.record != undefined">
                     <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(false, 0)" :disabled="model.record!.running || firstProject" color="info">
-                            <v-icon>mdi-skip-backward</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('project') }}
-                </v-tooltip>
-                <v-tooltip location="bottom" v-if="model.record != undefined">
-                    <template v-slot:activator="{ props }">
-                        <v-btn icon v-bind="props" @click="skip(true, 0)" :disabled="model.record!.running" color="info">
-                            <v-icon>mdi-skip-forward</v-icon>
-                        </v-btn>
-                    </template>
-                    {{ $t('project') }}
-                </v-tooltip>
-                <v-tooltip location="bottom" v-if="model.record != undefined">
-                    <template v-slot:activator="{ props }">
                         <v-btn icon v-bind="props" @click="skip(true, 1)" :disabled="model.record!.running" color="info">
                             <v-icon>mdi-skip-next</v-icon>
                         </v-btn>
